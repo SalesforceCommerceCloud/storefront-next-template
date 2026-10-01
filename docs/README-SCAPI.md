@@ -7,6 +7,8 @@ The storefront communicates with Salesforce B2C Commerce through **SCAPI (Salesf
 
 Both modes use the same command (`sfnext scapi add`) and produce type-safe TypeScript clients integrated with the existing middleware stack (auth, correlation IDs, maintenance detection).
 
+SCAPI can cache eligible `GET` responses when page caching is enabled. Storefront Next can also add `personalized=none` after one central policy classifies a request. The policy applies to each active client. The default policy approves only reviewed built-in transports. It leaves overrides and custom clients unclassified until you review and approve their exact transports. See [SCAPI Non-Personalized Responses](./README-SCAPI-NON-PERSONALIZED-RESPONSES.md).
+
 ## How template code consumes SCAPI types
 
 All template code imports SCAPI types and clients from the local barrel `@/scapi`, **not** directly from `@salesforce/storefront-next-runtime/scapi`:
@@ -204,7 +206,7 @@ Each entry:
 - **Custom entries** are added as new properties on the clients object.
 - **Auth and basket helpers** (`clients.auth`, `clients.basket`) are rebuilt against the active clients when their underlying clients (`shopperLogin` / `shopperBasketsV2`) are overridden, keeping the helpers consistent with what the application actually talks to.
 
-All clients share the same middleware stack: auth (Bearer tokens, `sfdc_dwsid`), correlation IDs, identifying headers, and maintenance detection.
+All clients use the same middleware stack. The stack supplies authentication, correlation IDs, identifying headers, and maintenance detection. The stack also classifies non-personalized responses.
 
 ## Using Clients in Your Code
 

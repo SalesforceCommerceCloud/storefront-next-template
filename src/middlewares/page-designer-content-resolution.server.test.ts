@@ -242,6 +242,7 @@ describe('pageDesignerResolutionMiddleware', () => {
             const entries = Array.from(registry.entries());
             expect(entries).toHaveLength(1);
             expect(entries[0].clients).toEqual(['shopperExperience']);
+            expect(entries[0].mayReturnResponse).toBe(true);
             expect(typeof entries[0].factory).toBe('function');
             expect(next).toHaveBeenCalled();
         });

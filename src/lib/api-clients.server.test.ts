@@ -20,7 +20,8 @@ import { authContext } from '@/middlewares/auth.utils';
 import type { SessionData } from '@/lib/api/types';
 import type { Logger } from '@/lib/logger';
 import { loggerContext } from '@/lib/logger.server';
-import { scapiMiddlewareContext } from './scapi-middleware';
+import { createMaintenance, maintenanceContext } from './maintenance';
+import { scapiMiddlewareContext, ScapiMiddlewareRegistry } from './scapi-middleware';
 import {
     createApiClients,
     createDedupedFetch,
@@ -30,6 +31,7 @@ import {
 
 const scapiMocks = vi.hoisted(() => {
     const mockUse = vi.fn();
+    const mockBuiltInUse = vi.fn();
     const mockCustomUse = vi.fn();
     const mockCreateClient = vi.fn(() => ({
         use: mockCustomUse,
@@ -39,11 +41,12 @@ const scapiMocks = vi.hoisted(() => {
     const mockClients = {
         use: mockUse,
         shopperBasketsV2: {},
-        shopperProducts: {},
+        shopperProducts: { use: mockBuiltInUse },
     };
 
     return {
         mockUse,
+        mockBuiltInUse,
         mockCustomUse,
         mockCreateClient,
         mockCreateOpenApiFetchClient,
@@ -119,6 +122,9 @@ const createMockContextProvider = (): RouterContextProvider => {
 
 // Mock the createCommerceApiClients function
 vi.mock('@salesforce/storefront-next-runtime/scapi', () => ({
+    BUILT_IN_CLIENT_DEFAULTS: {
+        shopperProducts: { basePath: '/product/shopper-products/v1', supportsLocale: true },
+    },
     createCommerceApiClients: vi.fn(() => scapiMocks.mockClients),
     createClient: scapiMocks.mockCreateClient,
     createOpenApiFetchClient: scapiMocks.mockCreateOpenApiFetchClient,
@@ -195,6 +201,7 @@ describe('createApiClients', () => {
         });
         mockCreateCommerceApiClients.mockReturnValue(scapiMocks.mockClients);
         scapiMocks.mockUse.mockClear();
+        scapiMocks.mockBuiltInUse.mockClear();
         scapiMocks.mockCustomUse.mockClear();
         scapiMocks.mockCreateClient.mockClear();
         scapiMocks.mockCreateOpenApiFetchClient.mockClear();
@@ -230,9 +237,10 @@ describe('createApiClients', () => {
             createApiClients(mockContextProvider);
 
             // Three middlewares on client-side: correlation, auth, identifying headers
-            expect(scapiMocks.mockUse).toHaveBeenCalledTimes(3);
-            expect(scapiMocks.mockCustomUse).toHaveBeenCalledTimes(3);
-            expect(scapiMocks.mockUse).toHaveBeenCalledWith(
+            expect(scapiMocks.mockUse).not.toHaveBeenCalled();
+            expect(scapiMocks.mockCustomUse).toHaveBeenCalledTimes(4);
+            expect(scapiMocks.mockBuiltInUse).toHaveBeenCalledTimes(4);
+            expect(scapiMocks.mockBuiltInUse).toHaveBeenCalledWith(
                 expect.objectContaining({
                     onRequest: expect.any(Function),
                 })
@@ -288,6 +296,79 @@ describe('createApiClients', () => {
                     onAuthTokenInvalid: expect.any(Function),
                 })
             );
+        });
+
+        it('registers synthetic-response middleware before client bookkeeping and classification', () => {
+            vi.stubGlobal('window', undefined);
+            const registry = new ScapiMiddlewareRegistry();
+            const syntheticMiddleware = { onRequest: vi.fn(() => new Response('{}')) };
+            registry.register('synthetic-response', {
+                clients: ['shopperProducts'],
+                mayReturnResponse: true,
+                factory: () => syntheticMiddleware,
+            });
+            mockContextProvider.set(scapiMiddlewareContext, registry);
+
+            createApiClients(mockContextProvider);
+
+            expect(scapiMocks.mockBuiltInUse.mock.calls[0][0]).toBe(syntheticMiddleware);
+            expect(scapiMocks.mockBuiltInUse.mock.calls.at(-1)?.[0]).toEqual(
+                expect.objectContaining({ onRequest: expect.any(Function) })
+            );
+        });
+
+        it('correlates logging and maintenance when later middleware replaces the request', async () => {
+            vi.stubGlobal('window', undefined);
+            const maintenance = createMaintenance();
+            const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+            mockContextProvider.set(maintenanceContext, maintenance);
+            mockContextProvider.set(loggerContext, logger as unknown as Logger);
+
+            createApiClients(mockContextProvider);
+
+            const loggingMiddleware = scapiMocks.mockBuiltInUse.mock.calls[0][0];
+            const maintenanceMiddleware = scapiMocks.mockBuiltInUse.mock.calls[4][0];
+            const original = new Request('https://kv7kzm78.api.commercecloud.salesforce.com/products');
+            const replacement = new Request(`${original.url}?personalized=none`);
+            const id = 'request-id';
+
+            loggingMiddleware.onRequest({ request: original, id });
+            maintenanceMiddleware.onRequest({ request: original, id });
+            maintenanceMiddleware.onResponse({ request: replacement, response: new Response('{}'), id });
+            loggingMiddleware.onResponse({ request: replacement, response: new Response('{}'), id });
+
+            await expect(maintenance.promise).resolves.toBe(false);
+            expect(logger.debug).toHaveBeenCalledWith(
+                '[ApiClients] fetch GET /products',
+                expect.objectContaining({
+                    status: 200,
+                    duration: expect.any(Number),
+                    apiParams: { personalized: 'none' },
+                    personalizationMode: 'absent',
+                })
+            );
+        });
+
+        it('logs final repeated query values when personalization is absent', () => {
+            vi.stubGlobal('window', undefined);
+            const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+            mockContextProvider.set(loggerContext, logger as unknown as Logger);
+            createApiClients(mockContextProvider);
+            const loggingMiddleware = scapiMocks.mockBuiltInUse.mock.calls[0][0];
+            const request = new Request(
+                'https://kv7kzm78.api.commercecloud.salesforce.com/search?refine=first&refine=second'
+            );
+            const id = 'request-id';
+
+            loggingMiddleware.onRequest({ request, id });
+            loggingMiddleware.onResponse({ request, response: new Response('{}'), id });
+
+            expect(logger.debug).toHaveBeenCalledWith('[ApiClients] fetch GET /search', {
+                status: 200,
+                duration: expect.any(Number),
+                apiParams: { refine: ['first', 'second'] },
+                personalizationMode: 'absent',
+            });
         });
     });
 
@@ -345,7 +426,7 @@ describe('createApiClients', () => {
         beforeEach(() => {
             createApiClients(mockContextProvider);
             // authMiddleware is at index 1 (correlation at 0)
-            authMiddleware = scapiMocks.mockUse.mock.calls[1][0];
+            authMiddleware = scapiMocks.mockBuiltInUse.mock.calls[1][0];
         });
 
         it('should have onRequest method', () => {
