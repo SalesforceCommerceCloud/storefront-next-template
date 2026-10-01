@@ -39,6 +39,10 @@ const VERTICALS = {
 	furniture: {
 		label: "Salesforce B2C Commerce Furniture Storefront (Furniture)",
 		url: "https://github.com/SalesforceCommerceCloud/storefront-next-furniture"
+	},
+	luxury: {
+		label: "Salesforce B2C Commerce Luxury Storefront (Luxury)",
+		url: "https://github.com/SalesforceCommerceCloud/storefront-next-luxury"
 	}
 };
 const DEFAULT_VERTICAL = "fashion";
@@ -257,7 +261,8 @@ var CreateStorefront = class CreateStorefront extends Command {
 				"cosmetic",
 				"foundations",
 				"footwear",
-				"furniture"
+				"furniture",
+				"luxury"
 			]
 		}),
 		"template-branch": Flags.string({

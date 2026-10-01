@@ -67,6 +67,7 @@ This repository is one of several published storefront templates, each starting 
 | Footwear | `footwear` | [storefront-next-footwear](https://github.com/SalesforceCommerceCloud/storefront-next-footwear) |
 | Foundations | `foundations` | [storefront-next-foundations](https://github.com/SalesforceCommerceCloud/storefront-next-foundations) |
 | Furniture | `furniture` | [storefront-next-furniture](https://github.com/SalesforceCommerceCloud/storefront-next-furniture) |
+| Luxury | `luxury` | [storefront-next-luxury](https://github.com/SalesforceCommerceCloud/storefront-next-luxury) |
 
 Each repository ships with its own default demo data out of the box. Connect your own B2C Commerce instance to browse your real catalog.
 

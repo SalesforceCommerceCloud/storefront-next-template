@@ -1042,6 +1042,21 @@ describe('create-storefront', () => {
             expect(prompts).not.toHaveBeenCalledWith(expect.objectContaining({ name: 'template' }));
         });
 
+        it('should clone the luxury vertical repo without prompting when --vertical luxury is provided', async () => {
+            mockRemoteClone();
+
+            await createStorefront({ name: 'my-storefront', vertical: 'luxury', defaults: true });
+
+            expect(execFileSync).toHaveBeenCalledWith('git', [
+                'clone',
+                '--depth',
+                '1',
+                'https://github.com/SalesforceCommerceCloud/storefront-next-luxury',
+                'my-storefront',
+            ]);
+            expect(prompts).not.toHaveBeenCalledWith(expect.objectContaining({ name: 'template' }));
+        });
+
         it('should abort with a helpful message when an unknown vertical is provided', async () => {
             vi.mocked(execSync).mockImplementation(() => '');
 

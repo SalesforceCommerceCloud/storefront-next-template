@@ -44,7 +44,7 @@ export default class CreateStorefront extends Command {
             char: 'V',
             description:
                 'Vertical template to generate from. Selects the matching published template repository. Ignored if --template is provided.',
-            options: ['fashion', 'cosmetic', 'foundations', 'footwear', 'furniture'],
+            options: ['fashion', 'cosmetic', 'foundations', 'footwear', 'furniture', 'luxury'],
         }),
         'template-branch': Flags.string({
             char: 'b',
