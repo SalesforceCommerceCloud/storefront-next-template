@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, useCallback, useEffect } from 'react';
+import { type ReactElement, useCallback, useEffect, useRef } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import type { ShopperStores } from '@/scapi';
 import { Store } from 'lucide-react';
@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/typography';
 import StoreAddress from '@/extensions/store-locator/components/store-locator/address';
 import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
+import type { PickupContext } from '@/extensions/store-locator/stores/store-locator-store';
 import { useChangePickupStore } from '@/extensions/bopis/hooks/use-change-pickup-store';
 
 interface CartPickupProps {
@@ -30,6 +31,13 @@ interface CartPickupProps {
     pickupCount: number;
     /** Total basket line items (pickup + delivery) for “out of” copy. */
     totalCount: number;
+    /**
+     * The line item being collected, passed to the store locator when "Change Store" opens it so a
+     * consumer that scopes the store list by inventory (e.g. the luxury boutique picker) can pre-disable
+     * boutiques that don't stock the item. Omitted when the pickup group holds more than one line item —
+     * a single-product availability signal would be misleading for a mixed group.
+     */
+    pickupContext?: PickupContext;
 }
 
 /**
@@ -47,35 +55,32 @@ interface CartPickupProps {
  * @example
  * <CartPickup store={store} pickupCount={2} totalCount={5} />
  */
-export default function CartPickup({ store, pickupCount, totalCount }: CartPickupProps): ReactElement {
+export default function CartPickup({ store, pickupCount, totalCount, pickupContext }: CartPickupProps): ReactElement {
     const { t } = useTranslation('extBopis');
     const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
     const isStoreLocatorOpen = useStoreLocator((s) => s.isOpen);
     const openStoreLocator = useStoreLocator((s) => s.open);
     const setSelectedStoreInfoRaw = useStoreLocator((s) => s.setSelectedStoreInfo);
     const { changeStore } = useChangePickupStore();
+    // Set only when THIS card's "Change Store" opened the locator, so a store selection applies to this pickup
+    // group when the sheet closes — and a merely-different global selection never changes the store on its own.
+    const pendingChangeRef = useRef(false);
 
     // Handle "Change Store" button click
-    // Set selectedStoreInfo to current store before opening locator
-    // This prevents automatic store change when locator opens
+    // Seed the locator with the current store and mark a change as pending for this pickup group.
     const handleChangeStoreClick = useCallback(() => {
         setSelectedStoreInfoRaw(store);
-        openStoreLocator();
-    }, [store, setSelectedStoreInfoRaw, openStoreLocator]);
+        pendingChangeRef.current = true;
+        openStoreLocator(pickupContext);
+    }, [store, setSelectedStoreInfoRaw, openStoreLocator, pickupContext]);
 
-    // Watch for store selection changes from the store locator
-    // When store locator global state is opened and a new store is selected,
-    // trigger the store change to update the basket.
-    // Note: When the store locator is opened from store locator badge,
-    // store locator global state is not opened so changeStore will not be called.
+    // Apply the store change once the shopper closes the picker with a different boutique selected. Gating on the
+    // pending flag (not just isOpen) supports pickers that close on select as well as those that stay open; it
+    // also prevents an unrelated global store selection from silently re-homing this pickup group.
     useEffect(() => {
-        if (
-            selectedStoreInfo &&
-            selectedStoreInfo.id !== store.id &&
-            selectedStoreInfo.inventoryId &&
-            isStoreLocatorOpen
-        ) {
-            // Trigger the store change to update the basket
+        if (isStoreLocatorOpen || !pendingChangeRef.current) return;
+        pendingChangeRef.current = false;
+        if (selectedStoreInfo && selectedStoreInfo.id !== store.id && selectedStoreInfo.inventoryId) {
             void changeStore(selectedStoreInfo);
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps

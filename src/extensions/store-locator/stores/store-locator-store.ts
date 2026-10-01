@@ -38,6 +38,16 @@ export type SelectedStoreInfo = {
     inventoryId?: string;
 };
 
+/**
+ * The cart line item (or PDP selection) a pickup-store search is being performed for. Optional — the store
+ * locator can be opened without an item (e.g. a header find-a-store trigger). When present, a consumer of the
+ * sheet can scope the store list to that item (e.g. augment/sort boutiques by whether they stock it).
+ */
+export type PickupContext = {
+    productId: string;
+    quantity: number;
+};
+
 type StoreLocatorState = {
     isOpen: boolean;
     mode: 'input' | 'device';
@@ -46,11 +56,12 @@ type StoreLocatorState = {
     deviceCoordinates: GeoCoordinates;
     geoError: boolean;
     selectedStoreInfo: SelectedStoreInfo | null;
+    pickupContext: PickupContext | null;
     config: StoreLocatorConfig;
 };
 
 type StoreLocatorActions = {
-    open: () => void;
+    open: (context?: PickupContext) => void;
     close: () => void;
     searchByForm: (params: FormSearchParams) => void;
     setShouldSearch: (should: boolean) => void;
@@ -126,13 +137,14 @@ export const createStoreLocatorStore = (init?: Partial<StoreLocatorState>): Stor
         deviceCoordinates: { latitude: null, longitude: null },
         geoError: false,
         selectedStoreInfo: null,
+        pickupContext: null,
         config: defaultConfig,
         ...init,
     };
 
     const actions: StoreLocatorActions = {
-        open: () => store.setState({ isOpen: true }),
-        close: () => store.setState({ isOpen: false }),
+        open: (context) => store.setState({ isOpen: true, pickupContext: context ?? null }),
+        close: () => store.setState({ isOpen: false, pickupContext: null }),
         searchByForm: (params) =>
             store.setState({ mode: 'input', searchParams: params, shouldSearch: true, geoError: false }),
         setDeviceCoordinates: (coords) =>

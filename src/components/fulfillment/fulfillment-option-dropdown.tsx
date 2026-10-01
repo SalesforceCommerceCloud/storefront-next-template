@@ -66,7 +66,10 @@ export function FulfillmentOptionDropdown<OptionId extends string>({
                             value={option.id}
                             disabled={!option.availability.available}
                             className={cn(
-                                'flex-row px-4 py-2',
+                                // Left padding clears the primitive's absolute radio indicator (left-2 + size-3.5,
+                                // ending ~22px) with a small gap to the label; px-4 previously shrank it and caused
+                                // an overlap, while pl-8 left too wide a gap.
+                                'flex-row pl-7 pr-4 py-2',
                                 value === option.id && 'text-primary font-semibold',
                                 !option.availability.available && 'opacity-50'
                             )}>

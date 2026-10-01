@@ -30,7 +30,8 @@ interface StoreLocatorSheetProps extends PropsWithChildren {
  * Controlled sheet container that hosts the store locator experience.
  * Parent component must manage the open state.
  *
- * @param children - Trigger element rendered with `SheetTrigger asChild`
+ * @param children - Optional trigger element rendered with `SheetTrigger asChild`. Omit it when the sheet is
+ *   opened programmatically (controlled via `open`) so no empty, non-interactive trigger is rendered.
  * @param open - Controlled open state (required)
  * @param onOpenChange - Callback when open state changes (required)
  * @returns ReactElement
@@ -41,13 +42,17 @@ interface StoreLocatorSheetProps extends PropsWithChildren {
  * <StoreLocatorSheet open={isOpen} onOpenChange={setIsOpen}>
  *   <Button variant="ghost">Open Store Locator</Button>
  * </StoreLocatorSheet>
+ *
+ * @example
+ * // Programmatic open with no trigger child
+ * <StoreLocatorSheet open={isOpen} onOpenChange={setIsOpen} />
  */
 export default function StoreLocatorSheet({ children, open, onOpenChange }: StoreLocatorSheetProps): ReactElement {
     const { t } = useTranslation('extStoreLocator');
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetTrigger asChild>{children}</SheetTrigger>
+            {children ? <SheetTrigger asChild>{children}</SheetTrigger> : null}
             <SheetContent className="md:w-1/3 md:max-w-1/3 p-0">
                 <SheetHeader>
                     <SheetTitle>{t('storeLocator.title')}</SheetTitle>

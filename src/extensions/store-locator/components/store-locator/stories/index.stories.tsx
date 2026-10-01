@@ -95,6 +95,14 @@ const meta: Meta<typeof StoreLocator> = {
     tags: ['autodocs', 'interaction'],
     parameters: {
         layout: 'padded',
+        // The luxury store-locator override seeds its branded boutique list from this route (via useFetcher) on
+        // render; providing it supplies the router the hook needs. Harmless for the fashion form, which doesn't fetch.
+        mockRoutes: [
+            {
+                path: '/resource/boutiques',
+                loader: () => ({ success: true, stores: [] }),
+            },
+        ],
         docs: {
             description: {
                 component: `
@@ -150,9 +158,9 @@ This is the initial state before any search is performed.
         const section = canvasElement.querySelector('section[aria-labelledby="store-locator-heading"]');
         await expect(section).toBeInTheDocument();
 
-        // Verify the locator content is present — could be a form (fashion) or boutique locator (luxury)
+        // Verify the locator content is present — could be a form (fashion) or the boutique finder (luxury)
         const locatorContent = section?.querySelector(
-            '[data-slot="luxury-boutique-locator"], form, [data-testid="boutique-locator"]'
+            '[data-slot="luxury-boutique-finder"], [data-slot="luxury-boutique-locator"], form, [data-testid="boutique-locator"]'
         );
         await expect(locatorContent).toBeInTheDocument();
     },
@@ -210,9 +218,9 @@ The component provides a clean layout for desktop screens.
         const section = canvasElement.querySelector('section[aria-labelledby="store-locator-heading"]');
         await expect(section).toBeInTheDocument();
 
-        // Verify the locator content is present — could be a form (fashion) or boutique locator (luxury)
+        // Verify the locator content is present — could be a form (fashion) or the boutique finder (luxury)
         const locatorContent = section?.querySelector(
-            '[data-slot="luxury-boutique-locator"], form, [data-testid="boutique-locator"]'
+            '[data-slot="luxury-boutique-finder"], [data-slot="luxury-boutique-locator"], form, [data-testid="boutique-locator"]'
         );
         await expect(locatorContent).toBeInTheDocument();
     },

@@ -131,7 +131,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
     parameters: {
-        // Mock /resource/boutiques for luxury's store-locator hook (fetches on mount)
+        // The luxury sheet body seeds its branded boutique list from this route on open; harmless for fashion.
         mockRoutes: [
             {
                 path: '/resource/boutiques',
@@ -178,7 +178,7 @@ This is the default state when the sheet is open.
 
 export const MobileLayout: Story = {
     parameters: {
-        // Mock /resource/boutiques for luxury's store-locator hook (fetches on mount)
+        // The luxury sheet body seeds its branded boutique list from this route on open; harmless for fashion.
         mockRoutes: [
             {
                 path: '/resource/boutiques',
@@ -227,7 +227,7 @@ The component automatically adapts for mobile screens.
 
 export const DesktopLayout: Story = {
     parameters: {
-        // Mock /resource/boutiques for luxury's store-locator hook (fetches on mount)
+        // The luxury sheet body seeds its branded boutique list from this route on open; harmless for fashion.
         mockRoutes: [
             {
                 path: '/resource/boutiques',

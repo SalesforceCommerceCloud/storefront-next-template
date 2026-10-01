@@ -125,15 +125,6 @@ export default meta;
 type Story = StoryObj<MegaStoryArgs>;
 
 export const Default: Story = {
-    parameters: {
-        // Mock /resource/boutiques for luxury's store-locator hook (fetches on mount)
-        mockRoutes: [
-            {
-                path: '/resource/boutiques',
-                loader: () => ({ success: true, stores: [] }),
-            },
-        ],
-    },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);

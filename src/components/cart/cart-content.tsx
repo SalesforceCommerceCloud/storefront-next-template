@@ -137,6 +137,13 @@ export default function CartContent({
     const pickup = usePickup();
     const store = getFirstPickupStore(basket, pickup?.pickupStores);
     const pickupItems = filterPickupProductItems(basket);
+    // Scope the "Change Store" picker to the item being collected so an inventory-aware picker can pre-disable
+    // boutiques that don't stock it. Only a single-item pickup group gives an accurate signal — for a mixed group
+    // one product's stock can't stand in for the others, so leave the picker unscoped.
+    const pickupContext =
+        pickupItems.length === 1 && pickupItems[0]?.productId
+            ? { productId: pickupItems[0].productId, quantity: pickupItems[0].quantity ?? 1 }
+            : undefined;
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     // Validate cart-wide inventory for checkout button state
@@ -458,6 +465,7 @@ export default function CartContent({
                                     store={store}
                                     pickupCount={pickupItems.length}
                                     totalCount={basket?.productItems?.length ?? 0}
+                                    pickupContext={pickupContext}
                                 />
                                 <div className="mt-4">
                                     <ProductItemsList
