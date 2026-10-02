@@ -270,14 +270,12 @@ describe('syncPaymentInstrumentAmount', () => {
         expect(result).toEqual({ basketId: 'basket-1', orderTotal: 50 });
     });
 
-    it('writes unconditionally even when amount and orderTotal already match (idempotent)', async () => {
+    it('writes the card amount even when it already equals the order total', async () => {
         updatePaymentInstrumentMock.mockResolvedValue({ basketId: 'basket-1', orderTotal: 50 });
 
         await syncPaymentInstrumentAmount(ctx, basketWithInstrument(50, 50));
 
-        // We do not diff first - float precision makes equality fragile, and an extra
-        // SCAPI write is cheaper than an OMS-rejected order.
-        expect(updatePaymentInstrumentMock).toHaveBeenCalledOnce();
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledWith(ctx, 'basket-1', 'pi-1', { amount: 50 });
     });
 
     it('no-op when basket has no payment instrument', async () => {
@@ -287,6 +285,155 @@ describe('syncPaymentInstrumentAmount', () => {
 
         expect(updatePaymentInstrumentMock).not.toHaveBeenCalled();
         expect(result).toBe(basket);
+    });
+
+    const basketWithInstruments = (
+        orderTotal: number,
+        paymentInstruments: Array<{
+            paymentInstrumentId: string;
+            paymentMethodId: string;
+            amount: number;
+            paymentCard?: { cardType: string };
+        }>
+    ): Basket =>
+        ({
+            basketId: 'basket-1',
+            orderTotal,
+            paymentInstruments,
+        }) as unknown as Basket;
+
+    it('patches the card when an instrument without a paymentCard was applied after it', async () => {
+        updatePaymentInstrumentMock.mockResolvedValue({ basketId: 'basket-1', orderTotal: 110 });
+        const basket = basketWithInstruments(110, [
+            {
+                paymentInstrumentId: 'pi-card',
+                paymentMethodId: 'CREDIT_CARD',
+                amount: 100,
+                paymentCard: { cardType: 'Visa' },
+            },
+            { paymentInstrumentId: 'pi-other-1', paymentMethodId: 'OTHER', amount: 30 },
+        ]);
+
+        await syncPaymentInstrumentAmount(ctx, basket);
+
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledOnce();
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledWith(ctx, 'basket-1', 'pi-card', { amount: 80 });
+    });
+
+    it('patches only the last instrument to the unpaid balance', async () => {
+        updatePaymentInstrumentMock.mockResolvedValue({ basketId: 'basket-1', orderTotal: 110 });
+        const basket = basketWithInstruments(110, [
+            { paymentInstrumentId: 'pi-other-1', paymentMethodId: 'OTHER', amount: 20 },
+            { paymentInstrumentId: 'pi-other-2', paymentMethodId: 'OTHER', amount: 30 },
+            {
+                paymentInstrumentId: 'pi-card',
+                paymentMethodId: 'CREDIT_CARD',
+                amount: 10,
+                paymentCard: { cardType: 'Visa' },
+            },
+        ]);
+
+        await syncPaymentInstrumentAmount(ctx, basket);
+
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledOnce();
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledWith(ctx, 'basket-1', 'pi-card', { amount: 60 });
+    });
+
+    it('leaves earlier cards fixed and patches only the last card', async () => {
+        updatePaymentInstrumentMock.mockResolvedValue({ basketId: 'basket-1', orderTotal: 110 });
+        const basket = basketWithInstruments(110, [
+            { paymentInstrumentId: 'pi-other-1', paymentMethodId: 'OTHER', amount: 20 },
+            { paymentInstrumentId: 'pi-other-2', paymentMethodId: 'OTHER', amount: 30 },
+            {
+                paymentInstrumentId: 'pi-card-1',
+                paymentMethodId: 'CREDIT_CARD',
+                amount: 40,
+                paymentCard: { cardType: 'Visa' },
+            },
+            {
+                paymentInstrumentId: 'pi-card-2',
+                paymentMethodId: 'CREDIT_CARD',
+                amount: 5,
+                paymentCard: { cardType: 'Visa' },
+            },
+        ]);
+
+        await syncPaymentInstrumentAmount(ctx, basket);
+
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledOnce();
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledWith(ctx, 'basket-1', 'pi-card-2', { amount: 20 });
+    });
+
+    it('no-op when the only instrument has no paymentCard and already equals the order total', async () => {
+        const basket = basketWithInstruments(50, [
+            { paymentInstrumentId: 'pi-other', paymentMethodId: 'OTHER', amount: 50 },
+        ]);
+
+        const result = await syncPaymentInstrumentAmount(ctx, basket);
+
+        expect(updatePaymentInstrumentMock).not.toHaveBeenCalled();
+        expect(result).toBe(basket);
+    });
+
+    it('no-op when every instrument has no paymentCard and the amounts already cover the order total', async () => {
+        const basket = basketWithInstruments(50, [
+            { paymentInstrumentId: 'pi-other-1', paymentMethodId: 'OTHER', amount: 20 },
+            { paymentInstrumentId: 'pi-other-2', paymentMethodId: 'OTHER', amount: 30 },
+        ]);
+
+        const result = await syncPaymentInstrumentAmount(ctx, basket);
+
+        expect(updatePaymentInstrumentMock).not.toHaveBeenCalled();
+        expect(result).toBe(basket);
+    });
+
+    it('does not patch an instrument with no paymentCard when its amount differs from the order total', async () => {
+        const basket = basketWithInstruments(50, [
+            { paymentInstrumentId: 'pi-other', paymentMethodId: 'OTHER', amount: 40 },
+        ]);
+
+        const result = await syncPaymentInstrumentAmount(ctx, basket);
+
+        expect(updatePaymentInstrumentMock).not.toHaveBeenCalled();
+        expect(result).toBe(basket);
+    });
+
+    it('reduces only the last card when the total drops and earlier instruments still fit', async () => {
+        updatePaymentInstrumentMock.mockResolvedValue({ basketId: 'basket-1', orderTotal: 70 });
+        const basket = basketWithInstruments(70, [
+            { paymentInstrumentId: 'pi-other-1', paymentMethodId: 'OTHER', amount: 20 },
+            { paymentInstrumentId: 'pi-other-2', paymentMethodId: 'OTHER', amount: 30 },
+            {
+                paymentInstrumentId: 'pi-card',
+                paymentMethodId: 'CREDIT_CARD',
+                amount: 80,
+                paymentCard: { cardType: 'Visa' },
+            },
+        ]);
+
+        await syncPaymentInstrumentAmount(ctx, basket);
+
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledOnce();
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledWith(ctx, 'basket-1', 'pi-card', { amount: 20 });
+    });
+
+    it('still patches the card when instruments without a paymentCard exceed the order total', async () => {
+        updatePaymentInstrumentMock.mockResolvedValue({ basketId: 'basket-1', orderTotal: 70 });
+        const basket = basketWithInstruments(70, [
+            { paymentInstrumentId: 'pi-other-1', paymentMethodId: 'OTHER', amount: 50 },
+            { paymentInstrumentId: 'pi-other-2', paymentMethodId: 'OTHER', amount: 40 },
+            {
+                paymentInstrumentId: 'pi-card',
+                paymentMethodId: 'CREDIT_CARD',
+                amount: 30,
+                paymentCard: { cardType: 'Visa' },
+            },
+        ]);
+
+        await syncPaymentInstrumentAmount(ctx, basket);
+
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledOnce();
+        expect(updatePaymentInstrumentMock).toHaveBeenCalledWith(ctx, 'basket-1', 'pi-card', { amount: -20 });
     });
 
     it('no-op when the payment instrument has no paymentInstrumentId', async () => {

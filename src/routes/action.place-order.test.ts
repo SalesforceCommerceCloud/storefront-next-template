@@ -299,7 +299,7 @@ describe('action.place-order action', () => {
                     shippingMethod: { id: 'ground', name: 'Ground' },
                 },
             ],
-            paymentInstruments: [{ paymentInstrumentId: 'pi1' }],
+            paymentInstruments: [{ paymentInstrumentId: 'pi1', amount: 50, paymentCard: { cardType: 'Visa' } }],
             billingAddress: { address1: '123 Main St', city: 'Austin', postalCode: '78701', countryCode: 'US' },
             orderTotal: 99.99,
         };
