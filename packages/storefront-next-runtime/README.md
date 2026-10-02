@@ -169,6 +169,12 @@ The site preferences middleware reads data from a site-scoped key in the data st
 <siteid>-custom-site-preferences
 ```
 
+Entry values use the SCAPI preference-list envelope, one record per preference. The middleware maps them to an `id → value` object (`{ feefoEnableReviews: true }`). Seed local `MRT_DATA_STORE_DEFAULTS` with the same shape:
+
+```json
+{ "RefArch-custom-site-preferences": { "data": [{ "id": "feefoEnableReviews", "value": true, "groupId": "Storefront Configs" }], "total": 1 } }
+```
+
 ### `/scapi-client` SCAPI Client
 
 Type-safe, auto-generated API clients for Salesforce Commerce APIs with operation-based method names.

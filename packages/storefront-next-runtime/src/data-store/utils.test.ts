@@ -21,6 +21,7 @@ import {
     createDataStoreContext,
     createDataStoreMiddleware,
     createLazyDataStoreMiddleware,
+    preferenceEnvelopeToMap,
     prefixWithSiteId,
     readLazyDataStoreEntry,
 } from './utils';
@@ -1050,5 +1051,64 @@ describe('data-store fetch span', () => {
 
         expect(context.get(sitePreferencesContext)).toEqual({ enabled: true });
         expect(next).toHaveBeenCalledOnce();
+    });
+});
+
+describe('preferenceEnvelopeToMap', () => {
+    it('maps each { id, value, groupId } record to an id → value entry', () => {
+        const envelope = {
+            data: [
+                { id: 'countryCode', value: 'US', groupId: 'Storefront Configs' },
+                { id: 'customerServiceEmail', value: 'test@example.com', groupId: 'Storefront Configs' },
+                { id: 'listPriceDefault', value: '123', groupId: 'Storefront Configs' },
+            ],
+            total: 3,
+        };
+
+        expect(preferenceEnvelopeToMap(envelope)).toEqual({
+            countryCode: 'US',
+            customerServiceEmail: 'test@example.com',
+            listPriceDefault: '123',
+        });
+    });
+
+    it('maps an MRT entry value, which omits total', () => {
+        const envelope = {
+            data: [
+                { value: 'US', id: 'countryCode', groupId: 'Storefront Configs' },
+                { value: true, id: 'feefoEnableReviews', groupId: 'StorefrontConfigs' },
+                { value: 25, id: 'minimumDeliveryValue', groupId: 'StorefrontConfigs' },
+            ],
+        };
+
+        expect(preferenceEnvelopeToMap(envelope)).toEqual({
+            countryCode: 'US',
+            feefoEnableReviews: true,
+            minimumDeliveryValue: 25,
+        });
+    });
+
+    it('preserves falsy values', () => {
+        const envelope = {
+            data: [
+                { id: 'enabled', value: false },
+                { id: 'threshold', value: 0 },
+                { id: 'label', value: null },
+            ],
+            total: 3,
+        };
+
+        expect(preferenceEnvelopeToMap(envelope)).toEqual({ enabled: false, threshold: 0, label: null });
+    });
+
+    it('skips records without a string id', () => {
+        const envelope = { data: [{ value: 'orphan' }, null, { id: 'kept', value: 1 }], total: 3 };
+
+        expect(preferenceEnvelopeToMap(envelope)).toEqual({ kept: 1 });
+    });
+
+    it('returns {} when data is not an array', () => {
+        expect(preferenceEnvelopeToMap({})).toEqual({});
+        expect(preferenceEnvelopeToMap({ data: { id: 'x', value: 1 } })).toEqual({});
     });
 });

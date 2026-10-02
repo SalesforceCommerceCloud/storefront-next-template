@@ -20,9 +20,9 @@ import {
     createDataStoreContext,
     createDataStoreMiddleware,
     createLazyDataStoreMiddleware,
+    preferenceEnvelopeToMap,
     prefixWithSiteId,
     readLazyDataStoreEntry,
-    type RawPreferenceEnvelope,
 } from '../utils';
 
 export type SitePreferences = Record<string, unknown>;
@@ -33,11 +33,6 @@ export const sitePreferencesContext = createDataStoreContext<SitePreferences>();
 const SITE_PREFERENCES_ENTRY_KEY = prefixWithSiteId('custom-site-preferences');
 const SITE_PREFERENCES_ON_UNAVAILABLE =
     process.env.SFNEXT_DATA_STORE_UNAVAILABLE_MODE === 'throw' ? 'throw' : 'fallback';
-
-const unwrapCustomSitePreferences = (envelope: Record<string, unknown>): SitePreferences => {
-    const { data } = envelope as RawPreferenceEnvelope;
-    return Array.isArray(data) ? Object.assign({}, ...data) : {};
-};
 
 /**
  * Read site preferences from router context.
@@ -97,7 +92,7 @@ export const customSitePreferencesMiddleware = createDataStoreMiddleware<SitePre
     context: sitePreferencesContext,
     onUnavailable: SITE_PREFERENCES_ON_UNAVAILABLE,
     fallbackValue: {},
-    transform: unwrapCustomSitePreferences,
+    transform: preferenceEnvelopeToMap,
 });
 
 /**
@@ -113,5 +108,5 @@ export const customSitePreferencesMiddlewareLazy = createLazyDataStoreMiddleware
     context: sitePreferencesContext,
     onUnavailable: SITE_PREFERENCES_ON_UNAVAILABLE,
     fallbackValue: {},
-    transform: unwrapCustomSitePreferences,
+    transform: preferenceEnvelopeToMap,
 });

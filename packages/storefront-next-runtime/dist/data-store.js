@@ -569,6 +569,24 @@ async function getDataStoreEntry(key) {
 	if (!entry || typeof entry !== "object") return null;
 	return entry;
 }
+/**
+* Converts a {@link RawPreferenceEnvelope} into an `id → value` map. Records without a string
+* `id` are skipped; a non-array `data` yields `{}`.
+*
+* @param envelope - Raw data-store entry value
+* @returns Preferences keyed by preference id
+*/
+function preferenceEnvelopeToMap(envelope) {
+	const { data } = envelope;
+	if (!Array.isArray(data)) return {};
+	return Object.fromEntries(data.filter((record) => typeof record?.id === "string").map(({ id, value }) => [id, value]));
+}
+/**
+* Creates an entryKey function that prefixes the given suffix with the current site ID.
+*
+* @param suffix - The entry key suffix (e.g., "custom-site-preferences")
+* @returns A function compatible with `DataStoreMiddlewareOptions.entryKey`
+*/
 function prefixWithSiteId(suffix) {
 	return (context) => {
 		const siteId = context.get(siteContext)?.site?.id;
@@ -582,10 +600,6 @@ function prefixWithSiteId(suffix) {
 const sitePreferencesContext = createDataStoreContext();
 const SITE_PREFERENCES_ENTRY_KEY = prefixWithSiteId("custom-site-preferences");
 const SITE_PREFERENCES_ON_UNAVAILABLE = process.env.SFNEXT_DATA_STORE_UNAVAILABLE_MODE === "throw" ? "throw" : "fallback";
-const unwrapCustomSitePreferences = (envelope) => {
-	const { data } = envelope;
-	return Array.isArray(data) ? Object.assign({}, ...data) : {};
-};
 /**
 * Read site preferences from router context.
 *
@@ -640,7 +654,7 @@ const customSitePreferencesMiddleware = createDataStoreMiddleware({
 	context: sitePreferencesContext,
 	onUnavailable: SITE_PREFERENCES_ON_UNAVAILABLE,
 	fallbackValue: {},
-	transform: unwrapCustomSitePreferences
+	transform: preferenceEnvelopeToMap
 });
 /**
 * Lazy variant of {@link customSitePreferencesMiddleware}. Registers a memoized loader in
@@ -655,7 +669,7 @@ const customSitePreferencesMiddlewareLazy = createLazyDataStoreMiddleware({
 	context: sitePreferencesContext,
 	onUnavailable: SITE_PREFERENCES_ON_UNAVAILABLE,
 	fallbackValue: {},
-	transform: unwrapCustomSitePreferences
+	transform: preferenceEnvelopeToMap
 });
 
 //#endregion
@@ -663,10 +677,6 @@ const customSitePreferencesMiddlewareLazy = createLazyDataStoreMiddleware({
 const DEFAULT_CUSTOM_GLOBAL_PREFERENCES_KEY = "custom-global-preferences";
 const customGlobalPreferencesContext = createDataStoreContext();
 const CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE = process.env.SFNEXT_DATA_STORE_UNAVAILABLE_MODE === "throw" ? "throw" : "fallback";
-const unwrapCustomGlobalPreferences = (envelope) => {
-	const { data } = envelope;
-	return Array.isArray(data) ? Object.assign({}, ...data) : {};
-};
 /**
 * Read custom global preferences from router context.
 *
@@ -717,7 +727,7 @@ const customGlobalPreferencesMiddleware = createDataStoreMiddleware({
 	context: customGlobalPreferencesContext,
 	onUnavailable: CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE,
 	fallbackValue: {},
-	transform: unwrapCustomGlobalPreferences
+	transform: preferenceEnvelopeToMap
 });
 /**
 * Lazy variant of {@link customGlobalPreferencesMiddleware}. Registers a memoized loader in
@@ -731,7 +741,7 @@ const customGlobalPreferencesMiddlewareLazy = createLazyDataStoreMiddleware({
 	context: customGlobalPreferencesContext,
 	onUnavailable: CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE,
 	fallbackValue: {},
-	transform: unwrapCustomGlobalPreferences
+	transform: preferenceEnvelopeToMap
 });
 
 //#endregion

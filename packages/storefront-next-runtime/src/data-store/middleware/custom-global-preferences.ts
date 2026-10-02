@@ -20,8 +20,8 @@ import {
     createDataStoreContext,
     createDataStoreMiddleware,
     createLazyDataStoreMiddleware,
+    preferenceEnvelopeToMap,
     readLazyDataStoreEntry,
-    type RawPreferenceEnvelope,
 } from '../utils';
 
 export type CustomGlobalPreferences = Record<string, unknown>;
@@ -31,11 +31,6 @@ export const customGlobalPreferencesContext = createDataStoreContext<CustomGloba
 
 const CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE =
     process.env.SFNEXT_DATA_STORE_UNAVAILABLE_MODE === 'throw' ? 'throw' : 'fallback';
-
-const unwrapCustomGlobalPreferences = (envelope: Record<string, unknown>): CustomGlobalPreferences => {
-    const { data } = envelope as RawPreferenceEnvelope;
-    return Array.isArray(data) ? Object.assign({}, ...data) : {};
-};
 
 /**
  * Read custom global preferences from router context.
@@ -93,7 +88,7 @@ export const customGlobalPreferencesMiddleware = createDataStoreMiddleware<Custo
     context: customGlobalPreferencesContext,
     onUnavailable: CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE,
     fallbackValue: {},
-    transform: unwrapCustomGlobalPreferences,
+    transform: preferenceEnvelopeToMap,
 });
 
 /**
@@ -108,5 +103,5 @@ export const customGlobalPreferencesMiddlewareLazy = createLazyDataStoreMiddlewa
     context: customGlobalPreferencesContext,
     onUnavailable: CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE,
     fallbackValue: {},
-    transform: unwrapCustomGlobalPreferences,
+    transform: preferenceEnvelopeToMap,
 });

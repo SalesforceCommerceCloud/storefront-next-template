@@ -58,7 +58,7 @@ describe('customSitePreferencesMiddleware (eager)', () => {
 
     it('fetches immediately and stores the flattened preferences map in context', async () => {
         const sendMock = vi.fn().mockResolvedValue({
-            Item: { value: { data: [{ c_myFlag: true, id: 'groupId' }], total: 1 } },
+            Item: { value: { data: [{ id: 'myFlag', value: true, groupId: 'Storefront Configs' }], total: 1 } },
         });
         DataStore._testDocumentClient = { send: sendMock } as unknown as typeof DataStore._testDocumentClient;
 
@@ -66,8 +66,8 @@ describe('customSitePreferencesMiddleware (eager)', () => {
 
         expect(sendMock).toHaveBeenCalledOnce();
         expect(sendMock.mock.calls[0][0].input.Key.key).toBe('acme-custom-site-preferences');
-        expect(context.get(sitePreferencesContext)).toEqual({ c_myFlag: true, id: 'groupId' });
-        expect(getSitePreferences(context)).toEqual({ c_myFlag: true, id: 'groupId' });
+        expect(context.get(sitePreferencesContext)).toEqual({ myFlag: true });
+        expect(getSitePreferences(context)).toEqual({ myFlag: true });
         expect(next).toHaveBeenCalledOnce();
     });
 
@@ -83,16 +83,25 @@ describe('customSitePreferencesMiddleware (eager)', () => {
         expect(next).toHaveBeenCalledOnce();
     });
 
-    it('merges multiple preference group objects into a single flat map', async () => {
+    it('maps every preference record to an id → value entry', async () => {
         DataStore._testDocumentClient = {
             send: vi.fn().mockResolvedValue({
-                Item: { value: { data: [{ c_flagA: true }, { c_flagB: 'hello' }], total: 2 } },
+                Item: {
+                    value: {
+                        data: [
+                            { id: 'flagA', value: true, groupId: 'Storefront Configs' },
+                            { id: 'flagB', value: 'hello', groupId: 'Storefront Configs' },
+                            { id: 'minimumDeliveryValue', value: 25, groupId: 'Checkout' },
+                        ],
+                        total: 3,
+                    },
+                },
             }),
         } as unknown as typeof DataStore._testDocumentClient;
 
         await customSitePreferencesMiddleware({ ...REQUEST_ARGS(), context } as never, next as MiddlewareNext);
 
-        expect(getSitePreferences(context)).toEqual({ c_flagA: true, c_flagB: 'hello' });
+        expect(getSitePreferences(context)).toEqual({ flagA: true, flagB: 'hello', minimumDeliveryValue: 25 });
         expect(next).toHaveBeenCalledOnce();
     });
 

@@ -56,7 +56,9 @@ describe('custom-site / custom-global lazy data-store middleware', () => {
     });
 
     it('customSitePreferencesMiddlewareLazy defers the fetch until read, then reads the site-prefixed key', async () => {
-        const sendMock = vi.fn().mockResolvedValue({ Item: { value: { data: [{ theme: 'dark' }], total: 1 } } });
+        const sendMock = vi.fn().mockResolvedValue({
+            Item: { value: { data: [{ id: 'theme', value: 'dark', groupId: 'Storefront Configs' }], total: 1 } },
+        });
         DataStore._testDocumentClient = { send: sendMock } as unknown as typeof DataStore._testDocumentClient;
         const context = makeContext();
         const next = vi.fn().mockResolvedValue(new Response('ok'));
@@ -75,7 +77,9 @@ describe('custom-site / custom-global lazy data-store middleware', () => {
     });
 
     it('customGlobalPreferencesMiddlewareLazy defers the fetch until read, then reads the global key', async () => {
-        const sendMock = vi.fn().mockResolvedValue({ Item: { value: { data: [{ flag: true }], total: 1 } } });
+        const sendMock = vi.fn().mockResolvedValue({
+            Item: { value: { data: [{ id: 'flag', value: true, groupId: 'Storefront Configs' }], total: 1 } },
+        });
         DataStore._testDocumentClient = { send: sendMock } as unknown as typeof DataStore._testDocumentClient;
         const context = makeContext(false);
         const next = vi.fn().mockResolvedValue(new Response('ok'));

@@ -432,17 +432,36 @@ export async function getDataStoreEntry<TValue = unknown>(key: string): Promise<
 }
 
 /**
+ * The raw envelope shape returned by the SCAPI `getSiteCustomPreferenceList` endpoint.
+ * Both `customGlobalPreferences` and `customSitePreferences` store data in this format:
+ * one `{ id, value, groupId }` record per preference. MRT entries omit `total`.
+ */
+export type RawPreferenceEnvelope = {
+    data: Array<{ id: string; value: unknown; groupId?: string }>;
+    total?: number;
+};
+
+/**
+ * Converts a {@link RawPreferenceEnvelope} into an `id → value` map. Records without a string
+ * `id` are skipped; a non-array `data` yields `{}`.
+ *
+ * @param envelope - Raw data-store entry value
+ * @returns Preferences keyed by preference id
+ */
+export function preferenceEnvelopeToMap(envelope: Record<string, unknown>): Record<string, unknown> {
+    const { data } = envelope as RawPreferenceEnvelope;
+    if (!Array.isArray(data)) return {};
+    return Object.fromEntries(
+        data.filter((record) => typeof record?.id === 'string').map(({ id, value }) => [id, value])
+    );
+}
+
+/**
  * Creates an entryKey function that prefixes the given suffix with the current site ID.
  *
  * @param suffix - The entry key suffix (e.g., "custom-site-preferences")
  * @returns A function compatible with `DataStoreMiddlewareOptions.entryKey`
  */
-/**
- * The raw envelope shape returned by the SCAPI `getSiteCustomPreferenceList` endpoint.
- * Both `customGlobalPreferences` and `customSitePreferences` store data in this format.
- */
-export type RawPreferenceEnvelope = { data: Array<Record<string, unknown>>; total: number };
-
 export function prefixWithSiteId(suffix: string): (context: Readonly<RouterContextProvider>) => string {
     return (context) => {
         const siteId = context.get(siteContext)?.site?.id;
