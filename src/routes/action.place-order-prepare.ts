@@ -24,6 +24,7 @@ import {
     calculateBasketForOrder,
     syncPaymentInstrumentAmount,
 } from '@/lib/checkout/place-order-orchestration.server';
+import { saveDeliverySplitToBasket } from '@/lib/checkout/delivery-split.server';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
 
@@ -57,7 +58,10 @@ export async function action({ request, context }: ActionFunctionArgs): Promise<
 
         // Bring the payment instrument's amount in lockstep with orderTotal before
         // the extension's onPlaceOrder runs createOrder.
-        await syncPaymentInstrumentAmount(context, calculatedBasket);
+        const syncedBasket = await syncPaymentInstrumentAmount(context, calculatedBasket);
+
+        // Freeze the delivery split on the basket; SFCC copies it onto the order when the extension creates it.
+        await saveDeliverySplitToBasket(context, request, syncedBasket as typeof syncedBasket & { basketId: string });
 
         logger.info('[Checkout] place-order-prepare: ready for payment', {
             basketId: validation.basket.basketId,

@@ -1,0 +1,14 @@
+{
+    "endpoints": [
+        {
+            "endpoint": "createReturn",
+            "schema": "schema.yaml",
+            "implementation": "script"
+        },
+        {
+            "endpoint": "advanceReturn",
+            "schema": "schema.yaml",
+            "implementation": "script"
+        }
+    ]
+}

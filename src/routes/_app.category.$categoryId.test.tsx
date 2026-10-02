@@ -94,7 +94,13 @@ const mockSearchResult: ShopperSearch.schemas['ProductSearchResult'] = {
         },
     ],
     total: 25,
-    refinements: [],
+    refinements: [
+        {
+            attributeId: 'c_refinementColor',
+            label: 'Color',
+            values: [{ label: 'Black', value: 'Black', hitCount: 5 }],
+        },
+    ],
     searchPhraseSuggestions: { suggestedTerms: [] },
     sortingOptions: [
         { id: 'best-matches', label: 'Best Matches' },
@@ -186,7 +192,9 @@ vi.mock('@/components/product-grid/load-more', () => ({
 }));
 
 vi.mock('@/components/category-refinements', () => ({
-    default: () => <div data-testid="category-refinements" />,
+    default: ({ layout }: { layout?: string }) => (
+        <div data-testid={layout === 'bar' ? 'category-refinements-bar' : 'category-refinements'} />
+    ),
 }));
 
 vi.mock('@/components/category-refinements/active-filters', () => ({
@@ -909,13 +917,17 @@ describe('CategoryPage', () => {
                 initialFiltersOpen: false,
             };
 
-            const { unmount } = render(
-                <MemoryRouter initialEntries={['/category/electronics?filters=open']}>
-                    <AllProvidersWrapper>
-                        <CategoryPage loaderData={openLoaderData} />
-                    </AllProvidersWrapper>
-                </MemoryRouter>
-            );
+            // The filters drawer is a lazy overlay: render inside an awaited act so its chunk can load and mount.
+            let unmount = () => {};
+            await act(async () => {
+                ({ unmount } = render(
+                    <MemoryRouter initialEntries={['/category/electronics?filters=open']}>
+                        <AllProvidersWrapper>
+                            <CategoryPage loaderData={openLoaderData} />
+                        </AllProvidersWrapper>
+                    </MemoryRouter>
+                ));
+            });
 
             await waitFor(() => {
                 expect(screen.getByTestId('category-refinements')).toBeInTheDocument();
@@ -933,6 +945,46 @@ describe('CategoryPage', () => {
 
             await waitFor(() => {
                 expect(screen.queryByTestId('category-refinements')).not.toBeInTheDocument();
+            });
+        });
+
+        test('opens the filters drawer even when the search returns no usable facets (placeholder filters)', async () => {
+            const noFacets = { ...mockSearchResult, refinements: [], sortingOptions: [] };
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: noFacets,
+                searchResultNonCritical: Promise.resolve(noFacets),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: [],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+                initialFiltersOpen: true,
+            };
+
+            await act(async () => {
+                render(
+                    <MemoryRouter initialEntries={['/category/electronics?filters=open']}>
+                        <AllProvidersWrapper>
+                            <CategoryPage loaderData={loaderData} />
+                        </AllProvidersWrapper>
+                    </MemoryRouter>
+                );
+            });
+
+            await waitFor(() => {
+                expect(screen.getByRole('heading', { name: 'Electronics', hidden: true })).toBeInTheDocument();
+            });
+            // The bar keeps its shape (Filter, Sort, Brand/Size/Price/Color) and Filter is clickable ...
+            expect(screen.getByTestId('filters-button')).toBeInTheDocument();
+            expect(screen.getByTestId('category-refinements-bar')).toBeInTheDocument();
+            // ... and the drawer opens with the filter list.
+            await waitFor(() => {
+                expect(screen.getByTestId('category-refinements')).toBeInTheDocument();
             });
         });
 
@@ -967,19 +1019,12 @@ describe('CategoryPage', () => {
             await waitFor(() => {
                 expect(screen.getByTestId('active-filters')).toBeInTheDocument();
                 expect(screen.getByTestId('category-breadcrumbs')).toBeInTheDocument();
-                expect(screen.getByText('Electronics (25)')).toBeInTheDocument();
+                expect(screen.getByRole('heading', { name: 'Electronics' })).toBeInTheDocument();
                 expect(screen.getByTestId('category-sorting')).toBeInTheDocument();
-                const filterButtons = screen.getAllByTestId('filters-button');
-                // Both mobile and desktop toggle buttons render in JSDOM; responsive visibility is controlled by CSS classes.
-                expect(filterButtons).toHaveLength(2);
-                expect(filterButtons[0].closest('div')).toHaveClass('lg:hidden');
-                expect(filterButtons[1].closest('div')).toHaveClass(
-                    'mb-4',
-                    'hidden',
-                    'lg:flex',
-                    'lg:items-center',
-                    'lg:gap-4'
-                );
+                // One Filter button lives in the horizontal filter bar (next to sort and the facet dropdowns).
+                const filterButton = screen.getByTestId('filters-button');
+                expect(filterButton.closest('[data-slot="filters-wrapper"]')).toHaveClass('flex', 'flex-wrap');
+                expect(screen.getByTestId('category-refinements-bar')).toBeInTheDocument();
                 expect(screen.getByTestId('product-grid')).toBeInTheDocument();
                 expect(screen.getByTestId('load-more')).toBeInTheDocument();
             });
@@ -1049,11 +1094,11 @@ describe('CategoryPage', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByText('electronics (25)')).toBeInTheDocument();
+                expect(screen.getByRole('heading', { name: 'electronics' })).toBeInTheDocument();
             });
         });
 
-        test('should not render sorting when no sorting options available', async () => {
+        test('should keep the sorting control in the filter bar when no sorting options are available (it renders disabled)', async () => {
             const searchResultWithoutSorting = { ...mockSearchResult, sortingOptions: [] };
             const loaderData: CategoryPageData = {
                 category: mockCategory,
@@ -1079,7 +1124,7 @@ describe('CategoryPage', () => {
             );
 
             await waitFor(() => {
-                expect(screen.queryByTestId('category-sorting')).not.toBeInTheDocument();
+                expect(screen.getByTestId('category-sorting')).toBeInTheDocument();
             });
         });
 
@@ -1153,7 +1198,7 @@ describe('CategoryPage', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByText('Electronics (25)')).toBeInTheDocument();
+                expect(screen.getByRole('heading', { name: 'Electronics' })).toBeInTheDocument();
             });
         });
 
@@ -1183,7 +1228,7 @@ describe('CategoryPage', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByText('Electronics (0)')).toBeInTheDocument();
+                expect(screen.getByRole('heading', { name: 'Electronics' })).toBeInTheDocument();
                 expect(screen.getByTestId('product-grid')).toBeInTheDocument();
             });
         });
@@ -1699,7 +1744,7 @@ describe('CategoryPage', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByText('Electronics (25)')).toBeInTheDocument();
+                expect(screen.getByRole('heading', { name: 'Electronics' })).toBeInTheDocument();
             });
         });
     });

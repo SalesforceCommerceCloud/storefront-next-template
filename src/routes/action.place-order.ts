@@ -36,6 +36,7 @@ import {
     saveCheckoutDataToProfile,
     finalizeOrderSuccess,
 } from '@/lib/checkout/place-order-orchestration.server';
+import { saveDeliverySplitToBasket } from '@/lib/checkout/delivery-split.server';
 
 /**
  * Detects whether a caught error is an SCAPI inventory/stock rejection. createOrder fails with a
@@ -221,7 +222,14 @@ export async function action({ request, context }: Route.ActionArgs) {
 
         // Bring the payment instrument's amount in lockstep with orderTotal before
         // createOrder.
-        const syncedBasket = await syncPaymentInstrumentAmount(context, calculatedBasket);
+        const paymentSyncedBasket = await syncPaymentInstrumentAmount(context, calculatedBasket);
+
+        // Freeze the delivery split on the basket; SFCC copies it onto the order when it is created below.
+        const syncedBasket = await saveDeliverySplitToBasket(
+            context,
+            request,
+            paymentSyncedBasket as typeof paymentSyncedBasket & { basketId: string }
+        );
 
         // Extension hook: fraud check before placing the order (blocking — unexpected errors fail the action)
         const fraudHookResult = await runHookSafe({

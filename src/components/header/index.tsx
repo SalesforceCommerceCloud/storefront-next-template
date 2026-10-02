@@ -27,6 +27,7 @@ import { SparklesIcon } from '@/components/icons';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { openAgentWidget, isCimulateEnabled, validateCimulateConfig } from '@/components/cimulate';
 import { UITarget } from '@/targets/ui-target';
+import { CitySelector } from '@/components/delivery-promise/city-selector';
 import { Component } from '@/lib/decorators/component';
 import { RegionDefinition } from '@/lib/decorators';
 
@@ -104,6 +105,7 @@ export default function Header({
                             />
                         </Link>
                         <div className="flex-1" />
+                        <CitySelector className="mr-2" />
                         <CartBadge />
                     </div>
                 </div>
@@ -116,7 +118,11 @@ export default function Header({
             ref={headerRef}
             className="bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static">
             {announcementSlot}
-            <div className="flex justify-end section-container">{beforeHeader}</div>
+            {/* Own strip so the city selector never competes with the navigation and search for width */}
+            <div className="flex items-center justify-end gap-4 section-container py-1">
+                {beforeHeader}
+                <CitySelector />
+            </div>
             <div className="section-container py-6">
                 {/* Top row: Logo left, Icons right */}
                 <div className="flex items-center gap-x-1 lg:gap-x-6">

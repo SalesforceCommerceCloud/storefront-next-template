@@ -21,12 +21,15 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import { uiConfig } from '@/lib/config.ui';
 
-// CartContent is heavy and not what's under test — render its `recommendationsSlot`
-// inline so the route-level Suspense + ProductRecommendationSkeleton fallback wiring
-// is the only thing being exercised.
+// CartContent is heavy and not what's under test — render its recommendation slots inline
+// so the route-level Suspense + ProductRecommendationSkeleton fallback wiring is exercised.
 vi.mock('@/components/cart/cart-content', () => ({
-    default: ({ recommendationsSlot }: { recommendationsSlot?: ReactNode }) => (
-        <div data-testid="cart-content-stub">{recommendationsSlot}</div>
+    default: ({
+        categoryRecommendationsSlot,
+    }: {
+        categoryRecommendationsSlot?: ReactNode;
+    }) => (
+        <div data-testid="cart-content-stub">{categoryRecommendationsSlot}</div>
     ),
 }));
 
@@ -61,8 +64,17 @@ vi.mock('@/components/product-recommendations', async () => {
 });
 
 vi.mock('@/components/cart/cart-skeleton', () => ({
-    default: ({ recommendationsSlot }: { recommendationsSlot?: ReactNode }) => (
-        <div data-testid="cart-skeleton">{recommendationsSlot}</div>
+    default: ({
+        mayAlsoLikeSlot,
+        recentlyViewedSlot,
+    }: {
+        mayAlsoLikeSlot?: ReactNode;
+        recentlyViewedSlot?: ReactNode;
+    }) => (
+        <div data-testid="cart-skeleton">
+            {mayAlsoLikeSlot}
+            {recentlyViewedSlot}
+        </div>
     ),
 }));
 
@@ -151,13 +163,12 @@ describe('Cart route component', () => {
             });
 
             const skeletons = await screen.findAllByTestId('product-recommendation-skeleton');
-            expect(skeletons).toHaveLength(1);
+            expect(skeletons).toHaveLength(2);
 
             // The skeleton receives the translated title for its recommender so the heading doesn't pop in when the
             // promise resolves.
             const titles = skeletons.map((el) => el.textContent);
-            expect(titles).toHaveLength(1);
-            expect(titles[0]).toBe('You might also like');
+            expect(titles).toEqual(['You might also like', 'Trending Near You']);
         });
 
         test('renders the rec skeleton via the CartSkeleton fallback while basketDataPromise is pending', async () => {
@@ -202,12 +213,11 @@ describe('Cart route component', () => {
             expect(screen.queryByTestId('cart-content-stub')).not.toBeInTheDocument();
 
             // The rec skeleton must already be in the DOM — passed through CartSkeleton's
-            // recommendationsSlot — so the carousel area doesn't pop in once the basket resolves.
+            // split recommendation slots — so carousel areas don't pop in once the basket resolves.
             const skeletons = await screen.findAllByTestId('product-recommendation-skeleton');
-            expect(skeletons).toHaveLength(1);
+            expect(skeletons).toHaveLength(2);
             const titles = skeletons.map((el) => el.textContent);
-            expect(titles).toHaveLength(1);
-            expect(titles[0]).toBe('You might also like');
+            expect(titles).toEqual(['You might also like', 'Trending Near You']);
         });
 
         test('does not render ProductRecommendationSkeleton once recommendation promises resolve', async () => {
@@ -245,7 +255,7 @@ describe('Cart route component', () => {
                 expect(screen.getByTestId('cart-content-stub')).toBeInTheDocument();
             });
 
-            // No skeleton, no resolved carousel — the recommendationsSlot is undefined.
+            // No skeleton or resolved carousel — both recommendation slots are undefined.
             expect(screen.queryByTestId('product-recommendation-skeleton')).not.toBeInTheDocument();
             expect(screen.queryByTestId('product-recommendations-resolved')).not.toBeInTheDocument();
         });

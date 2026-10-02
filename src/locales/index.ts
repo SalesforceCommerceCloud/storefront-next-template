@@ -23,6 +23,7 @@ import fiFI from './fi-FI';
 import frFR from './fr-FR';
 import itIT from './it-IT';
 import jaJP from './ja-JP';
+import kaGE from './ka-GE';
 import koKR from './ko-KR';
 import nbNO from './nb-NO';
 import nlNL from './nl-NL';
@@ -42,6 +43,7 @@ export default {
     'fr-FR': frFR,
     'it-IT': itIT,
     'ja-JP': jaJP,
+    'ka-GE': kaGE,
     'ko-KR': koKR,
     'nb-NO': nbNO,
     'nl-NL': nlNL,

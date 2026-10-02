@@ -19,21 +19,52 @@ import { useTranslation } from 'react-i18next';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { StarRating } from '@/components/product-ratings/star-rating';
 import { StarRatingDistributions } from '@/components/product-ratings/star-rating-distributions';
+import { StarIcon } from '@/components/product-ratings/star-icon';
+import { ThumbsUp } from 'lucide-react';
 import { useProduct } from '@/providers/product-context';
 import { useProductReviews } from '@/extensions/ratings-reviews/providers/product-reviews-context';
-import type { WriteReviewFormData } from '@/extensions/ratings-reviews/lib/api/reviews.server';
+import type { ReviewItem, WriteReviewFormData } from '@/extensions/ratings-reviews/lib/api/reviews.server';
 
 // Lazy load the ReviewCardsSection to improve initial page load
 const ReviewCardsSection = lazy(
     () => import('@/extensions/ratings-reviews/components/review-cards/review-cards-section')
 );
 
-// Lazy load AiInsightCard to reduce initial bundle (only needed when aiSummary is present)
-const AiInsightCard = lazy(() => import('@/components/ai-insight-card').then((m) => ({ default: m.AiInsightCard })));
-
 const CUSTOMER_REVIEWS_ACCORDION_VALUE = 'customer-reviews';
 /** Delay before triggering onExpanded callback (matches accordion open animation duration). */
 const ACCORDION_OPEN_DURATION_MS = 250;
+
+const REFERENCE_REVIEW: ReviewItem = {
+    id: 'reference-alterations-review',
+    authorName: '',
+    verifiedPurchase: false,
+    date: 'Jan 12, 2026',
+    rating: 4,
+    headline: 'Charged for alterations',
+    body: "I paid just under $2000 for a sport jacket, plus shipping from another store. When the jacket arrived I was told it would be an additional $150 for alterations. I paid, but I won't be shopping in the Men's Department again,",
+    helpfulCount: 1,
+};
+
+function ReviewPreviewCard({ review }: { review: ReviewItem }): ReactElement {
+    return (
+        <article className="border-b border-border pb-4 last:border-b-0 last:pb-0" data-testid="review-preview-card">
+            <div className="flex items-center gap-3">
+                <div role="img" aria-label={`${review.rating} out of 5 stars`} className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <StarIcon key={star} filled={star <= review.rating} opacity={1} className="size-4" />
+                    ))}
+                </div>
+                <span className="text-xs text-muted-foreground">{review.date}</span>
+            </div>
+            <h3 className="mt-3 text-sm font-semibold text-foreground">{review.headline}</h3>
+            <p className="mt-2 text-sm leading-5 text-foreground">{review.body}</p>
+            <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <ThumbsUp aria-hidden="true" className="size-4" />
+                {review.helpfulCount} found this helpful
+            </div>
+        </article>
+    );
+}
 
 /**
  * Customer Reviews Section. Header uses the loader-seeded summary; the full
@@ -55,7 +86,6 @@ export default function CustomerReviewsSection({
         reviews,
         reviewsLoading,
         loadReviewsIfNeeded,
-        aiSummary,
         registerExpand,
         triggerOnExpanded,
     } = useProductReviews();
@@ -156,19 +186,15 @@ export default function CustomerReviewsSection({
                     {!isLoadingHeader && aggregateRating.count > 0 && (
                         <p className="sm:text-sm mt-px text-brand-gray-600">{reviewCountLabel}</p>
                     )}
-                    {!isLoadingHeader && aiSummary && (
-                        <div className="mt-2">
-                            <Suspense fallback={null}>
-                                <AiInsightCard
-                                    variant="review"
-                                    title={t('section.aiReviewSummary')}
-                                    titleAs="span"
-                                    badgeText="Beta"
-                                    description={aiSummary}
-                                    rating={aggregateRating.average}
-                                    reviewCount={aggregateRating.count}
-                                />
-                            </Suspense>
+                    {!isLoadingHeader && (
+                        <div className="mt-4 space-y-4">
+                            <ReviewPreviewCard review={REFERENCE_REVIEW} />
+                            {reviews.slice(0, 1).map((review) => (
+                                <ReviewPreviewCard key={review.id} review={review} />
+                            ))}
+                            {reviewsLoading && reviews.length === 0 && (
+                                <p className="text-sm text-muted-foreground">{t('section.loading')}</p>
+                            )}
                         </div>
                     )}
                     <AccordionContent>

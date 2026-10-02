@@ -19,7 +19,8 @@ import { useNavigate } from '@/hooks/use-navigate';
 
 import type { ShopperSearch } from '@/scapi';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { Typography } from '@/components/typography';
 import { UITarget } from '@/targets/ui-target';
@@ -30,17 +31,48 @@ import RefineColor from './refine-color';
 import RefineSize from './refine-size';
 import RefinePrice from './refine-price';
 import RefineCategory from './refine-cgid';
+import { STATIC_FACETS } from './static-facets';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import RefineInventory from '@/extensions/bopis/components/refine-inventory';
 
 export default function CategoryRefinements({
     result,
     refine = [],
+    layout = 'panel',
+    placeholders = [],
+    onFacetClick,
+    openId: controlledOpenId,
+    onOpenIdChange,
 }: {
     result: ShopperSearch.schemas['ProductSearchResult'];
     refine: string[];
-}): ReactElement {
+    /**
+     * `panel` (default): collapsible sections for a side panel.
+     * `bar`: one dropdown button per refinement (Brand, Size, Price, Color...) for a horizontal filter bar.
+     * `accordion`: one row per refinement with a +/- toggle; opening a row closes the one that was open
+     * (used inside the filters drawer).
+     */
+    layout?: 'panel' | 'bar' | 'accordion';
+    /**
+     * `bar` layout only: buttons to show for facets the search did not return, so the filter bar keeps its
+     * shape. `attributeId` is the drawer row to open (matches the placeholder facet ids).
+     */
+    placeholders?: Array<{ label: string; attributeId: string }>;
+    /** `bar` layout only: called with the facet's attributeId when its button is clicked (opens the drawer). */
+    onFacetClick?: (attributeId: string) => void;
+    /** `accordion` layout only: the open row when controlled by the parent (null = all collapsed). */
+    openId?: string | null;
+    /** `accordion` layout only: called when the shopper opens or closes a row. */
+    onOpenIdChange?: (openId: string | null) => void;
+}): ReactElement | null {
     const { t } = useTranslation();
+    const [localOpenId, setLocalOpenId] = useState<string | null>(null);
+    const openAccordionId = controlledOpenId !== undefined ? controlledOpenId : localOpenId;
+    const setOpenAccordionId = (next: string | null) => {
+        setLocalOpenId(next);
+        onOpenIdChange?.(next);
+    };
+    const [staticSelected, setStaticSelected] = useState<string[]>([]);
     const navigate = useNavigate();
     const location = useLocation();
     const navigation = useNavigation();
@@ -135,6 +167,21 @@ export default function CategoryRefinements({
         [effectiveRefines]
     );
 
+    // The drawer (accordion layout) falls back to display-only placeholder facets while the search result has no
+    // usable refinements of its own. Their selection stays local: it does not change the URL or the products.
+    const hasRealRows = refinements.some((refinement) => Array.isArray(refinement.values) && refinement.values.length);
+    const isStaticFallback = layout === 'accordion' && !hasRealRows;
+    const staticIsSelected = useCallback(
+        (attributeId: string, value: string) => staticSelected.includes(`${attributeId}=${value}`),
+        [staticSelected]
+    );
+    const staticToggle = useCallback((attributeId: string, value: string) => {
+        const pair = `${attributeId}=${value}`;
+        setStaticSelected((current) =>
+            current.includes(pair) ? current.filter((entry) => entry !== pair) : [...current, pair]
+        );
+    }, []);
+
     // Render the appropriate filter component based on type
     const renderFilterValues = (
         refinement: ShopperSearch.schemas['ProductSearchRefinement'] & { values: FilterValue[] }
@@ -143,9 +190,15 @@ export default function CategoryRefinements({
         const refinementProps: RefinementProps = {
             values,
             attributeId,
-            isFilterSelected,
-            toggleFilter,
+            isFilterSelected: isStaticFallback ? staticIsSelected : isFilterSelected,
+            toggleFilter: isStaticFallback ? staticToggle : toggleFilter,
         };
+
+        if (isStaticFallback) {
+            if (attributeId === 'c_refinementColor') return <RefineColor {...refinementProps} />;
+            if (attributeId === 'c_size') return <RefineSize {...refinementProps} />;
+            return <RefineDefault {...refinementProps} />;
+        }
 
         switch (attributeId) {
             case 'c_refinementColor':
@@ -161,6 +214,91 @@ export default function CategoryRefinements({
                 return <RefineDefault {...refinementProps} />;
         }
     };
+
+    if (layout === 'accordion') {
+        const rows = (
+            isStaticFallback ? (STATIC_FACETS as typeof refinements) : refinements
+        ).filter((refinement) => Array.isArray(refinement.values) && refinement.values.length);
+        if (rows.length === 0) return null;
+        return (
+            <UITarget targetId="sfcc.plp.search.filters">
+                <div data-slot="refinement-accordion" className={isPending ? 'pointer-events-none opacity-50' : ''}>
+                    {/*  @sfdc-extension-block-start SFDC_EXT_BOPIS */}
+                    <RefineInventory
+                        isFilterSelected={isFilterSelected}
+                        hasActiveFilter={hasActiveFilter}
+                        toggleFilter={toggleFilter}
+                    />
+                    {/*  @sfdc-extension-block-end SFDC_EXT_BOPIS */}
+                    {rows.map((refinement) => {
+                        const { attributeId, label } = refinement;
+                        const selectedCount = (isStaticFallback ? staticSelected : effectiveRefines).filter((r) =>
+                            r.startsWith(`${attributeId}=`)
+                        ).length;
+                        return (
+                            <AccordionRow
+                                key={attributeId}
+                                label={label || attributeId}
+                                selectedCount={selectedCount}
+                                open={openAccordionId === attributeId}
+                                onToggle={() => setOpenAccordionId(openAccordionId === attributeId ? null : attributeId)}>
+                                {renderFilterValues(
+                                    refinement as ShopperSearch.schemas['ProductSearchRefinement'] & {
+                                        values: FilterValue[];
+                                    }
+                                )}
+                            </AccordionRow>
+                        );
+                    })}
+                </div>
+            </UITarget>
+        );
+    }
+
+    if (layout === 'bar') {
+        const realFacets = refinements.filter(
+            (refinement) => Array.isArray(refinement.values) && refinement.values.length
+        );
+        const items = [
+            ...realFacets.map((refinement) => ({
+                attributeId: refinement.attributeId,
+                label: refinement.label || refinement.attributeId,
+                selectedCount: effectiveRefines.filter((r) => r.startsWith(`${refinement.attributeId}=`)).length,
+            })),
+            // Facets the search did not return keep their place in the bar.
+            ...placeholders
+                .filter(
+                    (placeholder) =>
+                        !realFacets.some(
+                            (refinement) => (refinement.label ?? '').toLowerCase() === placeholder.label.toLowerCase()
+                        )
+                )
+                .map((placeholder) => ({ ...placeholder, selectedCount: 0 })),
+        ];
+        if (items.length === 0) return null;
+        return (
+            <div
+                data-slot="refinement-bar"
+                className={isPending ? 'contents pointer-events-none opacity-50 transition-opacity' : 'contents'}>
+                {items.map(({ attributeId, label, selectedCount }) => (
+                    <Button
+                        key={attributeId}
+                        variant="outline"
+                        onClick={() => onFacetClick?.(attributeId)}
+                        data-testid={`filter-dropdown-${label}`}
+                        className="h-11 gap-2 px-4 text-sm font-normal text-foreground">
+                        {label}
+                        {selectedCount > 0 && (
+                            <span className="min-w-5 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
+                                {selectedCount}
+                            </span>
+                        )}
+                        <ChevronDown className="size-4" aria-hidden />
+                    </Button>
+                ))}
+            </div>
+        );
+    }
 
     // No refinements available
     if (refinements.length === 0) {
@@ -204,6 +342,55 @@ export default function CategoryRefinements({
                 })}
             </div>
         </UITarget>
+    );
+}
+
+/**
+ * One row of the filters drawer: bold label, +/- toggle on the right, bottom divider. The parent decides which
+ * row is open, so opening one closes the previous one.
+ */
+function AccordionRow({
+    label,
+    selectedCount,
+    open,
+    onToggle,
+    children,
+}: {
+    label: string;
+    selectedCount: number;
+    open: boolean;
+    onToggle: () => void;
+    children: ReactElement;
+}): ReactElement {
+    const buttonId = useId();
+    const panelId = useId();
+    return (
+        <section className="border-b border-border" data-testid={`filter-row-${label}`}>
+            <h3>
+                <button
+                    type="button"
+                    id={buttonId}
+                    aria-expanded={open}
+                    aria-controls={panelId}
+                    onClick={onToggle}
+                    className="flex w-full cursor-pointer items-center justify-between px-5 py-4 text-left text-sm font-semibold text-foreground">
+                    <span>
+                        {label}
+                        {selectedCount > 0 && (
+                            <span className="ml-2 rounded-full bg-primary px-1.5 text-xs font-normal text-primary-foreground">
+                                {selectedCount}
+                            </span>
+                        )}
+                    </span>
+                    {open ? <Minus className="size-5" aria-hidden /> : <Plus className="size-5" aria-hidden />}
+                </button>
+            </h3>
+            {open && (
+                <div id={panelId} role="region" aria-labelledby={buttonId} className="px-5 pb-5">
+                    {children}
+                </div>
+            )}
+        </section>
     );
 }
 

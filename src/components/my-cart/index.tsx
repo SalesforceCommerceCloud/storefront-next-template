@@ -35,6 +35,9 @@ import { formatCurrency } from '@/lib/currency';
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
 import { createProductUrl, getDisplayVariationValues } from '@/lib/product/product-utils';
 import { toImageUrl } from '@/lib/images/dynamic-image';
+import { CartLineDeliveryInfo } from '@/components/delivery-promise/cart-delivery';
+import { useCartDeliveries } from '@/components/delivery-promise/use-cart-deliveries';
+import { useDeliveryFormat } from '@/components/delivery-promise/use-delivery-format';
 
 /**
  * Props for the MyCart component
@@ -69,9 +72,22 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
     const { i18n } = useTranslation();
     const { currency } = useSite();
     const config = useConfig();
+    const { t: tFulfillment, date: formatDate } = useDeliveryFormat();
+    const cartDeliveries = useCartDeliveries(basket);
 
     const productItems = useMemo(() => {
-        return (basket?.productItems || []).map((item, index) => {
+        // Order lines by delivery (same split as the cart page); lines without hub stock data go last.
+        const allItems = basket?.productItems || [];
+        const assigned = new Set<string>();
+        const sections = cartDeliveries.deliveries.map((delivery) => {
+            const ids = new Set(delivery.items.map((line) => line.itemId));
+            const items = allItems.filter((item) => item.itemId && ids.has(item.itemId));
+            items.forEach((item) => assigned.add(item.itemId ?? item.productId ?? ''));
+            return { delivery, items };
+        });
+        const rest = allItems.filter((item) => !assigned.has(item.itemId ?? item.productId ?? ''));
+
+        const renderItem = (item: ShopperBasketsV2.schemas['ProductItem'], index: number) => {
             const productData = item.itemId ? productMap[item.itemId] : undefined;
             const productName = item.productName || productData?.name || 'Product';
             const productId = productData?.master?.masterId || productData?.id || item.productId;
@@ -97,6 +113,7 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
             );
 
             const quantity = item.quantity ?? 1;
+            const delivery = cartDeliveries.getDelivery(item.itemId);
 
             // Calculate savings using getPriceData (same logic as ProductPrice component)
             const priceData = getPriceData(enrichedProduct, { quantity });
@@ -170,6 +187,7 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
                             <div className="mt-0.5 text-xs">
                                 {tCart('attributes.quantity')} {quantity}
                             </div>
+                            {delivery && <CartLineDeliveryInfo delivery={delivery} />}
                         </div>
 
                         {/* Column 3: Tags (delivery, savings) */}
@@ -189,8 +207,42 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
                     </div>
                 </div>
             );
-        });
-    }, [basket?.productItems, productMap, currency, i18n.language, config, t, tCart]);
+        };
+
+        return [
+            ...sections.flatMap(({ delivery, items }, groupIndex) => [
+                <div key={`group-${delivery.id}`} data-testid={`my-cart-group-${delivery.locationId}`}>
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                        <Truck className="size-4 shrink-0" aria-hidden />
+                        {tFulfillment('deliveryGroupTitle', {
+                            number: groupIndex + 1,
+                            city: delivery.city,
+                            defaultValue: 'Delivery {{number}} – from {{city}}',
+                        })}
+                        <span className="text-xs font-normal text-muted-foreground">
+                            {tFulfillment('deliveryBy', {
+                                date: formatDate(delivery.deliveryDate),
+                                defaultValue: 'Delivery by {{date}}',
+                            })}
+                        </span>
+                    </h3>
+                </div>,
+                ...items.map(renderItem),
+            ]),
+            ...rest.map(renderItem),
+        ];
+    }, [
+        basket?.productItems,
+        productMap,
+        currency,
+        i18n.language,
+        config,
+        t,
+        tCart,
+        tFulfillment,
+        formatDate,
+        cartDeliveries,
+    ]);
 
     return (
         <div className="w-full">

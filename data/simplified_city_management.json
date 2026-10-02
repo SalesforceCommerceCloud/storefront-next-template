@@ -1,0 +1,599 @@
+{
+    "defaultCityId": "TBS",
+    "fallbackHubId": "HUB-TBS",
+    "cities": [
+        {
+            "id": "TBS",
+            "name": "Tbilisi",
+            "postalCode": "0105",
+            "postalCodePrefixes": ["01", "02"],
+            "sameCityDistanceKm": 15,
+            "hub": {
+                "id": "HUB-TBS",
+                "name": "Tbilisi Central Hub",
+                "trackingPrefix": "DRS-TBS-"
+            }
+        },
+        {
+            "id": "BUS",
+            "name": "Batumi",
+            "postalCode": "6000",
+            "postalCodePrefixes": ["60", "61"],
+            "sameCityDistanceKm": 10,
+            "hub": {
+                "id": "HUB-BUS",
+                "name": "Batumi Hub",
+                "trackingPrefix": "DRS-BUS-"
+            }
+        },
+        {
+            "id": "KUT",
+            "name": "Kutaisi",
+            "postalCode": "4600",
+            "postalCodePrefixes": ["46", "47"],
+            "sameCityDistanceKm": 8,
+            "hub": {
+                "id": "HUB-KUT",
+                "name": "Kutaisi Hub",
+                "trackingPrefix": "DRS-KUT-"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "fromCityId": "TBS",
+            "toCityId": "BUS",
+            "distanceKm": 370
+        },
+        {
+            "fromCityId": "TBS",
+            "toCityId": "KUT",
+            "distanceKm": 230
+        },
+        {
+            "fromCityId": "KUT",
+            "toCityId": "BUS",
+            "distanceKm": 150
+        }
+    ],
+    "leadTimeBands": [
+        {
+            "maxKm": 50,
+            "leadTimeDays": 1
+        },
+        {
+            "maxKm": 200,
+            "leadTimeDays": 2
+        },
+        {
+            "maxKm": 300,
+            "leadTimeDays": 3
+        },
+        {
+            "maxKm": 500,
+            "leadTimeDays": 4
+        }
+    ],
+    "inventory": [
+        {
+            "productId": "DU-893268",
+            "productName": "s.OLIVER - Knitted layering pullover",
+            "brand": "s.Oliver",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-893268-34", "DU-893268-36", "DU-893268-38", "DU-893268-40"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 5,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-893259",
+            "productName": "s.OLIVER - Knitted layering pullover",
+            "brand": "s.Oliver",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-893259-34", "DU-893259-36", "DU-893259-38", "DU-893259-40"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 22,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-893205",
+            "productName": "s.OLIVER - Women's knitted blouse",
+            "brand": "s.Oliver",
+            "category": "1665-polos",
+            "variantIds": ["DU-893205-34", "DU-893205-36", "DU-893205-38", "DU-893205-40"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 20
+            }
+        },
+        {
+            "productId": "DU-893151",
+            "productName": "s.OLIVER - Women's knitted pullover",
+            "brand": "s.Oliver",
+            "category": "1665-polos",
+            "variantIds": ["DU-893151-34", "DU-893151-36", "DU-893151-38", "DU-893151-40"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 25,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-892764",
+            "productName": "Adidas - ESS PES SS",
+            "brand": "Adidas",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-892764-XS", "DU-892764-S", "DU-892764-M", "DU-892764-L", "DU-892764-XL"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 24,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-892440",
+            "productName": "Etam - PERSIENNE - BODY",
+            "brand": "Etam",
+            "category": "1661-bodysuits",
+            "variantIds": ["DU-892440-S", "DU-892440-M", "DU-892440-L"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 12
+            }
+        },
+        {
+            "productId": "DU-891450",
+            "productName": "Adidas - 3S TEE SLIM",
+            "brand": "Adidas",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-891450-XS", "DU-891450-S", "DU-891450-M", "DU-891450-L"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 23,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-891279",
+            "productName": "Adidas - 3S TEE SLIM",
+            "brand": "Adidas",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-891279-XS", "DU-891279-S", "DU-891279-M", "DU-891279-L"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 29,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-890064",
+            "productName": "Vero Moda Curve - VMMILLE LS BOATNECK SHORT TOP JRS CUR",
+            "brand": "Vero Moda Curve",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-890064-S", "DU-890064-M"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 18
+            }
+        },
+        {
+            "productId": "DU-889695",
+            "productName": "ONLY - ONLDOLLY L/S BOATNECK TOP CC JRS",
+            "brand": "ONLY",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-889695-XS", "DU-889695-S", "DU-889695-M", "DU-889695-L", "DU-889695-XL"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 5,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-889686",
+            "productName": "ONLY - ONLDOLLY L/S BOATNECK TOP CC JRS",
+            "brand": "ONLY",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-889686-XS", "DU-889686-S", "DU-889686-M", "DU-889686-L", "DU-889686-XL"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 10,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-889677",
+            "productName": "ONLY - ONLDOLLY L/S BOATNECK TOP CC JRS",
+            "brand": "ONLY",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-889677-XS", "DU-889677-S", "DU-889677-M", "DU-889677-L", "DU-889677-XL"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 29
+            }
+        },
+        {
+            "productId": "DU-885807",
+            "productName": "GANT - SUPERFINE LAMBSWOOL STRIPED RUGGER",
+            "brand": "GANT",
+            "category": "1665-polos",
+            "variantIds": ["DU-885807-XS", "DU-885807-S", "DU-885807-M", "DU-885807-L", "DU-885807-XL"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 14,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-885798",
+            "productName": "GANT - SUPERFINE LAMBSWOOL STRIPED RUGGER",
+            "brand": "GANT",
+            "category": "1665-polos",
+            "variantIds": ["DU-885798-XS", "DU-885798-S", "DU-885798-M", "DU-885798-L", "DU-885798-XL"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 25,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879260",
+            "productName": "Mavi - POLO NECK TRICOT",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879260-XS", "DU-879260-S", "DU-879260-M", "DU-879260-L"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 24
+            }
+        },
+        {
+            "productId": "DU-879251",
+            "productName": "Mavi - POLO NECK TRICOT",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879251-XS", "DU-879251-S", "DU-879251-M"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 29,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879242",
+            "productName": "Mavi - POLO NECK TRICOT",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879242-XS", "DU-879242-S", "DU-879242-M"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 22,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879188",
+            "productName": "Mavi - POLO NECK SWEATER",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879188-XS", "DU-879188-S", "DU-879188-M", "DU-879188-L"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 23
+            }
+        },
+        {
+            "productId": "DU-879179",
+            "productName": "Mavi - POLO NECK SWEATER",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879179-XS", "DU-879179-S", "DU-879179-M", "DU-879179-L"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 6,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879152",
+            "productName": "Mavi - LOGO PRINTED T-SHIRT",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879152-S", "DU-879152-M", "DU-879152-L"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 20,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879143",
+            "productName": "Mavi - LOGO PRINTED T-SHIRT",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879143-XS", "DU-879143-S", "DU-879143-M", "DU-879143-L"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 29
+            }
+        },
+        {
+            "productId": "DU-879134",
+            "productName": "Mavi - LOGO PRINTED T-SHIRT",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879134-XS", "DU-879134-S", "DU-879134-M", "DU-879134-L"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 7,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879125",
+            "productName": "Mavi - LOGO PRINTED T-SHIRT",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879125-S", "DU-879125-M", "DU-879125-L"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 26,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879116",
+            "productName": "Mavi - FASHION POLO",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879116-XS", "DU-879116-S", "DU-879116-M", "DU-879116-L"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 13
+            }
+        },
+        {
+            "productId": "DU-879107",
+            "productName": "Mavi - FASHION JERSEY",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879107-XS", "DU-879107-S", "DU-879107-M", "DU-879107-L"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 18,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879089",
+            "productName": "Mavi - LONG SLEEVE FASHION JERSEY",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879089-XS", "DU-879089-S", "DU-879089-M", "DU-879089-L"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 16,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879080",
+            "productName": "Mavi - LONG SLEEVE FASHION JERSEY",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879080-XS", "DU-879080-S", "DU-879080-M"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 30
+            }
+        },
+        {
+            "productId": "DU-879098",
+            "productName": "Mavi - FASHION JERSEY",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879098-XS", "DU-879098-S", "DU-879098-M", "DU-879098-L"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 27,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879071",
+            "productName": "Mavi - LONG SLEEVE FASHION JERSEY",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879071-XS", "DU-879071-S", "DU-879071-M"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 21,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879062",
+            "productName": "Mavi - LONG SLEEVE FASHION JERSEY",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879062-XS", "DU-879062-S", "DU-879062-M"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 16
+            }
+        },
+        {
+            "productId": "DU-879053",
+            "productName": "Mavi - BUTTON FRONT FASHION JERSEY",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879053-XS", "DU-879053-S", "DU-879053-M", "DU-879053-L"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 11,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879044",
+            "productName": "Mavi - BUTTON FRONT FASHION JERSEY",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879044-XS", "DU-879044-S", "DU-879044-M", "DU-879044-L"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 29,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-879035",
+            "productName": "Mavi - POLO NECK FASHION JERSEY",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879035-XS", "DU-879035-S", "DU-879035-M", "DU-879035-L"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 22
+            }
+        },
+        {
+            "productId": "DU-874138",
+            "productName": "Lacoste - CREWNECK T-SHIRTS FEMALE",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874138-XS", "DU-874138-S", "DU-874138-M", "DU-874138-L", "DU-874138-XL"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 25,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-874129",
+            "productName": "Lacoste - CREWNECK T-SHIRTS FEMALE",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874129-XS", "DU-874129-S", "DU-874129-M", "DU-874129-L"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 24,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-874120",
+            "productName": "Lacoste - CREWNECK T-SHIRTS FEMALE",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874120-S", "DU-874120-M", "DU-874120-L"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 6
+            }
+        },
+        {
+            "productId": "DU-874111",
+            "productName": "Lacoste - WOMEN’S SLIM FIT RIBBED COTTON T-SHIRT",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874111-XS", "DU-874111-S", "DU-874111-M", "DU-874111-L", "DU-874111-XL"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 9,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-874102",
+            "productName": "Lacoste - Womens Contrast Trim Jersey T-Shirt",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874102-XS", "DU-874102-S", "DU-874102-M", "DU-874102-L", "DU-874102-XL"],
+            "scenario": "Stocked in Batumi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 6,
+                "HUB-KUT": 0
+            }
+        },
+        {
+            "productId": "DU-874093",
+            "productName": "Lacoste - CREWNECK T-SHIRTS FEMALE",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874093-XS", "DU-874093-S", "DU-874093-M", "DU-874093-L", "DU-874093-XL"],
+            "scenario": "Stocked in Kutaisi only",
+            "stock": {
+                "HUB-TBS": 0,
+                "HUB-BUS": 0,
+                "HUB-KUT": 12
+            }
+        },
+        {
+            "productId": "DU-874084",
+            "productName": "Lacoste - CREWNECK T-SHIRTS FEMALE",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874084-XS", "DU-874084-S", "DU-874084-M", "DU-874084-L", "DU-874084-XL"],
+            "scenario": "Stocked in Tbilisi only",
+            "stock": {
+                "HUB-TBS": 10,
+                "HUB-BUS": 0,
+                "HUB-KUT": 0
+            }
+        }
+    ]
+}

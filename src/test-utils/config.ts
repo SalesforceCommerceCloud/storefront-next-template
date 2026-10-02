@@ -110,6 +110,7 @@ export const mockBuildConfig: Config = {
         },
         defaultSiteId: 'RefArchGlobal',
         features: {
+            returnsCustomApi: false,
             passkey: {
                 enabled: false,
                 mode: 'email',

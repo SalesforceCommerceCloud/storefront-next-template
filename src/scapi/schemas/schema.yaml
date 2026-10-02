@@ -1,0 +1,182 @@
+openapi: 3.0.3
+info:
+  title: Returns
+  version: 1.0.0
+  description: >
+    Demo returns and exchanges, stored on the order as the custom attribute c_returns. Both operations act only on an
+    order that belongs to the logged-in shopper and re-run the return rules on the server.
+paths:
+  /orders/{orderNo}/returns:
+    post:
+      operationId: createReturn
+      summary: Create a return or exchange request for an order.
+      parameters:
+        - $ref: '#/components/parameters/orderNo'
+        - $ref: '#/components/parameters/siteId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReturnRequest'
+      responses:
+        '201':
+          description: The return was created, or an earlier request with the same clientRequestId was returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRecord'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+      security:
+        - ShopperToken: [c_returns]
+  /orders/{orderNo}/returns/{rmaNo}/advance:
+    post:
+      operationId: advanceReturn
+      summary: Move a return one status forward (presenter control).
+      parameters:
+        - $ref: '#/components/parameters/orderNo'
+        - name: rmaNo
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/siteId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdvanceReturnRequest'
+      responses:
+        '200':
+          description: The updated return. Unchanged when expectedStatus no longer matches or the return is already final.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRecord'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+      security:
+        - ShopperToken: [c_returns]
+components:
+  securitySchemes:
+    ShopperToken:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://{shortCode}.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/{organizationId}/oauth2/token
+          scopes:
+            c_returns: Create and advance the shopper's returns
+  parameters:
+    orderNo:
+      name: orderNo
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    siteId:
+      name: siteId
+      in: query
+      required: true
+      schema:
+        type: string
+        minLength: 1
+  responses:
+    Problem:
+      description: Problem details
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    ReturnAction:
+      type: string
+      enum: [return, exchange]
+    ReturnStatus:
+      type: string
+      enum: [submitted, approved, received, refunded, exchange_shipped]
+    ReturnReason:
+      type: string
+      enum: [too-small, too-large, defective, not-as-described, changed-mind, wrong-item]
+    CreateReturnItem:
+      type: object
+      required: [itemId, quantity, action, reason]
+      properties:
+        itemId:
+          type: string
+          description: Order line item id.
+        quantity:
+          type: integer
+          minimum: 1
+        action:
+          $ref: '#/components/schemas/ReturnAction'
+        reason:
+          $ref: '#/components/schemas/ReturnReason'
+        replacementSku:
+          type: string
+          description: Required for an exchange. A different, orderable variant of the same product.
+    CreateReturnRequest:
+      type: object
+      required: [items]
+      properties:
+        clientRequestId:
+          type: string
+          maxLength: 64
+          description: Idempotency key. A repeated request with the same key returns the first return instead of a second.
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/CreateReturnItem'
+    AdvanceReturnRequest:
+      type: object
+      properties:
+        expectedStatus:
+          $ref: '#/components/schemas/ReturnStatus'
+    ReturnHistoryEntry:
+      type: object
+      required: [status, at]
+      properties:
+        status:
+          $ref: '#/components/schemas/ReturnStatus'
+        at:
+          type: string
+          format: date-time
+    ReturnRecord:
+      type: object
+      required: [rmaNo, status, items, history]
+      properties:
+        rmaNo:
+          type: string
+        status:
+          $ref: '#/components/schemas/ReturnStatus'
+        clientRequestId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateReturnItem'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReturnHistoryEntry'
+        trackingNo:
+          type: string
+          nullable: true
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string

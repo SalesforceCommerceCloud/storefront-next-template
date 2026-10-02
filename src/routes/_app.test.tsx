@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactNode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
@@ -30,35 +29,20 @@ vi.mock('@/lib/page-designer/component-loader.server', () => ({
     fetchComponentWithComponentData: vi.fn(),
 }));
 
-vi.mock('@/components/region/embedded-component-region', () => ({
-    EmbeddedComponentRegion: ({ component, regionId }: { component: unknown; regionId: string }) => (
-        <div
-            data-testid="embedded-component-region"
-            data-region-id={regionId}
-            data-has-component={component == null ? 'false' : 'true'}
-        />
-    ),
-}));
-
-vi.mock('@/components/header', () => ({
-    default: ({ children, announcementSlot }: { children?: ReactNode; announcementSlot?: ReactNode }) => (
-        <header data-testid="header" data-has-announcement-slot={announcementSlot ? 'true' : 'false'}>
-            {announcementSlot}
-            {children}
+vi.mock('@/components/mainheader/mainheader', () => ({
+    default: ({ root, defer }: { root?: unknown; defer?: unknown }) => (
+        <header
+            data-testid="header"
+            data-header-kind="custom">
+            <nav data-testid="navigation-menu-mega" data-has-resolve={!!root} data-has-defer={!!defer}>
+                Navigation
+            </nav>
         </header>
     ),
 }));
 
 vi.mock('@/components/footer', () => ({
     default: () => <footer data-testid="footer">Footer</footer>,
-}));
-
-vi.mock('@/components/navigation-menu-mega', () => ({
-    default: ({ resolve, defer }: { resolve?: unknown; defer?: unknown }) => (
-        <nav data-testid="navigation-menu-mega" data-has-resolve={!!resolve} data-has-defer={!!defer}>
-            Navigation
-        </nav>
-    ),
 }));
 
 vi.mock('@/lib/logger.server', () => ({
@@ -112,7 +96,7 @@ describe('_app.tsx - Default Layout Route', () => {
     });
 
     describe('rendering', () => {
-        it('should render Header, main content area, and Footer', async () => {
+        it('should render the custom Header, main content area, and Footer', async () => {
             const Stub = createRoutesStub([
                 {
                     id: 'root',
@@ -140,6 +124,7 @@ describe('_app.tsx - Default Layout Route', () => {
             await waitFor(() => {
                 // Verify layout structure
                 expect(screen.getByTestId('header')).toBeInTheDocument();
+                expect(screen.getByTestId('header')).toHaveAttribute('data-header-kind', 'custom');
                 expect(screen.getByTestId('footer')).toBeInTheDocument();
                 expect(screen.getByTestId('navigation-menu-mega')).toBeInTheDocument();
 
@@ -390,33 +375,8 @@ describe('_app.tsx - Default Layout Route', () => {
             expect(mockFetchCategory).toHaveBeenCalledWith(mockContext, 'root', 1);
             expect(result).toHaveProperty('root');
             expect(result).toHaveProperty('subs');
-            expect(result).toHaveProperty('headerComponent');
-
             const rootCategory = await result.root;
             expect(rootCategory).toEqual(mockRootCategory);
-        });
-
-        it('should fetch header embedded component data with componentId="header"', async () => {
-            const { fetchCategory } = await import('@/lib/api/categories.server');
-            const { fetchComponentWithComponentData } = await import('@/lib/page-designer/component-loader.server');
-            const mockFetchCategory = vi.mocked(fetchCategory);
-            const mockFetchComponent = vi.mocked(fetchComponentWithComponentData);
-
-            mockFetchCategory.mockResolvedValue({ id: 'root', name: 'Root', categories: [] });
-            mockFetchComponent.mockResolvedValue({ id: 'header-component' } as never);
-
-            const mockContext = {} as any;
-            const request = new Request('https://example.test/');
-            const result = loader({ context: mockContext, request } as any);
-
-            // The loader fetches two embedded components: the header and the mega menu.
-            expect(mockFetchComponent).toHaveBeenCalledTimes(2);
-            const headerCall = mockFetchComponent.mock.calls.find(([, options]) => options?.componentId === 'header');
-            expect(headerCall).toBeDefined();
-            expect(headerCall?.[0]).toMatchObject({ context: mockContext, request, params: {} });
-
-            const headerComponent = await result.headerComponent;
-            expect(headerComponent).toEqual({ id: 'header-component' });
         });
 
         it('should fetch mega-menu embedded component data with componentId="mega-menu"', async () => {
@@ -455,7 +415,7 @@ describe('_app.tsx - Default Layout Route', () => {
                 request: new Request('https://example.test/'),
             } as any);
 
-            await expect(result.headerComponent).resolves.toBeNull();
+            await expect(result.megaMenuComponent).resolves.toBeNull();
         });
 
         it('should fetch subcategories for categories with onlineSubCategoriesCount > 0 in a single batch call', async () => {

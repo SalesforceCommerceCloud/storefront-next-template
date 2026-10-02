@@ -34,6 +34,12 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
     };
 });
 
+// The return actions read `features.returnsCustomApi`; these tests render without a config provider.
+vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => {
+    const actual = await importOriginal<object>();
+    return { ...actual, useConfig: vi.fn(() => ({ features: {} })) };
+});
+
 // Mock the Link component from @/components/link
 vi.mock('@/components/link', () => ({
     Link: ({ children, to, onClick }: { children: React.ReactNode; to: string; onClick?: () => void }) => (

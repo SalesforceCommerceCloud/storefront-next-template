@@ -22,6 +22,7 @@ import {
     formatStatusFallbackLabel,
     getOrderCancelStatusConfig,
     getOrderReturnStatus,
+    type OrderReturnStatusType,
     getOrderReturnStatusConfig,
     getOrderStatusConfig,
     resolveOrderStatus,
@@ -37,6 +38,8 @@ export type OrderStatusHeaderProps = {
      * the cancel/return actions.
      */
     headingRef?: RefObject<HTMLHeadingElement | null>;
+    /** Return status from the storefront's own returns; used when Order Management reports none. */
+    returnStatusFallback?: OrderReturnStatusType;
 };
 
 /**
@@ -49,13 +52,13 @@ export type OrderStatusHeaderProps = {
  * unrecognized/unmapped raw status falls back to a neutral (muted) shell rather than implying
  * success.
  */
-export function OrderStatusHeader({ order, headingRef }: OrderStatusHeaderProps): ReactElement {
+export function OrderStatusHeader({ order, headingRef, returnStatusFallback }: OrderStatusHeaderProps): ReactElement {
     const { t } = useTranslation('account');
     const orderNo = order.orderNo ?? '';
 
     const cancelStatusConfig = getOrderCancelStatusConfig(order);
     const returnStatusConfig = !cancelStatusConfig
-        ? getOrderReturnStatusConfig(getOrderReturnStatus(order))
+        ? getOrderReturnStatusConfig(getOrderReturnStatus(order) ?? returnStatusFallback)
         : undefined;
     const orderStatus = resolveOrderStatus(order);
     const orderStatusConfig = getOrderStatusConfig(orderStatus);

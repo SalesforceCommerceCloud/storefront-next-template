@@ -51,6 +51,8 @@ import { getFirstPickupStore, filterPickupProductItems } from '@/extensions/bopi
 import { usePickup } from '@/extensions/bopis/context/pickup-context';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 import { UITarget } from '@/targets/ui-target';
+import { CartGroupTitle, CartLineDeliveryInfo } from '@/components/delivery-promise/cart-delivery';
+import { useCartDeliveries } from '@/components/delivery-promise/use-cart-deliveries';
 
 // utils
 import {
@@ -82,7 +84,7 @@ const LazyCartItemAddToWishlistButton = lazy(() =>
  * @property {Record<string, ShopperProducts.schemas['Product']>} [productsByItemId] - Item ID to product mapping
  * @property {Record<string, ShopperPromotions.schemas['Promotion']>} [promotions] - Promotion ID to promotion mapping
  * @property {string[]} [wishlistProductIds] - Product IDs in the shopper wishlist (from cart loader) for line-level wishlist state after refresh
- * @property {ReactNode} [recommendationsSlot] - Below-the-fold recommendations region; the route owns recommender selection, i18n, and promise pinning
+ * @property {ReactNode} [categoryRecommendationsSlot] - Category products below the cart and order summary
  */
 interface CartContentProps {
     basket: ShopperBasketsV2.schemas['Basket'] | undefined;
@@ -90,7 +92,7 @@ interface CartContentProps {
     bonusProductsById: Record<string, ShopperProducts.schemas['Product']>;
     promotions?: Record<string, ShopperPromotions.schemas['Promotion']>;
     wishlistProductIds?: readonly string[];
-    recommendationsSlot?: ReactNode;
+    categoryRecommendationsSlot?: ReactNode;
     ruleBasedBonusProductsPromise: Promise<Record<string, ShopperSearch.schemas['ProductSearchHit'][]>>;
 }
 
@@ -114,7 +116,7 @@ export default function CartContent({
     bonusProductsById,
     promotions,
     wishlistProductIds = [],
-    recommendationsSlot,
+    categoryRecommendationsSlot,
     ruleBasedBonusProductsPromise,
 }: CartContentProps): ReactElement {
     const { t } = useTranslation('cart');
@@ -284,6 +286,8 @@ export default function CartContent({
         };
     }, []);
 
+    const cartDeliveries = useCartDeliveries(basket);
+
     // Check if cart is empty using the basket prop from loader data
     if (!basket?.productItems?.length) {
         return <CartEmpty />;
@@ -300,6 +304,17 @@ export default function CartContent({
         : deliveryItemsState.value;
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
     const deliveryItems = deliveryItemsState.value;
+
+    // Split delivery items by the delivery engine's deliveries (hub + date); items with no hub stock data stay in
+    // the default card.
+    const fulfillmentSections = cartDeliveries.deliveries
+        .map((delivery) => {
+            const itemIds = new Set(delivery.items.map((line) => line.itemId));
+            return { delivery, items: deliveryItems.filter((item) => item.itemId && itemIds.has(item.itemId)) };
+        })
+        .filter((section) => section.items.length > 0);
+    const assignedItemIds = new Set(fulfillmentSections.flatMap((section) => section.items.map((item) => item.itemId)));
+    const unassignedDeliveryItems = deliveryItems.filter((item) => !assignedItemIds.has(item.itemId));
 
     // TEMPORARY: Logic to facilitate bonus product modal - extract bonus product data
     const bonusDiscountItems = basket?.bonusDiscountLineItems || [];
@@ -341,6 +356,19 @@ export default function CartContent({
                         />
                     </Suspense>
                 )}
+            </div>
+        );
+    };
+
+    // Same actions (Remove / Edit / Wishlist) followed by the line's delivery date and lead time
+    const cartSecondaryActionsWithFulfillment = (product: EnrichedProductItem): ReactElement | undefined => {
+        const actions = cartSecondaryActions(product);
+        const delivery = cartDeliveries.getDelivery(product.itemId);
+        if (!delivery) return actions;
+        return (
+            <div>
+                {actions}
+                <CartLineDeliveryInfo delivery={delivery} />
             </div>
         );
     };
@@ -474,17 +502,41 @@ export default function CartContent({
                             </div>
                         )}
                         {/* @sfdc-extension-block-end SFDC_EXT_BOPIS */}
-                        {/* Show delivery items if any exist */}
-                        {deliveryItems.length > 0 && (
+                        {/* One default-styled delivery card per fulfillment city (multi-city fulfillment) */}
+                        {fulfillmentSections.map(({ delivery, items }, index) => (
+                            <div
+                                key={delivery.id}
+                                data-slot="cart-delivery-group"
+                                className="md:p-8 p-3 rounded-ui border border-muted-foreground/10 mb-3">
+                                <CartGroupTitle
+                                    delivery={delivery}
+                                    itemCount={items.length}
+                                    totalCount={deliveryItems.length}
+                                />
+                                <ProductItemsList
+                                    promotions={promotions}
+                                    productItems={items}
+                                    productsByItemId={productsByItemId}
+                                    bonusDiscountLineItems={index === 0 ? bonusDiscountItems : undefined}
+                                    secondaryActions={cartSecondaryActionsWithFulfillment}
+                                    deliveryActions={cartDeliveryActions}
+                                    lineItemExtra={CartLineItemGift}
+                                />
+                            </div>
+                        ))}
+                        {/* Items without fulfillment data keep the default delivery card */}
+                        {unassignedDeliveryItems.length > 0 && (
                             <div
                                 data-slot="cart-delivery-group"
                                 className="md:p-8 p-3 rounded-ui border border-muted-foreground/10 mb-3">
-                                <CartTitle basket={basket} deliveryCount={deliveryItems.length} />
+                                <CartTitle basket={basket} deliveryCount={unassignedDeliveryItems.length} />
                                 <ProductItemsList
                                     promotions={promotions}
-                                    productItems={deliveryItems}
+                                    productItems={unassignedDeliveryItems}
                                     productsByItemId={productsByItemId}
-                                    bonusDiscountLineItems={bonusDiscountItems}
+                                    bonusDiscountLineItems={
+                                        fulfillmentSections.length === 0 ? bonusDiscountItems : undefined
+                                    }
                                     secondaryActions={cartSecondaryActions}
                                     deliveryActions={cartDeliveryActions}
                                     lineItemExtra={CartLineItemGift}
@@ -492,20 +544,25 @@ export default function CartContent({
                             </div>
                         )}
                     </div>
-                    <div data-slot="order-summary" className="hidden md:block md:order-1 lg:order-2">
-                        <UITarget targetId="sfcc.cart.orderSummary.before" />
-                        <OrderSummary
-                            basket={basket}
-                            surface="cart"
-                            showCartItems={false}
-                            isEstimate={true}
-                            productsByItemId={productsByItemId}
-                            showPromoCodeForm={true}
-                            showCheckoutAction={true}
-                            inventoryValidation={inventoryValidation}
-                        />
-                        <UITarget targetId="sfcc.cart.bnpl.message" />
+                    <div data-slot="order-summary" className="md:order-2 lg:order-2">
+                        <div className="hidden md:block">
+                            <UITarget targetId="sfcc.cart.orderSummary.before" />
+                            <OrderSummary
+                                basket={basket}
+                                surface="cart"
+                                showCartItems={false}
+                                isEstimate={true}
+                                productsByItemId={productsByItemId}
+                                showPromoCodeForm={true}
+                                showCheckoutAction={true}
+                                inventoryValidation={inventoryValidation}
+                            />
+                            <UITarget targetId="sfcc.cart.bnpl.message" />
+                        </div>
                     </div>
+                </div>
+                <div className="mt-8 space-y-12">
+                    {categoryRecommendationsSlot}
                 </div>
 
                 {/* Bonus Product Carousels - one per bonusDiscountLineItem (lazy chunks reduce cart script size) */}
@@ -570,8 +627,6 @@ export default function CartContent({
                         </div>
                     );
                 })}
-
-                {recommendationsSlot}
 
                 {selectedBonusProduct && (
                     <Suspense fallback={null}>

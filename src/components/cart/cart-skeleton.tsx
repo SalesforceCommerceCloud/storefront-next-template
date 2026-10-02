@@ -48,10 +48,12 @@ function CartEmptySkeleton(): ReactElement {
 
 export default function CartSkeleton({
     productItemCount,
-    recommendationsSlot,
+    mayAlsoLikeSlot,
+    recentlyViewedSlot,
 }: {
     productItemCount?: number;
-    recommendationsSlot?: ReactNode;
+    mayAlsoLikeSlot?: ReactNode;
+    recentlyViewedSlot?: ReactNode;
 }): ReactElement {
     const { t } = useTranslation('cart');
 
@@ -152,54 +154,58 @@ export default function CartSkeleton({
                         </div>
                     </div>
 
-                    {/* Order Summary — desktop only, mirrors OrderSummary Card */}
-                    <div className="hidden md:block md:order-1 lg:order-2">
-                        <Card className="!py-4">
-                            <CardContent className="px-[var(--cart-summary-px)]">
-                                <div className="space-y-4">
-                                    <Skeleton className="h-7 w-28" />
-                                    <hr className="mx-[calc(var(--cart-summary-px)*-1)] border-border" />
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between items-center">
-                                            <Skeleton className="h-5 w-20" />
-                                            <Skeleton className="h-5 w-16" />
+                    <div className="md:order-2 lg:order-2">
+                        {/* Order Summary — desktop only, mirrors OrderSummary Card */}
+                        <div className="hidden md:block">
+                            <Card className="!py-4">
+                                <CardContent className="px-[var(--cart-summary-px)]">
+                                    <div className="space-y-4">
+                                        <Skeleton className="h-7 w-28" />
+                                        <hr className="mx-[calc(var(--cart-summary-px)*-1)] border-border" />
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <Skeleton className="h-5 w-20" />
+                                                <Skeleton className="h-5 w-16" />
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <Skeleton className="h-5 w-20" />
+                                                <Skeleton className="h-5 w-12" />
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <Skeleton className="h-5 w-12" />
+                                                <Skeleton className="h-5 w-12" />
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <Skeleton className="h-5 w-28" />
+                                                <Skeleton className="h-5 w-16" />
+                                            </div>
                                         </div>
-                                        <div className="flex justify-between items-center">
-                                            <Skeleton className="h-5 w-20" />
-                                            <Skeleton className="h-5 w-12" />
+                                        {/* Promo code form */}
+                                        <hr className="mx-[calc(var(--cart-summary-px)*-1)] border-border" />
+                                        <div className="flex items-center justify-between py-2">
+                                            <Skeleton className="h-5 w-36" />
+                                            <Skeleton className="h-5 w-4" />
                                         </div>
-                                        <div className="flex justify-between items-center">
-                                            <Skeleton className="h-5 w-12" />
-                                            <Skeleton className="h-5 w-12" />
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <Skeleton className="h-5 w-28" />
-                                            <Skeleton className="h-5 w-16" />
+                                        {/* Checkout action */}
+                                        <hr className="mx-[calc(var(--cart-summary-px)*-1)] border-border" />
+                                        <Skeleton className="h-9 w-full mt-2 rounded-ui" />
+                                        {/* Payment method icons (4 × 40×32) */}
+                                        <div className="flex justify-center">
+                                            <Skeleton className="h-8 w-10 mr-2 rounded-ui" />
+                                            <Skeleton className="h-8 w-10 mr-2 rounded-ui" />
+                                            <Skeleton className="h-8 w-10 mr-2 rounded-ui" />
+                                            <Skeleton className="h-8 w-10 mr-2 rounded-ui" />
                                         </div>
                                     </div>
-                                    {/* Promo code form */}
-                                    <hr className="mx-[calc(var(--cart-summary-px)*-1)] border-border" />
-                                    <div className="flex items-center justify-between py-2">
-                                        <Skeleton className="h-5 w-36" />
-                                        <Skeleton className="h-5 w-4" />
-                                    </div>
-                                    {/* Checkout action */}
-                                    <hr className="mx-[calc(var(--cart-summary-px)*-1)] border-border" />
-                                    <Skeleton className="h-9 w-full mt-2 rounded-ui" />
-                                    {/* Payment method icons (4 × 40×32) */}
-                                    <div className="flex justify-center">
-                                        <Skeleton className="h-8 w-10 mr-2 rounded-ui" />
-                                        <Skeleton className="h-8 w-10 mr-2 rounded-ui" />
-                                        <Skeleton className="h-8 w-10 mr-2 rounded-ui" />
-                                        <Skeleton className="h-8 w-10 mr-2 rounded-ui" />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </div>
-
-                {recommendationsSlot}
+                <div className="mt-8 space-y-12">
+                    {mayAlsoLikeSlot}
+                    {recentlyViewedSlot}
+                </div>
             </div>
 
             {/*

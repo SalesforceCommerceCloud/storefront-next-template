@@ -34,6 +34,12 @@ interface QuickFiltersProps {
      * config/loader coupling so it renders the same way given the same props.
      */
     categoryLabel?: string;
+    /**
+     * `chips` (default): outlined pill buttons.
+     * `tabs`: a text tab row with an underline on the active tab, led by an "All {category}" tab that clears
+     * the subcategory filter.
+     */
+    variant?: 'chips' | 'tabs';
 }
 
 /**
@@ -53,8 +59,13 @@ interface QuickFiltersProps {
  * @param props.category - Category object with subcategories from SCAPI
  * @param props.categoryLabel - Optional active-category label; renders a header when set
  */
-export default function QuickFilters({ category, categoryLabel }: QuickFiltersProps): ReactElement | null {
+export default function QuickFilters({
+    category,
+    categoryLabel,
+    variant = 'chips',
+}: QuickFiltersProps): ReactElement | null {
     const { t } = useTranslation('common');
+    const { t: tCategory } = useTranslation('category');
     const navigate = useNavigate();
     const location = useLocation();
     const navigation = useNavigation();
@@ -114,6 +125,55 @@ export default function QuickFilters({ category, categoryLabel }: QuickFiltersPr
     // Don't render if no categories available
     if (categories.length === 0) {
         return null;
+    }
+
+    if (variant === 'tabs') {
+        const hasActiveCategory = activeRefinements.some((r) => r.startsWith('cgid='));
+        const clearCategory = () => {
+            const params = new URLSearchParams(location.search);
+            const refines = params.getAll('refine').filter((r) => !r.startsWith('cgid='));
+            params.delete('refine');
+            refines.forEach((r) => params.append('refine', r));
+            params.set('offset', '0');
+            void navigate({ pathname: location.pathname, search: `?${params.toString()}` });
+        };
+        const tabClassName = (active: boolean) =>
+            cn(
+                '-mb-px cursor-pointer whitespace-nowrap border-b-2 py-3 text-sm transition-colors',
+                active
+                    ? 'border-foreground font-semibold text-foreground'
+                    : 'border-transparent text-foreground/80 hover:text-foreground'
+            );
+        return (
+            <nav
+                data-slot="quick-filters"
+                aria-label={t('quickCategoryFilters', 'Quick category filters')}
+                className={cn(
+                    'flex gap-6 overflow-x-auto overflow-y-hidden border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+                    isPending && 'pointer-events-none opacity-50 transition-opacity'
+                )}>
+                <button
+                    type="button"
+                    onClick={clearCategory}
+                    aria-current={!hasActiveCategory ? 'true' : undefined}
+                    className={tabClassName(!hasActiveCategory)}>
+                    {tCategory('allInCategory', { name: category?.name ?? '' })}
+                </button>
+                {categories.map((cat) => {
+                    const isActive = activeRefinements.includes(`cgid=${cat.value}`);
+                    return (
+                        <button
+                            key={cat.value}
+                            type="button"
+                            onClick={() => handleCategoryClick(cat.value)}
+                            aria-current={isActive ? 'true' : undefined}
+                            className={tabClassName(isActive)}>
+                            {cat.label || cat.value}
+                        </button>
+                    );
+                })}
+            </nav>
+        );
     }
 
     // Header text shown when a category label is supplied (e.g. "Shop by Dresses").

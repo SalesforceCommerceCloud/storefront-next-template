@@ -1,0 +1,370 @@
+{
+  "common": {
+    "defaultSiteName": "Storefront Next: Market Street",
+    "loading": "იტვირთება",
+    "loadingMore": "იტვირთება მეტი...",
+    "product": "პროდუქტი",
+    "noImageAvailable": "სურათი მიუწვდომელია",
+    "productGeneric": "პროდუქტი",
+    "noProductsFound": "პროდუქტები ვერ მოიძებნა",
+    "productGrid": {
+      "loadFailed": "დამატებითი პროდუქტების ჩატვირთვა ვერ მოხერხდა."
+    },
+    "productCarousel": "პროდუქტების კარუსელი",
+    "productImageAlt": "პროდუქტის სურათი",
+    "suggestionImageAlt": "შემოთავაზების სურათი",
+    "hero": {
+      "defaultTitle": "შეიძინეთ ახლავე",
+      "defaultImageAlt": "მთავარი სურათი",
+      "defaultCtaText": "შეიძინეთ ახლავე",
+      "emptyTitle": "დაამატეთ სათაური აქ",
+      "emptyButton": "ღილაკი"
+    },
+    "heroCarousel": {
+      "emptyLabel": "ბანერები ჯერ არ არის"
+    },
+    "image": {
+      "emptyTitle": "დაამატეთ სათაური აქ"
+    },
+    "previousImage": "წინა სურათი",
+    "nextImage": "შემდეგი სურათი",
+    "thumbnailImage": "პროდუქტის სურათი {{current}} / {{total}}",
+    "thumbnailImageLabeled": "{{label}}, პროდუქტის სურათი {{current}} / {{total}}",
+    "quickCategoryFilters": "სწრაფი კატეგორიის ფილტრები",
+    "carousel": {
+      "play": "კარუსელის დაწყება",
+      "pause": "კარუსელის შეჩერება"
+    },
+    "skipToMainContent": "გადასვლა მთავარ კონტენტზე",
+    "popularCategory": {
+      "emptyTitle": "კატეგორია"
+    },
+    "announcementBanner": {
+      "emptyTitle": "დაამატეთ ტექსტი აქ"
+    },
+    "contentCard": {
+      "emptyTitle": "დაამატეთ სათაური აქ",
+      "emptyDescription": "დაამატეთ აღწერა აქ"
+    },
+    "productTile": {
+      "emptyTitle": "პროდუქტი"
+    },
+    "productRecommendations": {
+      "emptyTitle": "რეკომენდებული პროდუქტები"
+    }
+  },
+  "header": {
+    "logoAlt": "მთავარი",
+    "openChat": "ჩატის გახსნა",
+    "searchPlaceholder": "ძებნა",
+    "searchSuggestions": "ძებნის შემოთავაზებები",
+    "welcomeBack": "კეთილი იყოს თქვენი დაბრუნება!",
+    "signIn": "შესვლა",
+    "signOut": "გასვლა",
+    "signingOut": "გასვლა...",
+    "cartTitle": "ჩემი კალათა",
+    "checkout": "გადახდა",
+    "continueShopping": "შოპინგის გაგრძელება",
+    "wishlist": "სასურველების სია",
+    "openMenu": "მენიუს გახსნა",
+    "closeMenu": "მენიუს დახურვა",
+    "mobileNavigation": "მობილური ნავიგაციის მენიუ",
+    "expandCategory": "{{category}}-ის გაშლა",
+    "collapseCategory": "{{category}}-ის ჩაკეცვა",
+    "featuredContent": "{{category}} გამორჩეული კონტენტი",
+    "shopAllCategory": "იხილეთ ყველა {{category}}",
+    "menu": {
+      "yourLists": "თქვენი სიები",
+      "yourAccount": "თქვენი ანგარიში",
+      "savedItems": "შენახული ნივთები",
+      "overview": "მიმოხილვა",
+      "addressBook": "მისამართების წიგნი",
+      "paymentMethods": "გადახდის მეთოდები",
+      "signInForBestExperience": "შედით საუკეთესო გამოცდილებისთვის",
+      "newCustomer": "ახალი მომხმარებელი?",
+      "createAccount": "ანგარიშის შექმნა"
+    }
+  },
+  "footer": {
+    "sections": {
+      "customerSupport": "მომხმარებელთა მხარდაჭერა",
+      "account": "ანგარიში",
+      "ourCompany": "ჩვენი კომპანია",
+      "switchThemes": "თემის შეცვლა",
+      "switchSite": "რეგიონი",
+      "switchLanguage": "ენა",
+      "switchCurrency": "ვალუტა",
+      "shop": "მაღაზია",
+      "help": "დახმარება",
+      "about": "შესახებ"
+    },
+    "links": {
+      "contactUs": "დაგვიკავშირდით",
+      "shipping": "მიწოდება",
+      "orderStatus": "შეკვეთის სტატუსი",
+      "signInOrCreateAccount": "შედით ან შექმენით ანგარიში",
+      "aboutUs": "ჩვენ შესახებ",
+      "accessibility": "ხელმისაწვდომობის განცხადება",
+      "privacyPolicy": "კონფიდენციალურობის პოლიტიკა",
+      "privacyChoices": "თქვენი კონფიდენციალურობის არჩევანი",
+      "termsOfUse": "გამოყენების პირობები"
+    },
+    "socialMedia": {
+      "youtubeLabel": "იუთუბი",
+      "instagramLabel": "ინსტაგრამი",
+      "xLabel": "X",
+      "facebookLabel": "ფეისბუქი"
+    },
+    "newsletter": {
+      "title": "შემოუერთდით ჩვენს საზოგადოებას",
+      "description": "იყავით პირველი, ვინც გაიგებს ახალი კოლექციების, სპეციალური შეთავაზებებისა და სტილის შთაგონების შესახებ.",
+      "emailPlaceholder": "თქვენი ელფოსტა",
+      "emailLabel": "ელფოსტის მისამართი გამოწერისთვის",
+      "subscribeButton": "გამოწერა",
+      "emailRequired": "ელფოსტის მისამართი სავალდებულოა",
+      "invalidEmail": "გთხოვთ, შეიყვანოთ სწორი ელფოსტის მისამართი"
+    },
+    "copyright": "Salesforce ან მისი შვილობილი კომპანიები. ყველა უფლება დაცულია. ეს არის დემო მაღაზია. შეკვეთები არ დამუშავდება.",
+    "address": "415 Mission St, San Francisco, CA 94105",
+    "logoAlt": "Market Street"
+  },
+  "home": {
+    "hero": {
+      "slide1": {
+        "title": "ახალი სეზონი",
+        "subtitle": "ახალი კოლექცია, ჩამოყალიბებული კონტრასტით, პროპორციით და თანამედროვე დამოკიდებულებით. წარმოგიდგენთ სეზონის მთავარ ნივთებს.",
+        "ctaText": "აღმოაჩინეთ კოლექცია",
+        "ctaAriaLabel": "აღმოაჩინეთ კოლექცია: ახალი სეზონი",
+        "imageAlt": "ქალის შარვლები, ჟაკეტები და ჩანთები"
+      },
+      "slide2": {
+        "title": "თანამედროვე გარდერობი",
+        "subtitle": "დახვეწილი სილუეტები, დახვეწილი ტექსტურები და თამამი მიდგომა ყოველდღიური ჩაცმულობისადმი. შექმნილია თქვენთან ერთად მოძრაობისთვის.",
+        "ctaText": "შეიძინეთ სტილი",
+        "ctaAriaLabel": "შეიძინეთ სტილი: თანამედროვე გარდერობი",
+        "imageAlt": "ქალის თეთრი სელის კაბა"
+      },
+      "slide3": {
+        "title": "ღამის საათები",
+        "subtitle": "თვალშისაცემი ნივთები და დახვეწილი ფენები, შექმნილი ღამის გასვლებისთვის, გვიანი წუთებისთვის და ყველაფრისთვის შუალედში.",
+        "ctaText": "დაათვალიერეთ კოლექცია",
+        "ctaAriaLabel": "დაათვალიერეთ კოლექცია: ღამის საათები",
+        "imageAlt": "ქალის შავი კოსტიუმი"
+      },
+      "slide4": {
+        "title": "ახალი პერსპექტივები",
+        "subtitle": "გამორჩეული ნივთების კურირებული კოლექცია, რომელიც თავიდან განსაზღვრავს თანამედროვე მოდას. თავდაჯერებული. გამომსახველი. კომპრომისების გარეშე.",
+        "ctaText": "შეიძინეთ ახლავე",
+        "ctaAriaLabel": "შეიძინეთ ახლავე: ახალი პერსპექტივები",
+        "imageAlt": "ქალის ნაცრისფერი კაბა"
+      }
+    },
+    "meta": {
+      "title": "Storefront Next: Market Street",
+      "description": "შემდეგი თაობის მოდის მაღაზია"
+    },
+    "featuredProducts": {
+      "title": "გამორჩეული პროდუქტები",
+      "shopAll": "იხილეთ ყველა",
+      "loadFailed": "გამორჩეული პროდუქტების ჩატვირთვა ვერ მოხერხდა."
+    },
+    "categoryGrid": {
+      "title": "სტილი რეალური ცხოვრებისთვის",
+      "description": "Market Street-ში გვჯერა, რომ მოდა უნდა იყოს იოლი, ავთენტური და ხელმისაწვდომი. ჩვენი კოლექციები შექმნილია თანამედროვე ადამიანისთვის, ვინც აფასებს ხარისხს, მრავალფეროვნებას და დროულ სტილს.",
+      "shopNowButton": "შეიძინეთ ახლავე",
+      "loadFailed": "კატეგორიების ჩატვირთვა ვერ მოხერხდა.",
+      "emptyTitle": "დაამატეთ სათაური აქ",
+      "emptyRegionLabel": "კატეგორიების კარუსელი"
+    },
+    "featuredContent": {
+      "women": {
+        "title": "ქალი",
+        "description": "აღმოაჩინეთ ჩვენი კურირებული კოლექცია დახვეწილი ფეხსაცმლისა, შექმნილი თანამედროვე ქალისთვის.",
+        "ctaText": "დაათვალიერეთ კოლექცია",
+        "ctaAriaLabel": "დაათვალიერეთ კოლექცია: ქალის",
+        "imageAlt": "ქალის კოლექცია"
+      },
+      "men": {
+        "title": "კაცი",
+        "description": "დროული ოსტატობა ხვდება თანამედროვე სტილს ჩვენს კაცის ფეხსაცმლის კოლექციაში.",
+        "ctaText": "დაათვალიერეთ კოლექცია",
+        "ctaAriaLabel": "დაათვალიერეთ კოლექცია: კაცის",
+        "imageAlt": "კაცის კოლექცია"
+      },
+      "styleForRealLife": {
+        "title": "სტილი რეალური ცხოვრებისთვის",
+        "description": "Market Street-ში გვჯერა, რომ მოდა უნდა იყოს იოლი, ავთენტური და ხელმისაწვდომი. ჩვენი კოლექციები შექმნილია თანამედროვე ადამიანისთვის, ვინც აფასებს ხარისხს, მრავალფეროვნებას და დროულ სტილს.\n\nაღმოაჩინეთ ნივთები, რომლებიც მოძრაობენ თქვენთან ერთად, ერგებიან თქვენს ცხოვრებას და ხდებიან გარდერობის საფუძველი, რომელიც მუშაობს — ყოველდღე, ყველგან."
+      }
+    }
+  },
+  "localeSwitcher": {
+    "ariaLabel": "ენის არჩევანი",
+    "locales": {
+      "en-GB": "English (UK)",
+      "en-US": "English (US)",
+      "ka-GE": "ქართული (საქართველო)",
+      "da-DK": "Dansk (Danmark)",
+      "de-DE": "Deutsch (Deutschland)",
+      "es-ES": "Español (España)",
+      "fi-FI": "Suomi (Suomi)",
+      "fr-FR": "Français (France)",
+      "it-IT": "Italiano (Italia)",
+      "ja-JP": "日本語 (日本)",
+      "ko-KR": "한국어 (대한민국)",
+      "nb-NO": "Norsk bokmål (Norge)",
+      "nl-NL": "Nederlands (Nederland)",
+      "pl-PL": "Polski (Polska)",
+      "pt-PT": "Português (Portugal)",
+      "sv-SE": "Svenska (Sverige)",
+      "zh-CN": "中文 (简体)",
+      "zh-TW": "中文 (繁體)"
+    },
+    "validation": {
+      "unsupportedLocale": "ენა მხარდაუჭერელია",
+      "usingDefault": "გამოიყენება ნაგულისხმევი ენა: {{locale}}"
+    },
+    "changesContextHint": "ენის არჩევა გვერდს ამ ენაზე ხელახლა ჩატვირთავს."
+  },
+  "currencySwitcher": {
+    "ariaLabel": "ვალუტის გადამრთველი",
+    "currencies": {
+      "USD": "აშშ დოლარი ($)",
+      "GEL": "ქართული ლარი (₾)",
+      "MXN": "მექსიკური პესო ($)",
+      "EUR": "ევრო (€)",
+      "GBP": "ბრიტანული გირვანქა (£)",
+      "JPY": "იაპონური იენა (¥)",
+      "KRW": "კორეული ვონი (₩)",
+      "BRL": "ბრაზილიური რეალი (R$)",
+      "CNY": "ჩინური იუანი (¥)",
+      "TWD": "ტაივანური დოლარი (NT$)",
+      "DKK": "დანიური კრონა (kr)",
+      "PLN": "პოლონური ზლოტი (zł)",
+      "SEK": "შვედური კრონა (kr)"
+    },
+    "validation": {
+      "unsupportedCurrency": "ვალუტა მხარდაუჭერელია",
+      "usingDefault": "გამოიყენება ნაგულისხმევი ვალუტა: {{currency}}"
+    },
+    "changesContextHint": "ვალუტის არჩევა განაახლებს ფასებს მთელ საიტზე."
+  },
+  "search": {
+    "results": "ძებნის შედეგები",
+    "suggestions": {
+      "didYouMean": "იქნებ გულისხმობდით",
+      "categories": "კატეგორიები",
+      "products": "პროდუქტები",
+      "popularSearches": "პოპულარული ძებნები",
+      "recentSearches": "ბოლო ძებნები",
+      "clearRecentSearches": "ბოლო ძებნების გასუფთავება",
+      "viewAll": "ყველას ნახვა"
+    }
+  },
+  "miniCart": {
+    "noImage": "სურათი არ არის",
+    "productAltFallback": "პროდუქტი",
+    "quantityLabel": "რაოდენობა",
+    "quantityAriaLabel": "რაოდენობა",
+    "customQuantityAriaLabel": "მორგებული რაოდენობა",
+    "customOption": "მორგებული...",
+    "editQuantityAriaLabel": "რაოდენობის რედაქტირება",
+    "promotionApplied": "აქცია გააქტიურებულია",
+    "removeItemAriaLabel": "ნივთის ამოშლა კალათიდან",
+    "emptyCart": "თქვენი კალათა ცარიელია",
+    "loading": "იტვირთება...",
+    "viewCart": "კალათის ნახვა",
+    "saved": "დაზოგილია {{amount}}",
+    "free": "უფასო",
+    "closeAriaLabel": "დახურვა",
+    "each": "თითოეული"
+  },
+  "product": {
+    "fulfillment": {
+      "delivery": "მიწოდება",
+      "method": "შესრულების მეთოდი",
+      "deliveryAddressDescription": "მიწოდება მისამართზე",
+      "deliveryDescription": "შეიყვანეთ საფოსტო ინდექსი მიწოდების სავარაუდო დროის სანახავად"
+    }
+  },
+  "returns": {
+    "actions": {
+      "returnOrExchange": "დაბრუნება ან გაცვლა",
+      "inProgress": "დაბრუნება მიმდინარეობს"
+    },
+    "form": {
+      "pageTitle": "დაბრუნება ან გაცვლა",
+      "title": "ნივთების დაბრუნება ან გაცვლა",
+      "subtitle": "შეკვეთა #{{orderNo}}. აირჩიეთ ნივთები, რომელთა დაბრუნება ან გაცვლა გსურთ.",
+      "delivery": "მიწოდება {{index}}",
+      "deliveryFrom": "მიწოდება {{index}} – {{city}}-დან",
+      "deliveredOn": "მიწოდების თარიღი: {{date}}",
+      "selectItem": "აირჩიეთ {{name}}",
+      "quantity": "რაოდენობა",
+      "action": "რისი გაკეთება გსურთ?",
+      "actionReturn": "დაბრუნება",
+      "actionExchange": "გაცვლა",
+      "reason": "მიზეზი",
+      "reasonPlaceholder": "აირჩიეთ მიზეზი",
+      "replacement": "ჩანაცვლება",
+      "noExchangeOptions": "ამ ნივთისთვის სხვა ზომა ან ფერი მიუწვდომელია.",
+      "alreadyRequested": "ამ ნივთის ყველა ერთეული უკვე დაბრუნების მოთხოვნაშია.",
+      "selectedCount_one": "არჩეულია {{count}} ნივთი",
+      "selectedCount_other": "არჩეულია {{count}} ნივთი",
+      "submit": "მოთხოვნის გაგზავნა",
+      "submitting": "იგზავნება…",
+      "submitError": "მოთხოვნის შენახვა ვერ მოხერხდა. გთხოვთ, სცადოთ ხელახლა.",
+      "backToOrder": "შეკვეთაზე დაბრუნება",
+      "noLines": "ამ შეკვეთაში დასაბრუნებელი ნივთები არ არის.",
+      "loadError": "ამ შეკვეთის ჩატვირთვა ვერ მოხერხდა.",
+      "incompleteHint": "აირჩიეთ მიზეზი თითოეული არჩეული ნივთისთვის. გაცვლისას აირჩიეთ განსხვავებული ზომა ან ფერი."
+    },
+    "eligibility": {
+      "status": {
+        "eligible": "ხელმისაწვდომია",
+        "exchangeOnly": "მხოლოდ გაცვლა",
+        "notReturnable": "დაბრუნებას არ ექვემდებარება",
+        "windowClosed": "ვადა ამოიწურა"
+      },
+      "reason": {
+        "eligible": "დაბრუნება შესაძლებელია {{date}}-მდე.",
+        "exchangeOnly": "საბოლოო გაყიდვა. შესაძლებელია გაცვლა, თანხის დაბრუნების გარეშე.",
+        "notReturnable": "ამ ნივთის დაბრუნება ან გაცვლა შეუძლებელია.",
+        "windowClosed": "დაბრუნების ვადა ამოიწურა {{date}}.",
+        "noDeliveryDate": "ამ ნივთისთვის მიწოდების თარიღი არ არის."
+      }
+    },
+    "reasons": {
+      "tooSmall": "ძალიან პატარაა",
+      "tooLarge": "ძალიან დიდია",
+      "defective": "დეფექტური ან დაზიანებული",
+      "notAsDescribed": "არ შეესაბამება აღწერას",
+      "changedMind": "გადავიფიქრე",
+      "wrongItem": "არასწორი ნივთი მივიღე"
+    },
+    "status": {
+      "submitted": "გაგზავნილია",
+      "approved": "დამტკიცებულია",
+      "received": "მიღებულია",
+      "refunded": "თანხა დაბრუნებულია",
+      "exchange_shipped": "გაცვლილი ნივთი გაგზავნილია"
+    },
+    "tracking": {
+      "pageTitle": "დაბრუნების სტატუსი",
+      "title": "დაბრუნების მოთხოვნა",
+      "rmaNumber": "RMA ნომერი",
+      "order": "შეკვეთა",
+      "submittedOn": "გაგზავნის თარიღი",
+      "items": "ნივთები",
+      "itemLine": "{{name}} × {{quantity}}",
+      "actionReturn": "დაბრუნება",
+      "actionExchange": "გაცვლა: {{replacement}}",
+      "timeline": "სტატუსი",
+      "trackingNumber": "თრექინგის ნომერი",
+      "advance": "სტატუსის გაგრძელება",
+      "notFoundTitle": "ამ დაბრუნებას ვერ ვპოულობთ",
+      "notFoundDescription": "შეამოწმეთ ბმული ან გახსენით დაბრუნება შეკვეთების ისტორიიდან.",
+      "backToOrders": "შეკვეთების ისტორიაზე დაბრუნება",
+      "viewOrder": "შეკვეთის ნახვა"
+    }
+  }
+}

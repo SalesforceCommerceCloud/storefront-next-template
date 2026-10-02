@@ -356,11 +356,11 @@ function ProductContent({
                             <div className="space-y-8">
                                 {isProductASet || isProductABundle ? (
                                     <>
-                                        <ProductView product={product} />
+                                        <ProductView product={product} displayVariant="reference" />
                                         <ChildProducts parentProduct={product} />
                                     </>
                                 ) : (
-                                    <ProductView product={product} />
+                                    <ProductView product={product} displayVariant="reference" />
                                 )}
 
                                 {/* @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS */}

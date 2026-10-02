@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UITarget } from '@/targets/ui-target';
 
-export default function Signup(): ReactElement {
+export default function Signup({ inline = false }: { inline?: boolean }): ReactElement {
     const { t } = useTranslation('footer');
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -46,11 +46,13 @@ export default function Signup(): ReactElement {
 
     return (
         <UITarget targetId="sfcc.emailSignUp.consent.marketing">
-            <form onSubmit={handleSubmit} className="w-full max-w-md">
-                <label htmlFor="footer-newsletter-email" className="sr-only">
-                    {t('newsletter.emailLabel')}
-                </label>
-                <div className="flex flex-row gap-2 sm:gap-3">
+            <form onSubmit={handleSubmit} className={inline ? 'w-full max-w-2xl' : 'w-full max-w-md'}>
+                <div className="flex flex-row items-center gap-2 sm:gap-3">
+                    <label
+                        htmlFor="footer-newsletter-email"
+                        className={inline ? 'hidden shrink-0 text-base font-semibold sm:block' : 'sr-only'}>
+                        {inline ? t('newsletter.inlineLabel') : t('newsletter.emailLabel')}
+                    </label>
                     <Input
                         ref={inputRef}
                         id="footer-newsletter-email"
@@ -63,10 +65,10 @@ export default function Signup(): ReactElement {
                     <UITarget targetId="sfcc.emailSignUp.consent.tos" />
                     <Button
                         type="submit"
-                        variant="secondary"
+                        variant={inline ? 'default' : 'secondary'}
                         size="lg"
-                        className="bg-primary-foreground rounded-ui shadow-2xs">
-                        {t('newsletter.subscribeButton')}
+                        className={inline ? 'rounded-ui px-10' : 'bg-primary-foreground rounded-ui shadow-2xs'}>
+                        {inline ? t('newsletter.signUpButton') : t('newsletter.subscribeButton')}
                     </Button>
                 </div>
                 {error && (

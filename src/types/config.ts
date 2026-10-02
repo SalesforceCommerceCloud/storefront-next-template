@@ -211,6 +211,11 @@ export type AppConfig = {
             apiKey: string;
         };
         mrtBasedPageDesignerResolution: boolean;
+        /**
+         * Save returns and exchanges on the order (`c_returns`) through the Returns custom API. When off, they are saved in
+         * the shopper's browser only. Turn on once the `returns` custom API cartridge is deployed.
+         */
+        returnsCustomApi: boolean;
     };
     guestOrderLookup: {
         enabled: boolean;

@@ -105,17 +105,17 @@ const buildRecs = (productNames: string[]) =>
 const emptyRecsPromise = (): Promise<Recommendation> => Promise.resolve({});
 
 /**
- * Build a recommendations slot the same way the cart route does — pinning is the route's concern,
+ * Build both recommendation slots the same way the cart route does — pinning is the route's concern,
  * so tests pass the promises directly to <ProductRecommendations>.
  */
-const buildRecommendationsSlot = ({
+const buildCategoryRecommendationsSlot = ({
     cartMayAlsoLikePromise = emptyRecsPromise(),
     cartRecentlyViewedPromise = emptyRecsPromise(),
 }: {
     cartMayAlsoLikePromise?: Promise<Recommendation>;
     cartRecentlyViewedPromise?: Promise<Recommendation>;
 } = {}) => (
-    <div className="mt-16 space-y-16">
+    <>
         <ProductRecommendations
             recommenderName={EINSTEIN_RECOMMENDERS.CART_MAY_ALSO_LIKE}
             recommenderTitle={t('product:recommendations.youMightAlsoLike')}
@@ -128,7 +128,7 @@ const buildRecommendationsSlot = ({
             data={cartRecentlyViewedPromise}
             className="max-w-none px-0"
         />
-    </div>
+    </>
 );
 
 // `<Await resolve>` tracks promises by identity. Share a single already-resolved instance for
@@ -775,8 +775,8 @@ describe('CartContent', () => {
     });
 
     describe('Cart recommendations section', () => {
-        // CartContent renders the recommendations region from a `recommendationsSlot` ReactNode
-        // owned by the route. These tests construct the slot the same way `CartBody` does so
+        // CartContent renders two recommendation slots owned by the route. These tests construct them the same way
+        // `CartBody` does so
         // they verify both the slot integration and that <ProductRecommendations data={…}>
         // resolves the loader-provided promises end-to-end.
         test('renders the "you might also like" carousel with translated title and recommended products', async () => {
@@ -784,7 +784,7 @@ describe('CartContent', () => {
                 basket: mockBasket,
                 productsByItemId: mockProductMap,
                 bonusProductsById: mockBonusProductsById,
-                recommendationsSlot: buildRecommendationsSlot({
+                categoryRecommendationsSlot: buildCategoryRecommendationsSlot({
                     cartMayAlsoLikePromise: Promise.resolve({
                         recommenderName: 'product-to-product-einstein',
                         recs: buildRecs(['Recommended Shirt', 'Recommended Pants']),
@@ -802,7 +802,7 @@ describe('CartContent', () => {
                 basket: mockBasket,
                 productsByItemId: mockProductMap,
                 bonusProductsById: mockBonusProductsById,
-                recommendationsSlot: buildRecommendationsSlot({
+                categoryRecommendationsSlot: buildCategoryRecommendationsSlot({
                     cartRecentlyViewedPromise: Promise.resolve({
                         recommenderName: 'viewed-recently-einstein',
                         recs: buildRecs(['Previously Viewed Hat']),
@@ -819,7 +819,7 @@ describe('CartContent', () => {
                 basket: mockBasket,
                 productsByItemId: mockProductMap,
                 bonusProductsById: mockBonusProductsById,
-                recommendationsSlot: buildRecommendationsSlot(),
+                categoryRecommendationsSlot: buildCategoryRecommendationsSlot(),
             });
 
             // Allow Suspense boundaries to resolve their (empty) promises.
@@ -836,9 +836,9 @@ describe('CartContent', () => {
                 basket: { ...mockBasket, productItems: [] },
                 productsByItemId: mockProductMap,
                 bonusProductsById: mockBonusProductsById,
-                // The slot is still passed (the route always builds it) — we just confirm
+                // Both slots are still passed (the route always builds them) — we just confirm
                 // CartContent doesn't render anything below CartEmpty.
-                recommendationsSlot: buildRecommendationsSlot(),
+                categoryRecommendationsSlot: buildCategoryRecommendationsSlot(),
             });
 
             await waitFor(() => {
@@ -977,7 +977,7 @@ describe('CartContent', () => {
                                         basket={basket}
                                         productsByItemId={mockProductMap}
                                         bonusProductsById={mockBonusProductsById}
-                                        recommendationsSlot={buildRecommendationsSlot()}
+                                        categoryRecommendationsSlot={buildCategoryRecommendationsSlot()}
                                         ruleBasedBonusProductsPromise={EMPTY_RULE_BASED_BONUS_PRODUCTS}
                                     />
                                 </BasketProvider>

@@ -147,64 +147,20 @@ export default defineConfig<Config>(
                 // Each site can have its own locale, currency, and detection settings
                 sites: [
                     {
-                        id: 'RefArchGlobal',
-                        defaultLocale: 'en-GB',
-                        defaultCurrency: 'GBP',
+                        id: 'DressUp',
+                        defaultLocale: 'en-US',
+                        defaultCurrency: 'GEL',
                         supportedLocales: [
                             {
-                                id: 'en-GB',
-                                preferredCurrency: 'GBP',
+                                id: 'en-US',
+                                preferredCurrency: 'USD',
                             },
                             {
-                                id: 'da-DK',
-                                preferredCurrency: 'DKK',
-                            },
-                            {
-                                id: 'de-DE',
-                                preferredCurrency: 'EUR',
-                            },
-                            {
-                                id: 'fi-FI',
-                                preferredCurrency: 'EUR',
-                            },
-                            {
-                                id: 'fr-FR',
-                                preferredCurrency: 'EUR',
-                            },
-                            {
-                                id: 'it-IT',
-                                preferredCurrency: 'EUR',
-                            },
-                            {
-                                id: 'ja-JP',
-                                preferredCurrency: 'JPY',
-                            },
-                            {
-                                id: 'ko-KR',
-                                preferredCurrency: 'KRW',
-                            },
-                            {
-                                id: 'nl-NL',
-                                preferredCurrency: 'EUR',
-                            },
-                            {
-                                id: 'pl-PL',
-                                preferredCurrency: 'PLN',
-                            },
-                            {
-                                id: 'sv-SE',
-                                preferredCurrency: 'SEK',
-                            },
-                            {
-                                id: 'zh-CN',
-                                preferredCurrency: 'CNY',
-                            },
-                            {
-                                id: 'zh-TW',
-                                preferredCurrency: 'TWD',
+                                id: 'ka-GE',
+                                preferredCurrency: 'GEL',
                             },
                         ],
-                        supportedCurrencies: ['CNY', 'DKK', 'EUR', 'GBP', 'JPY', 'KRW', 'PLN', 'SEK', 'TWD'],
+                        supportedCurrencies: ['GEL', 'USD'],
                     },
                     {
                         id: 'RefArch',
@@ -236,10 +192,9 @@ export default defineConfig<Config>(
             cookies: { domain: '' },
             // Default site ID configuration
             // See CONFIG-OPTIONS.md#defaultSiteId for detailed documentation
-            defaultSiteId: 'RefArchGlobal',
+            defaultSiteId: 'DressUp',
             siteAliasMap: {
-                RefArch: 'us',
-                RefArchGlobal: 'global',
+                DressUp: 'us',
             },
             // Hybrid mode configuration
             // See CONFIG-OPTIONS.md#hybrid for detailed documentation
@@ -292,6 +247,8 @@ export default defineConfig<Config>(
                     apiKey: '',
                 },
                 mrtBasedPageDesignerResolution: false,
+                // Save returns on the order via the Returns custom API (cartridge rest-apis/returns). Off until deployed.
+                returnsCustomApi: false,
             },
             // Guest Order Lookup configuration
             // Allows guests to look up past orders using order number + email + access-code verification.
@@ -360,7 +317,7 @@ export default defineConfig<Config>(
             // Also, make sure the supportedLngs are always presented in site.supportedLocale to
             // make sure the app can fully be translated to another language
             i18n: {
-                fallbackLng: 'en-GB',
+                fallbackLng: 'en-US',
                 supportedLngs: [
                     'da-DK',
                     'de-DE',
@@ -374,6 +331,7 @@ export default defineConfig<Config>(
                     'sv-SE',
                     'zh-CN',
                     'zh-TW',
+                    'ka-GE',
                     'en-US',
                     'en-GB',
                 ], // Your supported languages, the fallback should be LAST

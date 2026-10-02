@@ -8,7 +8,10 @@
         "clearAll": "Clear all",
         "filtersButtonLabel": "Filters",
         "filtersButtonLabelWithCount": "{{label}}, {{count}} selected",
-        "noFilterOptionsAvailable": "No filter options available."
+        "noFilterOptionsAvailable": "No filter options available.",
+        "closeFilters": "Close",
+        "viewResults": "View Results",
+        "filtersDrawerDescription": "Filter the products by attribute"
     },
     "common": {
         "defaultSiteName": "Storefront Next: Market Street",
@@ -354,6 +357,7 @@
         "insufficientStock": "Not enough stock available"
     },
     "cart": {
+        "trendingNearYou": "Trending Near You",
         "title": "Cart",
         "loadingLabel": "Loading your cart",
         "meta": {
@@ -1410,6 +1414,7 @@
         "featuredProducts": {
             "title": "Featured Products",
             "shopAll": "Shop all",
+            "allProducts": "All Products",
             "loadFailed": "Unable to load featured products."
         },
         "categoryGrid": {
@@ -1463,7 +1468,11 @@
             "accessibility": "Accessibility Statement",
             "privacyPolicy": "Privacy Policy",
             "privacyChoices": "Your Privacy Choices",
-            "termsOfUse": "Terms of Use"
+            "termsOfUse": "Terms of Use",
+            "returns": "Return Policy & Exchanges",
+            "faq": "FAQ",
+            "careers": "Careers",
+            "wishlist": "Wishlist"
         },
         "socialMedia": {
             "youtubeLabel": "Youtube",
@@ -1478,11 +1487,14 @@
             "emailLabel": "Email address for newsletter subscription",
             "subscribeButton": "Subscribe",
             "emailRequired": "Email address is required",
-            "invalidEmail": "Please enter a valid email address"
+            "invalidEmail": "Please enter a valid email address",
+            "inlineLabel": "Get Email Updates:",
+            "signUpButton": "Sign up"
         },
         "copyright": "Salesforce or its affiliates. All rights reserved. This is a demo store only. Orders made WILL NOT be processed.",
         "address": "415 Mission St, San Francisco, CA 94105",
-        "logoAlt": "Market Street"
+        "logoAlt": "Market Street",
+        "backToTop": "Top"
     },
     "aboutUs": {
         "breadcrumb": {
@@ -1736,6 +1748,9 @@
         }
     },
     "category": {
+        "itemsCount_one": "{{count}} item",
+        "itemsCount_other": "{{count}} items",
+        "allInCategory": "All {{name}}",
         "banner": {
             "counting": "Counting products...",
             "productsAvailable_one": "1 product available",
@@ -2084,5 +2099,107 @@
         "sessionExpired": "Your session has expired. Please start over.",
         "cooldownActive": "Please wait {{seconds}} seconds before requesting a new code.",
         "codeResentHint": "Didn't receive the email? Check your spam folder or wait 15 minutes before requesting a new code."
+    },
+    "returns": {
+        "actions": {
+            "returnOrExchange": "Return or exchange",
+            "inProgress": "Return in progress"
+        },
+        "form": {
+            "pageTitle": "Return or exchange",
+            "title": "Return or exchange items",
+            "subtitle": "Order #{{orderNo}}. Select the items you want to send back or swap.",
+            "delivery": "Delivery {{index}}",
+            "deliveryFrom": "Delivery {{index}} – from {{city}}",
+            "deliveredOn": "Delivery date: {{date}}",
+            "selectItem": "Select {{name}}",
+            "quantity": "Quantity",
+            "action": "What would you like to do?",
+            "actionReturn": "Return",
+            "actionExchange": "Exchange",
+            "reason": "Reason",
+            "reasonPlaceholder": "Choose a reason",
+            "replacement": "Replacement",
+            "noExchangeOptions": "No other size or colour is available for this item.",
+            "alreadyRequested": "All units of this item are already in a return request.",
+            "selectedCount_one": "{{count}} item selected",
+            "selectedCount_other": "{{count}} items selected",
+            "submit": "Submit request",
+            "submitting": "Submitting…",
+            "submitError": "We couldn't save your request. Please try again.",
+            "backToOrder": "Back to order",
+            "noLines": "This order has no items that can be returned.",
+            "loadError": "We couldn't load this order.",
+            "incompleteHint": "Pick a reason for every selected item. For an exchange, also pick a different size or colour."
+        },
+        "eligibility": {
+            "status": {
+                "eligible": "Eligible",
+                "exchangeOnly": "Exchange only",
+                "notReturnable": "Not returnable",
+                "windowClosed": "Window closed"
+            },
+            "reason": {
+                "eligible": "Returnable until {{date}}.",
+                "exchangeOnly": "Final sale. It can be exchanged but not refunded.",
+                "notReturnable": "This item can't be returned or exchanged.",
+                "windowClosed": "The return window ended on {{date}}.",
+                "noDeliveryDate": "There is no delivery date for this item."
+            }
+        },
+        "reasons": {
+            "tooSmall": "Too small",
+            "tooLarge": "Too large",
+            "defective": "Defective or damaged",
+            "notAsDescribed": "Not as described",
+            "changedMind": "Changed my mind",
+            "wrongItem": "Received the wrong item"
+        },
+        "status": {
+            "submitted": "Submitted",
+            "approved": "Approved",
+            "received": "Received",
+            "refunded": "Refunded",
+            "exchange_shipped": "Exchange shipped"
+        },
+        "tracking": {
+            "pageTitle": "Return status",
+            "title": "Return request",
+            "rmaNumber": "RMA number",
+            "order": "Order",
+            "submittedOn": "Submitted",
+            "items": "Items",
+            "itemLine": "{{name}} × {{quantity}}",
+            "actionReturn": "Return",
+            "actionExchange": "Exchange for {{replacement}}",
+            "timeline": "Status",
+            "trackingNumber": "Tracking number",
+            "advance": "Advance status",
+            "notFoundTitle": "We can't find this return",
+            "notFoundDescription": "Check the link, or open the return from your order history.",
+            "backToOrders": "Back to order history",
+            "viewOrder": "View order"
+        }
+    },
+    "fulfillmentLocation": {
+        "deliverTo": "Deliver to",
+        "stock": "Stock",
+        "leadTime": "Lead time",
+        "leadTimeDays_one": "{{count}} day",
+        "leadTimeDays_other": "{{count}} days",
+        "distanceValue": "{{value}} {{unit}}",
+        "unavailable": "Unavailable",
+        "notAvailableIn": "Not available in {{city}}",
+        "exceedsStock": "Only {{stock}} available.",
+        "exceedsStockIn": "Only {{stock}} available in {{city}}",
+        "deliveryBy": "Delivery by {{date}}",
+        "deliveryByFrom": "Delivery by {{date}} from {{city}}",
+        "shipsFrom": "Ships from {{city}}",
+        "cartGroupHeading": "Delivery from {{city}} - {{itemCount}} out of {{totalCount}} items",
+        "deliveryGroupTitle": "Delivery {{number}} – from {{city}}",
+        "deliveriesTitle": "Deliveries",
+        "deliveryNumberFrom": "Delivery {{number}} of {{total}} – from {{city}}",
+        "arrives": "Arrives",
+        "trackingNumber": "Tracking number"
     }
 }

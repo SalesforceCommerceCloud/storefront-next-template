@@ -108,6 +108,8 @@ export const routes = {
     accountOverview: '/account/overview',
     accountOrders: '/account/orders',
     accountOrderDetail: '/account/orders/:orderNo',
+    accountOrderReturn: '/account/orders/:orderNo/return',
+    accountReturnDetail: '/account/returns/:rmaNo',
     accountAddresses: '/account/addresses',
     accountPaymentMethods: '/account/payment-methods',
     accountStorePreferences: '/account/store-preferences',
@@ -170,6 +172,9 @@ export const resourceRoutes = {
     recommendations: '/resource/recommendations',
     basketProducts: '/resource/basket-products',
     reviewsSummary: '/resource/reviews-summary',
+    returns: '/resource/returns',
+    returnCreate: '/action/return-create',
+    returnAdvance: '/action/return-advance',
     // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
     shippingDestination: '/resource/shipping-destination',
     categoryProducts: '/resource/category-products',

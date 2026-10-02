@@ -1,17 +1,6 @@
 packages:
   - e2e
 
-# Supply chain security: only these packages may run install scripts.
-# All other packages' lifecycle scripts are blocked by pnpm.
-# To allow a new package, add it here and run: pnpm install
-# (https://pnpm.io/settings#onlybuiltdependencies)
-onlyBuiltDependencies:
-  - '@swc/core'    # Platform-specific native binding (Rust JS compiler)
-  - esbuild        # Platform-specific binary download (build tooling)
-  - msw            # Copies mockServiceWorker.js into project (test mocking)
-  - protobufjs     # Compiles .proto definitions (gRPC/Google libs)
-  - unrs-resolver  # Native module setup (eslint-import-resolver)
-
 # Refuse npm packages published less than 48 hours ago.
 # Bypass: pnpm install --config.minimumReleaseAge=0
 # (https://pnpm.io/settings#minimumreleaseage)
@@ -23,8 +12,8 @@ minimumReleaseAgeExclude:
   - '@salesforce/storefront-next-dev@1.3.1'
   - '@salesforce/storefront-next-runtime@1.3.1'
   - '@salesforce/mrt-utilities@0.3.0'
-  - '@salesforce/b2c-tooling-sdk@1.19.0'      # transitive via storefront-next-dev; bare entry auto-pinned by prepare-standalone-template.js
-  - '@salesforce/b2c-cli@1.19.0'       # template devDependency (not reachable from the SDK dirs the prepare script resolves), so pin explicitly; keep in lockstep with the exact pin in package.json
+  - '@salesforce/b2c-tooling-sdk@1.19.0' # transitive via storefront-next-dev; bare entry auto-pinned by prepare-standalone-template.js
+  - '@salesforce/b2c-cli@1.19.0' # template devDependency (not reachable from the SDK dirs the prepare script resolves), so pin explicitly; keep in lockstep with the exact pin in package.json
 
 # Prevent lockfile version downgrades.
 # (https://pnpm.io/settings#trustpolicy)
@@ -36,5 +25,18 @@ trustPolicy: no-downgrade
 # Review periodically — remove entries once the maintainer restores provenance.
 # (https://pnpm.io/settings#trustpolicyexclude)
 trustPolicyExclude:
-  - 'chokidar@4.0.3'          # Lost SLSA provenance in 4.0.2+; dep of @react-router/dev
-  - 'semver@6.3.1 || 5.7.2'   # Lost provenance; dep of eslint-plugin-import, lighthouse
+  - 'chokidar@4.0.3' # Lost SLSA provenance in 4.0.2+; dep of @react-router/dev
+  - 'semver@6.3.1 || 5.7.2' # Lost provenance; dep of eslint-plugin-import, lighthouse
+
+allowBuilds:
+  '@parcel/watcher': set this to true or false
+  '@swc/core': true
+  '@tailwindcss/oxide': set this to true or false
+  core-js: set this to true or false
+  detox: set this to true or false
+  dtrace-provider: set this to true or false
+  esbuild: true
+  msw: true
+  protobufjs: true
+  unrs-resolver: true
+  yarn: set this to true or false

@@ -15,11 +15,13 @@
  */
 
 import { type ReactElement, type ReactNode, useMemo, useRef, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import type { ShopperProducts } from '@/scapi';
 import ProductQuantityPicker from '@/components/product-quantity-picker';
 import { SwatchGroup, Swatch, GroupedSwatchGroup, splitGroupedSwatchName } from '@/components/swatch-group';
 import { uiConfig } from '@/lib/config.ui';
 import { useVariationAttributes } from '@/hooks/product/use-variation-attributes';
+import { useNavigate } from '@/hooks/use-navigate';
 import { useOptionalProductView } from '@/providers/product-view';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { toImageUrl } from '@/lib/images/dynamic-image';
@@ -36,6 +38,7 @@ import { ProductRatingSummary } from './product-rating-summary';
 // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
 import { useCurrentVariant } from '@/hooks/product/use-current-variant';
 import { useTranslation } from 'react-i18next';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { WishlistButton } from '@/components/buttons/wishlist-button';
 import { ShareButton } from '@/components/buttons/share-button';
 import { UITarget } from '@/targets/ui-target';
@@ -68,6 +71,8 @@ type ProductInfoBaseProps = {
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
     /** Show the quantity picker (default true). Set false to render quantity elsewhere (e.g. inline with Add-to-Cart). */
     showQuantityPicker?: boolean;
+    /** Render the size variation as a dropdown instead of swatches. */
+    sizeSelectorStyle?: 'swatches' | 'dropdown';
     // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
     /** Disable rating summary interactions (hover popover and review links) */
     disableRatingInteraction?: boolean;
@@ -116,6 +121,68 @@ const isControlledVariantValueOrderable = ({
         .some((variant) => variant.orderable);
 };
 
+function SizeVariationDropdown({
+    label,
+    selectedValue,
+    selectedColor,
+    values,
+    onSelect,
+}: {
+    label: string;
+    selectedValue?: string;
+    selectedColor?: string;
+    values: VariationAttribute['values'];
+    onSelect: (value: string) => void;
+}): ReactElement {
+    const [open, setOpen] = useState(false);
+    const selectedOption = values.find((value) => value.value === selectedValue);
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <button
+                    type="button"
+                    aria-label={label}
+                    aria-expanded={open}
+                    className="flex h-12 w-full items-center justify-between border border-border bg-background px-4 text-left text-sm font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <span>{selectedOption?.name ?? label}</span>
+                    <ChevronDown aria-hidden="true" className="size-4" />
+                </button>
+            </PopoverTrigger>
+            <PopoverContent
+                align="start"
+                sideOffset={0}
+                className="max-h-[min(70vh,32rem)] w-[var(--radix-popover-trigger-width)] overflow-y-auto rounded-none border-border bg-background p-0 shadow-md">
+                <div className="border-b border-border px-4 py-3">
+                    <h3 className="text-sm font-semibold text-foreground">Choose a size</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        Select a size to check availability{selectedColor ? ` in ${selectedColor}` : ''}.
+                    </p>
+                </div>
+                <ul className="divide-y divide-border">
+                    {values.map((value) => (
+                        <li key={value.value}>
+                            <button
+                                type="button"
+                                disabled={value.disabled}
+                                onClick={() => {
+                                    onSelect(value.value);
+                                    setOpen(false);
+                                }}
+                                className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:text-muted-foreground">
+                                <span>{value.name}</span>
+                                {value.disabled && selectedColor ? (
+                                    <span className="text-xs text-muted-foreground">Not available in {selectedColor}</span>
+                                ) : null}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </PopoverContent>
+        </Popover>
+    );
+}
+
 /**
  * ProductInfo component displays product details including title, description, price, variants, and quantity picker
  *
@@ -149,10 +216,12 @@ export default function ProductInfo({
     enableDeliveryEstimatePresentation = false,
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
     showQuantityPicker = true,
+    sizeSelectorStyle = 'swatches',
     // @sfdc-extension-line SFDC_EXT_RATINGS_REVIEWS
     disableRatingInteraction = false,
 }: ProductInfoProps): ReactElement {
     const config = useConfig();
+    const navigate = useNavigate();
     // Axes that render as a grouped/tabbed (categorized) swatch selector. Gated per-vertical via the
     // @/lib/config.ui seam (undefined ⇒ no axis grouped ⇒ every axis renders as today).
     const groupedSwatchAxes = uiConfig.pages.product.groupedSwatchAxes ?? [];
@@ -265,6 +334,7 @@ export default function ProductInfo({
             return acc;
         }, {});
     }, [swatchMode, variationValues, variationAttributes]);
+    const selectedColor = variationAttributes.find(({ id }) => id.toLowerCase() === 'color')?.selectedValue?.name;
     const shouldHideInventoryForPartialVariantSelection = useMemo(() => {
         const variants = product.variants ?? [];
         const variationAttributeCount = product.variationAttributes?.length ?? 0;
@@ -463,6 +533,29 @@ export default function ProductInfo({
                         ) : (
                             content
                         );
+
+                    if (sizeSelectorStyle === 'dropdown' && id.toLowerCase() === 'size' && !hideVariantSelection) {
+                        const selectedSize = swatchMode === 'controlled' ? controlledValue : selectedValue?.value;
+
+                        return collapsibleWrap(
+                            <div key={id} data-slot="size-variation-select" className="w-full">
+                                <SizeVariationDropdown
+                                    label={name}
+                                    selectedValue={selectedSize}
+                                    selectedColor={selectedColor}
+                                    values={values}
+                                    onSelect={(value) => {
+                                        if (swatchMode === 'controlled') {
+                                            selectAttribute(id, value);
+                                        } else {
+                                            const option = values.find((item) => item.value === value);
+                                            if (option) void navigate(option.href);
+                                        }
+                                    }}
+                                />
+                            </div>
+                        );
+                    }
 
                     // Categorized axis (e.g. furniture "fabric"): render the grouped/tabbed selector.
                     // Skipped in the read-only hideVariantSelection mode, which falls through to the
@@ -727,7 +820,9 @@ export default function ProductInfo({
             )}
 
             {/* @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY */}
-            {!hasDeferredAvailabilityForSelection && <UITarget targetId="sfcc.pdp.estimatedDelivery" />}
+            {!hideDeliveryOptions && !hasDeferredAvailabilityForSelection && (
+                <UITarget targetId="sfcc.pdp.estimatedDelivery" />
+            )}
             {/* @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY */}
 
             {/* Quantity Selector - for non-set/bundle when not edit mode, or when showQuantityInEditMode in edit mode */}

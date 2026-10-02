@@ -387,6 +387,12 @@ interface ResponsiveNavigationMenuProps extends ComponentPropsWithoutRef<typeof 
      * regions in Page Designer. Categories without a matching region fall back to the header banner.
      */
     embeddedComponent?: EmbeddedMegaMenuComponent;
+    /** Optional aliases used to rename and order the visible top-level categories. */
+    categoryLabels?: readonly { label: string; aliases: readonly string[] }[];
+}
+
+function normalizeCategoryName(value: string | undefined): string {
+    return (value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 /**
@@ -425,6 +431,7 @@ export default function ResponsiveNavigationMenu({
     resolve,
     defer,
     embeddedComponent,
+    categoryLabels,
 }: ResponsiveNavigationMenuProps): ReactElement {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { t } = useTranslation('header');
@@ -438,6 +445,7 @@ export default function ResponsiveNavigationMenu({
     const getElementProps = useCallback(
         ({ level }: { level: number; category: ShopperProducts.schemas['Category']; isLeaf?: boolean }) => {
             const isSubcategory = level >= 1;
+            const isGroupHeading = categoryLabels && level === 1;
 
             // A top-level category that has a submenu renders as a disclosure trigger
             // (a button with aria-expanded). Activating it opens the submenu for both
@@ -448,23 +456,43 @@ export default function ResponsiveNavigationMenu({
             // through the panel's links and banner.
             return {
                 className: cn(
-                    'text-sm font-medium leading-5',
+                    'text-sm leading-5',
+                    isGroupHeading ? 'font-semibold' : 'font-normal',
+                    categoryLabels && isSubcategory && 'px-0 py-1',
                     isSubcategory &&
                         'hover:!bg-transparent focus:!bg-transparent hover:!text-header-menu-foreground/60 focus:!text-header-menu-foreground/60 transition-colors'
                 ),
             };
         },
-        []
+        [categoryLabels]
     );
 
     return (
         <WithCategoryNavigationMenu resolve={resolve} defer={defer} fallback={<ResponsiveNavigationMenuFallback />}>
             {({ categories }) => {
+                const visibleCategories = categoryLabels
+                    ? (() => {
+                          const usedCategoryIds = new Set<string>();
+                          return categoryLabels.flatMap(({ label, aliases }) => {
+                              const normalizedAliases = aliases.map(normalizeCategoryName);
+                              const category = categories.find(
+                                  (item) =>
+                                      !usedCategoryIds.has(item.id) &&
+                                      (normalizedAliases.includes(normalizeCategoryName(item.id)) ||
+                                          normalizedAliases.includes(normalizeCategoryName(item.name)))
+                              );
+                              if (!category) return [];
+                              usedCategoryIds.add(category.id);
+                              return [{ ...category, name: label }];
+                          });
+                      })()
+                    : categories;
+
                 const mobileMenuContext: MobileMenuContextType = {
                     isOpen: mobileMenuOpen,
                     toggle: () => setMobileMenuOpen(!mobileMenuOpen),
                     close: () => setMobileMenuOpen(false),
-                    categories,
+                    categories: visibleCategories,
                 };
 
                 const regionIdFor = (categoryId: string | undefined): string | undefined =>
@@ -486,11 +514,14 @@ export default function ResponsiveNavigationMenu({
                         {/* Desktop: Mega menu (always rendered, hidden on mobile with CSS) */}
                         <div className="hidden lg:flex h-full w-full items-center">
                             <CategoryNavigationMenu
-                                categories={categories}
+                                categories={visibleCategories}
                                 delayDuration={0}
+                                viewport
                                 propsViewport={() => ({
-                                    className:
-                                        ' border-0 shadow-lg [&[data-state=open]]:animate-[menuSlideDown_0.15s_ease-in] [&[data-state=closed]]:animate-none will-change-transform',
+                                    className: cn(
+                                        'border-0 shadow-lg [&[data-state=open]]:animate-[menuSlideDown_0.15s_ease-in] [&[data-state=closed]]:animate-none will-change-transform',
+                                        categoryLabels && '!w-full md:!w-full !rounded-none'
+                                    ),
                                     // Anchor the fixed panel to both viewport edges via `left: 0` + `right: 0`
                                     // so its width matches the layout viewport, *excluding* the scrollbar gutter.
                                     // Using `width: 100vw` instead would include the scrollbar and overshoot
@@ -500,15 +531,25 @@ export default function ResponsiveNavigationMenu({
                                         top: 'var(--header-height)',
                                         left: 0,
                                         right: 0,
+                                        ...(categoryLabels && {
+                                            maxHeight:
+                                                'min(55vh, calc(100dvh - var(--header-height, 0px) - 1rem))',
+                                            overflowY: 'auto',
+                                        }),
                                     },
                                 })}
-                                propsContentContainer={() => ({
-                                    className:
-                                        '!p-0 !left-auto !right-auto !w-full md:!w-full !animate-none !transition-none',
+                                propsContentContainer={({ category }) => ({
+                                    className: categoryLabels
+                                        ? '!left-0 !right-0 !w-full !p-0 !animate-none !transition-none'
+                                        : '!p-0 !left-auto !right-auto !w-full md:!w-full !animate-none !transition-none',
+                                    ...(categoryLabels && { 'data-category-id': category.id }),
                                 })}
                                 propsContent={({ category }) => {
                                     const hasRegion = regionIdFor(category.id) !== undefined;
                                     const showRightColumn = hasRegion || hasBanner(category);
+                                    if (categoryLabels) {
+                                        return { className: 'w-full px-4 py-2 md:px-8 lg:px-16' };
+                                    }
                                     return {
                                         className: cn(
                                             'section-container pb-6',
@@ -520,6 +561,16 @@ export default function ResponsiveNavigationMenu({
                                     };
                                 }}
                                 propsList={({ parent, categories: subCategories, level }) => {
+                                    if (categoryLabels && level === 1) {
+                                        return {
+                                            className: 'grid grid-cols-2 gap-x-8 gap-y-5 p-0 md:grid-cols-4',
+                                        };
+                                    }
+                                    if (categoryLabels && level > 1) {
+                                        return {
+                                            className: 'mt-1 flex flex-col gap-1 p-0',
+                                        };
+                                    }
                                     if (level === 1) {
                                         if (isVertical(parent)) {
                                             return {
@@ -536,6 +587,9 @@ export default function ResponsiveNavigationMenu({
                                         };
                                     }
                                 }}
+                                propsListItem={({ level }) =>
+                                    categoryLabels && level >= 1 ? { className: 'min-w-0 list-none' } : undefined
+                                }
                                 propsElement={getElementProps}
                                 renderSlotListBefore={({ level, parent }) => {
                                     // The top-level trigger only opens the panel (it never

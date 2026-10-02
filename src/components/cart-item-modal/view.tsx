@@ -21,6 +21,7 @@ import { Link } from '@/components/link';
 import ImageGallery, { type GalleryImage } from '@/components/image-gallery';
 import ProductInfo from '@/components/product-view/product-info';
 import ProductCartActions from '@/components/product-cart-actions';
+import { ProductDeliveryInfo } from '@/components/delivery-promise/product-delivery-info';
 import ProductViewProvider from '@/providers/product-view';
 import ChildProducts from '@/components/product-view/child-products';
 import { useTranslation } from 'react-i18next';
@@ -185,6 +186,7 @@ export function CartItemModalView({
                                                     }
                                                     showQuantityInEditMode={mode === 'edit'}
                                                 />
+                                                <ProductDeliveryInfo productId={currentProduct.id} />
                                             </div>
                                         </div>
                                     </div>

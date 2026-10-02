@@ -33,6 +33,7 @@
             "!**/lighthouserc.cjs",
             "!**/generate-config.cjs",
             "!**/cartridges/**/cartridge/scripts/**/*.js",
+            "!**/cartridges/**/cartridge/rest-apis/**/*.js",
             "!!**/e2e/**",
             "!!e2e/**",
             "!.storybook/**",

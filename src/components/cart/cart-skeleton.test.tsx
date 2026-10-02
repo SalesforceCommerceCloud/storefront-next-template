@@ -93,30 +93,34 @@ describe('CartSkeleton', () => {
         });
     });
 
-    describe('Recommendations slot', () => {
-        test('renders the slot inside the non-empty branch when provided', () => {
+    describe('Recommendation slots', () => {
+        test('renders both slots inside the non-empty branch when provided', () => {
             render(
                 <CartSkeleton
                     productItemCount={1}
-                    recommendationsSlot={<div data-testid="recs-skeleton-slot">recs</div>}
+                    mayAlsoLikeSlot={<div data-testid="may-also-like-skeleton-slot">may also like</div>}
+                    recentlyViewedSlot={<div data-testid="recently-viewed-skeleton-slot">recently viewed</div>}
                 />
             );
-            expect(screen.getByTestId('recs-skeleton-slot')).toBeInTheDocument();
+            expect(screen.getByTestId('may-also-like-skeleton-slot')).toBeInTheDocument();
+            expect(screen.getByTestId('recently-viewed-skeleton-slot')).toBeInTheDocument();
         });
 
-        test('omits the slot in the empty-cart branch', () => {
+        test('omits both slots in the empty-cart branch', () => {
             // Empty-cart branch is a different layout (cart-empty mirror) and intentionally
             // does NOT show recommendations — the slot must not leak in.
             render(
                 <CartSkeleton
                     productItemCount={0}
-                    recommendationsSlot={<div data-testid="recs-skeleton-slot">recs</div>}
+                    mayAlsoLikeSlot={<div data-testid="may-also-like-skeleton-slot">may also like</div>}
+                    recentlyViewedSlot={<div data-testid="recently-viewed-skeleton-slot">recently viewed</div>}
                 />
             );
-            expect(screen.queryByTestId('recs-skeleton-slot')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('may-also-like-skeleton-slot')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('recently-viewed-skeleton-slot')).not.toBeInTheDocument();
         });
 
-        test('renders nothing in the recommendations region when no slot is provided', () => {
+        test('renders nothing in either recommendation slot when none is provided', () => {
             const { queryByTestId, container } = render(<CartSkeleton productItemCount={1} />);
             // Sanity: the page heading still renders, but no slot leaks into the tree.
             expect(container.querySelector('.h-10.w-48')).toBeInTheDocument();

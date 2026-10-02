@@ -126,6 +126,35 @@ describe('ResponsiveNavigationMenu Component', () => {
                 expect(container).toBeInTheDocument();
             });
         });
+
+        it('uses the requested labels for matching catalog categories', async () => {
+            const { getByRole } = renderComponent({
+                categoryLabels: [
+                    { label: 'Men', aliases: ['cat-1'] },
+                    { label: 'Women', aliases: ['cat-2'] },
+                ],
+            });
+
+            await waitFor(() => {
+                fireEvent.click(getByRole('button', { name: /open menu/i }));
+            });
+
+            await waitFor(() => {
+                expect(getByRole('button', { name: /expand men/i })).toBeInTheDocument();
+                expect(getByRole('button', { name: /expand women/i })).toBeInTheDocument();
+            });
+        });
+
+        it('opens the matching category filters on hover', async () => {
+            const { findByRole } = renderComponent({
+                categoryLabels: [{ label: 'Men', aliases: ['cat-1'] }],
+            });
+
+            fireEvent.pointerMove(await findByRole('button', { name: 'Men' }), { pointerType: 'mouse' });
+
+            expect(await findByRole('link', { name: 'Shop all Men' })).toBeInTheDocument();
+            expect(await findByRole('link', { name: 'Subcategory 1.1' })).toBeInTheDocument();
+        });
     });
 
     describe('Mobile Menu', () => {

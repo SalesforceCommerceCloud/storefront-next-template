@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Suspense, use, useCallback, useEffect, useMemo, useRef } from 'react';
+import { Suspense, lazy, use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAsyncError, useLocation, useNavigation, useRouteLoaderData } from 'react-router';
 import type { loader as rootLoader } from '@/root';
 import type { Route } from './+types/_app.category.$categoryId';
@@ -32,6 +32,10 @@ import type { CategoryProductsResult } from '@/routes/resource.category-products
 import ActiveFilters from '@/components/category-refinements/active-filters';
 import FiltersButton from '@/components/category-refinements/filters-button';
 import CategoryRefinements from '@/components/category-refinements';
+import { FILTER_BAR_FACETS } from '@/components/category-refinements/static-facets';
+
+// Overlay: only loaded (and mounted) once the shopper opens the filters for the first time.
+const FiltersDrawer = lazy(() => import('@/components/category-refinements/filters-drawer'));
 import CategorySorting from '@/components/category-sorting';
 import DeferredProductGrid from '@/components/product-grid';
 import { ProductTileSkeleton } from '@/components/category-skeleton';
@@ -41,8 +45,6 @@ import { PageType } from '@/lib/decorators/page-type';
 import { RegionDefinition } from '@/lib/decorators/region-definition';
 import { Region } from '@/components/region';
 import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
-import CategoryBanner from '@/components/category-banner';
-import CategoryBannerSkeleton from '@/components/category-banner/skeleton';
 import { JsonLd } from '@/components/json-ld';
 import { SeoMeta } from '@/components/seo-meta';
 import { useTranslation } from 'react-i18next';
@@ -544,19 +546,19 @@ export default function CategoryPage({
         }
     }, [navigation.state, location.search]);
 
-    // When the shopper opens the filters panel, move focus into it so keyboard users land on the
-    // refinements instead of tabbing forward from a toggle that sits after the panel in the DOM.
-    // Only fire on the closed -> open transition, never on initial render. (W-23325653)
-    const refinementsPanelRef = useRef<HTMLDivElement>(null);
-    const prevFiltersOpenRef = useRef(filtersOpen);
+    // The filters live in a side drawer (a modal dialog: it traps and restores focus itself). Keep it mounted
+    // after the first open so the close animation can play.
+    const [drawerWasOpened, setDrawerWasOpened] = useState(false);
     useEffect(() => {
-        if (filtersOpen && !prevFiltersOpenRef.current) {
-            requestAnimationFrame(() => {
-                refinementsPanelRef.current?.focus();
-            });
-        }
-        prevFiltersOpenRef.current = filtersOpen;
+        if (filtersOpen) setDrawerWasOpened(true);
     }, [filtersOpen]);
+    const mountDrawer = filtersOpen || drawerWasOpened;
+    // Which filter row the drawer opens with: the bar button the shopper clicked (none for the Filters button).
+    const [focusedFacetId, setFocusedFacetId] = useState<string | null>(null);
+    const openFilters = (facetId: string | null) => {
+        setFocusedFacetId(facetId);
+        if (!filtersOpen) toggleFiltersOpen();
+    };
 
     useEffect(() => {
         // Only track if we haven't already tracked this specific data combination
@@ -615,74 +617,71 @@ export default function CategoryPage({
             {seoPagination?.prevUrl && <link rel="prev" href={seoPagination.prevUrl} />}
             {seoPagination?.nextUrl && <link rel="next" href={seoPagination.nextUrl} />}
             <div className="pb-16 -mt-8">
-                {/* plpTopFullWidth — full-width banner region, flush to the header (mirrors homepage pattern) */}
-                <Region
-                    page={page}
-                    regionId="plpTopFullWidth"
-                    critical={true}
-                    fallbackElement={<CategoryBannerSkeleton />}
-                    fallbackOnEmpty
-                    errorElement={<CategoryBanner />}
-                />
+                {/* plpTopFullWidth — optional full-width Page Designer region. No built-in banner: the page title
+                    and item count below are the heading, so an empty region renders nothing. */}
+                <Region page={page} regionId="plpTopFullWidth" critical={true} />
 
                 <div className="section-container pt-8">
                     <div className="mb-4">
                         <CategoryBreadcrumbs category={category} />
                     </div>
 
-                    <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="mb-6">
                         <h1
                             ref={resultsHeadingRef}
                             tabIndex={-1}
-                            className="text-3xl font-bold leading-none tracking-[-0.75px] text-card-foreground rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                            {category?.name || category.id} ({searchResultCritical.total})
+                            className="text-3xl font-semibold leading-tight tracking-[-0.75px] text-card-foreground rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                            {category?.name || category.id}
                         </h1>
+                        <p data-testid="plp-item-count" className="mt-3 text-sm text-foreground">
+                            {t('category:itemsCount', {
+                                count: searchResultCritical.total,
+                                defaultValue_one: '{{count}} item',
+                                defaultValue_other: '{{count}} items',
+                            })}
+                        </p>
                         <UITarget targetId="sfcc.plp.search.summary" />
-                        {searchResultCritical?.sortingOptions && searchResultCritical.sortingOptions.length > 0 && (
-                            <div className="flex-shrink-0">
-                                <CategorySorting result={searchResultCritical} />
-                            </div>
-                        )}
                     </div>
 
-                    <div className="flex flex-col lg:flex-row gap-2">
-                        {/* Filters toggle button + Quick Filters - mobile only (above panel) */}
-                        <div className="lg:hidden mb-4 flex flex-col items-start gap-2" data-slot="filters-wrapper">
-                            <FiltersButton
-                                onClick={toggleFiltersOpen}
-                                isActive={filtersOpen}
-                                selectedFiltersCount={selectedFiltersCount}
+                    {/* Subcategory tabs */}
+                    {!sidebarCategoryFacetEnabled && (
+                        <QuickFilters variant="tabs" category={category} categoryLabel={categoryLabel} />
+                    )}
+
+                    {/* Horizontal filter bar: Filter (opens the full panel), Sort, then one dropdown per facet */}
+                    <div data-slot="filters-wrapper" className="my-5 flex flex-wrap items-center gap-3">
+                        <FiltersButton
+                            className="h-11 px-4"
+                            onClick={() => openFilters(null)}
+                            isActive={filtersOpen}
+                            selectedFiltersCount={selectedFiltersCount}
+                        />
+                        <CategorySorting variant="bar" result={searchResultCritical} />
+                        <CategoryRefinements
+                            layout="bar"
+                            result={searchResultCritical}
+                            refine={refine}
+                            placeholders={FILTER_BAR_FACETS}
+                            onFacetClick={openFilters}
+                        />
+                    </div>
+
+                    {mountDrawer && (
+                        <Suspense fallback={null}>
+                            <FiltersDrawer
+                                open={filtersOpen}
+                                onOpenChange={(next) => {
+                                    if (next !== filtersOpen) toggleFiltersOpen();
+                                }}
+                                result={searchResultCritical}
+                                refine={refine}
+                                focusFacetId={focusedFacetId}
                             />
-                            {!sidebarCategoryFacetEnabled && (
-                                <QuickFilters category={category} categoryLabel={categoryLabel} />
-                            )}
-                        </div>
+                        </Suspense>
+                    )}
 
-                        {/* Category Refinements - toggles visibility on left side */}
-                        {filtersOpen && (
-                            <div
-                                ref={refinementsPanelRef}
-                                tabIndex={-1}
-                                role="region"
-                                aria-label={t('categoryRefinements:filtersButtonLabel')}
-                                className="w-full lg:w-64 lg:flex-shrink-0 outline-none">
-                                <CategoryRefinements result={searchResultCritical} refine={refine} />
-                            </div>
-                        )}
-
+                    <div className="flex flex-col lg:flex-row gap-2">
                         <div className="flex-grow">
-                            {/* Filters toggle button + Quick Filters - desktop only (inside content area) */}
-                            <div className="mb-4 hidden lg:flex lg:items-center lg:gap-4" data-slot="filters-wrapper">
-                                <FiltersButton
-                                    onClick={toggleFiltersOpen}
-                                    isActive={filtersOpen}
-                                    selectedFiltersCount={selectedFiltersCount}
-                                />
-                                {!sidebarCategoryFacetEnabled && (
-                                    <QuickFilters category={category} categoryLabel={categoryLabel} />
-                                )}
-                            </div>
-
                             <ActiveFilters result={searchResultCritical} />
 
                             {/* plpTopContent */}
@@ -708,7 +707,7 @@ export default function CategoryPage({
                                         firstNewItemRef={isLoadMoreMode ? firstNewItemRef : undefined}
                                         appendPending={isLoadMoreMode ? isLoadingMore : undefined}
                                         nonCriticalCount={nonCriticalCount}
-                                        hasRefinementsPanel={filtersOpen}
+                                        hasRefinementsPanel={false}
                                         isLoading={isProductGridLoading}
                                         handleProductClick={handleProductClick}
                                         topCategoryName={

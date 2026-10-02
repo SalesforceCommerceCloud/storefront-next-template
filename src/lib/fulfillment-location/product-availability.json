@@ -1,0 +1,930 @@
+{
+    "_note": "Sample data. Products 3 cities mein round-robin se divide kiye gaye hain; stockLevel sample (deterministic) values hain. Latitude/longitude Batumi aur Kutaisi ke confirm karne baqi hain.",
+    "source": "DressUp-products-tshirts-tops.xml",
+    "totalProducts": 40,
+    "locations": [
+        {
+            "locationId": "LOC-001",
+            "city": "Tbilisi",
+            "postalCode": "0105",
+            "latitude": 41.7151,
+            "longitude": 44.8271,
+            "active": true
+        },
+        {
+            "locationId": "LOC-002",
+            "city": "Batumi",
+            "postalCode": "6000",
+            "latitude": null,
+            "longitude": null,
+            "active": true
+        },
+        {
+            "locationId": "LOC-003",
+            "city": "Kutaisi",
+            "postalCode": "4600",
+            "latitude": null,
+            "longitude": null,
+            "active": true
+        }
+    ],
+    "summary": {
+        "Tbilisi": {
+            "count": 14,
+            "productIds": [
+                "DU-893268",
+                "DU-893151",
+                "DU-891450",
+                "DU-889695",
+                "DU-885807",
+                "DU-879251",
+                "DU-879179",
+                "DU-879134",
+                "DU-879107",
+                "DU-879098",
+                "DU-879053",
+                "DU-874138",
+                "DU-874111",
+                "DU-874084"
+            ]
+        },
+        "Batumi": {
+            "count": 13,
+            "productIds": [
+                "DU-893259",
+                "DU-892764",
+                "DU-891279",
+                "DU-889686",
+                "DU-885798",
+                "DU-879242",
+                "DU-879152",
+                "DU-879125",
+                "DU-879089",
+                "DU-879071",
+                "DU-879044",
+                "DU-874129",
+                "DU-874102"
+            ]
+        },
+        "Kutaisi": {
+            "count": 13,
+            "productIds": [
+                "DU-893205",
+                "DU-892440",
+                "DU-890064",
+                "DU-889677",
+                "DU-879260",
+                "DU-879188",
+                "DU-879143",
+                "DU-879116",
+                "DU-879080",
+                "DU-879062",
+                "DU-879035",
+                "DU-874120",
+                "DU-874093"
+            ]
+        }
+    },
+    "products": [
+        {
+            "productId": "DU-893268",
+            "productName": "s.OLIVER - Knitted layering pullover",
+            "sku": "DU-893268",
+            "manufacturerSku": "2182445 9999",
+            "brand": "s.Oliver",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-893268-34", "DU-893268-36", "DU-893268-38", "DU-893268-40"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 5,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-893259",
+            "productName": "s.OLIVER - Knitted layering pullover",
+            "sku": "DU-893259",
+            "manufacturerSku": "2182445 8944",
+            "brand": "s.Oliver",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-893259-34", "DU-893259-36", "DU-893259-38", "DU-893259-40"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 22,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-893205",
+            "productName": "s.OLIVER - Women's knitted blouse",
+            "sku": "DU-893205",
+            "manufacturerSku": "2181378 0100",
+            "brand": "s.Oliver",
+            "category": "1665-polos",
+            "variantIds": ["DU-893205-34", "DU-893205-36", "DU-893205-38", "DU-893205-40"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 20,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-893151",
+            "productName": "s.OLIVER - Women's knitted pullover",
+            "sku": "DU-893151",
+            "manufacturerSku": "2181435 50G8",
+            "brand": "s.Oliver",
+            "category": "1665-polos",
+            "variantIds": ["DU-893151-34", "DU-893151-36", "DU-893151-38", "DU-893151-40"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 25,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-892764",
+            "productName": "Adidas - ESS PES SS",
+            "sku": "DU-892764",
+            "manufacturerSku": "KV9146",
+            "brand": "Adidas",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-892764-XS", "DU-892764-S", "DU-892764-M", "DU-892764-L", "DU-892764-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 24,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-892440",
+            "productName": "Etam - PERSIENNE - BODY",
+            "sku": "DU-892440",
+            "manufacturerSku": "6561006 85",
+            "brand": "Etam",
+            "category": "1661-bodysuits",
+            "variantIds": ["DU-892440-S", "DU-892440-M", "DU-892440-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 12,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-891450",
+            "productName": "Adidas - 3S TEE SLIM",
+            "sku": "DU-891450",
+            "manufacturerSku": "KS4780",
+            "brand": "Adidas",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-891450-XS", "DU-891450-S", "DU-891450-M", "DU-891450-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 23,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-891279",
+            "productName": "Adidas - 3S TEE SLIM",
+            "sku": "DU-891279",
+            "manufacturerSku": "KD7980",
+            "brand": "Adidas",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-891279-XS", "DU-891279-S", "DU-891279-M", "DU-891279-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 29,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-890064",
+            "productName": "Vero Moda Curve - VMMILLE LS BOATNECK SHORT TOP JRS CUR",
+            "sku": "DU-890064",
+            "manufacturerSku": "10358410 Chocolate Torte",
+            "brand": "Vero Moda Curve",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-890064-S", "DU-890064-M"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 18,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-889695",
+            "productName": "ONLY - ONLDOLLY L/S BOATNECK TOP CC JRS",
+            "sku": "DU-889695",
+            "manufacturerSku": "15379321 Black",
+            "brand": "ONLY",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-889695-XS", "DU-889695-S", "DU-889695-M", "DU-889695-L", "DU-889695-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 5,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-889686",
+            "productName": "ONLY - ONLDOLLY L/S BOATNECK TOP CC JRS",
+            "sku": "DU-889686",
+            "manufacturerSku": "15379321 Pumice Stone",
+            "brand": "ONLY",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-889686-XS", "DU-889686-S", "DU-889686-M", "DU-889686-L", "DU-889686-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 10,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-889677",
+            "productName": "ONLY - ONLDOLLY L/S BOATNECK TOP CC JRS",
+            "sku": "DU-889677",
+            "manufacturerSku": "15379321 Dark Grey",
+            "brand": "ONLY",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-889677-XS", "DU-889677-S", "DU-889677-M", "DU-889677-L", "DU-889677-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 29,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-885807",
+            "productName": "GANT - SUPERFINE LAMBSWOOL STRIPED RUGGER",
+            "sku": "DU-885807",
+            "manufacturerSku": "4802433.667",
+            "brand": "GANT",
+            "category": "1665-polos",
+            "variantIds": ["DU-885807-XS", "DU-885807-S", "DU-885807-M", "DU-885807-L", "DU-885807-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 14,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-885798",
+            "productName": "GANT - SUPERFINE LAMBSWOOL STRIPED RUGGER",
+            "sku": "DU-885798",
+            "manufacturerSku": "4802433.433",
+            "brand": "GANT",
+            "category": "1665-polos",
+            "variantIds": ["DU-885798-XS", "DU-885798-S", "DU-885798-M", "DU-885798-L", "DU-885798-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 25,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879260",
+            "productName": "Mavi - POLO NECK TRICOT",
+            "sku": "DU-879260",
+            "manufacturerSku": "1710944 70240",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879260-XS", "DU-879260-S", "DU-879260-M", "DU-879260-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 24,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879251",
+            "productName": "Mavi - POLO NECK TRICOT",
+            "sku": "DU-879251",
+            "manufacturerSku": "1710941 70236",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879251-XS", "DU-879251-S", "DU-879251-M"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 29,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879242",
+            "productName": "Mavi - POLO NECK TRICOT",
+            "sku": "DU-879242",
+            "manufacturerSku": "1710941 70056",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879242-XS", "DU-879242-S", "DU-879242-M"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 22,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879188",
+            "productName": "Mavi - POLO NECK SWEATER",
+            "sku": "DU-879188",
+            "manufacturerSku": "1710712 88615",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879188-XS", "DU-879188-S", "DU-879188-M", "DU-879188-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 23,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879179",
+            "productName": "Mavi - POLO NECK SWEATER",
+            "sku": "DU-879179",
+            "manufacturerSku": "1710712 84371",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879179-XS", "DU-879179-S", "DU-879179-M", "DU-879179-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 6,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879152",
+            "productName": "Mavi - LOGO PRINTED T-SHIRT",
+            "sku": "DU-879152",
+            "manufacturerSku": "1614196 91659",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879152-S", "DU-879152-M", "DU-879152-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 20,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879143",
+            "productName": "Mavi - LOGO PRINTED T-SHIRT",
+            "sku": "DU-879143",
+            "manufacturerSku": "1614196 91657",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879143-XS", "DU-879143-S", "DU-879143-M", "DU-879143-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 29,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879134",
+            "productName": "Mavi - LOGO PRINTED T-SHIRT",
+            "sku": "DU-879134",
+            "manufacturerSku": "1614195 70236",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879134-XS", "DU-879134-S", "DU-879134-M", "DU-879134-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 7,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879125",
+            "productName": "Mavi - LOGO PRINTED T-SHIRT",
+            "sku": "DU-879125",
+            "manufacturerSku": "1614192 900",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879125-S", "DU-879125-M", "DU-879125-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 26,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879116",
+            "productName": "Mavi - FASHION POLO",
+            "sku": "DU-879116",
+            "manufacturerSku": "1614190 70220",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879116-XS", "DU-879116-S", "DU-879116-M", "DU-879116-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 13,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879107",
+            "productName": "Mavi - FASHION JERSEY",
+            "sku": "DU-879107",
+            "manufacturerSku": "1614185 91619",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879107-XS", "DU-879107-S", "DU-879107-M", "DU-879107-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 18,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879089",
+            "productName": "Mavi - LONG SLEEVE FASHION JERSEY",
+            "sku": "DU-879089",
+            "manufacturerSku": "1614171 91653",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879089-XS", "DU-879089-S", "DU-879089-M", "DU-879089-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 16,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879080",
+            "productName": "Mavi - LONG SLEEVE FASHION JERSEY",
+            "sku": "DU-879080",
+            "manufacturerSku": "1614123 900",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879080-XS", "DU-879080-S", "DU-879080-M"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 30,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879098",
+            "productName": "Mavi - FASHION JERSEY",
+            "sku": "DU-879098",
+            "manufacturerSku": "1614185 90372",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879098-XS", "DU-879098-S", "DU-879098-M", "DU-879098-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 27,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879071",
+            "productName": "Mavi - LONG SLEEVE FASHION JERSEY",
+            "sku": "DU-879071",
+            "manufacturerSku": "1614123 87830",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879071-XS", "DU-879071-S", "DU-879071-M"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 21,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879062",
+            "productName": "Mavi - LONG SLEEVE FASHION JERSEY",
+            "sku": "DU-879062",
+            "manufacturerSku": "1614123 80194",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879062-XS", "DU-879062-S", "DU-879062-M"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 16,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879053",
+            "productName": "Mavi - BUTTON FRONT FASHION JERSEY",
+            "sku": "DU-879053",
+            "manufacturerSku": "1614120 80194",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879053-XS", "DU-879053-S", "DU-879053-M", "DU-879053-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 11,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879044",
+            "productName": "Mavi - BUTTON FRONT FASHION JERSEY",
+            "sku": "DU-879044",
+            "manufacturerSku": "1614120 70236",
+            "brand": "Mavi",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-879044-XS", "DU-879044-S", "DU-879044-M", "DU-879044-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 29,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-879035",
+            "productName": "Mavi - POLO NECK FASHION JERSEY",
+            "sku": "DU-879035",
+            "manufacturerSku": "1613836 91456",
+            "brand": "Mavi",
+            "category": "1665-polos",
+            "variantIds": ["DU-879035-XS", "DU-879035-S", "DU-879035-M", "DU-879035-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 22,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-874138",
+            "productName": "Lacoste - CREWNECK T-SHIRTS FEMALE",
+            "sku": "DU-874138",
+            "manufacturerSku": "TF8366 YZP",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874138-XS", "DU-874138-S", "DU-874138-M", "DU-874138-L", "DU-874138-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 25,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-874129",
+            "productName": "Lacoste - CREWNECK T-SHIRTS FEMALE",
+            "sku": "DU-874129",
+            "manufacturerSku": "TF8366 N6I",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874129-XS", "DU-874129-S", "DU-874129-M", "DU-874129-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 24,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-874120",
+            "productName": "Lacoste - CREWNECK T-SHIRTS FEMALE",
+            "sku": "DU-874120",
+            "manufacturerSku": "TF6801 70V",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874120-S", "DU-874120-M", "DU-874120-L"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 6,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-874111",
+            "productName": "Lacoste - WOMEN’S SLIM FIT RIBBED COTTON T-SHIRT",
+            "sku": "DU-874111",
+            "manufacturerSku": "TF5538 3KE",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874111-XS", "DU-874111-S", "DU-874111-M", "DU-874111-L", "DU-874111-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 9,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-874102",
+            "productName": "Lacoste - Womens Contrast Trim Jersey T-Shirt",
+            "sku": "DU-874102",
+            "manufacturerSku": "TF5289 WKE",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874102-XS", "DU-874102-S", "DU-874102-M", "DU-874102-L", "DU-874102-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-002",
+                    "city": "Batumi",
+                    "postalCode": "6000",
+                    "stockLevel": 6,
+                    "distance": 15,
+                    "distanceUnit": "KM",
+                    "leadTime": 3,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-874093",
+            "productName": "Lacoste - CREWNECK T-SHIRTS FEMALE",
+            "sku": "DU-874093",
+            "manufacturerSku": "TF3355 VP6",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874093-XS", "DU-874093-S", "DU-874093-M", "DU-874093-L", "DU-874093-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-003",
+                    "city": "Kutaisi",
+                    "postalCode": "4600",
+                    "stockLevel": 12,
+                    "distance": 20,
+                    "distanceUnit": "KM",
+                    "leadTime": 4,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        },
+        {
+            "productId": "DU-874084",
+            "productName": "Lacoste - CREWNECK T-SHIRTS FEMALE",
+            "sku": "DU-874084",
+            "manufacturerSku": "TF3250 VP6",
+            "brand": "Lacoste",
+            "category": "1663-t-shirts",
+            "variantIds": ["DU-874084-XS", "DU-874084-S", "DU-874084-M", "DU-874084-L", "DU-874084-XL"],
+            "availability": [
+                {
+                    "fulfillmentLocationId": "LOC-001",
+                    "city": "Tbilisi",
+                    "postalCode": "0105",
+                    "stockLevel": 10,
+                    "distance": 8,
+                    "distanceUnit": "KM",
+                    "leadTime": 2,
+                    "leadTimeUnit": "DAYS"
+                }
+            ]
+        }
+    ]
+}

@@ -311,6 +311,7 @@ The docs below are where architectural detail lives — consult them for tasks i
 - [docs/README-I18N.md](./docs/README-I18N.md) — Internationalization
 - [docs/README-MULTI-SITE.md](./docs/README-MULTI-SITE.md) — Site context and locale URL routing
 - [docs/README-PAGE-DESIGNER.md](./docs/README-PAGE-DESIGNER.md) — Page Designer component development (decorators, metadata)
+- [docs/README-RETURNS.md](./docs/README-RETURNS.md) — Returns and exchanges: `c_deliverySplit` / `c_returns` order attributes, the Returns custom API, return rules, the `returnsCustomApi` switch
 
 **UI & frontend:**
 - [docs/README-UI-STYLING.md](./docs/README-UI-STYLING.md) — Tailwind, shadcn, design tokens

@@ -24,7 +24,7 @@ import Suggestions from '@/components/search/suggestions';
 import { useSearchSuggestions } from '@/hooks/use-search-suggestions';
 import { useTransformSearchSuggestions } from '@/hooks/use-transform-search-suggestions';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { getSessionJSONItem, setSessionJSONItem, clearSessionJSONItem } from '@/lib/utils';
+import { cn, getSessionJSONItem, setSessionJSONItem, clearSessionJSONItem } from '@/lib/utils';
 
 import { UITarget } from '@/targets/ui-target';
 
@@ -32,7 +32,7 @@ const RECENT_SEARCH_LIMIT = 5;
 const RECENT_SEARCH_KEY = 'recent-search-key';
 const RECENT_SEARCH_MIN_LENGTH = 3;
 
-export default function SearchBar(): ReactElement {
+export default function SearchBar({ inputClassName }: { inputClassName?: string }): ReactElement {
     const { t } = useTranslation('header');
     const navigate = useNavigate();
     const config = useConfig();
@@ -214,7 +214,10 @@ export default function SearchBar(): ReactElement {
                                     id={searchInputId}
                                     type="text"
                                     placeholder={t('searchPlaceholder')}
-                                    className="w-full pl-10 focus-visible:border-header-foreground focus-visible:ring-1 focus-visible:ring-header-foreground"
+                                    className={cn(
+                                        'w-full pl-10 focus-visible:border-header-foreground focus-visible:ring-1 focus-visible:ring-header-foreground',
+                                        inputClassName
+                                    )}
                                     onChange={handleInputChange}
                                     onFocus={shouldOpenPopover}
                                     aria-autocomplete="list"

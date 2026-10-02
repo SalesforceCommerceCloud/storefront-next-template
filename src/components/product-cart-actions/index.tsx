@@ -16,6 +16,7 @@
 import { type ReactElement, Suspense, lazy, startTransition, useState, useEffect } from 'react';
 import type { ShopperProducts } from '@/scapi';
 import { Button } from '@/components/ui/button';
+import { Heart, ShoppingBag } from 'lucide-react';
 import ProductQuantityPicker from '@/components/product-quantity-picker';
 import { useProductView } from '@/providers/product-view';
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
@@ -64,6 +65,14 @@ interface ProductCartActionsProps {
      * rendered twice. Standard (non-compact, non-set/bundle) add-mode layout only.
      */
     showInlineQuantity?: boolean;
+    /** Hide express-payment buttons on PDP presentations that use a single primary CTA. */
+    hideExpressPayments?: boolean;
+    /** Show the wishlist action directly below the primary CTA. */
+    showWishlistButton?: boolean;
+    /** Hide supplemental content rendered after the primary PDP actions. */
+    hidePostActionContent?: boolean;
+    /** Override the standard Add to Cart label without changing the cart action. */
+    addToCartLabel?: string;
 }
 
 export default function ProductCartActions({
@@ -77,6 +86,10 @@ export default function ProductCartActions({
     onBuyNow,
     additionalItems = [],
     showInlineQuantity = false,
+    hideExpressPayments = false,
+    showWishlistButton = false,
+    hidePostActionContent = false,
+    addToCartLabel,
 }: ProductCartActionsProps): ReactElement {
     const { t } = useTranslation('product');
     const isProductASet = isProductSet(product);
@@ -113,6 +126,17 @@ export default function ProductCartActions({
     // Get product ID for pending action matching
     const productToCheck = isMasterOrVariantProduct ? currentVariant : product;
     const currentProductId = productToCheck?.productId || product.id;
+
+    const handleWishlistClick = async () => {
+        const productToAdd = isMasterOrVariantProduct ? currentVariant : product;
+        onBeforeAddToWishlist?.();
+        try {
+            await handleAddToWishlist(productToAdd as ShopperProducts.schemas['Variant']);
+            onAddToWishlistSuccess?.();
+        } catch (error) {
+            onAddToWishlistError?.(error);
+        }
+    };
 
     // Check for pending actions and execute if they match this product
     // This handles actions that were initiated before authentication (e.g., addToWishlist)
@@ -173,11 +197,12 @@ export default function ProductCartActions({
     const [shouldLoadExpressPayments, setShouldLoadExpressPayments] = useState(false);
 
     useEffect(() => {
+        if (hideExpressPayments) return;
         // Use startTransition to mark this as non-urgent, allowing initial render to complete first
         startTransition(() => {
             setShouldLoadExpressPayments(true);
         });
-    }, []);
+    }, [hideExpressPayments]);
 
     return (
         <div className="mt-6">
@@ -200,7 +225,7 @@ export default function ProductCartActions({
                             disabled={!canAddToCart || isAddingToOrUpdatingCart || isVariantInventoryLoading}
                             className="w-full"
                             size="lg">
-                            {isAddingToOrUpdatingCart ? t('addingToCart') : t('addToCart')}
+                            {isAddingToOrUpdatingCart ? t('addingToCart') : (addToCartLabel ?? t('addToCart'))}
                         </Button>
                         <UITarget targetId="sfcc.quickAdd.payments.expressCheckout">
                             <Button
@@ -249,19 +274,33 @@ export default function ProductCartActions({
                             disabled={!canAddToCart || isAddingToOrUpdatingCart || isVariantInventoryLoading}
                             className="w-full text-base font-semibold leading-6"
                             size="lg">
+                                {addToCartLabel && <ShoppingBag aria-hidden="true" className="size-5" />}
                             {isEditMode
                                 ? t('updateCart')
                                 : isAddingToOrUpdatingCart
                                   ? t('addingToCart')
-                                  : t('addToCart')}
+                                  : (addToCartLabel ?? t('addToCart'))}
                         </Button>
                     ))}
+
+                {showWishlistButton && !isEditMode && (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="lg"
+                        className="w-full text-base font-semibold leading-6"
+                        onClick={() => void handleWishlistClick()}>
+                        <Heart aria-hidden="true" className="size-5" />
+                        Add to Wishlist
+                    </Button>
+                )}
 
                 {/* Express Payments — standard layout only, vertical for PDP */}
                 {!isCompactAddMode &&
                     !isProductASet &&
                     !isProductABundle &&
                     !isEditMode &&
+                    !hideExpressPayments &&
                     shouldLoadExpressPayments && (
                         <UITarget targetId="sfcc.pdp.payments.expressCheckout">
                             <Suspense fallback={null}>
@@ -275,8 +314,10 @@ export default function ProductCartActions({
                         </UITarget>
                     )}
 
-                <UITarget targetId="sfcc.pdp.after.addToCart" />
-                {!isCompactAddMode && !isEditMode && currentProductId && <UITarget targetId="sfcc.pdp.bnpl.message" />}
+                {!hidePostActionContent && <UITarget targetId="sfcc.pdp.after.addToCart" />}
+                {!hidePostActionContent && !isCompactAddMode && !isEditMode && currentProductId && (
+                    <UITarget targetId="sfcc.pdp.bnpl.message" />
+                )}
             </div>
         </div>
     );

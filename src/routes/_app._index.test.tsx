@@ -17,6 +17,76 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { LoaderFunctionArgs } from 'react-router';
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { render, screen } from '@testing-library/react';
+import { describe, expect, test, vi } from 'vitest';
+import HomePage, { type HomePageData, handle } from './_app._index';
+
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({ t: (_key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? _key }),
+}));
+
+vi.mock('@/components/seo-meta', () => ({
+    SeoMeta: ({ openGraph }: { openGraph: { url: string } }) => (
+        <div data-testid="seo-meta" data-page-url={openGraph.url} />
+    ),
+}));
+
+vi.mock('@/components/mainheader/mainheader', () => ({ default: () => <div data-testid="custom-header" /> }));
+vi.mock('@/components/mainherocarousel/mainherocarousel', () => ({ default: () => <div data-testid="hero-carousel" /> }));
+vi.mock('@/components/mainstarthere/mainstarthere', () => ({ default: () => <div data-testid="starts-here" /> }));
+vi.mock('@/components/mainnewandnow/mainnewandnow', () => ({ default: () => <div data-testid="new-and-now" /> }));
+vi.mock('@/components/mainbrands/mainbrands', () => ({ default: () => <div data-testid="brands" /> }));
+vi.mock('@/components/maindressup/maindressup', () => ({ default: () => <div data-testid="dress-up" /> }));
+vi.mock('@/components/maintoppicksslider/maintoppicksslider', () => ({ default: () => <div data-testid="top-picks" /> }));
+vi.mock('@/components/mainbagsection/mainbagsection', () => ({ default: () => <div data-testid="bag-section" /> }));
+vi.mock('@/components/mainwordrobe/wordrobe', () => ({ default: () => <div data-testid="wardrobe" /> }));
+vi.mock('@/components/mainfooter/mainfooter', () => ({ default: () => <div data-testid="custom-footer" /> }));
+
+describe('HomePage', () => {
+    test('renders the custom homepage sections, SEO metadata, and custom app chrome', () => {
+        const loaderData: HomePageData = {
+            searchResult: Promise.resolve({ hits: [] }) as HomePageData['searchResult'],
+            pageUrl: 'https://store.example/',
+            ogImageUrl: 'https://store.example/images/hero.webp',
+        };
+
+        render(<HomePage loaderData={loaderData} />);
+
+        for (const testId of [
+            'custom-header',
+            'hero-carousel',
+            'starts-here',
+            'new-and-now',
+            'brands',
+            'dress-up',
+            'bag-section',
+            'wardrobe',
+            'custom-footer',
+        ]) {
+            expect(screen.getByTestId(testId)).toBeInTheDocument();
+        }
+
+        expect(screen.getByTestId('seo-meta')).toHaveAttribute('data-page-url', loaderData.pageUrl);
+        // The featured products carousel (Top Picks) was replaced by the Featured Products section.
+        expect(screen.queryByTestId('top-picks')).not.toBeInTheDocument();
+        expect(handle.customChrome).toBe(true);
+    });
+});
 import type { ShopperExperience, ShopperProducts, ShopperSearch } from '@/scapi';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import HomePage, { type HomePageData, loader } from './_app._index';

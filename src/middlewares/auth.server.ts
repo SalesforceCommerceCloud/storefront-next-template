@@ -107,7 +107,7 @@ export async function refreshAccessToken(
         logger.debug('Auth: refreshAccessToken succeeded');
         return result;
     } catch (error) {
-        logger.error('Auth: refreshAccessToken failed', { error });
+        logger.error('Auth: refreshAccessToken failed', { error, responseBody: error instanceof ApiError ? error.body : undefined });
         throw error;
     } finally {
         performanceTimer?.mark(PERFORMANCE_MARKS.authRefreshAccessToken, 'end');
@@ -144,7 +144,7 @@ export async function loginGuestUser(
         logger.debug('Auth: loginGuestUser succeeded');
         return result;
     } catch (error) {
-        logger.error('Auth: loginGuestUser failed', { error });
+        logger.error('Auth: loginGuestUser failed', { error, responseBody: error instanceof ApiError ? error.body : undefined });
         throw error;
     } finally {
         performanceTimer?.mark(performanceName, 'end');

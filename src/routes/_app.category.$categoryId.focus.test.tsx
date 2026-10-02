@@ -190,7 +190,9 @@ vi.mock('@/components/product-grid/load-more', () => ({
 }));
 
 vi.mock('@/components/category-refinements', () => ({
-    default: () => <div data-testid="category-refinements" />,
+    default: ({ layout }: { layout?: string }) => (
+        <div data-testid={layout === 'bar' ? 'category-refinements-bar' : 'category-refinements'} />
+    ),
 }));
 
 vi.mock('@/components/category-refinements/active-filters', () => ({
@@ -352,7 +354,7 @@ describe('CategoryPage', () => {
         // does NOT re-suspend and swap the <h1> node out from under focus (that race made the assertion flaky).
         const mountSettled = async (loaderData: CategoryPageData) => {
             const utils = render(treeFor(loaderData));
-            await waitFor(() => expect(screen.getByText('Electronics (25)')).toBeInTheDocument());
+            await waitFor(() => expect(screen.getByRole('heading', { name: 'Electronics' })).toBeInTheDocument());
             await act(async () => {
                 await Promise.resolve();
             });

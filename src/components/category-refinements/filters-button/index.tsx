@@ -28,6 +28,8 @@ export interface FiltersButtonProps {
     selectedFiltersCount?: number;
     /** Additional CSS classes */
     className?: string;
+    /** Disables the button (e.g. when the search returned no facets to filter by). */
+    disabled?: boolean;
 }
 
 /**
@@ -38,6 +40,7 @@ export default function FiltersButton({
     isActive = false,
     selectedFiltersCount = 0,
     className,
+    disabled = false,
 }: FiltersButtonProps) {
     const { t } = useTranslation();
     const filtersLabel = t('categoryRefinements:filtersButtonLabel');
@@ -54,6 +57,7 @@ export default function FiltersButton({
         <Button
             variant={isActive ? 'default' : 'outline'}
             onClick={onClick}
+            disabled={disabled}
             className={cn(
                 'text-sm font-normal leading-5 tracking-[-0.15px]',
                 isActive ? 'text-primary-foreground' : 'text-foreground',

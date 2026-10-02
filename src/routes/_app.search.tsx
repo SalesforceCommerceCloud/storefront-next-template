@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useAsyncError, useLocation, useNavigation } from 'react-router';
 import type { Route } from './+types/_app.search';
 import type { ShopperSearch } from '@/scapi';
@@ -26,6 +26,10 @@ import CategoryPagination from '@/components/category-pagination';
 import ActiveFilters from '@/components/category-refinements/active-filters';
 import FiltersButton from '@/components/category-refinements/filters-button';
 import CategoryRefinements from '@/components/category-refinements';
+import { FILTER_BAR_FACETS } from '@/components/category-refinements/static-facets';
+
+// Overlay: only loaded (and mounted) once the shopper opens the filters for the first time.
+const FiltersDrawer = lazy(() => import('@/components/category-refinements/filters-drawer'));
 import CategorySorting from '@/components/category-sorting';
 import DeferredProductGrid from '@/components/product-grid';
 import { useTranslation } from 'react-i18next';
@@ -196,6 +200,19 @@ export default function SearchPage({
 
     const [filtersOpen, toggleFiltersOpen] = useFiltersPanelState(initialFiltersOpen);
 
+    // Filters live in a left drawer (same as the category page). Keep it mounted after the first open so the
+    // close animation can play; remember which bar button opened it so that filter's row is expanded.
+    const [drawerWasOpened, setDrawerWasOpened] = useState(false);
+    useEffect(() => {
+        if (filtersOpen) setDrawerWasOpened(true);
+    }, [filtersOpen]);
+    const mountDrawer = filtersOpen || drawerWasOpened;
+    const [focusedFacetId, setFocusedFacetId] = useState<string | null>(null);
+    const openFilters = (facetId: string | null) => {
+        setFocusedFacetId(facetId);
+        if (!filtersOpen) toggleFiltersOpen();
+    };
+
     // Determine the maximum number of skeletons to display in the product grid.
     // Out-of-the-box the idea is to not display more than 8 skeletons, i.e., two rows on a desktop device.
     // Wrap in Math.max(0, ...) to prevent negative values when criticalCount is high(er).
@@ -336,50 +353,50 @@ export default function SearchPage({
             />
             <div className="pb-16">
                 <div className="section-container">
-                    <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <p>{t('results')}</p>
-                            <h1 className="text-3xl font-bold leading-none tracking-[-0.75px] text-card-foreground">
-                                {searchTerm} ({searchResultCritical.total})
-                            </h1>
-                        </div>
-                        {searchResultCritical?.sortingOptions && searchResultCritical.sortingOptions.length > 0 && (
-                            <div className="flex-shrink-0">
-                                <CategorySorting result={searchResultCritical} />
-                            </div>
-                        )}
+                    <div className="mb-6">
+                        <p>{t('results')}</p>
+                        <h1 className="text-3xl font-bold leading-none tracking-[-0.75px] text-card-foreground">
+                            {searchTerm} ({searchResultCritical.total})
+                        </h1>
                     </div>
 
                     {/* searchTopFullWidth */}
                     <Region className="mb-8" page={page} regionId="searchTopFullWidth" critical={true} />
 
-                    <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Filters toggle button - mobile only (above panel) */}
-                        <div className="lg:hidden">
-                            <FiltersButton
-                                onClick={toggleFiltersOpen}
-                                isActive={filtersOpen}
-                                selectedFiltersCount={selectedFiltersCount}
+                    {/* Horizontal filter bar: Filter (opens the drawer), Sort, then Brand / Size / Price / Color */}
+                    <div data-slot="filters-wrapper" className="mb-5 flex flex-wrap items-center gap-3">
+                        <FiltersButton
+                            className="h-11 px-4"
+                            onClick={() => openFilters(null)}
+                            isActive={filtersOpen}
+                            selectedFiltersCount={selectedFiltersCount}
+                        />
+                        <CategorySorting variant="bar" result={searchResultCritical} />
+                        <CategoryRefinements
+                            layout="bar"
+                            result={searchResultCritical}
+                            refine={refine}
+                            placeholders={FILTER_BAR_FACETS}
+                            onFacetClick={openFilters}
+                        />
+                    </div>
+
+                    {mountDrawer && (
+                        <Suspense fallback={null}>
+                            <FiltersDrawer
+                                open={filtersOpen}
+                                onOpenChange={(next) => {
+                                    if (next !== filtersOpen) toggleFiltersOpen();
+                                }}
+                                result={searchResultCritical}
+                                refine={refine}
+                                focusFacetId={focusedFacetId}
                             />
-                        </div>
+                        </Suspense>
+                    )}
 
-                        {/* Category Refinements - toggles visibility on left side */}
-                        {filtersOpen && (
-                            <div className="w-full lg:w-64 lg:flex-shrink-0">
-                                <CategoryRefinements result={searchResultCritical} refine={refine} />
-                            </div>
-                        )}
-
+                    <div className="flex flex-col lg:flex-row gap-8">
                         <div className="flex-grow">
-                            {/* Filters toggle button - desktop only (inside content area) */}
-                            <div className="mb-4 hidden lg:block">
-                                <FiltersButton
-                                    onClick={toggleFiltersOpen}
-                                    isActive={filtersOpen}
-                                    selectedFiltersCount={selectedFiltersCount}
-                                />
-                            </div>
-
                             <ActiveFilters result={searchResultCritical} />
 
                             {/* searchTopContent */}
@@ -390,7 +407,7 @@ export default function SearchPage({
                                 critical={searchResultCritical.hits ?? []}
                                 nonCritical={nonCriticalPromise}
                                 nonCriticalCount={nonCriticalCount}
-                                hasRefinementsPanel={filtersOpen}
+                                hasRefinementsPanel={false}
                                 isLoading={isProductGridLoading}
                                 handleProductClick={handleProductClick}
                                 errorElement={<ProductGridError />}

@@ -1,0 +1,6 @@
+{
+    "defaultWindowDays": 30,
+    "nonReturnableCategories": ["swimwear", "womens-clothing-swimwear", "mens-clothing-swimwear"],
+    "nonReturnableSkus": ["DU-879242-XS", "DU-879143-XS"],
+    "exchangeOnlySkus": ["DU-879242-M"]
+}

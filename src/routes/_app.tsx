@@ -14,30 +14,28 @@
  * limitations under the License.
  */
 import { useRef } from 'react';
-import { Outlet } from 'react-router';
+import { Outlet, useMatches } from 'react-router';
 import type { Route } from './+types/_app';
 import { usePageUIConfig, mainPaddingDataAttributes } from '@/lib/routes/page-ui-config';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { type ShopperProducts } from '@/scapi';
 import { fetchCategory, fetchCategoriesByIds } from '@/lib/api/categories.server';
 import { getLogger } from '@/lib/logger.server';
-import Header from '@/components/header';
+import Header from '@/components/mainheader/mainheader';
 import Footer from '@/components/footer';
-import ResponsiveNavigationMenu from '@/components/navigation-menu-mega';
 import { WishlistMergeToast } from '@/components/wishlist/wishlist-merge-toast';
 import { useAuth } from '@/providers/auth';
+
 import { useWishlistSession } from '@/providers/wishlist';
-import { EmbeddedComponentRegion } from '@/components/region/embedded-component-region';
 import { SkipLink } from '@/components/skip-link';
 import {
     fetchComponentWithComponentData,
     type ComponentWithComponentData,
 } from '@/lib/page-designer/component-loader.server';
 
-type LoaderData = {
+export type LoaderData = {
     root: Promise<ShopperProducts.schemas['Category']>;
     subs: Promise<ShopperProducts.schemas['Category'][]>;
-    headerComponent: Promise<ComponentWithComponentData | null>;
     megaMenuComponent: Promise<ComponentWithComponentData | null>;
 };
 
@@ -90,11 +88,9 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
               })
             : Promise.resolve([]);
 
-    // Fetch header embedded component data (non-blocking, streamed to client, should be blocking once data is available from KVS to avoid layout shift)
-    const headerComponentPromise = fetchComponentWithComponentData(
-        { context, request, params: {} } as Route.LoaderArgs,
-        { componentId: 'header' }
-    );
+    // These promises are returned to React Router for streaming. If a child loader fails first and the layout never
+    // renders, observe their eventual outcome so a later API failure cannot become an unhandled rejection.
+    void Promise.allSettled([rootCategoryPromise, subCategoriesPromise]);
 
     // Fetch mega-menu embedded component data — populates per-category dropdown panel content slots
     const megaMenuComponentPromise = fetchComponentWithComponentData(
@@ -105,7 +101,6 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
     return {
         root: rootCategoryPromise,
         subs: subCategoriesPromise,
-        headerComponent: headerComponentPromise,
         megaMenuComponent: megaMenuComponentPromise,
     };
 }
@@ -122,18 +117,16 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
  * For routes without default header/footer (e.g., login), use the `_empty.` prefix instead.
  */
 export default function DefaultLayout({
-    loaderData: { root, subs, headerComponent, megaMenuComponent },
+    loaderData: { root, subs, megaMenuComponent },
 }: {
     loaderData: LoaderData;
 }) {
     const refRoot = useRef<Promise<ShopperProducts.schemas['Category']> | undefined>(undefined);
     const refSubs = useRef<Promise<ShopperProducts.schemas['Category'][]> | undefined>(undefined);
-    const refHeaderComponent = useRef<Promise<ComponentWithComponentData | null> | undefined>(undefined);
     const refMegaMenuComponent = useRef<Promise<ComponentWithComponentData | null> | undefined>(undefined);
-    if (!refRoot.current && !refSubs.current && !refHeaderComponent.current && !refMegaMenuComponent.current) {
+    if (!refRoot.current && !refSubs.current && !refMegaMenuComponent.current) {
         refRoot.current = root;
         refSubs.current = subs;
-        refHeaderComponent.current = headerComponent;
         refMegaMenuComponent.current = megaMenuComponent;
     }
 
@@ -153,24 +146,26 @@ export default function DefaultLayout({
 
     // <WishlistMergeToast> stays at the app shell — it reads URL params and a one-time
     // cookie set by the post-login redirect target, not wishlist state.
+    const matches = useMatches();
+    const customChrome = matches.some(
+        (match) => (match.handle as { customChrome?: boolean } | undefined)?.customChrome === true
+    );
+
     return (
         <>
             <SkipLink />
             <WishlistMergeToast />
-            <Header
-                announcementSlot={
-                    <EmbeddedComponentRegion component={refHeaderComponent.current} regionId="announcement" />
-                }>
-                <ResponsiveNavigationMenu
-                    resolve={refRoot.current}
+            {!customChrome && (
+                <Header
+                    root={refRoot.current}
                     defer={refSubs.current}
                     embeddedComponent={refMegaMenuComponent.current}
                 />
-            </Header>
-            <main id="main-content" tabIndex={-1} className="grow pt-8" {...mainPaddingAttrs}>
+            )}
+            <main id="main-content" tabIndex={-1} className={customChrome ? 'grow' : 'grow pt-8'} {...mainPaddingAttrs}>
                 <Outlet />
             </main>
-            <Footer />
+            {!customChrome && <Footer />}
         </>
     );
 }

@@ -82,6 +82,7 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | `PUBLIC__app__features__otpRequest__mode` | `email` | `email` \| `callback` |
 | `PUBLIC__app__features__resetPassword__mode` | `email` | `email` \| `callback` |
 | `PUBLIC__app__features__mrtBasedPageDesignerResolution` | `false` | Resolve PD pages via MRT Data Store |
+| `PUBLIC__app__features__returnsCustomApi` | `false` | Save returns and exchanges on the order (`c_returns`) through the Returns custom API. When off, they are saved in the shopper's browser only |
 | `PUBLIC__app__features__socialLogin__enabled` | `true` | Apple/Google login button |
 | `PUBLIC__app__features__socialLogin__callbackUri` | `/social-callback` | Social login callback path |
 | `PUBLIC__app__features__socialLogin__providers` | `["Apple","Google"]` | Provider list |

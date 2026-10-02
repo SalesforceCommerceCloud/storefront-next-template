@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, useCallback, useId, useMemo } from 'react';
+import { type ReactElement, useCallback, useId, useMemo, useState } from 'react';
 import { useLocation, useNavigation } from 'react-router';
 import { useNavigate } from '@/hooks/use-navigate';
 
 import type { ShopperSearch } from '@/scapi';
 
+import { ArrowUpDown, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { STATIC_SORT_OPTIONS } from './static-sort-options';
 import { PRODUCT_SEARCH_QUERY_PARAMS } from '@/lib/query-params';
 
 /**
@@ -50,14 +55,19 @@ import { PRODUCT_SEARCH_QUERY_PARAMS } from '@/lib/query-params';
  */
 export default function CategorySorting({
     result,
+    variant = 'default',
 }: {
     result: ShopperSearch.schemas['ProductSearchResult'];
+    /** `bar`: compact icon + select for the horizontal filter bar (label is visually hidden). */
+    variant?: 'default' | 'bar';
 }): ReactElement | null {
     const navigate = useNavigate();
     const location = useLocation();
     const navigation = useNavigation();
     const isPending = navigation.state !== 'idle';
     const selectId = useId();
+    const [sortOpen, setSortOpen] = useState(false);
+    const [staticSort, setStaticSort] = useState('featured');
 
     /**
      * Optimistic sorting option derived from the in-flight navigation target.
@@ -85,7 +95,58 @@ export default function CategorySorting({
         [location, navigate]
     );
 
-    // Return null if no sorting options available
+    if (variant === 'bar') {
+        const useStaticOptions = sortingOptions.length === 0;
+        const options = useStaticOptions ? STATIC_SORT_OPTIONS : sortingOptions;
+        const selectedId = useStaticOptions ? staticSort : effectiveSortingOption;
+        return (
+            <div data-slot="sorting-bar" className={isPending ? 'pointer-events-none opacity-50' : undefined}>
+                <Popover open={sortOpen} onOpenChange={setSortOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            aria-label="Sort by:"
+                            data-testid="sort-trigger"
+                            className="h-11 gap-2 px-4 text-foreground">
+                            <ArrowUpDown className="size-5" aria-hidden />
+                            <ChevronDown className="size-4" aria-hidden />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-56 p-0">
+                        <div role="listbox" aria-label="Sort by:" className="py-1">
+                            {options.map((option) => {
+                                const isSelected = option.id === selectedId;
+                                return (
+                                    <button
+                                        key={option.id}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={isSelected}
+                                        onClick={() => {
+                                            // Placeholder options (no sorting rules configured) only mark the
+                                            // selection; real options re-sort through the URL.
+                                            if (useStaticOptions) setStaticSort(option.id);
+                                            else navigatePage(option.id);
+                                            setSortOpen(false);
+                                        }}
+                                        className={cn(
+                                            'block w-full cursor-pointer px-4 py-2.5 text-left text-sm',
+                                            isSelected
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'text-foreground hover:bg-muted'
+                                        )}>
+                                        {option.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </div>
+        );
+    }
+
+    // Default variant: nothing to render without sorting options.
     if (sortingOptions.length === 0) {
         return null;
     }

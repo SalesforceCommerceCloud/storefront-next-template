@@ -32,6 +32,8 @@ import {
     type OrderReturnStatusType,
 } from '@/lib/order/status';
 import { routes, routeHref } from '@/route-paths';
+import { ReturnInProgressBadge, ReturnOrExchangeButton } from '@/components/returns';
+import { useOrderReturnStatus } from '@/hooks/use-returns';
 
 const BADGE_BASE_CLASSES = 'shrink-0 font-semibold border-0 py-1 w-fit';
 const ON_MUTED_CAPTION_CLASS = 'text-xs font-normal text-muted-foreground';
@@ -304,90 +306,106 @@ export function OrderListItem({
     const { currency: siteCurrency } = useSite();
 
     const productItems = order.productItems ?? [];
+    // Return status from this storefront's returns, used when Order Management has none.
+    const ownReturnStatus = useOrderReturnStatus(
+        order.orderNo,
+        productItems.reduce((sum, item) => sum + item.quantity, 0) || order.itemCount
+    );
     const visibleProducts = productItems.slice(0, maxThumbnails);
     const overflowCount = productItems.length - maxThumbnails;
 
     const orderDetailsUrl = routeHref(routes.accountOrderDetail, { orderNo: order.orderNo });
 
     return (
-        <Link
-            to={orderDetailsUrl}
-            className={cn('block transition-opacity hover:opacity-95 m-0', className)}
-            onClick={() => onViewDetails?.(order.orderNo)}>
-            <Card className="order-list-item-card py-0 border-0 border-border border-b border-separator hover:bg-transparent">
-                <CardContent className="p-6 space-y-4 border-b border-separator">
-                    {/* Header: Order ID, Date, Total, Items + Status */}
-                    <div className="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted">
-                        <div className="flex flex-wrap gap-x-8 gap-y-2">
-                            <div className="space-y-2">
-                                <Typography variant="small" as="p" className={ORDER_HEADER_LABEL_CLASS}>
-                                    {t('orders.tableHeaders.orderNumber')}
-                                </Typography>
-                                <Typography variant="small" as="p" className="text-foreground font-medium">
-                                    {order.orderNo.startsWith('#') ? order.orderNo : `#${order.orderNo}`}
-                                </Typography>
+        // The return actions sit beside the card link, not inside it: a link inside a link is invalid HTML.
+        <div className={cn('m-0', className)}>
+            <Link
+                to={orderDetailsUrl}
+                className="block transition-opacity hover:opacity-95 m-0"
+                onClick={() => onViewDetails?.(order.orderNo)}>
+                <Card className="order-list-item-card py-0 border-0 border-border border-b border-separator hover:bg-transparent">
+                    <CardContent className="p-6 space-y-4 border-b border-separator">
+                        {/* Header: Order ID, Date, Total, Items + Status */}
+                        <div className="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted">
+                            <div className="flex flex-wrap gap-x-8 gap-y-2">
+                                <div className="space-y-2">
+                                    <Typography variant="small" as="p" className={ORDER_HEADER_LABEL_CLASS}>
+                                        {t('orders.tableHeaders.orderNumber')}
+                                    </Typography>
+                                    <Typography variant="small" as="p" className="text-foreground font-medium">
+                                        {order.orderNo.startsWith('#') ? order.orderNo : `#${order.orderNo}`}
+                                    </Typography>
+                                </div>
+                                <div className="space-y-2">
+                                    <Typography variant="small" as="p" className={ORDER_HEADER_LABEL_CLASS}>
+                                        {t('orders.orderDate')}
+                                    </Typography>
+                                    <Typography variant="small" as="p" className="text-foreground">
+                                        {formatOrderDate(order.orderDate, i18n.language, invalidDateLabel)}
+                                    </Typography>
+                                </div>
+                                <div className="space-y-2">
+                                    <Typography variant="small" as="p" className={ORDER_HEADER_LABEL_CLASS}>
+                                        {t('orders.total')}
+                                    </Typography>
+                                    <Typography variant="small" as="p" className="text-foreground">
+                                        {formatCurrency(order.total, i18n.language, order.currency ?? siteCurrency)}
+                                    </Typography>
+                                </div>
+                                <div className="space-y-2">
+                                    <Typography variant="small" as="p" className={ORDER_HEADER_LABEL_CLASS}>
+                                        {t('orders.items', { count: order.itemCount })}
+                                    </Typography>
+                                    <Typography variant="small" as="p" className="text-foreground font-semibold">
+                                        {order.itemCount}
+                                    </Typography>
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <Typography variant="small" as="p" className={ORDER_HEADER_LABEL_CLASS}>
-                                    {t('orders.orderDate')}
-                                </Typography>
-                                <Typography variant="small" as="p" className="text-foreground">
-                                    {formatOrderDate(order.orderDate, i18n.language, invalidDateLabel)}
-                                </Typography>
-                            </div>
-                            <div className="space-y-2">
-                                <Typography variant="small" as="p" className={ORDER_HEADER_LABEL_CLASS}>
-                                    {t('orders.total')}
-                                </Typography>
-                                <Typography variant="small" as="p" className="text-foreground">
-                                    {formatCurrency(order.total, i18n.language, order.currency ?? siteCurrency)}
-                                </Typography>
-                            </div>
-                            <div className="space-y-2">
-                                <Typography variant="small" as="p" className={ORDER_HEADER_LABEL_CLASS}>
-                                    {t('orders.items', { count: order.itemCount })}
-                                </Typography>
-                                <Typography variant="small" as="p" className="text-foreground font-semibold">
-                                    {order.itemCount}
-                                </Typography>
-                            </div>
+
+                            <OrderStatusBadge
+                                status={order.status}
+                                label={order.statusLabel}
+                                cancelStatus={order.cancelStatus}
+                                returnStatus={order.returnStatus ?? ownReturnStatus}
+                            />
                         </div>
 
-                        <OrderStatusBadge
-                            status={order.status}
-                            label={order.statusLabel}
-                            cancelStatus={order.cancelStatus}
-                            returnStatus={order.returnStatus}
-                        />
-                    </div>
+                        {/* Product Thumbnails */}
+                        {productItems.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {visibleProducts.map((item, idx) => (
+                                    // oxlint-disable-next-line react/no-array-index-key -- same productId can appear in multiple line items
+                                    <ProductThumbnail key={`${item.productId}-${idx}`} item={item} />
+                                ))}
+                                {overflowCount > 0 && <OverflowIndicator count={overflowCount} />}
+                            </div>
+                        )}
 
-                    {/* Product Thumbnails */}
-                    {productItems.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                            {visibleProducts.map((item, idx) => (
-                                // oxlint-disable-next-line react/no-array-index-key -- same productId can appear in multiple line items
-                                <ProductThumbnail key={`${item.productId}-${idx}`} item={item} />
-                            ))}
-                            {overflowCount > 0 && <OverflowIndicator count={overflowCount} />}
+                        {/* Pickup Location (if exists) */}
+                        {order.pickupLocation && <PickupLocationCard location={order.pickupLocation} />}
+
+                        {/* Footer: View Details Link */}
+                        <div className="pt-2">
+                            <Typography
+                                variant="small"
+                                as="span"
+                                className="inline-flex items-center gap-1 text-foreground underline">
+                                {t('orders.viewOrderDetails', 'View Order Details')}
+                                <ChevronRight className="size-4" />
+                            </Typography>
                         </div>
-                    )}
-
-                    {/* Pickup Location (if exists) */}
-                    {order.pickupLocation && <PickupLocationCard location={order.pickupLocation} />}
-
-                    {/* Footer: View Details Link */}
-                    <div className="pt-2">
-                        <Typography
-                            variant="small"
-                            as="span"
-                            className="inline-flex items-center gap-1 text-foreground underline">
-                            {t('orders.viewOrderDetails', 'View Order Details')}
-                            <ChevronRight className="size-4" />
-                        </Typography>
-                    </div>
-                </CardContent>
-            </Card>
-        </Link>
+                    </CardContent>
+                </Card>
+            </Link>
+            {!order.cancelStatus && (
+                <div
+                    className="flex flex-wrap items-center gap-3 px-6 py-3 border-b border-separator empty:hidden"
+                    data-testid="order-return-actions">
+                    <ReturnOrExchangeButton orderNo={order.orderNo} />
+                    <ReturnInProgressBadge orderNo={order.orderNo} />
+                </div>
+            )}
+        </div>
     );
 }
 
