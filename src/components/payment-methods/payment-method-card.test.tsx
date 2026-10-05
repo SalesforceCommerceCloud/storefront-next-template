@@ -118,5 +118,7 @@ describe('PaymentMethodCard', () => {
         expect(screen.getByText('Jane Doe')).toBeInTheDocument();
         expect(screen.queryByText(/Expires/i)).not.toBeInTheDocument();
         expect(screen.queryByText(t('account:paymentMethods.setDefault'))).not.toBeInTheDocument();
+        // SEPA wordmark (not GenericCardIcon's 40×24 card silhouette).
+        expect(document.querySelector('svg[viewBox="0 0 36 13"]')).toBeInTheDocument();
     });
 });

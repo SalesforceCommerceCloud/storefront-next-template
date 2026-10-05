@@ -89,7 +89,8 @@ export function PaymentMethodCard({ paymentMethod, onRemove, onSetDefault }: Pay
         t('paymentMethods.sepaDebit', { defaultValue: 'SEPA Debit' }),
         t('paymentMethods.creditCard')
     );
-    const CardIcon = getCardIcon(isSepa ? '' : displayName);
+    // Pass wire type for SEPA so getCardIcon resolves SepaDebitIcon (not GenericCardIcon).
+    const CardIcon = getCardIcon(isSepa ? paymentMethod.type : displayName);
     const title = paymentMethod.last4.length > 0 ? `${displayName} **** ${paymentMethod.last4}` : displayName;
     const details = buildDetailsLine(paymentMethod, isSepa, t('paymentMethods.expires'));
     const removeLabel = t('paymentMethods.remove');

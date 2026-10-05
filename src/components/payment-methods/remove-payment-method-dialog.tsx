@@ -83,7 +83,8 @@ export function RemovePaymentMethodDialog({
         : getCardTypeDisplay({
               paymentCard: { cardType: paymentMethod.type },
           } as ShopperBasketsV2.schemas['OrderPaymentInstrument']);
-    const CardIcon = getCardIcon(isSepa ? '' : displayName);
+    // Pass wire type for SEPA so getCardIcon resolves SepaDebitIcon (not GenericCardIcon).
+    const CardIcon = getCardIcon(isSepa ? paymentMethod.type : displayName);
     const details = buildDetailsLine(paymentMethod, isSepa);
     const title = paymentMethod.last4.length > 0 ? `${displayName} **** ${paymentMethod.last4}` : displayName;
 

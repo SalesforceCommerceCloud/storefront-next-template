@@ -65,4 +65,15 @@ describe('getCardIcon', () => {
         expect(getCardIcon('Visa')).not.toBe(GenericIcon);
         expect(getCardIcon('amex')).not.toBe(GenericIcon);
     });
+
+    test('returns SepaDebitIcon for sepa_debit wire type and display label', () => {
+        const GenericIcon = getCardIcon('Unknown');
+        const fromWire = getCardIcon('sepa_debit');
+        const fromLabel = getCardIcon('SEPA Debit');
+        const fromShort = getCardIcon('sepa');
+
+        expect(fromWire).toBe(fromLabel);
+        expect(fromWire).toBe(fromShort);
+        expect(fromWire).not.toBe(GenericIcon);
+    });
 });
