@@ -15,41 +15,46 @@
  */
 import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect, type RouterContextProvider } from 'react-router';
 import { getErrorMessage } from '@/lib/utils';
+import { getAppOrigin } from '@/lib/origin';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
-import { buildUrlFromContext } from '@/lib/url.server';
-import { sendNotification, validateSlasCallbackToken } from '@/lib/notify/notify.server';
+import {
+    resetMarketingCloudTokenCache,
+    sendMarketingCloudEmail,
+    validateSlasCallbackToken,
+} from '@/lib/marketing/marketing-cloud.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { routes } from '@/route-paths';
 
-/** @deprecated No-op kept for test backwards compatibility */
-// oxlint-disable-next-line no-empty-function
-export function resetMarketingCloudTokenCache() {}
+// Re-export for backwards compatibility with tests
+export { resetMarketingCloudTokenCache };
 
 /**
- * Sends a magic link email for passwordless login.
+ * Sends a magic link email for passwordless login
  */
 async function sendMagicLinkEmail(
     context: Readonly<RouterContextProvider>,
     email_id: string,
     token: string,
     redirectUrl?: string
-): Promise<void> {
+): Promise<object> {
+    const base = getAppOrigin(context);
+
+    // Get the configured landing path from app config
     const config = getConfig(context);
-    const landingPath = buildUrlFromContext(config.features.passwordlessLogin.landingUri ?? '/login', context);
-    let magicLinkPath = `${landingPath}?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email_id)}`;
+    const landingPath = config.features.passwordlessLogin.landingUri;
+    let magicLink = `${base}${landingPath}?token=${encodeURIComponent(token)}`;
 
     if (redirectUrl) {
-        // SLAS may double-encode query params in its callback; normalize before encoding
-        let normalizedRedirectUrl: string;
-        try {
-            normalizedRedirectUrl = decodeURIComponent(redirectUrl);
-        } catch {
-            normalizedRedirectUrl = redirectUrl;
-        }
-        magicLinkPath += `&redirectUrl=${encodeURIComponent(normalizedRedirectUrl)}`;
+        magicLink += `&redirectUrl=${encodeURIComponent(redirectUrl)}`;
     }
 
-    await sendNotification(context, { type: 'passwordless-magic-link', recipient: email_id, data: { magicLinkPath } });
+    // Get the template ID from environment variable
+    const templateId = process.env.MARKETING_CLOUD_PASSWORDLESS_LOGIN_TEMPLATE;
+    if (!templateId) {
+        throw new Error('MARKETING_CLOUD_PASSWORDLESS_LOGIN_TEMPLATE is not set in the environment variables.');
+    }
+
+    return await sendMarketingCloudEmail(email_id, magicLink, templateId);
 }
 
 /**
@@ -58,11 +63,6 @@ async function sendMagicLinkEmail(
  */
 export async function handlePasswordlessCallback({ request, context }: ActionFunctionArgs) {
     const { t } = getTranslation(context);
-
-    const config = getConfig(context);
-    if (config?.features?.passwordlessLogin?.mode !== 'callback') {
-        return { success: false, error: t('errors:passwordless.missingCallbackToken') };
-    }
 
     try {
         // Extract SLAS callback token from headers
@@ -89,11 +89,12 @@ export async function handlePasswordlessCallback({ request, context }: ActionFun
             };
         }
 
-        await sendMagicLinkEmail(context, email_id, token, redirectUrl);
+        // Send magic link email
+        const result = await sendMagicLinkEmail(context, email_id, token, redirectUrl);
 
         return {
             success: true,
-            data: {},
+            data: result,
         };
     } catch (error) {
         return {

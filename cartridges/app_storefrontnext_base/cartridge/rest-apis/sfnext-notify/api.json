@@ -1,9 +1,0 @@
-{
-    "endpoints": [
-        {
-            "endpoint": "notify",
-            "schema": "schema.yaml",
-            "implementation": "Notify"
-        }
-    ]
-}

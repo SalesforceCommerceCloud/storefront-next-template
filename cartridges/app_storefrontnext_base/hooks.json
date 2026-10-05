@@ -1,10 +1,6 @@
 {
     "hooks": [
         {
-            "name": "sfcc.app.order.sendOrderAccessCode",
-            "script": "./cartridge/scripts/hooks/sendOrderAccessCode"
-        },
-        {
             "name": "dw.ocapi.shop.category.modifyGETResponse",
             "script": "./cartridge/scripts/hooks/category"
         }

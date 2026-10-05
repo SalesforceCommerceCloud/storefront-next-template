@@ -301,7 +301,7 @@ export default defineConfig<Config>(
                     callbackUri: '',
                 },
                 resetPassword: {
-                    mode: 'callback',
+                    mode: 'email',
                     callbackUri: '/reset-password-callback',
                     landingUri: '/reset-password',
                 },

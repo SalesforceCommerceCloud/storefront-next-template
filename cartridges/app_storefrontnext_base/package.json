@@ -1,5 +1,0 @@
-{
-    "name": "app_storefrontnext_base",
-    "version": "1.0.0",
-    "hooks": "./hooks.json"
-}
