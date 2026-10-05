@@ -609,7 +609,7 @@ Default: `{ sites: {} }`
 
 Each `sites` key is a Commerce site ID. A missing site policy fails closed. `redirectOrigins` accepts only exact HTTPS origins, without paths or credentials. The three `allowedQueryParameters` lists explicitly permit parameters on translated product, category, or redirect destinations; empty lists forward none. The incoming query string is never sent to Shopper SEO.
 
-`contentOwned` defaults to `false`. Setting it to `true` does not enable content mappings by itself; content remains unsupported until a concrete content route is registered.
+`contentOwned` defaults to `false`. Set it to `true` only when Storefront Next owns standalone content for the site and `url.seoRoutes.<siteId>.content.prefix` is configured. It authorizes the one-call fallback to accept validated standard-content and Page Designer mappings; direct deterministic content routes do not use URL Mapping.
 
 Example:
 
@@ -662,6 +662,8 @@ PUBLIC__app__hybrid__legacyRoutes='["/account", "/checkout", "/product/:id", "/c
 ```
 
 See the [Hybrid Proxy guide](./README-HYBRID-PROXY.md#public__app__hybrid__legacyroutes) for full pattern syntax (`:param`, `*`) and matching semantics.
+
+For a legacy-owned content prefix such as `/cms`, include both `/cms` and `/cms/*`. `legacyRoutes` remains runtime-configurable: matching requests hand off before the standalone content loader or URL Mapping fallback runs, even though `seoRoutes.content.prefix` was compiled into the route manifest.
 
 ---
 

@@ -19,6 +19,7 @@ import {
     createCategoryNavigationUrl,
     createCategoryUrl,
     createCategoryUrlFromLegacyPath,
+    createContentUrl,
     createProductUrl,
     type CategoryUrlInput,
 } from '@/route-paths';
@@ -27,10 +28,12 @@ const seoRoutes = {
     RefArch: {
         product: { prefix: 'p' },
         category: { prefix: 'c', mode: 'id-suffix' },
+        content: { prefix: 'cms' },
     },
     SlugStore: {
         product: { prefix: 'products' },
         category: { prefix: 'catalog', mode: 'slug-path' },
+        content: { prefix: 'stories' },
     },
 } satisfies SeoRoutesConfig;
 
@@ -74,6 +77,32 @@ describe('SEO URL builders', () => {
                 context
             )
         ).toBe('/p/women%20%26%20girls/summer%2Fdresses/dress%2F01.html?color=blue+sky&pid=variant%2F01');
+    });
+
+    test('builds standard content and Page Designer URLs through one content grammar', () => {
+        const context = { siteId: 'RefArch', seoRoutes };
+
+        expect(createContentUrl({ type: 'content', resourceId: 'about us' }, context)).toBe('/cms/content/about%20us');
+        expect(
+            createContentUrl(
+                { type: 'page', resourceId: 'spring/page', slugSegments: ['campaigns', 'spring sale'] },
+                context
+            )
+        ).toBe('/cms/page/campaigns/spring%20sale/spring%2Fpage');
+    });
+
+    test('does not build a standalone content URL unless the active site configures a content prefix', () => {
+        const config: SeoRoutesConfig = {
+            RefArch: {
+                product: { prefix: 'p' },
+                category: { prefix: 'c', mode: 'id-suffix' },
+            },
+        };
+
+        expect(
+            createContentUrl({ type: 'content', resourceId: 'about' }, { siteId: 'RefArch', seoRoutes: config })
+        ).toBe('#');
+        expect(createContentUrl({ type: 'page', resourceId: '' }, { siteId: 'RefArch', seoRoutes })).toBe('#');
     });
 
     test('allows a configured product URL without decorative slugs', () => {

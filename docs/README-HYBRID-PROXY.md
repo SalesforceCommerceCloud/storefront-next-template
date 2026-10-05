@@ -80,6 +80,14 @@ Supports three pattern forms:
 PUBLIC__app__hybrid__legacyRoutes='["/cart", "/checkout", "/product/:id", "/categoryLv1/*"]'
 ```
 
+To keep a configured standalone-content prefix on the legacy storefront, include both its bare path and subtree:
+
+```bash
+PUBLIC__app__hybrid__legacyRoutes='["/cms", "/cms/*"]'
+```
+
+The content prefix in `url.seoRoutes` is build-time because it defines the route grammar. Ownership remains runtime-configurable here. A legacy match hands off before the content loader or Shopper SEO fallback runs, so changing ownership does not require rebuilding the route manifest. Keep the production eCDN rule and local `HYBRID_ROUTING_RULES` aligned with this setting.
+
 Use `:name` when you need a single-segment placeholder (no `/` allowed). Use `*` when the legacy backend owns an entire subtree and you'd otherwise have to enumerate every URL underneath. The two can be combined — e.g. `/category/:cat/*` matches `/category/shoes/details/blue`. `*` may also appear in the middle of a pattern (e.g. `/files/*-thumb`); React Router itself only allows splats at the end, but this matcher does not enforce that.
 
 > **`/parent/*` does not match the bare `/parent`.** The trailing `/` in the pattern is required, so `/categoryLv1/*` matches `/categoryLv1/shoes` and `/categoryLv1/` but **not** `/categoryLv1`. If you need both, list `/categoryLv1` as a separate exact entry. Note that the eCDN regex example below (`^/categoryLv1.*`) _does_ match the bare path — so copy-pasting between the two configs gives divergent behavior at exactly the parent path. Either add the bare entry here or use `^/categoryLv1(/.*)?$` on the eCDN side to keep them aligned.

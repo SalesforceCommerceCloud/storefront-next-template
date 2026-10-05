@@ -23,6 +23,7 @@ type SeoResourceType = 'product' | 'category' | 'content';
 export type SeoRouteAliases = {
     product: string[];
     category: string[];
+    content: string[];
 };
 
 export function normalizeSeoRoutePrefix(prefix: string): string {
@@ -82,6 +83,7 @@ export function collectSeoRouteAliases(config: SeoRoutesConfig): SeoRouteAliases
     const aliases = {
         product: new Map<string, string>(),
         category: new Map<string, string>(),
+        content: new Map<string, string>(),
     };
     const owners = new Map<string, SeoResourceType>();
 
@@ -107,11 +109,7 @@ export function collectSeoRouteAliases(config: SeoRoutesConfig): SeoRouteAliases
 
         if (siteConfig.content) {
             validatePrefix(siteConfig.content.prefix, siteId, 'content');
-            // Content is not registered as a route yet, but it still claims a prefix so a later
-            // content story can rely on the same cross-resource collision guarantees. That story
-            // must also feed the content prefix into validateNoStaticCollisions; claiming an owner
-            // here guards resource-vs-resource collisions only, not collisions with static routes.
-            claimPrefixOwner(owners, siteConfig.content.prefix, 'content');
+            addAlias(aliases.content, owners, siteConfig.content.prefix, 'content');
         }
     }
 
@@ -125,5 +123,6 @@ export function collectSeoRouteAliases(config: SeoRoutesConfig): SeoRouteAliases
     return {
         product: sortAliases(aliases.product),
         category: sortAliases(aliases.category),
+        content: sortAliases(aliases.content),
     };
 }

@@ -15,7 +15,12 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { decodeFinalRawSegment, resolveCategoryRoute, resolveProductRoute } from './url-resolution.server';
+import {
+    decodeFinalRawSegment,
+    resolveCategoryRoute,
+    resolveContentRoute,
+    resolveProductRoute,
+} from './url-resolution.server';
 import type { SeoRoutesConfig } from '@salesforce/storefront-next-runtime/config';
 
 const idFor = (path: string) => decodeFinalRawSegment(new URL(`https://example.com${path}`));
@@ -73,10 +78,12 @@ const seoRoutes: SeoRoutesConfig = {
     RefArch: {
         product: { prefix: 'p' },
         category: { prefix: 'c', mode: 'id-suffix' },
+        content: { prefix: 'cms' },
     },
     SlugStore: {
         product: { prefix: 'product' },
         category: { prefix: 'catalog', mode: 'slug-path' },
+        content: { prefix: 'stories' },
     },
 };
 
@@ -96,6 +103,51 @@ describe('resolveProductRoute', () => {
             resolveProductRoute({
                 url: new URL('https://example.com/RefArch/en-US/product/PROD-123'),
                 params: { '*': 'PROD-123' },
+                urlPrefix: '/:siteId/:localeId',
+                siteId: 'RefArch',
+                seoRoutes,
+            })
+        ).toBeNull();
+    });
+});
+
+describe('resolveContentRoute', () => {
+    test.each([
+        ['/RefArch/en-US/cms/content/about', { type: 'content', resourceId: 'about', slugSegments: [] }],
+        [
+            '/RefArch/en-US/cms/page/campaigns/spring/landing.html',
+            { type: 'page', resourceId: 'landing', slugSegments: ['campaigns', 'spring'] },
+        ],
+        [
+            '/RefArch/en-US/cms/content/stories/our%20history',
+            { type: 'content', resourceId: 'our history', slugSegments: ['stories'] },
+        ],
+        [
+            '/RefArch/en-US/CMS/CONTENT/stories/about',
+            { type: 'content', resourceId: 'about', slugSegments: ['stories'] },
+        ],
+    ])('resolves %s using the explicit resource discriminator', (pathname, expected) => {
+        expect(
+            resolveContentRoute({
+                url: new URL(`https://example.com${pathname}`),
+                urlPrefix: '/:siteId/:localeId',
+                siteId: 'RefArch',
+                seoRoutes,
+            })
+        ).toEqual(expected);
+    });
+
+    test.each([
+        '/RefArch/en-US/stories/content/about',
+        '/RefArch/en-US/cms/asset/about',
+        '/RefArch/en-US/cms/content',
+        '/RefArch/en-US/cms/page/',
+        '/RefArch/en-US/cms/content//about',
+        '/RefArch/en-US/cms/content/about%ZZ',
+    ])('rejects a path outside the active site content grammar: %s', (pathname) => {
+        expect(
+            resolveContentRoute({
+                url: new URL(`https://example.com${pathname}`),
                 urlPrefix: '/:siteId/:localeId',
                 siteId: 'RefArch',
                 seoRoutes,

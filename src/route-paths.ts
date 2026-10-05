@@ -235,6 +235,12 @@ export type CategoryNavigationInput = {
     searchParams?: URLSearchParams;
 };
 
+export type ContentUrlInput = {
+    type: 'content' | 'page';
+    resourceId?: string;
+    slugSegments?: readonly string[];
+};
+
 function buildPath(segments: readonly string[]): string {
     if (segments.some((segment) => segment.length === 0)) {
         throw new Error('URL path segments must not be empty');
@@ -312,6 +318,16 @@ export function createProductUrl(
     const productSlug = slugSegments ?? (slug?.trim() ? [slug] : []);
     const segments = productConfig ? [productConfig.prefix, ...productSlug, productId] : ['p', productId];
     return appendSearchParams(buildPath(segments), searchParams);
+}
+
+/** Build a standalone content or Page Designer URL without the outer site/locale prefix. */
+export function createContentUrl(
+    { type, resourceId, slugSegments = [] }: ContentUrlInput,
+    context: SeoUrlContext
+): string {
+    const contentConfig = getSiteSeoRoutes(context)?.content;
+    if (!contentConfig || !resourceId) return '#';
+    return buildPath([contentConfig.prefix, type, ...slugSegments, resourceId]);
 }
 
 /** Build a category URL without the outer site/locale prefix. */

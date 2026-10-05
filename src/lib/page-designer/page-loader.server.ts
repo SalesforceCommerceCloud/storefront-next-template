@@ -30,6 +30,13 @@ export type PageWithComponentData = Page & {
     componentData?: Record<string, Promise<unknown>>;
 };
 
+/** Attach server component-loader promises to a resolved Page Designer page. */
+export function attachComponentData(args: LoaderFunctionArgs, page: Page): PageWithComponentData {
+    const componentData: Record<string, Promise<unknown>> = {};
+    collectFromRegions(args, page.regions, componentData);
+    return { ...page, componentData };
+}
+
 export async function fetchPageFromLoader(
     { context, request }: LoaderFunctionArgs,
     params: PageDesignerPageParams & PageDesignerPageModeParams
@@ -92,11 +99,5 @@ export async function fetchPageWithComponentData(
         throw e;
     }
 
-    const componentData: Record<string, Promise<unknown>> = {};
-    // Process top-level regions and recursively process nested regions
-    collectFromRegions(args, page.regions, componentData);
-    return {
-        ...page,
-        componentData,
-    };
+    return attachComponentData(args, page);
 }

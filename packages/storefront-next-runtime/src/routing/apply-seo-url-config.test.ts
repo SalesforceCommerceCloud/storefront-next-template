@@ -20,6 +20,7 @@ import { applySeoUrlConfig } from './apply-seo-url-config';
 
 const PRODUCT_ROUTE_ID = 'routes/_app.p.$';
 const CATEGORY_ROUTE_ID = 'routes/_app.c.$';
+const CONTENT_ROUTE_ID = 'routes/_app.cms.$';
 const WRAPPER_FILE = 'app-wrapper.tsx';
 
 function route(overrides: Partial<RouteConfigEntry> & { id: string; file: string }): RouteConfigEntry {
@@ -41,6 +42,11 @@ function createRoutes(): RouteConfigEntry[] {
                     id: CATEGORY_ROUTE_ID,
                     file: 'routes/_app.c.$.tsx',
                     path: 'c/*',
+                }),
+                route({
+                    id: CONTENT_ROUTE_ID,
+                    file: 'routes/_app.cms.$.tsx',
+                    path: 'content/*',
                 }),
                 route({ id: 'routes/_app.cart', file: 'routes/_app.cart.tsx', path: 'cart' }),
                 route({
@@ -67,10 +73,12 @@ function createConfig(): SeoRoutesConfig {
         RefArchGlobal: {
             product: { prefix: 'p' },
             category: { prefix: 'c', mode: 'id-suffix' },
+            content: { prefix: 'cms' },
         },
         RefArch: {
             product: { prefix: 'product' },
             category: { prefix: 'category', mode: 'slug-path' },
+            content: { prefix: 'CMS' },
         },
     };
 }
@@ -79,7 +87,7 @@ function transform(routes: RouteConfigEntry[], config: SeoRoutesConfig | undefin
     return applySeoUrlConfig({
         routes,
         config,
-        routeIds: { product: PRODUCT_ROUTE_ID, category: CATEGORY_ROUTE_ID },
+        routeIds: { product: PRODUCT_ROUTE_ID, category: CATEGORY_ROUTE_ID, content: CONTENT_ROUTE_ID },
         wrapperFile: WRAPPER_FILE,
     });
 }
@@ -94,17 +102,12 @@ function findRoute(routes: RouteConfigEntry[], id: string): RouteConfigEntry | u
 }
 
 describe('applySeoUrlConfig', () => {
-    it('returns the original routes when SEO route configuration is absent', () => {
-        const routes = createRoutes();
-
-        expect(transform(routes, undefined)).toBe(routes);
-    });
-
-    it('registers the deduplicated product and category alias union under stable route IDs', () => {
+    it('registers deduplicated resource alias unions under stable route IDs', () => {
         const result = transform(createRoutes(), createConfig());
 
         const product = findRoute(result, PRODUCT_ROUTE_ID);
         const category = findRoute(result, CATEGORY_ROUTE_ID);
+        const content = findRoute(result, CONTENT_ROUTE_ID);
 
         expect(product).toMatchObject({
             id: PRODUCT_ROUTE_ID,
@@ -129,6 +132,18 @@ describe('applySeoUrlConfig', () => {
             path: undefined,
         });
         expect(category?.children?.map(({ path }) => path)).toEqual(['c/*', 'category/*']);
+        expect(content).toMatchObject({
+            id: CONTENT_ROUTE_ID,
+            file: 'routes/_app.cms.$.tsx',
+            path: undefined,
+        });
+        expect(content?.children).toEqual([
+            {
+                id: `${CONTENT_ROUTE_ID}--seo-alias--cms`,
+                file: WRAPPER_FILE,
+                path: 'CMS/*',
+            },
+        ]);
     });
 
     it('deduplicates same-resource aliases case-insensitively', () => {
@@ -147,6 +162,7 @@ describe('applySeoUrlConfig', () => {
 
         expect(findRoute(result, PRODUCT_ROUTE_ID)?.children).toHaveLength(1);
         expect(findRoute(result, CATEGORY_ROUTE_ID)?.children).toHaveLength(1);
+        expect(findRoute(result, CONTENT_ROUTE_ID)).toBeUndefined();
     });
 
     it('does not mutate the discovered route tree', () => {
@@ -197,6 +213,24 @@ describe('applySeoUrlConfig', () => {
         expect(() => transform(createRoutes(), config)).toThrow(/used by both product and content/);
     });
 
+    it('does not expose the content route when no site configures a content prefix', () => {
+        const config = createConfig();
+        delete config.RefArchGlobal.content;
+        delete config.RefArch.content;
+
+        const result = transform(createRoutes(), config);
+
+        expect(findRoute(result, CONTENT_ROUTE_ID)).toBeUndefined();
+    });
+
+    it('does not expose the content route when SEO route configuration is absent', () => {
+        const result = transform(createRoutes(), undefined);
+
+        expect(findRoute(result, CONTENT_ROUTE_ID)).toBeUndefined();
+        expect(findRoute(result, PRODUCT_ROUTE_ID)?.path).toBe('p/*');
+        expect(findRoute(result, CATEGORY_ROUTE_ID)?.path).toBe('c/*');
+    });
+
     it.each(['cart', 'account'])('rejects prefix %j when it collides with an existing route branch', (prefix) => {
         const config = createConfig();
         config.RefArchGlobal.product.prefix = prefix;
@@ -220,10 +254,19 @@ describe('applySeoUrlConfig', () => {
             applySeoUrlConfig({
                 routes: createRoutes(),
                 config: createConfig(),
-                routeIds: { product: 'routes/missing-product', category: CATEGORY_ROUTE_ID },
+                routeIds: { product: 'routes/missing-product', category: CATEGORY_ROUTE_ID, content: CONTENT_ROUTE_ID },
                 wrapperFile: WRAPPER_FILE,
             })
         ).toThrow(/route ID "routes\/missing-product" was not found/);
+    });
+
+    it('rejects a missing content route when a content prefix is configured', () => {
+        const routes = createRoutes().map((entry) => ({
+            ...entry,
+            children: entry.children?.filter((child) => child.id !== CONTENT_ROUTE_ID),
+        }));
+
+        expect(() => transform(routes, createConfig())).toThrow(/route ID "routes\/_app\.cms\.\$" was not found/);
     });
 
     it('rejects duplicate canonical route IDs', () => {

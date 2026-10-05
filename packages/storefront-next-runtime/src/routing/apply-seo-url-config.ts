@@ -24,6 +24,7 @@ export type ApplySeoUrlConfigOptions = {
     routeIds: {
         product: string;
         category: string;
+        content?: string;
     };
     wrapperFile: string;
 };
@@ -62,7 +63,7 @@ function validateNoStaticCollisions(
 ): void {
     const existingPrefixes = collectExistingStaticPrefixes(routes, new Set(Object.values(routeIds)));
 
-    for (const prefix of [...aliases.product, ...aliases.category]) {
+    for (const prefix of [...aliases.product, ...aliases.category, ...aliases.content]) {
         const existingPath = existingPrefixes.get(normalizeSeoRoutePrefix(prefix));
         if (existingPath) {
             throw new Error(
@@ -80,6 +81,18 @@ function createAliasRoutes(routeId: string, aliases: string[], wrapperFile: stri
     }));
 }
 
+function removeRoute(routes: RouteConfigEntry[], routeId: string): RouteConfigEntry[] {
+    return routes.flatMap((route) => {
+        if (route.id === routeId) return [];
+        return [
+            {
+                ...route,
+                children: route.children ? removeRoute(route.children, routeId) : route.children,
+            },
+        ];
+    });
+}
+
 function transformTargetRoutes(
     routes: RouteConfigEntry[],
     routeIds: ApplySeoUrlConfigOptions['routeIds'],
@@ -89,11 +102,13 @@ function transformTargetRoutes(
     const aliasesByRouteId = new Map([
         [routeIds.product, aliases.product],
         [routeIds.category, aliases.category],
+        ...(routeIds.content ? ([[routeIds.content, aliases.content]] as const) : []),
     ]);
 
-    return routes.map((route) => {
+    return routes.flatMap((route) => {
         const routeAliases = route.id ? aliasesByRouteId.get(route.id) : undefined;
         if (route.id && routeAliases) {
+            if (route.id === routeIds.content && routeAliases.length === 0) return [];
             return {
                 ...route,
                 path: undefined,
@@ -101,12 +116,14 @@ function transformTargetRoutes(
             };
         }
 
-        return {
-            ...route,
-            children: route.children
-                ? transformTargetRoutes(route.children, routeIds, aliases, wrapperFile)
-                : route.children,
-        };
+        return [
+            {
+                ...route,
+                children: route.children
+                    ? transformTargetRoutes(route.children, routeIds, aliases, wrapperFile)
+                    : route.children,
+            },
+        ];
     });
 }
 
@@ -123,11 +140,21 @@ export function applySeoUrlConfig({
     routeIds,
     wrapperFile,
 }: ApplySeoUrlConfigOptions): RouteConfigEntry[] {
-    if (!config) return routes;
+    if (!config) {
+        if (!routeIds.content) return routes;
+        if (findRouteMatches(routes, routeIds.content).length === 0) return routes;
+        return removeRoute(routes, routeIds.content);
+    }
 
     const aliases = collectSeoRouteAliases(config);
 
-    for (const routeId of Object.values(routeIds)) {
+    const requiredRouteIds = [
+        routeIds.product,
+        routeIds.category,
+        ...(aliases.content.length ? [routeIds.content] : []),
+    ];
+    for (const routeId of requiredRouteIds) {
+        if (!routeId) continue;
         const matches = findRouteMatches(routes, routeId);
         if (matches.length === 0) {
             throw new Error(`[storefront-next-runtime] SEO target route ID "${routeId}" was not found.`);

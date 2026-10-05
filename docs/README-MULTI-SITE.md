@@ -71,10 +71,12 @@ url: {
         RefArchGlobal: {
             product: {prefix: 'p'},
             category: {prefix: 'c', mode: 'id-suffix'},
+            content: {prefix: 'cms'},
         },
         RefArch: {
             product: {prefix: 'product'},
             category: {prefix: 'category', mode: 'id-suffix'},
+            content: {prefix: 'content'},
         },
     },
 }
@@ -83,18 +85,18 @@ url: {
 - **`prefix`** — Path segments prepended to every subpage URL. Uses `:param` placeholders that are replaced with values from `params` at build time.
 - **`search`** — Query parameters appended to every subpage URL. Uses the same `:param` placeholder syntax. The **keys are literal query param names** — you choose them (see [Search Params](#search-params-urlsearch) below).
 - **`excludeRoutes`** — Glob patterns for routes that should NOT be wrapped with the prefix (e.g., API resource routes, server actions).
-- **`seoRoutes`** — Business Manager-mirrored product and category prefixes keyed directly by Commerce site ID. Prefixes are static segments without slashes. Category mode is `id-suffix` or `slug-path`.
+- **`seoRoutes`** — Business Manager-mirrored product, category, and optional standalone-content prefixes keyed directly by Commerce site ID. Prefixes are static segments without slashes. Category mode is `id-suffix` or `slug-path`.
 
 All properties are optional. Use only the values required by your URL strategy.
 
 > **Important: `url.prefix`, `url.excludeRoutes`, and `url.seoRoutes` require a rebuild.**
 > These values are protected by `protectedPaths` and cannot be overridden with `PUBLIC__` environment variables. React Router compiles them during development startup, type generation, and production build. Update `config.server.ts`, then rebuild and redeploy.
 
-`seoRoutes` registers the deduplicated union of every configured site's product and category prefix as static `{prefix}/*` routes. Configuration fails the build when a prefix is invalid, reserved, shared across resource types, or collides with another route branch. The outer site/locale shape remains in `url.prefix`.
+`seoRoutes` registers the deduplicated union of every configured site's product, category, and content prefixes as static `{prefix}/*` routes. Configuration fails the build when a prefix is invalid, reserved, shared across resource types, or collides with another route branch. The outer site/locale shape remains in `url.prefix`.
 
-The canonical product and category route modules must be leaf routes (no nested child routes) when `seoRoutes` is enabled — each becomes a pathless parent owning its prefix aliases, so the build fails with a "must be a leaf route" error if either already has children. Move any nested routes elsewhere before enabling.
+The product, category, and standalone-content route modules must be leaf routes (no nested child routes) when their aliases are enabled. Each becomes a pathless parent owning its prefix aliases, so the build fails with a "must be a leaf route" error if a target already has children. Move nested routes elsewhere before enabling.
 
-Use the semantic builders for product and category destinations. They return the functional path only; the storefront's `Link` and navigation wrappers continue to add the outer site/locale prefix.
+Use the semantic builders for product, category, and standalone-content destinations. They return the functional path only; the storefront's `Link` and navigation wrappers continue to add the outer site/locale prefix.
 
 ```tsx
 const seoUrlContext = useSeoUrlContext()
@@ -105,6 +107,11 @@ createProductUrl(
 )
 
 createCategoryUrlFromScapiCategory(category, seoUrlContext)
+
+createContentUrl(
+    {type: 'page', resourceId: page.id, slugSegments: ['campaigns']},
+    seoUrlContext,
+)
 ```
 
 Product slugs are optional because the product ID remains authoritative. Category slug segments are explicit so callers cannot mistake display names for Business Manager slugs. The builders encode each segment independently and make no SCAPI or Shopper SEO calls.
@@ -115,7 +122,16 @@ When `seoRoutes` is enabled, existing Shopper Products requests that feed produc
 
 When `seoRoutes` is present, every active site must have an entry. URL generation fails fast for an omitted site because the compiled manifest no longer contains the legacy product and category routes.
 
-Do not enable `seoRoutes` until every active site's PDP/PLP grammar is decided. `slug-path` requires Shopper Products 1.13 and Shopper Search 1.15. The optional content prefix remains reserved for standalone-content routing.
+Do not enable `seoRoutes` until every active site's PDP/PLP grammar is decided. `slug-path` requires Shopper Products 1.13 and Shopper Search 1.15.
+
+Configuring `content.prefix` enables two deterministic standalone URL forms:
+
+- `/{content-prefix}/content/{optional-slug-path}/{contentId}[.html]` uses Shopper Experience `getContent`.
+- `/{content-prefix}/page/{optional-slug-path}/{pageId}[.html]` uses Shopper Experience `getPage`.
+
+The explicit `content` or `page` segment selects the API without a URL Mapping call. Embedded Page Designer regions and content slots keep their host page URL. A trailing `.html` is accepted and permanently redirected to the suffix-free canonical path.
+
+For a standalone Page Designer page with an above-the-fold region, expose a string `criticalRegionId` in the page type's data and set it to that top-level region ID. The route marks only that region as critical; all other regions keep their streaming behavior.
 
 For the step-by-step rollout—prerequisites, the two category modes, preventing broken indexed URLs and redirect loops, and the QA verification checklist—see the [SEO URL Rules adoption guide](./migrations/seo-url-rules/README.md).
 
@@ -132,7 +148,7 @@ Business Manager is the source of truth for a site's SEO URL grammar; `seoRoutes
 | Site and locale in the path | `url.prefix` (e.g. `/:siteId/:localeId`) |
 | Locale-to-alias display | `localeAliasMap` / `siteAliasMap` |
 
-Prefixes are static segments without slashes. The mapping is manual and one-directional: a change in Business Manager reaches a deployed storefront only after you update `config.server.ts` and rebuild (`seoRoutes` is a `protectedPaths` value—see the rebuild note above). The `.html` suffix, trailing-slash, and redirect behavior for a merchant's legacy Commerce URLs are handled at the CDN / Business Manager redirect layer, not by `seoRoutes`—see [Adopting SEO URL Rules: Preventing broken indexed URLs](./migrations/seo-url-rules/README.md#preventing-broken-indexed-urls-and-redirect-loops).
+Prefixes are static segments without slashes. The mapping is manual and one-directional: a change in Business Manager reaches a deployed storefront only after you update `config.server.ts` and rebuild (`seoRoutes` is a `protectedPaths` value—see the rebuild note above). Product and category legacy suffix, trailing-slash, and redirect behavior stays at the CDN / Business Manager redirect layer—see [Adopting SEO URL Rules: Preventing broken indexed URLs](./migrations/seo-url-rules/README.md#preventing-broken-indexed-urls-and-redirect-loops).
 
 #### Market Street Reference Configuration
 
@@ -165,11 +181,11 @@ These are tracked separately from the routing layer and are **not** current beha
 
 ### Shopper SEO URL Rules Fallback
 
-Business Manager is the source of truth for URL Rules. Keep each site's Business Manager rules, `url.seoRoutes`, and `seoFallback.sites` policy aligned. `url.seoRoutes` registers the product and category routes that receive mapped destinations; changing a prefix requires rebuilding and redeploying the storefront.
+Business Manager is the source of truth for URL Rules. Keep each site's Business Manager rules, `url.seoRoutes`, and `seoFallback.sites` policy aligned. `url.seoRoutes` registers the product, category, and optional content routes that receive mapped destinations; changing a prefix requires rebuilding and redeploying the storefront.
 
-For an otherwise-unmatched `GET` or `HEAD` request, the terminal route can make one Shopper SEO URL Mapping call. It does not send the incoming query string, retry, or follow mapping chains. A valid product or category mapping redirects through the configured URL builders. Valid URL redirects and hybrid handoffs are also supported. Mapping misses and rejected results remain 404 responses; operational API errors propagate.
+For an otherwise-unmatched `GET` or `HEAD` request, the terminal route can make one Shopper SEO URL Mapping call. It does not send the incoming query string, retry, or follow mapping chains. Valid product, category, and owned content mappings redirect through the configured URL builders. Content mappings require a recognized `STANDARD_CONTENT_ASSET` or `PAGE_DESIGNER_CONTENT_ASSET` subtype. Valid URL redirects and hybrid handoffs are also supported. Mapping misses and rejected results remain 404 responses; operational API errors propagate.
 
-External redirect origins and forwarded query parameters are denied unless explicitly allowed for the active Commerce site in `seoFallback.sites`. Redirect origins must be exact HTTPS origins. Content mappings remain unsupported, even when `contentOwned` is `true`, until the storefront has a concrete registered content route.
+External redirect origins and forwarded query parameters are denied unless explicitly allowed for the active Commerce site in `seoFallback.sites`. Redirect origins must be exact HTTPS origins. `contentOwned` authorizes fallback mappings only; direct deterministic content routes do not call URL Mapping.
 
 ### URL Config Use Cases
 

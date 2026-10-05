@@ -32,6 +32,12 @@ export type CategoryRouteResolution = {
     slugPath?: string;
 };
 
+export type ContentRouteResolution = {
+    type: 'content' | 'page';
+    resourceId: string;
+    slugSegments: string[];
+};
+
 export function isCategoryRefinement(refinement: string): boolean {
     return refinement.startsWith('cgid=') || refinement.startsWith('cgslug=');
 }
@@ -124,6 +130,39 @@ export function resolveProductRoute(options: RouteResolutionOptions): { productI
     }
 
     return { productId: decodeRawSegment(rawResourceSegments.at(-1) ?? '') };
+}
+
+/** Resolve the active site's deterministic standalone content grammar from the raw request path. */
+export function resolveContentRoute(options: RouteResolutionOptions): ContentRouteResolution | null {
+    if (!options.seoRoutes) return null;
+    const contentConfig = options.seoRoutes[options.siteId]?.content;
+    if (!contentConfig) return null;
+
+    const pathSegments = getSeoPathSegments(options.url, options.urlPrefix);
+    if (!pathSegments || pathSegments.length < 3) return null;
+    const [rawPrefix, rawType, ...rawResourceSegments] = pathSegments;
+    if (rawPrefix?.toLowerCase() !== contentConfig.prefix.toLowerCase()) return null;
+    const type = rawType?.toLowerCase();
+    if (type !== 'content' && type !== 'page') return null;
+
+    let decodedResourceSegments: string[];
+    try {
+        decodedResourceSegments = rawResourceSegments.map((segment) => decodeURIComponent(segment));
+    } catch {
+        return null;
+    }
+    if (decodedResourceSegments.some((segment) => segment.length === 0)) return null;
+
+    const finalSegment = decodedResourceSegments.at(-1);
+    if (!finalSegment) return null;
+    const resourceId = finalSegment.endsWith('.html') ? finalSegment.slice(0, -'.html'.length) : finalSegment;
+    if (!resourceId) return null;
+
+    return {
+        type,
+        resourceId,
+        slugSegments: decodedResourceSegments.slice(0, -1),
+    };
 }
 
 /** Resolve the active site's deterministic category grammar from the raw request path. */

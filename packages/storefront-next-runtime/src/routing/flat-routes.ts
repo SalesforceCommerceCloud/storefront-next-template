@@ -153,6 +153,7 @@ export async function flatRoutes(options?: {
         routeIds: {
             product: path.posix.join(rootDirectory ?? 'routes', '_app.p.$'),
             category: path.posix.join(rootDirectory ?? 'routes', '_app.c.$'),
+            content: path.posix.join(rootDirectory ?? 'routes', '_app.cms.$'),
         },
         wrapperFile: APP_WRAPPER_FILE,
     });

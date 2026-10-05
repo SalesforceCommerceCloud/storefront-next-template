@@ -110,6 +110,10 @@ const ALLOWLIST = {
     // which is scanned as `account-wishlist`.
     '_app.wishlist': 'redirect-only: forwards to /account/wishlist (scanned)',
 
+    // Configuration-gated: the route exists only when a site configures a content prefix,
+    // and a deployed scan also requires a site-specific content or Page Designer fixture.
+    '_app.cms.$': 'configuration-gated: requires a content prefix and deployed content fixture',
+
     // Non-visual handlers: return a Response, not a themed page.
     '_empty.$': 'non-visual: catch-all that throws a 404 Response, no page chrome',
     '_empty.preview.component': 'non-visual: Page Designer preview harness, 404 unless in preview context',

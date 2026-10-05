@@ -29,10 +29,12 @@ const seoRoutes = {
     RefArch: {
         product: { prefix: 'p' },
         category: { prefix: 'c', mode: 'id-suffix' as const },
+        content: { prefix: 'cms' },
     },
     SlugStore: {
         product: { prefix: 'products' },
         category: { prefix: 'catalog', mode: 'slug-path' as const },
+        content: { prefix: 'stories' },
     },
 };
 
@@ -354,11 +356,128 @@ describe('resource mappings', () => {
         expect(resolveUrlMapping(mapping, options())).toEqual({ type: 'rejected' });
     });
 
-    test('returns not-found for no mapping and rejects content without a concrete route', () => {
-        expect(resolveUrlMapping(null, options())).toEqual({ type: 'not-found' });
-        expect(resolveUrlMapping({ resourceType: 'CONTENT_ASSET', resourceId: 'about' }, options())).toEqual({
-            type: 'rejected',
+    test('resolves validated content subtypes through the configured standalone grammar', () => {
+        expect(
+            resolveUrlMapping(
+                {
+                    resourceType: 'CONTENT_ASSET',
+                    resourceSubType: 'STANDARD_CONTENT_ASSET',
+                    resourceId: 'about us',
+                },
+                options()
+            )
+        ).toEqual({ type: 'redirect', status: 302, location: '/cms/content/about%20us' });
+        expect(
+            resolveUrlMapping(
+                {
+                    resourceType: 'CONTENT_ASSET',
+                    resourceSubType: 'PAGE_DESIGNER_CONTENT_ASSET',
+                    resourceId: 'landing',
+                    destinationUrl: '/RefArch/en-US/campaigns/spring/landing.html',
+                    statusCode: 301,
+                },
+                options()
+            )
+        ).toEqual({ type: 'redirect', status: 301, location: '/cms/page/campaigns/spring/landing' });
+    });
+
+    test('preserves allowlisted destination, source, and additional parameters for content mappings', () => {
+        expect(
+            resolveUrlMapping(
+                {
+                    resourceType: 'CONTENT_ASSET',
+                    resourceSubType: 'STANDARD_CONTENT_ASSET',
+                    resourceId: 'about',
+                    destinationUrl: '/RefArch/en-US/company/about?campaign=spring',
+                    copySourceParams: true,
+                    additionalUrlParams: 'channel=content&session=secret',
+                },
+                options({
+                    requestUrl: 'https://shop.example/legacy?source=newsletter&token=secret',
+                    sitePolicy: {
+                        ...policy,
+                        allowedQueryParameters: {
+                            ...policy.allowedQueryParameters,
+                            redirect: ['campaign', 'source', 'channel'],
+                        },
+                    },
+                })
+            )
+        ).toEqual({
+            type: 'redirect',
+            status: 302,
+            location: '/cms/content/company/about?source=newsletter&campaign=spring&channel=content',
         });
+    });
+
+    test('does not duplicate the standalone grammar from an existing content destination', () => {
+        expect(
+            resolveUrlMapping(
+                {
+                    resourceType: 'CONTENT_ASSET',
+                    resourceSubType: 'PAGE_DESIGNER_CONTENT_ASSET',
+                    resourceId: 'landing',
+                    destinationUrl: '/RefArch/en-US/cms/page/campaigns/landing',
+                    statusCode: 301,
+                },
+                options()
+            )
+        ).toEqual({ type: 'redirect', status: 301, location: '/cms/page/campaigns/landing' });
+    });
+
+    test('rejects a content mapping that resolves to the current canonical URL', () => {
+        expect(
+            resolveUrlMapping(
+                {
+                    resourceType: 'CONTENT_ASSET',
+                    resourceSubType: 'PAGE_DESIGNER_CONTENT_ASSET',
+                    resourceId: 'landing',
+                },
+                options({
+                    requestUrl: 'https://shop.example/cms/page/landing',
+                    incomingPathname: '/cms/page/landing',
+                    destinationPrefix: undefined,
+                })
+            )
+        ).toEqual({ type: 'rejected' });
+    });
+
+    test('marks a resolved content destination as hybrid when runtime ownership claims its prefix', () => {
+        expect(
+            resolveUrlMapping(
+                {
+                    resourceType: 'CONTENT_ASSET',
+                    resourceSubType: 'STANDARD_CONTENT_ASSET',
+                    resourceId: 'about',
+                },
+                options({ legacyRoutes: ['/cms/*'] })
+            )
+        ).toEqual({ type: 'hybrid', status: 302, location: '/cms/content/about' });
+    });
+
+    test.each<UrlMapping>([
+        { resourceType: 'CONTENT_ASSET', resourceId: 'about' },
+        { resourceType: 'CONTENT_ASSET', resourceSubType: 'STANDARD_CONTENT_ASSET' },
+        { resourceType: 'CONTENT_ASSET', resourceSubType: 'UNKNOWN' as never, resourceId: 'about' },
+    ])('rejects incomplete or unsupported content mappings: %o', (mapping) => {
+        expect(resolveUrlMapping(mapping, options())).toEqual({ type: 'rejected' });
+    });
+
+    test('rejects content mappings when the active site does not authorize fallback ownership', () => {
+        expect(
+            resolveUrlMapping(
+                {
+                    resourceType: 'CONTENT_ASSET',
+                    resourceSubType: 'STANDARD_CONTENT_ASSET',
+                    resourceId: 'about',
+                },
+                options({ sitePolicy: { ...policy, contentOwned: false } })
+            )
+        ).toEqual({ type: 'rejected' });
+    });
+
+    test('returns not-found for no mapping', () => {
+        expect(resolveUrlMapping(null, options())).toEqual({ type: 'not-found' });
     });
 });
 

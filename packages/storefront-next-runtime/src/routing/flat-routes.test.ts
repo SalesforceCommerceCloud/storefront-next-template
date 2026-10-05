@@ -162,6 +162,7 @@ describe('flatRoutes', () => {
                 indexRoute('routes/_app._index', 'routes/_app._index.tsx'),
                 route('routes/_app.p.$', 'routes/_app.p.$.tsx', 'p/*'),
                 route('routes/_app.c.$', 'routes/_app.c.$.tsx', 'c/*'),
+                route('routes/_app.cms.$', 'routes/_app.cms.$.tsx', 'cms/*'),
             ]),
         ];
         mockFlatRoutes.mockResolvedValue(baseRoutes);
@@ -177,6 +178,7 @@ describe('flatRoutes', () => {
                         RefArchGlobal: {
                             product: { prefix: 'p' },
                             category: { prefix: 'c', mode: 'id-suffix' },
+                            content: { prefix: 'cms' },
                         },
                     },
                 },
@@ -193,11 +195,14 @@ describe('flatRoutes', () => {
         const siteWrapper = findRoute(result, 'site-context-wrapper');
         const product = findRoute(result, 'routes/_app.p.$');
         const category = findRoute(result, 'routes/_app.c.$');
+        const content = findRoute(result, 'routes/_app.cms.$');
         expect(siteWrapper?.path).toBe(':siteId/:localeId');
         expect(product?.path).toBeUndefined();
         expect(product?.children?.[0]).toMatchObject({ path: 'p/*', file: 'app-wrapper.tsx' });
         expect(category?.path).toBeUndefined();
         expect(category?.children?.[0]).toMatchObject({ path: 'c/*', file: 'app-wrapper.tsx' });
+        expect(content?.path).toBeUndefined();
+        expect(content?.children?.[0]).toMatchObject({ path: 'cms/*', file: 'app-wrapper.tsx' });
         expect(mockLoadConfig).toHaveBeenCalledOnce();
     });
 
@@ -205,10 +210,12 @@ describe('flatRoutes', () => {
         const rootDirectory = 'custom/routes';
         const productRouteId = `${rootDirectory}/_app.p.$`;
         const categoryRouteId = `${rootDirectory}/_app.c.$`;
+        const contentRouteId = `${rootDirectory}/_app.cms.$`;
         mockFlatRoutes.mockResolvedValue([
             layoutRoute(`${rootDirectory}/_app`, `${rootDirectory}/_app.tsx`, [
                 route(productRouteId, `${rootDirectory}/_app.p.$.tsx`, 'p/*'),
                 route(categoryRouteId, `${rootDirectory}/_app.c.$.tsx`, 'c/*'),
+                route(contentRouteId, `${rootDirectory}/_app.cms.$.tsx`, 'cms/*'),
             ]),
         ]);
         mockLoadConfig.mockResolvedValue({
@@ -221,6 +228,7 @@ describe('flatRoutes', () => {
                         RefArchGlobal: {
                             product: { prefix: 'p' },
                             category: { prefix: 'c', mode: 'id-suffix' },
+                            content: { prefix: 'cms' },
                         },
                     },
                 },
@@ -239,6 +247,10 @@ describe('flatRoutes', () => {
         });
         expect(findRoute(result, categoryRouteId)?.children?.[0]).toMatchObject({
             path: 'c/*',
+            file: 'app-wrapper.tsx',
+        });
+        expect(findRoute(result, contentRouteId)?.children?.[0]).toMatchObject({
+            path: 'cms/*',
             file: 'app-wrapper.tsx',
         });
     });

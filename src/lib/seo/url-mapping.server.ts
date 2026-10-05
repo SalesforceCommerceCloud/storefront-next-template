@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { ShopperSeo } from '@/scapi';
-import { createCategoryUrl, createProductUrl, type SeoUrlContext } from '@/route-paths';
+import { createCategoryUrl, createContentUrl, createProductUrl, type SeoUrlContext } from '@/route-paths';
 import { appendSuffix, findLegacyRoute, type LegacyRoute } from '@/middlewares/legacy-routes';
 import type { SeoFallbackSitePolicy } from '@/types/config';
 import { parseRfc3339Timestamp } from '@/lib/rfc3339';
@@ -192,6 +192,14 @@ function resourceDestinationSegments(pathname: string, options: ResolveUrlMappin
     );
 }
 
+function stripStandaloneContentGrammar(segments: string[], { seoUrlContext }: ResolveUrlMappingOptions): string[] {
+    const contentPrefix = seoUrlContext.seoRoutes?.[seoUrlContext.siteId]?.content?.prefix;
+    if (!contentPrefix || segments[0]?.toLowerCase() !== contentPrefix.toLowerCase()) return segments;
+
+    const discriminator = segments[1]?.toLowerCase();
+    return discriminator === 'content' || discriminator === 'page' ? segments.slice(2) : segments;
+}
+
 function permittedParameters(policy: SeoFallbackSitePolicy | undefined, resource: QueryResource): Set<string> {
     return new Set((policy?.allowedQueryParameters[resource] ?? []).map((key) => key.toLowerCase()));
 }
@@ -270,14 +278,61 @@ export function resolveUrlMapping(
         return rejected();
     }
 
-    if (mapping.resourceType === 'CONTENT_ASSET') return rejected();
-
     const isResourceMapping = mapping.resourceType === 'PRODUCT' || mapping.resourceType === 'CATEGORY';
     const rawDestination = mapping.destinationUrl;
-    if (!rawDestination && !isResourceMapping) return rejected();
+    const isContentMapping = mapping.resourceType === 'CONTENT_ASSET';
+    if (!rawDestination && !isResourceMapping && !isContentMapping) return rejected();
     const destination = rawDestination ? parseDestination(rawDestination, publicOrigin) : new URL('/', publicOrigin);
     if (!destination) return rejected();
     const sameOrigin = destination.origin === publicOrigin.origin;
+
+    if (isContentMapping) {
+        if (!options.sitePolicy?.contentOwned || !mapping.resourceId || !sameOrigin) return rejected();
+        const type =
+            mapping.resourceSubType === 'STANDARD_CONTENT_ASSET'
+                ? 'content'
+                : mapping.resourceSubType === 'PAGE_DESIGNER_CONTENT_ASSET'
+                  ? 'page'
+                  : undefined;
+        if (!type) return rejected();
+
+        const statusCode = mapping.statusCode ?? 302;
+        if (!REDIRECT_STATUSES.has(statusCode)) return rejected();
+        const status = statusCode as 301 | 302 | 307;
+        const destinationSegments = rawDestination ? resourceDestinationSegments(destination.pathname, options) : [];
+        const segments = destinationSegments && stripStandaloneContentGrammar(destinationSegments, options);
+        if (!segments || (rawDestination && segments.length === 0)) return rejected();
+        const finalSegment = segments.at(-1);
+        const hasIdSuffix = finalSegment === mapping.resourceId || finalSegment === `${mapping.resourceId}.html`;
+        const slugSegments = hasIdSuffix ? segments.slice(0, -1) : segments;
+        const bareLocation = createContentUrl(
+            { type, resourceId: mapping.resourceId, slugSegments },
+            options.seoUrlContext
+        );
+        if (bareLocation === '#') return rejected();
+
+        const searchParams = mergeParameters(mapping, destination, requestUrl, options.sitePolicy, 'redirect');
+        if (!searchParams) return rejected();
+        const bareLocationWithSearch = withSearch(bareLocation, searchParams, destination.hash);
+        const location = options.buildResourceUrl?.(bareLocationWithSearch) ?? bareLocationWithSearch;
+        const finalDestination = new URL(location, publicOrigin);
+        const sourcePathname = requestUrl.pathname || options.incomingPathname;
+        if (
+            finalDestination.origin === publicOrigin.origin &&
+            canonicalUrl(publicOrigin, finalDestination.pathname, finalDestination.search) ===
+                canonicalUrl(publicOrigin, sourcePathname, requestUrl.search)
+        ) {
+            return rejected();
+        }
+
+        return {
+            type: findLegacyRoute(new URL(bareLocation, publicOrigin).pathname, options.legacyRoutes)
+                ? 'hybrid'
+                : 'redirect',
+            status,
+            location,
+        };
+    }
 
     if (isResourceMapping) {
         const statusCode = mapping.statusCode ?? 302;

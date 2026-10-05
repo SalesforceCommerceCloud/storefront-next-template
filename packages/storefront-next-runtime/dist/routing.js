@@ -51,7 +51,8 @@ function collectSeoRouteAliases(config) {
 	if (siteEntries.length === 0) throw new Error("[storefront-next-runtime] SEO route configuration must contain at least one site.");
 	const aliases = {
 		product: /* @__PURE__ */ new Map(),
-		category: /* @__PURE__ */ new Map()
+		category: /* @__PURE__ */ new Map(),
+		content: /* @__PURE__ */ new Map()
 	};
 	const owners = /* @__PURE__ */ new Map();
 	for (const [siteId, siteConfig] of siteEntries) {
@@ -64,7 +65,7 @@ function collectSeoRouteAliases(config) {
 		addAlias(aliases.category, owners, siteConfig.category.prefix, "category");
 		if (siteConfig.content) {
 			validatePrefix(siteConfig.content.prefix, siteId, "content");
-			claimPrefixOwner(owners, siteConfig.content.prefix, "content");
+			addAlias(aliases.content, owners, siteConfig.content.prefix, "content");
 		}
 	}
 	const sortAliases = (values) => [...values.values()].sort((left, right) => {
@@ -74,7 +75,8 @@ function collectSeoRouteAliases(config) {
 	});
 	return {
 		product: sortAliases(aliases.product),
-		category: sortAliases(aliases.category)
+		category: sortAliases(aliases.category),
+		content: sortAliases(aliases.content)
 	};
 }
 
@@ -102,7 +104,11 @@ function collectExistingStaticPrefixes(routes, excludedRouteIds) {
 }
 function validateNoStaticCollisions(routes, routeIds, aliases) {
 	const existingPrefixes = collectExistingStaticPrefixes(routes, new Set(Object.values(routeIds)));
-	for (const prefix of [...aliases.product, ...aliases.category]) {
+	for (const prefix of [
+		...aliases.product,
+		...aliases.category,
+		...aliases.content
+	]) {
 		const existingPath = existingPrefixes.get(normalizeSeoRoutePrefix(prefix));
 		if (existingPath) throw new Error(`[storefront-next-runtime] SEO route prefix "${prefix}" collides with existing route "${existingPath}".`);
 	}
@@ -114,19 +120,35 @@ function createAliasRoutes(routeId, aliases, wrapperFile) {
 		path: `${prefix}/*`
 	}));
 }
-function transformTargetRoutes(routes, routeIds, aliases, wrapperFile) {
-	const aliasesByRouteId = new Map([[routeIds.product, aliases.product], [routeIds.category, aliases.category]]);
-	return routes.map((route) => {
-		const routeAliases = route.id ? aliasesByRouteId.get(route.id) : void 0;
-		if (route.id && routeAliases) return {
+function removeRoute(routes, routeId) {
+	return routes.flatMap((route) => {
+		if (route.id === routeId) return [];
+		return [{
 			...route,
-			path: void 0,
-			children: createAliasRoutes(route.id, routeAliases, wrapperFile)
-		};
-		return {
+			children: route.children ? removeRoute(route.children, routeId) : route.children
+		}];
+	});
+}
+function transformTargetRoutes(routes, routeIds, aliases, wrapperFile) {
+	const aliasesByRouteId = new Map([
+		[routeIds.product, aliases.product],
+		[routeIds.category, aliases.category],
+		...routeIds.content ? [[routeIds.content, aliases.content]] : []
+	]);
+	return routes.flatMap((route) => {
+		const routeAliases = route.id ? aliasesByRouteId.get(route.id) : void 0;
+		if (route.id && routeAliases) {
+			if (route.id === routeIds.content && routeAliases.length === 0) return [];
+			return {
+				...route,
+				path: void 0,
+				children: createAliasRoutes(route.id, routeAliases, wrapperFile)
+			};
+		}
+		return [{
 			...route,
 			children: route.children ? transformTargetRoutes(route.children, routeIds, aliases, wrapperFile) : route.children
-		};
+		}];
 	});
 }
 /**
@@ -137,9 +159,19 @@ function transformTargetRoutes(routes, routeIds, aliases, wrapperFile) {
 * Pass-through alias children own the configured static-prefix splats.
 */
 function applySeoUrlConfig({ routes, config, routeIds, wrapperFile }) {
-	if (!config) return routes;
+	if (!config) {
+		if (!routeIds.content) return routes;
+		if (findRouteMatches(routes, routeIds.content).length === 0) return routes;
+		return removeRoute(routes, routeIds.content);
+	}
 	const aliases = collectSeoRouteAliases(config);
-	for (const routeId of Object.values(routeIds)) {
+	const requiredRouteIds = [
+		routeIds.product,
+		routeIds.category,
+		...aliases.content.length ? [routeIds.content] : []
+	];
+	for (const routeId of requiredRouteIds) {
+		if (!routeId) continue;
 		const matches = findRouteMatches(routes, routeId);
 		if (matches.length === 0) throw new Error(`[storefront-next-runtime] SEO target route ID "${routeId}" was not found.`);
 		if (matches.length > 1) throw new Error(`[storefront-next-runtime] SEO target route ID "${routeId}" was found more than once.`);
@@ -318,7 +350,8 @@ async function flatRoutes(options) {
 		config: urlConfig?.seoRoutes,
 		routeIds: {
 			product: path.posix.join(rootDirectory ?? "routes", "_app.p.$"),
-			category: path.posix.join(rootDirectory ?? "routes", "_app.c.$")
+			category: path.posix.join(rootDirectory ?? "routes", "_app.c.$"),
+			content: path.posix.join(rootDirectory ?? "routes", "_app.cms.$")
 		},
 		wrapperFile: APP_WRAPPER_FILE
 	});
