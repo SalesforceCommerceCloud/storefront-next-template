@@ -73,7 +73,7 @@ export function useInlineCartQuantity({
         [basket, enabled, productId, storeId]
     );
     const itemId = cartItem?.itemId;
-    const basketQuantity = cartItem?.quantity ?? 0;
+    const basketQuantity = cartItem ? (cartItem.quantity ?? 1) : 0;
     const [optimisticQuantity, setOptimisticQuantity] = useState<number | null>(null);
     // A quantity the shopper tapped to while an update was in flight, held until the line is free so it
     // can flush as one trailing submit instead of being dropped.

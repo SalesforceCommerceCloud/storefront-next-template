@@ -120,7 +120,7 @@ export default function CartContent({
     const { t } = useTranslation('cart');
 
     // Calculate total item count for page heading
-    const totalItems = (basket?.productItems || []).reduce((acc, item) => acc + (item.quantity ?? 0), 0);
+    const totalItems = (basket?.productItems || []).reduce((acc, item) => acc + (item.quantity ?? 1), 0);
     const pageHeading = t('itemCount', { count: totalItems });
 
     // TEMPORARY: State to facilitate bonus product modal development
@@ -463,8 +463,10 @@ export default function CartContent({
                             <div key={store.id} className="md:p-8 p-3 rounded-ui border border-border mb-3">
                                 <CartPickup
                                     store={store}
-                                    pickupCount={pickupItems.length}
-                                    totalCount={basket?.productItems?.length ?? 0}
+                                    pickupCount={pickupItems.reduce((acc, item) => acc + (item.quantity ?? 1), 0)}
+                                    totalCount={
+                                        basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 1), 0) ?? 0
+                                    }
                                     pickupContext={pickupContext}
                                 />
                                 <div className="mt-4">
@@ -487,7 +489,10 @@ export default function CartContent({
                             <div
                                 data-slot="cart-delivery-group"
                                 className="md:p-8 p-3 rounded-ui border border-muted-foreground/10 mb-3">
-                                <CartTitle basket={basket} deliveryCount={deliveryItems.length} />
+                                <CartTitle
+                                    basket={basket}
+                                    deliveryCount={deliveryItems.reduce((acc, item) => acc + (item.quantity ?? 1), 0)}
+                                />
                                 <ProductItemsList
                                     promotions={promotions}
                                     productItems={deliveryItems}

@@ -27,9 +27,9 @@ import { useChangePickupStore } from '@/extensions/bopis/hooks/use-change-pickup
 interface CartPickupProps {
     /** Store object containing store information */
     store: ShopperStores.schemas['Store'];
-    /** Number of basket line items in this pickup group (same basis as delivery heading). */
+    /** Total unit quantity in this pickup group (same basis as delivery heading). */
     pickupCount: number;
-    /** Total basket line items (pickup + delivery) for “out of” copy. */
+    /** Total unit quantity in the basket (pickup + delivery) for “out of” copy. */
     totalCount: number;
     /**
      * The line item being collected, passed to the store locator when "Change Store" opens it so a
@@ -48,8 +48,8 @@ interface CartPickupProps {
  * button that opens the store locator.
  *
  * @param store - Store object returned by Shopper Stores API
- * @param pickupCount - Pickup line-item count for this section
- * @param totalCount - Total line items in the basket
+ * @param pickupCount - Total unit quantity for this pickup section
+ * @param totalCount - Total unit quantity in the basket
  * @returns ReactElement
  *
  * @example

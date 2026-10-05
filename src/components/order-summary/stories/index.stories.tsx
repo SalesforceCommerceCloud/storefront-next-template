@@ -413,7 +413,7 @@ export const MobileCollapsible: Story = {
         productsByItemId: mockProductMap,
     },
     render: (args) => {
-        const totalItems = args.basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 0), 0) || 0;
+        const totalItems = args.basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 1), 0) || 0;
         return (
             <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="order-summary" className="border-b-0">

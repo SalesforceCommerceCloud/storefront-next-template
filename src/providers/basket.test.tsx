@@ -927,7 +927,7 @@ describe('BasketProvider hooks', () => {
             });
         });
 
-        it('treats product items without an explicit quantity as zero', () => {
+        it('treats product items without an explicit quantity as one', () => {
             const basket: ShopperBasketsV2.schemas['Basket'] = {
                 basketId: 'basket-xyz',
                 productItems: [{ productId: 'p1' }],
@@ -946,7 +946,7 @@ describe('BasketProvider hooks', () => {
 
             expect(result.current.snapshot).toEqual({
                 basketId: 'basket-xyz',
-                totalItemCount: 0,
+                totalItemCount: 1,
                 uniqueProductCount: 1,
                 lastModified: '',
             });

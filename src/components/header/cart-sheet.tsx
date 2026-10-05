@@ -261,7 +261,7 @@ const CartSheetPanel = function CartSheetPanel({ onClose }: { onClose: () => voi
         () =>
             orderedProductItems
                 .filter((item) => !optimisticallyRemovedItemIds.has(item.itemId || ''))
-                .reduce((sum, item) => sum + (item.quantity ?? 0), 0),
+                .reduce((sum, item) => sum + (item.quantity ?? 1), 0),
         [orderedProductItems, optimisticallyRemovedItemIds]
     );
 

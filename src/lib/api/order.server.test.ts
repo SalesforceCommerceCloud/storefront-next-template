@@ -323,7 +323,7 @@ describe('transformOrderForList', () => {
             returnStatus: undefined,
             total: 100.5,
             currency: 'USD',
-            itemCount: 2,
+            itemCount: 5,
             productItems: [
                 { productId: 'prod-1', quantity: 2, imageUrl: undefined, imageAlt: 'Product Image' },
                 { productId: 'prod-2', quantity: 3, imageUrl: undefined, imageAlt: 'Product Image' },

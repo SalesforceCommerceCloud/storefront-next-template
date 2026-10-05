@@ -116,7 +116,7 @@ describe('action.cart-pickup-store-update', () => {
         snapshot: basket?.basketId
             ? {
                   basketId: basket.basketId,
-                  totalItemCount: (basket.productItems ?? []).reduce((sum, item) => sum + (item.quantity ?? 0), 0),
+                  totalItemCount: (basket.productItems ?? []).reduce((sum, item) => sum + (item.quantity ?? 1), 0),
                   uniqueProductCount: basket.productItems?.length ?? 0,
               }
             : null,

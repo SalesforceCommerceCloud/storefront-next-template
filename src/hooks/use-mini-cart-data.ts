@@ -74,7 +74,7 @@ const fetchedSnapshotKey = (basket: ShopperBasketsV2.schemas['Basket'] | null | 
         return null;
     }
     const productItems = basket.productItems ?? [];
-    const totalItemCount = productItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
+    const totalItemCount = productItems.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
     return snapshotKey(basket.basketId, totalItemCount, productItems.length);
 };
 

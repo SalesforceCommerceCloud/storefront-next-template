@@ -49,7 +49,8 @@ describe('CartTitle', () => {
     test('renders correct heading for multiple items', () => {
         render(<CartTitle basket={mockBasket} deliveryCount={3} />);
 
-        expect(screen.getByText(t('cart:delivery.heading', { deliveryCount: 3, count: 3 }))).toBeInTheDocument();
+        // mockBasket quantities (2 + 1 + 3) sum to 6, not the 3 distinct line items.
+        expect(screen.getByText(t('cart:delivery.heading', { deliveryCount: 3, count: 6 }))).toBeInTheDocument();
     });
 
     test('handles basket with undefined productItems', () => {
@@ -76,7 +77,7 @@ describe('CartTitle', () => {
     test('renders delivery count different from total count', () => {
         render(<CartTitle basket={mockBasket} deliveryCount={2} />);
 
-        expect(screen.getByText(t('cart:delivery.heading', { deliveryCount: 2, count: 3 }))).toBeInTheDocument();
+        expect(screen.getByText(t('cart:delivery.heading', { deliveryCount: 2, count: 6 }))).toBeInTheDocument();
     });
 
     test('renders shipping address when available', () => {
