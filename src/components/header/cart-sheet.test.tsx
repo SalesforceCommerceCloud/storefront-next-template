@@ -60,19 +60,26 @@ vi.mock('@/providers/basket', () => ({
     useBasket: () => undefined,
 }));
 
-vi.mock('@/hooks/use-mini-cart-data', () => ({
-    useMiniCartData: () => ({
-        basket: {
-            basketId: 'basket-1',
-            productItems: [{ itemId: 'item-1', productId: 'prod-1', quantity: 1, productName: 'Test Product' }],
-            orderTotal: 12.5,
-            productTotal: 12.5,
-        },
+// A factory, not a shared constant: the original mock returned a brand-new object on every call, and some
+// effects/memos downstream key off that per-render object identity. Keep that semantics for the default case so
+// only tests that explicitly override miniCartDataFactory change behavior.
+const buildDefaultMiniCartData = () => ({
+    basket: {
+        basketId: 'basket-1',
         productItems: [{ itemId: 'item-1', productId: 'prod-1', quantity: 1, productName: 'Test Product' }],
-        productsById: {},
-        isLoading: false,
-        error: null,
-    }),
+        orderTotal: 12.5,
+        productTotal: 12.5,
+    },
+    productItems: [{ itemId: 'item-1', productId: 'prod-1', quantity: 1, productName: 'Test Product' }],
+    productsById: {},
+    isLoading: false,
+    error: null,
+});
+
+let miniCartDataFactory: () => unknown = buildDefaultMiniCartData;
+
+vi.mock('@/hooks/use-mini-cart-data', () => ({
+    useMiniCartData: () => miniCartDataFactory(),
 }));
 
 vi.mock('@/lib/cart/bonus-product-utils', () => ({
@@ -527,6 +534,53 @@ describe('CartSheet navigation behavior', () => {
 
         expect(screen.getByText('open-mini-cart')).toBeInTheDocument();
         expect(screen.queryByText('Test Product')).not.toBeInTheDocument();
+    });
+});
+
+describe('CartSheet title count', () => {
+    const renderCartSheet = () =>
+        render(
+            <CartSheet>
+                <button>open-mini-cart</button>
+            </CartSheet>
+        );
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        currentFetcher = { state: 'idle', data: undefined, submit: mockSubmit };
+        currentPathname = '/';
+        act(() => {
+            setMiniCartOpen(true);
+        });
+    });
+
+    afterEach(() => {
+        miniCartDataFactory = buildDefaultMiniCartData;
+        act(() => {
+            setMiniCartOpen(false);
+        });
+    });
+
+    it('shows the summed quantity, not the distinct line-item count, when they diverge', () => {
+        // Regression guard: 3 units of the same product is one line item but the title must read
+        // "My Cart (3)" to match the header badge, not "My Cart (1)".
+        miniCartDataFactory = () => ({
+            basket: {
+                basketId: 'basket-1',
+                productItems: [{ itemId: 'item-1', productId: 'prod-1', quantity: 3, productName: 'Test Product' }],
+                orderTotal: 37.5,
+                productTotal: 37.5,
+            },
+            productItems: [{ itemId: 'item-1', productId: 'prod-1', quantity: 3, productName: 'Test Product' }],
+            productsById: {},
+            isLoading: false,
+            error: null,
+        });
+
+        renderCartSheet();
+
+        // t() is mocked to return the raw key (see mockT above), so the rendered title is "cartTitle (3)".
+        expect(screen.getByText('cartTitle (3)')).toBeInTheDocument();
     });
 });
 

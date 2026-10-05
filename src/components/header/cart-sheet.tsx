@@ -256,8 +256,14 @@ const CartSheetPanel = function CartSheetPanel({ onClose }: { onClose: () => voi
         [orderedProductItems, optimisticallyRemovedItemIds]
     );
 
-    // Use the same count as the cart badge icon - number of unique products, not total quantity
-    const totalItems = visibleProductItemIds.size;
+    // Match the cart badge icon: total quantity across visible items, not the distinct line-item count.
+    const totalItems = useMemo(
+        () =>
+            orderedProductItems
+                .filter((item) => !optimisticallyRemovedItemIds.has(item.itemId || ''))
+                .reduce((sum, item) => sum + (item.quantity ?? 0), 0),
+        [orderedProductItems, optimisticallyRemovedItemIds]
+    );
 
     return (
         <SheetContent
