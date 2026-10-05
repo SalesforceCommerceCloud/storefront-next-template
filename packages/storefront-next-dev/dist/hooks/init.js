@@ -45,7 +45,7 @@ async function initializePlugins() {
 * registers their middleware and config sources with the global registries.
 *
 * @env {string} [MRT_PROJECT] - Project name for MRT deployments
-* @env {string} [MRT_TARGET] - Target environment for MRT deployments
+* @env {string} [MRT_ENVIRONMENT] - Target environment for MRT deployments (MRT_TARGET also accepted)
 */
 const hook = async function(opts) {
 	if (!(this.config.bin === "sfnext" || opts.id === "sfnext" || (opts.id?.startsWith("sfnext:") ?? false))) return;

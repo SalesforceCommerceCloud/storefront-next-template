@@ -18,10 +18,9 @@ import { resolve } from 'node:path';
 import { ux } from '@oclif/core';
 import ConfigInspect from './inspect.js';
 
-const { mockListEnvVars, mockGetMrtAuth, mockRequireMrtCredentials } = vi.hoisted(() => ({
+const { mockListEnvVars, mockGetMrtBackendContext } = vi.hoisted(() => ({
     mockListEnvVars: vi.fn(),
-    mockGetMrtAuth: vi.fn(() => ({})),
-    mockRequireMrtCredentials: vi.fn(),
+    mockGetMrtBackendContext: vi.fn(() => ({ preference: 'legacy', scapiConnection: undefined, legacyAuth: {} })),
 }));
 
 vi.mock('@salesforce/b2c-tooling-sdk/cli', () => {
@@ -36,14 +35,13 @@ vi.mock('@salesforce/b2c-tooling-sdk/cli', () => {
                 mrtOrigin: undefined as string | undefined,
             },
         };
-        getMrtAuth = mockGetMrtAuth;
-        requireMrtCredentials = mockRequireMrtCredentials;
+        getMrtBackendContext = mockGetMrtBackendContext;
     }
     return { MrtCommand };
 });
 
 vi.mock('@salesforce/b2c-tooling-sdk/operations/mrt', () => ({
-    listEnvVars: mockListEnvVars,
+    listEnvVarsWithBackend: mockListEnvVars,
 }));
 
 describe('config inspect command', () => {
@@ -117,10 +115,15 @@ describe('config inspect command', () => {
 
         await cmd.run();
 
-        expect(mockRequireMrtCredentials).toHaveBeenCalled();
+        expect(mockGetMrtBackendContext).toHaveBeenCalled();
         expect(mockListEnvVars).toHaveBeenCalledWith(
-            expect.objectContaining({ projectSlug: 'my-project', environment: 'staging' }),
-            expect.anything()
+            expect.objectContaining({
+                preference: 'legacy',
+                legacyAuth: {},
+                projectSlug: 'my-project',
+                environment: 'staging',
+                origin: 'https://example.com',
+            })
         );
 
         const allOutput = stdoutSpy.mock.calls.map((c: unknown[]) => c[0]).join('\n');
@@ -198,7 +201,7 @@ describe('config inspect command', () => {
         expect(warnMessages).toMatch(/MRT|API error/i);
     });
 
-    it('uses MRT_PROJECT/MRT_TARGET from .env, overriding stale resolvedConfig', async () => {
+    it('uses MRT_PROJECT/MRT_ENVIRONMENT from .env, overriding stale resolvedConfig', async () => {
         const cmd = createCommand();
         stubParse(cmd, { 'project-directory': '/test/project' });
 
@@ -210,7 +213,7 @@ describe('config inspect command', () => {
             ...cmd.operations,
             readEnvFile: vi.fn().mockReturnValue({
                 MRT_PROJECT: 'env-project',
-                MRT_TARGET: 'env-env',
+                MRT_ENVIRONMENT: 'env-env',
             }),
             loadConfig: vi.fn().mockResolvedValue({}),
         };
@@ -223,8 +226,7 @@ describe('config inspect command', () => {
         await cmd.run();
 
         expect(mockListEnvVars).toHaveBeenCalledWith(
-            expect.objectContaining({ projectSlug: 'env-project', environment: 'env-env' }),
-            expect.anything()
+            expect.objectContaining({ projectSlug: 'env-project', environment: 'env-env' })
         );
     });
 
@@ -251,8 +253,7 @@ describe('config inspect command', () => {
         await cmd.run();
 
         expect(mockListEnvVars).toHaveBeenCalledWith(
-            expect.objectContaining({ projectSlug: 'cli-project', environment: 'cli-env' }),
-            expect.anything()
+            expect.objectContaining({ projectSlug: 'cli-project', environment: 'cli-env' })
         );
     });
 

@@ -17,6 +17,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Push from './push';
 import fs from 'fs-extra';
 import path from 'path';
+import { buildMrtConfig } from '../config';
 
 // Hoisted mocks must be declared before vi.mock calls due to hoisting
 const {
@@ -28,6 +29,11 @@ const {
     mockRequireMrtCredentials,
     mockGenerateMetadata,
     mockUploadCartridges,
+    mockGetMrtBackendContext,
+    mockCreateBundleV2,
+    mockUploadBundleScapi,
+    mockCreateDeploymentScapi,
+    mockWaitForDeploymentScapi,
 } = vi.hoisted(() => ({
     mockCreateBundle: vi.fn(() => Promise.resolve({ data: 'test-bundle' })),
     mockUploadBundle: vi.fn(() =>
@@ -43,7 +49,16 @@ const {
     mockRequireMrtCredentials: vi.fn(),
     mockGenerateMetadata: vi.fn(() => Promise.resolve()),
     mockUploadCartridges: vi.fn(() => Promise.resolve()),
+    mockGetMrtBackendContext: vi.fn(),
+    mockCreateBundleV2: vi.fn(() => Promise.resolve({ message: 'Test', archive: Buffer.from(''), rootDir: 'bld' })),
+    mockUploadBundleScapi: vi.fn(() =>
+        Promise.resolve({ bundleId: 456, warnings: [] as string[], matches: {}, raw: {} })
+    ),
+    mockCreateDeploymentScapi: vi.fn(() => Promise.resolve({ deploymentId: 'dep-1', status: 'queued', raw: {} })),
+    mockWaitForDeploymentScapi: vi.fn(() => Promise.resolve({ status: 'completed' })),
 }));
+
+const scapiConnection = { shortCode: 'kv7kzm78', tenantId: 'zzxy_prd', auth: {} };
 
 // Mock dependencies
 vi.mock('fs-extra', () => ({
@@ -55,11 +70,24 @@ vi.mock('fs-extra', () => ({
 
 vi.mock('../bundle', () => ({
     createBundle: mockCreateBundle,
+    getBundleDependencies: vi.fn(() => ({ react: '19.0.0' })),
 }));
 
 vi.mock('@salesforce/b2c-tooling-sdk/operations/mrt', () => ({
     uploadBundle: mockUploadBundle,
     waitForEnv: mockWaitForEnv,
+    createBundleV2: mockCreateBundleV2,
+    uploadBundleScapi: mockUploadBundleScapi,
+    createDeploymentScapi: mockCreateDeploymentScapi,
+    waitForDeploymentScapi: mockWaitForDeploymentScapi,
+    // Simplified backend selection: SCAPI when a connection is present (and not legacy), else legacy.
+    runMrtWithFallback: async (
+        opts: { preference: string; hasScapiConfig: boolean },
+        branches: { scapi: () => Promise<unknown>; legacy: () => Promise<unknown> }
+    ) =>
+        opts.preference !== 'legacy' && opts.hasScapiConfig
+            ? { backend: 'scapi', value: await branches.scapi() }
+            : { backend: 'legacy', value: await branches.legacy() },
 }));
 
 vi.mock('@salesforce/b2c-tooling-sdk/clients', () => ({
@@ -88,8 +116,10 @@ vi.mock('@salesforce/b2c-tooling-sdk/cli', () => {
                 mrtOrigin: undefined,
             },
         };
+        logger = { debug: vi.fn() };
         getMrtAuth = mockGetMrtAuth;
         requireMrtCredentials = mockRequireMrtCredentials;
+        getMrtBackendContext = mockGetMrtBackendContext;
     }
     return { MrtCommand };
 });
@@ -117,6 +147,11 @@ describe('push command', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        // Default: legacy backend, which requires MRT credentials (mirrors MrtCommand).
+        mockGetMrtBackendContext.mockImplementation(() => {
+            mockRequireMrtCredentials();
+            return { preference: 'legacy', scapiConnection: undefined, legacyAuth: {} };
+        });
         (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
         delete process.env.MRT_PROJECT;
         delete process.env.MRT_TARGET;
@@ -134,6 +169,11 @@ describe('push command', () => {
         } else {
             process.env.MRT_TARGET = originalMrtTarget;
         }
+    });
+
+    it('keeps the 1.x -t and -o short flags', () => {
+        expect(Push.flags.environment).toMatchObject({ charAliases: ['t'] });
+        expect(Push.flags['cloud-origin']).toMatchObject({ charAliases: ['o'] });
     });
 
     it('should push bundle with correct project slug', async () => {
@@ -401,7 +441,121 @@ describe('push command', () => {
         );
     });
 
-    it('should support deprecated --project-slug and --target flags', async () => {
+    describe('SCAPI MRT backend', () => {
+        const scapiFlags = {
+            'project-directory': '/test/project',
+            'build-directory': '/test/build',
+            project: 'my-project',
+            environment: 'staging',
+            message: 'Test push',
+            wait: false,
+        };
+
+        const runWith = async (flags: Record<string, unknown>) => {
+            mockGetMrtBackendContext.mockReturnValue({ preference: 'scapi', scapiConnection, legacyAuth: undefined });
+            const cmd = new Push([], {} as never);
+            vi.spyOn(cmd as any, 'parse').mockResolvedValue({
+                flags,
+                args: {},
+                argv: [],
+                raw: [],
+                metadata: {},
+            });
+            vi.spyOn(cmd as any, 'log').mockImplementation(() => {});
+            const warnSpy = vi.spyOn(cmd as any, 'warn').mockImplementation(() => {});
+            await (cmd as unknown as { run: () => Promise<void> }).run();
+            return { warnSpy };
+        };
+
+        it('uploads a v2 bundle and deploys it via SCAPI', async () => {
+            await runWith(scapiFlags);
+
+            expect(mockCreateBundleV2).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    message: 'Test push',
+                    buildDirectory: '/test/build',
+                    matchMode: 'ignore_missing',
+                    bundleMetadata: { dependencies: { react: '19.0.0' } },
+                })
+            );
+            expect(mockUploadBundleScapi).toHaveBeenCalledWith(
+                scapiConnection,
+                expect.objectContaining({ storefrontId: 'my-project' })
+            );
+            expect(mockCreateDeploymentScapi).toHaveBeenCalledWith(scapiConnection, {
+                storefrontId: 'my-project',
+                environmentId: 'staging',
+                bundleId: 456,
+            });
+            expect(mockCreateBundle).not.toHaveBeenCalled();
+            expect(mockUploadBundle).not.toHaveBeenCalled();
+            expect(mockRequireMrtCredentials).not.toHaveBeenCalled();
+        });
+
+        it('passes an absolute project directory to the v2 bundler for a relative -d', async () => {
+            await runWith({ ...scapiFlags, 'project-directory': '.' });
+
+            expect(mockCreateBundleV2).toHaveBeenCalledWith(
+                expect.objectContaining({ projectDirectory: process.cwd() })
+            );
+        });
+
+        it('sends PascalCase SSR parameter keys in the v2 bundle', async () => {
+            vi.mocked(buildMrtConfig).mockResolvedValueOnce({
+                ssrParameters: { ssrFunctionNodeVersion: '24.x', envBasePath: '/ca', Custom: 'kept' },
+                ssrOnly: [],
+                ssrShared: [],
+            });
+            await runWith(scapiFlags);
+
+            expect(mockCreateBundleV2).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    ssrParameters: { SSRFunctionNodeVersion: '24.x', EnvBasePath: '/ca', Custom: 'kept' },
+                })
+            );
+        });
+
+        it('uploads without deploying when no environment is set', async () => {
+            await runWith({ ...scapiFlags, environment: undefined });
+
+            expect(mockUploadBundleScapi).toHaveBeenCalled();
+            expect(mockCreateDeploymentScapi).not.toHaveBeenCalled();
+        });
+
+        it('waits on the SCAPI deployment ID with --wait', async () => {
+            await runWith({ ...scapiFlags, wait: true });
+
+            expect(mockWaitForDeploymentScapi).toHaveBeenCalledWith(
+                scapiConnection,
+                expect.objectContaining({ storefrontId: 'my-project', environmentId: 'staging', deploymentId: 'dep-1' })
+            );
+            expect(mockWaitForEnv).not.toHaveBeenCalled();
+        });
+
+        it('reports a deploy failure after a successful upload without re-uploading', async () => {
+            mockCreateDeploymentScapi.mockRejectedValueOnce(new Error('forbidden'));
+
+            await expect(runWith(scapiFlags)).rejects.toThrow(
+                'Bundle 456 uploaded but the deployment to staging failed: forbidden'
+            );
+            expect(mockUploadBundle).not.toHaveBeenCalled();
+        });
+
+        it('surfaces SCAPI upload warnings', async () => {
+            mockUploadBundleScapi.mockResolvedValueOnce({
+                bundleId: 456,
+                warnings: ['heads up'],
+                matches: {},
+                raw: {},
+            });
+
+            const { warnSpy } = await runWith(scapiFlags);
+
+            expect(warnSpy).toHaveBeenCalledWith('heads up');
+        });
+    });
+
+    it('should support deprecated --project-slug flag', async () => {
         const cmd = new Push([], {} as never);
         const cmdAny = cmd as unknown as { run: () => Promise<void> };
 
@@ -410,7 +564,8 @@ describe('push command', () => {
             flags: {
                 'project-directory': '/test/project',
                 'project-slug': 'legacy-project',
-                target: 'legacy-target',
+                // --target is an MrtCommand alias of --environment, so oclif parses it into `environment`
+                environment: 'legacy-target',
                 wait: false,
             },
             args: {},
@@ -423,7 +578,6 @@ describe('push command', () => {
         await cmdAny.run();
 
         expect(warnSpy).toHaveBeenCalledWith('Flag --project-slug is deprecated. Use --project instead.');
-        expect(warnSpy).toHaveBeenCalledWith('Flag --target is deprecated. Use --environment instead.');
         expect(mockCreateBundle).toHaveBeenCalledWith(expect.objectContaining({ projectSlug: 'legacy-project' }));
         expect(mockUploadBundle).toHaveBeenCalledWith(
             expect.anything(),
@@ -433,8 +587,8 @@ describe('push command', () => {
         );
     });
 
-    it('should resolve MRT_PROJECT and MRT_TARGET env vars as primary', async () => {
-        // SDK 0.5.5+ resolves MRT_PROJECT/MRT_TARGET as primary env vars,
+    it('should resolve MRT_PROJECT and MRT_ENVIRONMENT env vars as primary', async () => {
+        // The SDK resolves MRT_PROJECT/MRT_ENVIRONMENT (MRT_TARGET as fallback) as primary env vars,
         // so they appear in flags.project/flags.environment after parsing
         const cmd = new Push([], {} as never);
         const cmdAny = cmd as unknown as { run: () => Promise<void> };
@@ -477,7 +631,6 @@ describe('push command', () => {
                 project: 'canonical-project',
                 'project-slug': 'legacy-project',
                 environment: 'canonical-env',
-                target: 'legacy-env',
                 wait: false,
             },
             args: {},
@@ -491,7 +644,6 @@ describe('push command', () => {
 
         // Deprecated flags still warn
         expect(warnSpy).toHaveBeenCalledWith('Flag --project-slug is deprecated. Use --project instead.');
-        expect(warnSpy).toHaveBeenCalledWith('Flag --target is deprecated. Use --environment instead.');
         // Canonical flags win over deprecated aliases
         expect(mockCreateBundle).toHaveBeenCalledWith(expect.objectContaining({ projectSlug: 'canonical-project' }));
         expect(mockUploadBundle).toHaveBeenCalledWith(

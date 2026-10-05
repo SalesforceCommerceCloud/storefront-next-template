@@ -190,7 +190,7 @@
     "@opentelemetry/sdk-trace-node": "^1.30.0",
     "@opentelemetry/semantic-conventions": "^1.28.0",
     "@react-router/express": "7.18.2",
-    "@salesforce/b2c-tooling-sdk": "1.19.0",
+    "@salesforce/b2c-tooling-sdk": "2.4.0",
     "archiver": "^7.0.1",
     "babel-dead-code-elimination": "1.0.12",
     "chalk": "^5.3.0",

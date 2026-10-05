@@ -149,18 +149,31 @@ Run `pnpm sfnext push --help` to see all available options:
 
 - `-b, --build-directory <dir>`: Build directory to push (default: auto-detected)
 - `-m, --message <message>`: Bundle message (default: git branch:commit)
-- `-p, --project <slug>`: Project slug - the unique identifier for your project on Managed Runtime
-- `-e, --environment <target>`: Deploy target environment on Managed Runtime
+- `-p, --project <slug>` (alias `-s, --storefront`): Project slug on Managed Runtime (env: `MRT_PROJECT`)
+- `-e, --environment <env>` (alias `-t, --target`): Environment to deploy to (env: `MRT_ENVIRONMENT`; `MRT_TARGET` also accepted)
 - `-w, --wait`: Wait for deployment to complete
-- `--cloud-origin <origin>`: API origin (default: https://cloud.mobify.com)
-- `--credentials-file <file>`: Credentials file location
-- `--api-key <api-key>`: MRT API key
+- `--mrt-backend <legacy|scapi|auto>`: MRT API to use (env: `MRT_BACKEND`, default `legacy`). See [MRT backends](#mrt-backends).
+- `--api-key <api-key>`: MRT API key (legacy backend; env: `MRT_API_KEY`)
+- `-u, --cloud-origin <origin>` (alias `-o`): MRT API origin (legacy backend; default: https://cloud.mobify.com)
+- `-c, --credentials-file <file>`: Credentials file location (legacy backend; default: `~/.mobify`)
 
-Backward compatibility:
+`--project-slug` is still accepted as a deprecated alias for `--project`.
 
-- `--project-slug` is supported as a deprecated alias for `--project`
-- `--target` is supported as a deprecated alias for `--environment`
-- `MRT_PROJECT` and `MRT_TARGET` are supported as fallback env vars for `project` and `environment`
+#### MRT backends
+
+`push` and `config inspect` can talk to Managed Runtime through either API:
+
+| `--mrt-backend` | Behavior |
+| --- | --- |
+| `legacy` (default) | MRT Cloud API with an MRT API key. |
+| `scapi` | SCAPI with Account Manager OAuth. Errors if the prerequisites are missing. |
+| `auto` | SCAPI when its prerequisites are configured, otherwise legacy. Falls back to legacy on safe pre-request errors. |
+
+The SCAPI backend needs `SFCC_CLIENT_ID`, `SFCC_CLIENT_SECRET`, `SFCC_SHORTCODE`, and `SFCC_TENANT_ID`, and an API client with the `sfcc.storefront.deployments.rw` scope (`push`) or `sfcc.storefront.environments` (`config inspect`). See [MRT Backends](https://salesforcecommercecloud.github.io/b2c-developer-tooling/cli/mrt.html#mrt-backends).
+
+#### Deploy cartridge
+
+`deploy-cartridge` looks up and reloads the active code version through SCAPI (`sfcc.scripts` / `sfcc.scripts.rw` scopes) when `SFCC_SHORTCODE` and `SFCC_TENANT_ID` are set, and falls back to OCAPI otherwise. Force one with `--api-backend scapi|ocapi` (env: `SFCC_API_BACKEND`).
 
 #### Manage extensions
 

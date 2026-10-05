@@ -33,19 +33,27 @@ const {
     mockFindCartridges,
     mockGetActiveCodeVersion,
     mockReloadCodeVersion,
-} = vi.hoisted(() => ({
-    mockUploadCartridges: vi.fn(() => Promise.resolve()),
-    mockDeleteCartridges: vi.fn(() => Promise.resolve()),
-    mockFindCartridges: vi.fn(() => [
-        {
-            name: 'app_storefrontnext_base',
-            src: path.join('/test/project', 'cartridges', 'app_storefrontnext_base'),
-            dest: 'app_storefrontnext_base',
-        },
-    ]),
-    mockGetActiveCodeVersion: vi.fn(() => Promise.resolve({ id: 'discovered-version' })),
-    mockReloadCodeVersion: vi.fn(() => Promise.resolve()),
-}));
+    mockScriptsBackend,
+    mockCreateScriptsBackend,
+} = vi.hoisted(() => {
+    const getActiveCodeVersion = vi.fn(() => Promise.resolve({ id: 'discovered-version' }));
+    const scriptsBackend = { getActiveCodeVersion };
+    return {
+        mockUploadCartridges: vi.fn(() => Promise.resolve()),
+        mockDeleteCartridges: vi.fn(() => Promise.resolve()),
+        mockFindCartridges: vi.fn(() => [
+            {
+                name: 'app_storefrontnext_base',
+                src: path.join('/test/project', 'cartridges', 'app_storefrontnext_base'),
+                dest: 'app_storefrontnext_base',
+            },
+        ]),
+        mockGetActiveCodeVersion: getActiveCodeVersion,
+        mockReloadCodeVersion: vi.fn(() => Promise.resolve()),
+        mockScriptsBackend: scriptsBackend,
+        mockCreateScriptsBackend: vi.fn(() => scriptsBackend),
+    };
+});
 
 // Mock dependencies
 vi.mock('fs-extra', () => ({
@@ -57,7 +65,7 @@ vi.mock('fs-extra', () => ({
 vi.mock('@salesforce/b2c-tooling-sdk/operations/code', () => ({
     uploadCartridges: mockUploadCartridges,
     deleteCartridges: mockDeleteCartridges,
-    getActiveCodeVersion: mockGetActiveCodeVersion,
+    createScriptsBackend: mockCreateScriptsBackend,
     reloadCodeVersion: mockReloadCodeVersion,
 }));
 
@@ -249,7 +257,8 @@ describe('deploy-cartridge command', () => {
         const cmd = createCommand({ reload: true });
         await cmd.run();
 
-        expect(mockReloadCodeVersion).toHaveBeenCalledWith(expect.anything(), 'test-version');
+        expect(mockCreateScriptsBackend).toHaveBeenCalledWith({ instance: expect.anything() });
+        expect(mockReloadCodeVersion).toHaveBeenCalledWith(mockScriptsBackend, 'test-version');
     });
 
     it('should not call reloadCodeVersion when --reload is not set', async () => {

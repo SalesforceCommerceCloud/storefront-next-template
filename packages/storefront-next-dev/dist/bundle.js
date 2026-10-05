@@ -9,6 +9,20 @@ import archiver from "archiver";
 /**
 * Create a bundle from the build directory
 */
+/**
+* Dependencies recorded in bundle metadata: the project's declared dependencies
+* plus the resolved versions of PWA Kit / Storefront Next packages.
+*/
+const getBundleDependencies = (projectDirectory) => {
+	const { dependencies = {}, devDependencies = {} } = getProjectPkg(projectDirectory);
+	const dependencyTree = getProjectDependencyTree(projectDirectory);
+	const pwaKitDeps = dependencyTree ? getPwaKitDependencies(dependencyTree) : {};
+	return {
+		...dependencies,
+		...devDependencies,
+		...pwaKitDeps
+	};
+};
 const createBundle = async (options) => {
 	const { message, ssr_parameters, ssr_only, ssr_shared, buildDirectory, projectDirectory, projectSlug } = options;
 	const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "storefront-next-dev-push-"));
@@ -38,14 +52,7 @@ const createBundle = async (options) => {
 		archive.on("error", reject);
 		output.on("finish", () => {
 			try {
-				const { dependencies = {}, devDependencies = {} } = getProjectPkg(projectDirectory);
-				const dependencyTree = getProjectDependencyTree(projectDirectory);
-				const pwaKitDeps = dependencyTree ? getPwaKitDependencies(dependencyTree) : {};
-				const bundle_metadata = { dependencies: {
-					...dependencies,
-					...devDependencies,
-					...pwaKitDeps
-				} };
+				const bundle_metadata = { dependencies: getBundleDependencies(projectDirectory) };
 				const data = fs.readFileSync(destination);
 				const encoding = "base64";
 				fs.rmSync(tmpDir, { recursive: true });
@@ -80,4 +87,4 @@ const createBundle = async (options) => {
 };
 
 //#endregion
-export { createBundle as t };
+export { getBundleDependencies as n, createBundle as t };

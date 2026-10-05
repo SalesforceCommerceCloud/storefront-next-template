@@ -118,7 +118,19 @@ pnpm build
 pnpm push
 ```
 
-See the [Deployment Guide](https://www.npmjs.com/package/@salesforce/storefront-next-dev?activeTab=readme) for all options and configuration.
+`pnpm push` reads `MRT_PROJECT` and `MRT_ENVIRONMENT` (`MRT_TARGET` is still accepted) from `.env`. Choose the Managed Runtime API with `--mrt-backend` (or `MRT_BACKEND`):
+
+| Backend | Credentials |
+|---|---|
+| `legacy` (default) | MRT API key (`MRT_API_KEY` or `~/.mobify`) |
+| `scapi` | Account Manager API client with the `sfcc.storefront.deployments.rw` scope: `SFCC_CLIENT_ID`, `SFCC_CLIENT_SECRET`, `SFCC_SHORTCODE`, `SFCC_TENANT_ID` |
+| `auto` | SCAPI when those are set, otherwise legacy |
+
+```bash
+pnpm push --mrt-backend scapi --environment staging --wait
+```
+
+See the [Deployment Guide](https://www.npmjs.com/package/@salesforce/storefront-next-dev?activeTab=readme) for all options and [MRT Backends](https://salesforcecommercecloud.github.io/b2c-developer-tooling/cli/mrt.html#mrt-backends) for backend details. The included `.github/workflows/deploy.yml` deploys to Managed Runtime and B2C Commerce on push to `latest`.
 
 ## B2C CLI
 
@@ -127,6 +139,12 @@ The [Salesforce B2C CLI](https://www.npmjs.com/package/@salesforce/b2c-cli) is i
 ```bash
 pnpm b2c --help       # See all available commands
 ```
+
+## AI-Assisted Development
+
+Set up the [B2C MCP server](https://salesforcecommercecloud.github.io/b2c-developer-tooling/mcp/) (`@salesforce/b2c-dx-mcp`) in your AI assistant. It bundles the Storefront Next skills (routing, data fetching, configuration, Page Designer, theming, testing), Commerce documentation search, SCAPI tooling, and Managed Runtime, log, and deployment tools. No separate skills installation is needed.
+
+See [Storefront Next with the B2C tooling](https://salesforcecommercecloud.github.io/b2c-developer-tooling/guide/storefront-next.html) for workflows, or install the [standalone agent skills](https://salesforcecommercecloud.github.io/b2c-developer-tooling/guide/agent-skills.html). Agents working in this repo should also read [AGENTS.md](./AGENTS.md).
 
 ## Available Scripts
 

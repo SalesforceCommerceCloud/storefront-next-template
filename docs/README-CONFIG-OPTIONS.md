@@ -74,7 +74,7 @@ The default MRT project identifier. This value can be overridden by the `MRT_PRO
 
 Type: `string` Optional | Default: `''`
 
-The default MRT target environment (e.g., 'production', 'staging'). This value can be overridden by the `MRT_TARGET` environment variable during deployment.
+The default MRT target environment (e.g., 'production', 'staging'). This value can be overridden by the `MRT_ENVIRONMENT` (or `MRT_TARGET`) environment variable during deployment.
 
 Note: This value is reserved for future use and currently has no effect on the application.
 

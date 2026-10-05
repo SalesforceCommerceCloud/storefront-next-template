@@ -87,7 +87,7 @@ export default defineConfig<Config>(
         // Runtime deployment settings for Managed Runtime (server-only)
         // See CONFIG-OPTIONS.md#runtime for detailed documentation
         runtime: {
-            // MRT deployment settings (server-only, set via MRT_PROJECT and MRT_TARGET env vars)
+            // MRT deployment settings (server-only, set via MRT_PROJECT and MRT_ENVIRONMENT env vars)
             defaultMrtProject: '',
             defaultMrtTarget: '',
             ssrOnly: [],

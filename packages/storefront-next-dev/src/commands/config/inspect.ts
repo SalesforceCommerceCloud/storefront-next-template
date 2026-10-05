@@ -19,8 +19,8 @@ import { parseEnv } from 'node:util';
 import { ux } from '@oclif/core';
 import fs from 'fs-extra';
 import { MrtCommand } from '@salesforce/b2c-tooling-sdk/cli';
-import { listEnvVars } from '@salesforce/b2c-tooling-sdk/operations/mrt';
-import { commonFlags } from '../../flags.js';
+import { listEnvVarsWithBackend } from '@salesforce/b2c-tooling-sdk/operations/mrt';
+import { commonFlags, withLegacyMrtShortFlags } from '../../flags.js';
 import { flattenObject } from '../../utils/objects.js';
 import { getValueSources, formatInspectOutput } from './inspect-utils.js';
 
@@ -29,8 +29,9 @@ import { getValueSources, formatInspectOutput } from './inspect-utils.js';
  * When MRT is configured, each override is marked [local only] or [MRT only] as applicable.
  *
  * Environment variables read:
- *   MRT_PROJECT  (optional) - MRT project slug, overridden by --project flag
- *   MRT_TARGET   (optional) - MRT target environment, overridden by --environment flag
+ *   MRT_PROJECT      (optional) - MRT project slug, overridden by --project flag
+ *   MRT_ENVIRONMENT  (optional) - MRT target environment, overridden by --environment flag (MRT_TARGET also accepted)
+ *   MRT_BACKEND      (optional) - legacy (default), scapi, or auto; overridden by --mrt-backend flag
  */
 export default class ConfigInspect extends MrtCommand<typeof ConfigInspect> {
     static description = 'Show which config.server.ts values are overridden by .env or MRT';
@@ -42,7 +43,7 @@ export default class ConfigInspect extends MrtCommand<typeof ConfigInspect> {
     ];
 
     static flags = {
-        ...MrtCommand.baseFlags,
+        ...withLegacyMrtShortFlags(MrtCommand.baseFlags),
         ...commonFlags,
     };
 
@@ -67,8 +68,12 @@ export default class ConfigInspect extends MrtCommand<typeof ConfigInspect> {
             const mod = await import(pathToFileURL(loadConfigPath).href);
             return mod.loadConfig();
         },
-        listEnvVars,
+        listEnvVarsWithBackend,
     };
+
+    protected override supportsScapiMrt(): boolean {
+        return true;
+    }
 
     async run(): Promise<void> {
         const { flags, raw } = await this.parse(ConfigInspect);
@@ -104,32 +109,38 @@ export default class ConfigInspect extends MrtCommand<typeof ConfigInspect> {
         );
 
         // flags.project/flags.environment may be auto-populated by oclif from process.env
-        // (MRT_PROJECT/MRT_TARGET). Only treat them as explicit when the user actually typed them.
+        // (MRT_PROJECT/MRT_ENVIRONMENT). Only treat them as explicit when the user actually typed them.
         const project =
             (explicitFlags.has('project') ? flags.project : undefined) ||
             rawEnvVars.MRT_PROJECT ||
             this.resolvedConfig.values.mrtProject;
         const environment =
             (explicitFlags.has('environment') ? flags.environment : undefined) ||
+            rawEnvVars.MRT_ENVIRONMENT ||
             rawEnvVars.MRT_TARGET ||
             this.resolvedConfig.values.mrtEnvironment;
         let mrtVars: Map<string, string> | null = null;
 
         if (project && environment) {
             try {
-                this.requireMrtCredentials();
-                const { variables } = await this.operations.listEnvVars(
-                    { projectSlug: project, environment, origin: this.resolvedConfig.values.mrtOrigin },
-                    this.getMrtAuth()
-                );
-                mrtVars = new Map(variables.map((v: { name: string; value: string }) => [v.name, v.value]));
+                const { preference, scapiConnection, legacyAuth } = this.getMrtBackendContext();
+                const { variables } = await this.operations.listEnvVarsWithBackend({
+                    preference,
+                    scapiConnection,
+                    legacyAuth,
+                    projectSlug: project,
+                    environment,
+                    origin: this.resolvedConfig.values.mrtOrigin,
+                    onFallback: (reason) => this.warn(reason),
+                });
+                mrtVars = new Map(variables.map((v) => [v.name, v.value]));
             } catch (err) {
                 this.warn(`Could not fetch MRT env vars for ${project}/${environment}: ${(err as Error).message}`);
             }
         } else {
             ux.stdout(
                 'ℹ MRT project/environment not configured. Skipping MRT comparison.\n' +
-                    '  Use --project and --environment flags or set MRT_PROJECT/MRT_TARGET.\n'
+                    '  Use --project and --environment flags or set MRT_PROJECT/MRT_ENVIRONMENT.\n'
             );
         }
 

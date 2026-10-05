@@ -58,7 +58,8 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | Variable | Default | Notes |
 |---|---|---|
 | `MRT_PROJECT` | falls back to `package.json#name` | MRT project slug. Owned by the MRT/Fast Setup team. |
-| `MRT_TARGET` | — | MRT deploy target (e.g. `development`, `production`). |
+| `MRT_ENVIRONMENT` | — | MRT environment to deploy to (e.g. `development`, `production`). `MRT_TARGET` is still accepted. |
+| `MRT_BACKEND` | `legacy` | Optional. `legacy` (MRT API key), `scapi` (Account Manager OAuth via `SFCC_CLIENT_ID`, `SFCC_CLIENT_SECRET`, `SFCC_SHORTCODE`, `SFCC_TENANT_ID`), or `auto`. See [Deployment](../README.md#deployment). |
 
 ### Server-only secrets (never prefix with `PUBLIC__`)
 
@@ -688,7 +689,7 @@ Already in `.env.default` — listed here for completeness.
 
 ```bash
 MRT_PROJECT=my-project-slug
-MRT_TARGET=development
+MRT_ENVIRONMENT=development
 ```
 
 ### Server-only SLAS secret (never prefix with `PUBLIC__`)

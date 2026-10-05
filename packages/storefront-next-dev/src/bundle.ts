@@ -19,7 +19,7 @@ import os from 'os';
 import archiver from 'archiver';
 import { Minimatch } from 'minimatch';
 import { getProjectPkg, getProjectDependencyTree, getPwaKitDependencies } from './utils';
-import type { Bundle, BundleMetadata, SSRParameters, FilePatterns } from './types';
+import type { Bundle, BundleMetadata, DependencyRecord, SSRParameters, FilePatterns } from './types';
 
 interface CreateBundleOptions {
     message: string;
@@ -34,6 +34,17 @@ interface CreateBundleOptions {
 /**
  * Create a bundle from the build directory
  */
+/**
+ * Dependencies recorded in bundle metadata: the project's declared dependencies
+ * plus the resolved versions of PWA Kit / Storefront Next packages.
+ */
+export const getBundleDependencies = (projectDirectory: string): DependencyRecord => {
+    const { dependencies = {}, devDependencies = {} } = getProjectPkg(projectDirectory);
+    const dependencyTree = getProjectDependencyTree(projectDirectory);
+    const pwaKitDeps = dependencyTree ? getPwaKitDependencies(dependencyTree) : {};
+    return { ...dependencies, ...devDependencies, ...pwaKitDeps };
+};
+
 export const createBundle = async (options: CreateBundleOptions): Promise<Bundle> => {
     const { message, ssr_parameters, ssr_only, ssr_shared, buildDirectory, projectDirectory, projectSlug } = options;
 
@@ -84,18 +95,8 @@ export const createBundle = async (options: CreateBundleOptions): Promise<Bundle
 
         output.on('finish', () => {
             try {
-                const pkg = getProjectPkg(projectDirectory);
-                const { dependencies = {}, devDependencies = {} } = pkg;
-
-                const dependencyTree = getProjectDependencyTree(projectDirectory);
-                const pwaKitDeps = dependencyTree ? getPwaKitDependencies(dependencyTree) : {};
-
                 const bundle_metadata: BundleMetadata = {
-                    dependencies: {
-                        ...dependencies,
-                        ...devDependencies,
-                        ...pwaKitDeps,
-                    },
+                    dependencies: getBundleDependencies(projectDirectory),
                 };
 
                 const data = fs.readFileSync(destination);

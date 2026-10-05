@@ -1,4 +1,4 @@
-import { r as commonFlags } from "../../flags.js";
+import { i as withLegacyMrtShortFlags, r as commonFlags } from "../../flags.js";
 import { ux } from "@oclif/core";
 import fs from "fs-extra";
 import chalk from "chalk";
@@ -6,7 +6,7 @@ import { parseEnv } from "node:util";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { MrtCommand } from "@salesforce/b2c-tooling-sdk/cli";
-import { listEnvVars } from "@salesforce/b2c-tooling-sdk/operations/mrt";
+import { listEnvVarsWithBackend } from "@salesforce/b2c-tooling-sdk/operations/mrt";
 
 //#region src/utils/objects.ts
 /**
@@ -110,8 +110,9 @@ function formatInspectOutput({ flatConfig, sources, localVars, mrtVars }) {
 * When MRT is configured, each override is marked [local only] or [MRT only] as applicable.
 *
 * Environment variables read:
-*   MRT_PROJECT  (optional) - MRT project slug, overridden by --project flag
-*   MRT_TARGET   (optional) - MRT target environment, overridden by --environment flag
+*   MRT_PROJECT      (optional) - MRT project slug, overridden by --project flag
+*   MRT_ENVIRONMENT  (optional) - MRT target environment, overridden by --environment flag (MRT_TARGET also accepted)
+*   MRT_BACKEND      (optional) - legacy (default), scapi, or auto; overridden by --mrt-backend flag
 */
 var ConfigInspect = class ConfigInspect extends MrtCommand {
 	static description = "Show which config.server.ts values are overridden by .env or MRT";
@@ -121,7 +122,7 @@ var ConfigInspect = class ConfigInspect extends MrtCommand {
 		"<%= config.bin %> <%= command.id %> -d /path/to/my-storefront"
 	];
 	static flags = {
-		...MrtCommand.baseFlags,
+		...withLegacyMrtShortFlags(MrtCommand.baseFlags),
 		...commonFlags
 	};
 	operations = {
@@ -137,8 +138,11 @@ var ConfigInspect = class ConfigInspect extends MrtCommand {
 		loadConfig: async (projectDirectory) => {
 			return (await import(pathToFileURL(join(projectDirectory, "node_modules/@salesforce/storefront-next-runtime/dist/config-load.js")).href)).loadConfig();
 		},
-		listEnvVars
+		listEnvVarsWithBackend
 	};
+	supportsScapiMrt() {
+		return true;
+	}
 	async run() {
 		const { flags, raw } = await this.parse(ConfigInspect);
 		const projectDirectory = resolve(flags["project-directory"]);
@@ -159,20 +163,24 @@ var ConfigInspect = class ConfigInspect extends MrtCommand {
 		const envKeys = new Set(Object.keys(rawEnvVars).filter((k) => k.startsWith("PUBLIC__")));
 		const sources = getValueSources(flatConfig.map((e) => e.key), envKeys);
 		const project = (explicitFlags.has("project") ? flags.project : void 0) || rawEnvVars.MRT_PROJECT || this.resolvedConfig.values.mrtProject;
-		const environment = (explicitFlags.has("environment") ? flags.environment : void 0) || rawEnvVars.MRT_TARGET || this.resolvedConfig.values.mrtEnvironment;
+		const environment = (explicitFlags.has("environment") ? flags.environment : void 0) || rawEnvVars.MRT_ENVIRONMENT || rawEnvVars.MRT_TARGET || this.resolvedConfig.values.mrtEnvironment;
 		let mrtVars = null;
 		if (project && environment) try {
-			this.requireMrtCredentials();
-			const { variables } = await this.operations.listEnvVars({
+			const { preference, scapiConnection, legacyAuth } = this.getMrtBackendContext();
+			const { variables } = await this.operations.listEnvVarsWithBackend({
+				preference,
+				scapiConnection,
+				legacyAuth,
 				projectSlug: project,
 				environment,
-				origin: this.resolvedConfig.values.mrtOrigin
-			}, this.getMrtAuth());
+				origin: this.resolvedConfig.values.mrtOrigin,
+				onFallback: (reason) => this.warn(reason)
+			});
 			mrtVars = new Map(variables.map((v) => [v.name, v.value]));
 		} catch (err) {
 			this.warn(`Could not fetch MRT env vars for ${project}/${environment}: ${err.message}`);
 		}
-		else ux.stdout("ℹ MRT project/environment not configured. Skipping MRT comparison.\n  Use --project and --environment flags or set MRT_PROJECT/MRT_TARGET.\n");
+		else ux.stdout("ℹ MRT project/environment not configured. Skipping MRT comparison.\n  Use --project and --environment flags or set MRT_PROJECT/MRT_ENVIRONMENT.\n");
 		const output = formatInspectOutput({
 			flatConfig,
 			sources,

@@ -3,7 +3,7 @@ import { Flags } from "@oclif/core";
 import path from "path";
 import fs from "fs-extra";
 import { CartridgeCommand } from "@salesforce/b2c-tooling-sdk/cli";
-import { deleteCartridges, getActiveCodeVersion, reloadCodeVersion, uploadCartridges } from "@salesforce/b2c-tooling-sdk/operations/code";
+import { createScriptsBackend, deleteCartridges, reloadCodeVersion, uploadCartridges } from "@salesforce/b2c-tooling-sdk/operations/code";
 
 //#region src/commands/deploy-cartridge.ts
 /**
@@ -18,6 +18,10 @@ import { deleteCartridges, getActiveCodeVersion, reloadCodeVersion, uploadCartri
 * Additional flags:
 * - --delete: Delete existing cartridges before upload
 * - --reload/-r: Reload (re-activate) code version after deploy (requires OAuth)
+*
+* Code version discovery and reload use SCAPI (scopes `sfcc.scripts` / `sfcc.scripts.rw`) when
+* SFCC_SHORTCODE and SFCC_TENANT_ID are set with client-credentials auth, falling back to OCAPI.
+* Override with --api-backend (env: SFCC_API_BACKEND): auto (default), scapi, or ocapi.
 */
 var Deploy = class Deploy extends CartridgeCommand {
 	static description = "Deploy cartridges to B2C Commerce Cloud instance";
@@ -44,6 +48,12 @@ var Deploy = class Deploy extends CartridgeCommand {
 			default: false
 		})
 	};
+	_scriptsBackend;
+	/** SCAPI-first code version backend with OCAPI fallback, honoring --api-backend. */
+	get scriptsBackend() {
+		this._scriptsBackend ??= createScriptsBackend({ instance: this.instance });
+		return this._scriptsBackend;
+	}
 	async run() {
 		const { flags } = await this.parse(Deploy);
 		const projectDirectory = flags["project-directory"] || process.cwd();
@@ -55,14 +65,14 @@ var Deploy = class Deploy extends CartridgeCommand {
 		this.requireWebDavCredentials();
 		let version = this.resolvedConfig.values.codeVersion;
 		if ((!version || flags.reload) && !this.hasOAuthCredentials()) {
-			const reason = version ? "The --reload flag requires OAuth credentials to reload the code version via OCAPI." : "No code version specified. OAuth credentials are required to auto-discover the active code version.";
+			const reason = version ? "The --reload flag requires OAuth credentials to reload the code version via SCAPI or OCAPI." : "No code version specified. OAuth credentials are required to auto-discover the active code version.";
 			this.error(`${reason}\n\nProvide --code-version to use basic auth only, or configure OAuth credentials (--client-id and --client-secret).`);
 		}
 		if (!version) {
 			this.warn("No code version specified, discovering active code version...");
 			let activeVersion;
 			try {
-				activeVersion = await getActiveCodeVersion(this.instance);
+				activeVersion = await this.scriptsBackend.getActiveCodeVersion();
 			} catch (error) {
 				this.error(`Failed to discover active code version: ${error instanceof Error ? error.message : String(error)}\n\nSpecify one explicitly with --code-version or in your dw.json config.`);
 			}
@@ -80,7 +90,7 @@ var Deploy = class Deploy extends CartridgeCommand {
 		}
 		await uploadCartridges(this.instance, cartridges);
 		if (flags.reload) try {
-			await reloadCodeVersion(this.instance, version);
+			await reloadCodeVersion(this.scriptsBackend, version);
 			this.log("Code version reloaded.");
 		} catch (error) {
 			this.warn(`Could not reload code version: ${error instanceof Error ? error.message : String(error)}`);

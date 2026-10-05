@@ -31,7 +31,7 @@ import { PROJECT_DIRECTORY_FLAG, PROJECT_DIRECTORY_CHAR } from '../flags.js';
  * registers their middleware and config sources with the global registries.
  *
  * @env {string} [MRT_PROJECT] - Project name for MRT deployments
- * @env {string} [MRT_TARGET] - Target environment for MRT deployments
+ * @env {string} [MRT_ENVIRONMENT] - Target environment for MRT deployments (MRT_TARGET also accepted)
  */
 const hook: Hook<'init'> = async function (opts) {
     // Scope guard: only run for sfnext commands. When invoked through the standalone

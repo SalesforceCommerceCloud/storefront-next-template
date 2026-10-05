@@ -74,12 +74,13 @@ export const getMrtConfig = (
         );
     }
 
-    // Priority: .env -> undefined (target is optional)
-    const defaultMrtTarget = process.env.MRT_TARGET ?? undefined;
+    // Priority: MRT_ENVIRONMENT -> MRT_TARGET (legacy name) -> undefined (target is optional)
+    const defaultMrtTarget = process.env.MRT_ENVIRONMENT ?? process.env.MRT_TARGET ?? undefined;
 
     logger.debug('MRT configuration resolved', {
         projectDir,
         envMrtProject: process.env.MRT_PROJECT,
+        envMrtEnvironment: process.env.MRT_ENVIRONMENT,
         envMrtTarget: process.env.MRT_TARGET,
         packageName: pkg.name,
         resolvedProject: defaultMrtProject,

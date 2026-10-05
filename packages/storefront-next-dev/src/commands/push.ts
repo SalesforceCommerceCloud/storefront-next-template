@@ -17,7 +17,7 @@
 import { Flags } from '@oclif/core';
 import { MrtCommand } from '@salesforce/b2c-tooling-sdk/cli';
 import fs from 'fs-extra';
-import { createBundle } from '../bundle';
+import { createBundle, getBundleDependencies } from '../bundle';
 import {
     buildMrtConfig,
     CARTRIDGES_BASE_DIR,
@@ -26,23 +26,68 @@ import {
     GENERATE_AND_DEPLOY_CARTRIDGE_ON_MRT_PUSH,
 } from '../config';
 import { getDefaultBuildDir, getDefaultMessage } from '../utils';
+import { withLegacyMrtShortFlags } from '../flags';
 import { generateMetadata } from '../cartridge-services/generate-cartridge';
 import { uploadCartridges, type CartridgeMapping } from '@salesforce/b2c-tooling-sdk/operations/code';
-import { uploadBundle, waitForEnv } from '@salesforce/b2c-tooling-sdk/operations/mrt';
+import {
+    createBundleV2,
+    createDeploymentScapi,
+    mrtScapiUnavailableMessage,
+    runMrtWithFallback,
+    uploadBundle,
+    uploadBundleScapi,
+    waitForDeploymentScapi,
+    waitForEnv,
+    type MrtBackend,
+    type ScapiMrtConnection,
+} from '@salesforce/b2c-tooling-sdk/operations/mrt';
 import { createMrtClient, DEFAULT_MRT_ORIGIN } from '@salesforce/b2c-tooling-sdk/clients';
 import path from 'path';
+import type { MrtSsrConfig } from '../types';
+
+/** config.server.ts SSR parameter keys and their v2 bundle (PascalCase) equivalents. */
+const V2_SSR_PARAMETER_KEYS: Record<string, string> = {
+    ssrFunctionNodeVersion: 'SSRFunctionNodeVersion',
+    envBasePath: 'EnvBasePath',
+};
+
+/** Rename known camelCase SSR parameters to the PascalCase keys the v2 bundle config expects. */
+function toV2SsrParameters(params: MrtSsrConfig['ssrParameters']): Record<string, unknown> {
+    return Object.fromEntries(Object.entries(params).map(([key, value]) => [V2_SSR_PARAMETER_KEYS[key] ?? key, value]));
+}
+
+interface PushBundleOptions {
+    message: string;
+    config: MrtSsrConfig;
+    buildDirectory: string;
+    projectDirectory: string;
+    projectSlug: string;
+    target?: string;
+}
+
+interface PushOutcome {
+    backend: MrtBackend;
+    bundleId: number;
+    warnings: string[];
+    /** SCAPI deployment ID, used to poll a SCAPI deploy with --wait. */
+    deploymentId?: string;
+}
 
 /**
  * MRT Push command - builds and pushes bundle to Managed Runtime.
  *
  * Inherits MRT flags from MrtCommand:
  * - --api-key: MRT API key (env: MRT_API_KEY, fallback: SFCC_MRT_API_KEY)
- * - --project/-p: MRT project slug (env: MRT_PROJECT, fallback: SFCC_MRT_PROJECT)
- * - --environment/-e: MRT target environment (env: MRT_TARGET, fallback: SFCC_MRT_ENVIRONMENT)
- * - --cloud-origin: MRT cloud origin URL (env: MRT_CLOUD_ORIGIN, fallback: SFCC_MRT_CLOUD_ORIGIN)
- * - --credentials-file: Path to MRT credentials file (env: MRT_CREDENTIALS_FILE)
+ * - --project/-p (alias --storefront/-s): MRT project slug (env: MRT_PROJECT, fallback: SFCC_MRT_PROJECT)
+ * - --environment/-e (aliases --target, -t): MRT target environment (env: MRT_ENVIRONMENT, fallbacks: SFCC_MRT_ENVIRONMENT, MRT_TARGET)
+ * - --cloud-origin/-u (alias -o): MRT cloud origin URL (env: MRT_CLOUD_ORIGIN, fallback: SFCC_MRT_CLOUD_ORIGIN)
+ * - --credentials-file/-c: Path to MRT credentials file (env: MRT_CREDENTIALS_FILE)
+ * - --mrt-backend: legacy (default), scapi, or auto (env: MRT_BACKEND, fallback: SFCC_MRT_BACKEND)
  * - --config: Path to dw.json config file (env: SFCC_CONFIG)
  * - --instance/-i: Named instance from config (env: SFCC_INSTANCE)
+ *
+ * The SCAPI backend (Storefront Deployments API) additionally reads OAuth flags/env:
+ * SFCC_CLIENT_ID, SFCC_CLIENT_SECRET (client credentials), SFCC_SHORTCODE, SFCC_TENANT_ID.
  */
 export default class Push extends MrtCommand<typeof Push> {
     static description = 'Build and push bundle to Managed Runtime';
@@ -52,10 +97,11 @@ export default class Push extends MrtCommand<typeof Push> {
         '<%= config.bin %> <%= command.id %> --project-directory ./my-project',
         '<%= config.bin %> <%= command.id %> --project my-project --environment staging',
         '<%= config.bin %> <%= command.id %> --wait',
+        '<%= config.bin %> <%= command.id %> --mrt-backend scapi --environment staging --wait',
     ];
 
     static flags = {
-        ...MrtCommand.baseFlags,
+        ...withLegacyMrtShortFlags(MrtCommand.baseFlags),
         'build-directory': Flags.string({
             char: 'b',
             description: 'Build directory to push (default: auto-detected)',
@@ -69,38 +115,31 @@ export default class Push extends MrtCommand<typeof Push> {
             description: 'Wait for deployment to complete',
             default: false,
         }),
+        // MrtCommand aliases `-s`/--storefront to --project and --target to --environment.
         'project-slug': Flags.string({
-            char: 's',
             description: 'DEPRECATED: Use --project instead',
-            hidden: true,
-        }),
-        target: Flags.string({
-            char: 't',
-            description: 'DEPRECATED: Use --environment instead',
             hidden: true,
         }),
     };
 
     async run(): Promise<void> {
         const { flags } = await this.parse(Push);
-        const projectDirectory = flags['project-directory'] || process.cwd();
+        // Absolute so SDK bundling (which loads config.server.ts and resolves paths from cwd) works with `-d .`
+        const projectDirectory = path.resolve(flags['project-directory'] || process.cwd());
 
         // Deprecated alias handling
         if (flags['project-slug']) {
             this.warn('Flag --project-slug is deprecated. Use --project instead.');
         }
-        if (flags.target) {
-            this.warn('Flag --target is deprecated. Use --environment instead.');
-        }
 
         // Precedence: CLI flag > MRT_* env > SFCC_MRT_* env (fallback) > dw.json
         // flags.environment includes all oclif-resolved sources; resolvedConfig adds dw.json
-        const target = flags.environment || flags.target || this.resolvedConfig.values.mrtEnvironment;
+        const target = flags.environment || this.resolvedConfig.values.mrtEnvironment;
 
         // Input validation
         if (flags.wait && !target) {
             this.error(
-                'You must provide a target environment when using --wait (via --environment flag, MRT_TARGET env var, or dw.json)'
+                'You must provide a target environment when using --wait (via --environment flag, MRT_ENVIRONMENT env var, or dw.json)'
             );
         }
 
@@ -133,8 +172,8 @@ export default class Push extends MrtCommand<typeof Push> {
             process.env.DEPLOY_TARGET = target;
         }
 
-        // Require MRT credentials (API key from --api-key, env var, or credentials file)
-        this.requireMrtCredentials();
+        // Resolves --mrt-backend and errors early when the selected backend has no credentials
+        const { preference, scapiConnection, legacyAuth } = this.getMrtBackendContext();
 
         // Build SSR configuration for MRT bundle
         const config = await buildMrtConfig(buildDirectory, projectDirectory);
@@ -147,7 +186,56 @@ export default class Push extends MrtCommand<typeof Push> {
             this.log(`Target environment: ${target}`);
         }
 
-        // Create bundle
+        const pushOptions = { message, config, buildDirectory, projectDirectory, projectSlug, target };
+        const { value: result } = await runMrtWithFallback<PushOutcome>(
+            {
+                preference,
+                hasScapiConfig: Boolean(scapiConnection),
+                canFallbackToLegacy: Boolean(legacyAuth),
+                onFallback: (reason) => this.warn(`SCAPI MRT backend unavailable, using legacy MRT API: ${reason}`),
+                onResolve: (backend) => this.logger.debug({ backend }, '[MRT] Pushing bundle via backend'),
+            },
+            {
+                scapi: () => this.pushScapi(scapiConnection, pushOptions),
+                legacy: () => this.pushLegacy(pushOptions),
+            }
+        );
+        this.log(`Bundle ${result.bundleId} uploaded`);
+
+        // Surface any non-blocking warnings the MRT backend returned for this deploy
+        // (e.g. the x86 environment deprecation notice). `this.warn` prints to stderr in
+        // yellow and does not throw, so the push still succeeds.
+        for (const w of result.warnings) {
+            this.warn(w);
+        }
+
+        if (flags.wait && target) {
+            this.log(`Waiting for deployment to ${target}...`);
+            if (result.backend === 'scapi') {
+                if (!scapiConnection || !result.deploymentId) {
+                    this.warn('SCAPI did not return a deployment ID; cannot wait for the deployment to complete.');
+                    return;
+                }
+                await waitForDeploymentScapi(scapiConnection, {
+                    storefrontId: projectSlug,
+                    environmentId: target,
+                    deploymentId: result.deploymentId,
+                    onPoll: (info) => this.log(`  ${target}: ${info.status} (${info.elapsedSeconds}s)`),
+                });
+            } else {
+                await this.waitLegacy(projectSlug, target);
+            }
+            this.log(`Deployment complete — bundle ${result.bundleId} is live on ${target}`);
+        }
+    }
+
+    protected override supportsScapiMrt(): boolean {
+        return true;
+    }
+
+    /** Upload a v1 bundle through the legacy MRT Cloud API (API key auth). */
+    private async pushLegacy(options: PushBundleOptions): Promise<PushOutcome> {
+        const { message, config, buildDirectory, projectDirectory, projectSlug, target } = options;
         const bundle = await createBundle({
             message,
             ssr_parameters: config.ssrParameters,
@@ -158,43 +246,78 @@ export default class Push extends MrtCommand<typeof Push> {
             projectSlug,
         });
 
-        // Create MRT client and upload bundle
         const origin = this.resolvedConfig.values.mrtOrigin || DEFAULT_MRT_ORIGIN;
         const client = createMrtClient({ origin }, this.getMrtAuth());
 
         this.log(`Uploading bundle to ${origin}`);
         const result = await uploadBundle(client, projectSlug, bundle, target);
-        this.log(`Bundle ${result.bundleId} uploaded`);
+        return { backend: 'legacy', bundleId: result.bundleId, warnings: result.warnings ?? [] };
+    }
 
-        // Surface any non-blocking warnings the MRT backend returned for this deploy
-        // (e.g. the x86 environment deprecation notice). `this.warn` prints to stderr in
-        // yellow and does not throw, so the push still succeeds.
-        // The `warnings` field is being added to the SDK's `PushResult` in
-        // b2c-developer-tooling#509; cast until that SDK version is published and bumped here.
-        const warnings = (result as { warnings?: string[] }).warnings ?? [];
-        for (const w of warnings) {
-            this.warn(w);
+    /**
+     * Upload a v2 bundle through the SCAPI Storefront Deployments API (OAuth), then
+     * deploy it when a target is given (the SCAPI upload endpoint is upload-only).
+     */
+    private async pushScapi(conn: ScapiMrtConnection | undefined, options: PushBundleOptions): Promise<PushOutcome> {
+        // runMrtWithFallback only selects SCAPI when a connection exists
+        if (!conn) {
+            throw new Error(mrtScapiUnavailableMessage());
+        }
+        const { message, config, buildDirectory, projectDirectory, projectSlug, target } = options;
+        const bundle = await createBundleV2({
+            message,
+            ssrParameters: toV2SsrParameters(config.ssrParameters),
+            ssrOnly: config.ssrOnly,
+            ssrShared: config.ssrShared,
+            bundleMetadata: { dependencies: getBundleDependencies(projectDirectory) },
+            buildDirectory,
+            projectDirectory,
+            // The default SSR patterns cover optional asset types that may not exist in every build.
+            matchMode: 'ignore_missing',
+        });
+
+        this.log(`Uploading bundle via SCAPI (${conn.shortCode})`);
+        const uploaded = await uploadBundleScapi(conn, { storefrontId: projectSlug, bundle });
+        if (!target) {
+            return { backend: 'scapi', bundleId: uploaded.bundleId, warnings: uploaded.warnings };
         }
 
-        if (flags.wait && target) {
-            this.log(`Waiting for deployment to ${target}...`);
-            let lastState = '';
-            await waitForEnv(
-                {
-                    projectSlug,
-                    slug: target,
-                    origin,
-                    onPoll: (info) => {
-                        if (info.state !== lastState) {
-                            lastState = info.state;
-                            this.log(`  ${target}: ${info.state} (${info.elapsedSeconds}s)`);
-                        }
-                    },
+        // The bundle now exists on SCAPI; rethrow deploy failures as plain errors so
+        // runMrtWithFallback does not fall back to legacy and upload a second bundle.
+        try {
+            const deployment = await createDeploymentScapi(conn, {
+                storefrontId: projectSlug,
+                environmentId: target,
+                bundleId: uploaded.bundleId,
+            });
+            return {
+                backend: 'scapi',
+                bundleId: uploaded.bundleId,
+                warnings: uploaded.warnings,
+                deploymentId: deployment.deploymentId,
+            };
+        } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            throw new Error(`Bundle ${uploaded.bundleId} uploaded but the deployment to ${target} failed: ${reason}`);
+        }
+    }
+
+    private async waitLegacy(projectSlug: string, target: string): Promise<void> {
+        let lastState = '';
+        await waitForEnv(
+            {
+                projectSlug,
+                slug: target,
+                origin: this.resolvedConfig.values.mrtOrigin || DEFAULT_MRT_ORIGIN,
+                onPoll: (info) => {
+                    if (info.state !== lastState) {
+                        lastState = info.state;
+                        this.log(`  ${target}: ${info.state} (${info.elapsedSeconds}s)`);
+                    }
                 },
-                this.getMrtAuth()
-            );
-            this.log(`Deployment complete — bundle ${result.bundleId} is live on ${target}`);
-        }
+            },
+            this.getMrtAuth()
+        );
     }
 
     /**

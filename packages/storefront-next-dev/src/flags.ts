@@ -26,3 +26,15 @@ export const commonFlags = {
         default: process.cwd(),
     }),
 };
+
+/**
+ * Restore the 1.x short flags on `MrtCommand.baseFlags`: `-t` for `--environment`/`--target`
+ * and `-o` for `--cloud-origin` (b2c-tooling-sdk 2.x moved it to `-u`).
+ */
+export function withLegacyMrtShortFlags<T extends { environment: object; 'cloud-origin': object }>(baseFlags: T): T {
+    return {
+        ...baseFlags,
+        environment: { ...baseFlags.environment, charAliases: ['t'] },
+        'cloud-origin': { ...baseFlags['cloud-origin'], charAliases: ['o'] },
+    };
+}
