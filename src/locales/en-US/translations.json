@@ -899,6 +899,17 @@
                 "saveSuccess": "Pickup preferences saved successfully"
             }
         },
+        "lastOrderCard": {
+            "label": "Last order",
+            "heading": "Last order {{orderNo}}",
+            "itemCount_one": "{{count}} item",
+            "itemCount_other": "{{count}} items",
+            "description": "Add everything available from this order, or open it in My Account to add one item at a time.",
+            "addAllToCart": "Add all to cart",
+            "addingToCart": "Adding…",
+            "viewInMyAccount": "View in My Account",
+            "overflow": "+{{count}}"
+        },
         "overview": {
             "welcomeBack": "Welcome back, {{name}}!",
             "welcomeSubtitle": "Manage your account, view orders, and discover personalized recommendations.",
