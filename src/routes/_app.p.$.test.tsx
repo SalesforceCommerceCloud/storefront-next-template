@@ -630,6 +630,15 @@ describe('Product Detail Route', () => {
 
 describe('Product Detail Route loader', () => {
     const mockContext = createTestContext({ locale: 'en-US' });
+    const noSeoContext = createTestContext({
+        locale: 'en-US',
+        appConfig: {
+            url: {
+                ...config.app.url,
+                seoRoutes: undefined,
+            },
+        },
+    });
     const seoContext = createTestContext({
         locale: 'en-US',
         appConfig: {
@@ -677,14 +686,14 @@ describe('Product Detail Route loader', () => {
     });
 
     test('preserves the compatible product request when SEO routes are disabled', async () => {
-        await loader(createLoaderArgs('https://example.com/global/en-US/p/test-product-123'));
+        await loader(createLoaderArgs('https://example.com/global/en-US/p/test-product-123', noSeoContext));
 
         const options = vi.mocked(fetchProductById).mock.calls[0]?.[2];
         expect(options?.expand).not.toContain('slug');
     });
 
     test('requests the product slug when SEO routes are enabled', async () => {
-        await loader(createLoaderArgs('https://example.com/p/test-product/test-product-123', seoContext));
+        await loader(createLoaderArgs('https://example.com/global/en-US/p/test-product-123', seoContext));
 
         const options = vi.mocked(fetchProductById).mock.calls[0]?.[2];
         expect(options?.expand).toContain('slug');
@@ -724,11 +733,18 @@ describe('Product Detail Route loader', () => {
         expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
     });
 
-    test('does not redirect or invent a product slug when SCAPI omits it', async () => {
+    test('redirects to the slug-less canonical when SCAPI omits the product slug', async () => {
         vi.mocked(fetchProductById).mockResolvedValue({ ...mockProduct, slug: undefined });
 
-        await loader(createLoaderArgs('https://example.com/global/en-US/p/old-slug/test-product-123', seoContext));
+        const response = await loader(
+            createLoaderArgs('https://example.com/global/en-US/p/old-slug/test-product-123', seoContext)
+        ).then(
+            () => undefined,
+            (error: unknown) => error as Response
+        );
 
+        expect(response?.status).toBe(301);
+        expect(response?.headers.get('Location')).toBe('/global/en-US/p/test-product-123');
         expect(fetchProductById).toHaveBeenCalledOnce();
         expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
     });

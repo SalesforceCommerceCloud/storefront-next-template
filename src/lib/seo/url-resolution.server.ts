@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import type { SeoRoutesConfig } from '@salesforce/storefront-next-runtime/config';
+import { stripHtmlSuffix } from '@/route-paths';
+import { getBasePath } from '@/lib/utils';
 
 type RouteResolutionOptions = {
     url: URL;
@@ -62,7 +64,7 @@ function getSeoPathSegments(url: URL, urlPrefix?: string): string[] | null {
     const pathSegments = url.pathname.split('/');
     if (pathSegments[0] === '') pathSegments.shift();
 
-    const prefixSegments = (urlPrefix ?? '').split('/').filter(Boolean);
+    const prefixSegments = [getBasePath(), urlPrefix ?? ''].flatMap((prefix) => prefix.split('/').filter(Boolean));
     if (pathSegments.length < prefixSegments.length) return null;
 
     for (let index = 0; index < prefixSegments.length; index++) {
@@ -98,8 +100,9 @@ function getSeoPathSegments(url: URL, urlPrefix?: string): string[] | null {
  * emptiness is inspected — never its value, which is percent-decoded and would
  * mis-split; the ID is still read from the raw URL below.
  *
- * A final `.html` stays part of the returned ID — the deterministic route treats
- * the whole segment as the ID.
+ * A final `.html` stays part of the value returned by this low-level helper.
+ * Configured product routes remove the Commerce-generated extension after
+ * isolating the raw ID segment; default routes treat the whole segment as the ID.
  */
 export function decodeFinalRawSegment(url: URL, params?: Record<string, string | undefined>): string {
     const aliasSplat = params?.['*'];
@@ -129,7 +132,7 @@ export function resolveProductRoute(options: RouteResolutionOptions): { productI
         return null;
     }
 
-    return { productId: decodeRawSegment(rawResourceSegments.at(-1) ?? '') };
+    return { productId: stripHtmlSuffix(decodeRawSegment(rawResourceSegments.at(-1) ?? '')) };
 }
 
 /** Resolve the active site's deterministic standalone content grammar from the raw request path. */

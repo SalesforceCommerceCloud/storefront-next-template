@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createTestContext } from '@/lib/test-utils';
 import config from '@/config/server';
 import {
@@ -34,6 +34,11 @@ function catchRedirect(url: string): Response | undefined {
 function getResourceRedirect(url: string, canonicalPath: string): Response | undefined {
     return getCanonicalResourceRedirect(new URL(url), canonicalPath);
 }
+
+afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+});
 
 describe('redirectToCanonicalPath', () => {
     it('301-redirects a trailing-slash path to the slash-free path', () => {
@@ -153,18 +158,33 @@ describe('getCanonicalProductRedirect', () => {
         expect(response?.headers.get('Location')).toBe('/global/en-US/p/p1?color=blue');
     });
 
-    it('does not invent a slug when the product response omits it', () => {
-        expect(
-            getCanonicalProductRedirect({
-                requestUrl: new URL('https://example.com/global/en-US/p/old/p1'),
-                context,
-                productId: 'p1',
-                product: { id: 'p1' },
-            })
-        ).toBeUndefined();
+    it('converges a configured product route without an authoritative slug', () => {
+        const response = getCanonicalProductRedirect({
+            requestUrl: new URL('https://example.com/global/en-US/p/old/p1.html'),
+            context,
+            productId: 'p1',
+            product: { id: 'p1' },
+        });
+
+        expect(response?.status).toBe(301);
+        expect(response?.headers.get('Location')).toBe('/global/en-US/p/p1');
     });
 
-    it.each(['.', '..', '\uD800'])('does not redirect for an unsafe product slug: %s', (slug) => {
+    it('keeps the MRT base path in a configured canonical redirect', () => {
+        vi.stubGlobal('window', undefined);
+        vi.stubEnv('MRT_ENV_BASE_PATH', '/shop');
+        const response = getCanonicalProductRedirect({
+            requestUrl: new URL('https://example.com/shop/global/en-US/p/old/p1.html'),
+            context,
+            productId: 'p1',
+            product: { id: 'p1' },
+        });
+
+        expect(response?.status).toBe(301);
+        expect(response?.headers.get('Location')).toBe('/shop/global/en-US/p/p1');
+    });
+
+    it.each(['.', '..', 'men/../p1.html', '\uD800'])('does not redirect for an unsafe product slug: %s', (slug) => {
         expect(
             getCanonicalProductRedirect({
                 requestUrl: new URL('https://example.com/global/en-US/p/old/p1'),
@@ -186,6 +206,21 @@ describe('getCanonicalProductRedirect', () => {
         expect(response).toBeInstanceOf(Response);
         expect(response?.status).toBe(301);
         expect(response?.headers.get('Location')).toBe('/global/en-US/p/current%20caf%C3%A9/p1?color=blue');
+    });
+
+    it('converges a duplicated Business Manager product path to the extensionless canonical', () => {
+        const response = getCanonicalProductRedirect({
+            requestUrl: new URL(
+                'https://example.com/global/en-US/p/men%2Fknitwear%2Fmens-cotton-hoodie.html/mens-cotton-hoodie'
+            ),
+            context,
+            productId: 'mens-cotton-hoodie',
+            product: { id: 'mens-cotton-hoodie', slug: 'men/knitwear/mens-cotton-hoodie.html' },
+        });
+
+        expect(response).toBeInstanceOf(Response);
+        expect(response?.status).toBe(301);
+        expect(response?.headers.get('Location')).toBe('/global/en-US/p/men/knitwear/mens-cotton-hoodie');
     });
 
     it('does not combine a resolved variant slug with a master route ID', () => {

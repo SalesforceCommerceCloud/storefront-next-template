@@ -279,6 +279,26 @@ describe('filePathToRoute', () => {
             );
         });
 
+        test('resolves a pathless SEO route through its generated alias', () => {
+            const aliasedRoutes = structuredClone(testRoutesWithSiteContext) as any;
+            const appRoutes = aliasedRoutes[0].children[1].children[0].children;
+            const productRoute = appRoutes.find((route: { id: string }) => route.id === 'routes/_app.p.$');
+
+            delete productRoute.path;
+            productRoute.children = [
+                {
+                    id: 'routes/_app.p.$--seo-alias--p',
+                    path: 'p/*',
+                    file: 'app-wrapper.tsx',
+                },
+            ];
+            (readFileSync as Mock).mockReturnValue(JSON.stringify(aliasedRoutes));
+
+            expect(filePathToRoute('/Users/test/project/src/routes/_app.p.$.tsx', '/Users/test/project')).toBe(
+                '/:siteId/:localeId/p/*'
+            );
+        });
+
         test.each([
             [
                 '/Users/test/project/src/routes/_app._index.tsx',

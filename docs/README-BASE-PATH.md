@@ -35,7 +35,7 @@ export default {
 
 The base path is used by the CDN to route traffic to the correct MRT environment. The CDN makes its routing decision based solely on the first path segment — it has no knowledge of an upstream application's routes or how they are structured.
 
-If nested base paths were allowed (e.g., both `/foo` and `/foo/bar`), the CDN would not be able to determine which environment should handle a request like `/foo/bar/product/123` — it could belong to the `/foo` environment (at route `/bar/product/123`) or the `/foo/bar` environment (at route `/product/123`). Unlike an application server, the CDN cannot fall back to a second option if the first doesn't match.
+If nested base paths were allowed (e.g., both `/foo` and `/foo/bar`), the CDN would not be able to determine which environment should handle a request like `/foo/bar/p/123` — it could belong to the `/foo` environment (at route `/bar/p/123`) or the `/foo/bar` environment (at route `/p/123`). Unlike an application server, the CDN cannot fall back to a second option if the first doesn't match.
 
 Restricting base paths to a single segment ensures that each environment owns a distinct, non-overlapping prefix, so routing is always unambiguous.
 
@@ -62,8 +62,8 @@ All page routes are prefixed with the base path:
 | Without base path | With base path `/shop` |
 |---|---|
 | `/` | `/shop/` |
-| `/category/womens` | `/shop/category/womens` |
-| `/product/25720052M` | `/shop/product/25720052M` |
+| `/c/womens` | `/shop/c/womens` |
+| `/p/25720052M` | `/shop/p/25720052M` |
 
 This is handled by React Router's `basename` property, which the SDK sets automatically on the server build.
 
@@ -112,7 +112,7 @@ navigator.sendBeacon(proxyUrl);
 
 When site context is configured with path-based site/locale detection, the SDK automatically adjusts the `lookupFromPathIndex` to skip the base path segment. No configuration change is needed.
 
-For example, with base path `/shop` and a URL like `/shop/site-us/en-US/category/womens`:
+For example, with base path `/shop` and a URL like `/shop/site-us/en-US/c/womens`:
 - Without base path: segment index 0 = `site-us`
 - With base path: the SDK adds an offset of +1, so index 0 still resolves to `site-us`
 
@@ -134,7 +134,7 @@ Both return the sanitized base path (e.g., `/shop`) or an empty string if no bas
 ### Development (`pnpm dev`)
 
 - Base path is read from `config.server.ts` and set as `MRT_ENV_BASE_PATH`
-- A redirect middleware sends non-prefixed requests to the prefixed path (e.g., `/category/womens` → 302 → `/shop/category/womens`)
+- A redirect middleware sends non-prefixed requests to the prefixed path (e.g., `/c/womens` → 302 → `/shop/c/womens`)
 - `/mobify/` infrastructure paths are not redirected
 - Vite HMR and dev tooling work normally
 
@@ -148,7 +148,7 @@ Both return the sanitized base path (e.g., `/shop`) or an empty string if no bas
 ### Production (MRT)
 
 - `MRT_ENV_BASE_PATH` is set by MRT from `ssrParameters.envBasePath` (configured during `pnpm push`)
-- MRT does **not** strip the base path — the Lambda receives the full URL (e.g., `/shop/category/womens`)
+- MRT does **not** strip the base path — the Lambda receives the full URL (e.g., `/shop/c/womens`)
 - React Router's `basename` handles routing correctly: it strips the base path when matching routes
 - Redirect middleware is active: requests without the base path prefix (e.g., direct access to the MRT environment domain) are redirected to the prefixed URL
 - `renderBuiltUrl` generates asset URLs with the base path at runtime
@@ -177,15 +177,15 @@ A user visits `https://www.example.com/basepath-1/c/womens`:
 
 ```
 1. Browser
-   GET https://www.example.com/basepath-1/category/womens
+   GET https://www.example.com/basepath-1/c/womens
         |
 2. CDN (www.example.com)
    - Matches /basepath-1/* rule
    - Forwards to basepath-1.mobify-storefront.com
-   - Preserves full path: /basepath-1/category/womens
+   - Preserves full path: /basepath-1/c/womens
         |
 3. MRT Lambda (basepath-1.mobify-storefront.com)
-   - Receives: /basepath-1/category/womens
+   - Receives: /basepath-1/c/womens
    - MRT_ENV_BASE_PATH=/basepath-1
    - Does NOT strip the base path
         |
@@ -204,7 +204,7 @@ A user visits `https://www.example.com/basepath-1/c/womens`:
    - HTML includes asset URLs with base path:
      /basepath-1/mobify/bundle/140/client/assets/root.js
    - Page links include base path:
-     <a href="/basepath-1/product/123">...</a>
+     <a href="/basepath-1/p/123">...</a>
 ```
 
 ### Static Asset Flow
@@ -227,8 +227,8 @@ React Router's `basename` property affects different parts of the framework diff
 
 | Context | Base path stripped? | Example |
 |---|---|---|
-| `useLocation()`, `useParams()` (SSR + client) | Yes | `/shop/product/123` → `pathname: /product/123` |
-| `useHref()`, `<Link>`, `<NavLink>` | Auto-prepended | `useHref('/product/123')` → `/shop/product/123` |
+| `useLocation()`, `useParams()` (SSR + client) | Yes | `/shop/p/123` → `pathname: /p/123` |
+| `useHref()`, `<Link>`, `<NavLink>` | Auto-prepended | `useHref('/p/123')` → `/shop/p/123` |
 | `useFetcher` | Auto-prepended | Fetcher URLs include base path automatically |
 | `redirect()` in middleware | **Not** prepended | Must manually prepend: `redirect(\`${basePath}/login\`)` |
 | `request.url` in middleware/loaders | **Not** stripped | Full URL including base path |

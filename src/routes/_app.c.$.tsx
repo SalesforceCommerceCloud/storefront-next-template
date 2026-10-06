@@ -246,8 +246,7 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     };
     const categorySlugSegments = getCategorySlugSegments(categoryData);
     const categoryRoute = getSiteSeoRoutes(seoUrlContext)?.category;
-    const shouldConvergeCategoryPath =
-        !slugPath && (!categoryRoute || (categoryRoute.mode === 'id-suffix' && categorySlugSegments));
+    const shouldConvergeCategoryPath = !slugPath && (!categoryRoute || categoryRoute.mode === 'id-suffix');
     if (shouldConvergeCategoryPath) {
         const canonicalCategoryPath = createCategoryUrl(
             { categoryId, slugSegments: categorySlugSegments ?? [] },

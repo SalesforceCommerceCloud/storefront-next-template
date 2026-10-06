@@ -140,6 +140,7 @@ vi.mock('@/lib/utils', () => ({
         responseMessage: 'Default error message',
         status_code: '500',
     }),
+    getBasePath: vi.fn(() => ''),
     isAbsoluteURL: vi.fn((url: string) => url.startsWith('http')),
     stringToBase64: vi.fn((str: string) => Buffer.from(str).toString('base64')),
 }));

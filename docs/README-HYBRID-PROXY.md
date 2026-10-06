@@ -25,7 +25,7 @@ A dedicated `HYBRID_PROXY_ENABLED` flag controls the proxy. It defaults to `fals
 
 1. Every request to the Vite dev server passes through the hybrid proxy middleware first.
 2. The middleware checks the request path against your `HYBRID_ROUTING_RULES`.
-3. **Matching paths** (e.g., `/`, `/product/*`, `/account/*`) are passed to React Router — Storefront Next handles them.
+3. **Matching paths** (e.g., `/`, `/p/*`, `/account/*`) are passed to React Router — Storefront Next handles them.
 4. **Non-matching paths** (e.g., `/cart`, `/checkout`) are silently proxied to your SFCC sandbox (`SFCC_ORIGIN`).
 5. The proxy rewrites the path to SFRA format: `/cart` → `/s/{siteId}/{locale}/cart`.
 6. Set-Cookie headers from SFCC are rewritten (`Domain=localhost`) so session cookies work across both apps on localhost.

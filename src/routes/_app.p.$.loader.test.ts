@@ -140,8 +140,29 @@ describe('Product Route Loaders', () => {
         set: vi.fn(),
     } as unknown as Readonly<RouterContextProvider>;
 
+    const configuredContext = {
+        ...mockContext,
+        get: vi.fn((context) => {
+            if (context === appConfigContext) {
+                return {
+                    ...mockAppConfig,
+                    url: {
+                        seoRoutes: {
+                            'test-site': {
+                                product: { prefix: 'p' },
+                                category: { prefix: 'c', mode: 'id-suffix' as const },
+                            },
+                        },
+                    },
+                };
+            }
+            return mockContext.get(context);
+        }),
+    } as unknown as Readonly<RouterContextProvider>;
+
     beforeEach(() => {
         vi.clearAllMocks();
+        mockFetchProductById.mockReset();
         mockAttemptRouteSeoFallback.mockResolvedValue(undefined);
     });
 
@@ -177,19 +198,48 @@ describe('Product Route Loaders', () => {
             expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 
-        test('passes an .html product ID unchanged to the authoritative lookup', async () => {
-            mockFetchProductById.mockResolvedValueOnce(mockProduct);
+        test('removes the Commerce-generated .html suffix before the product lookup', async () => {
+            mockFetchProductById.mockResolvedValueOnce({
+                ...mockProduct,
+                id: 'legacy',
+            });
             const request = new Request('https://example.com/p/legacy.html');
 
-            await loader({
+            const response = await loader({
                 request,
                 params: { siteId: 'test-site', localeId: 'en-US', '*': 'legacy.html' },
-                context: mockContext,
+                context: configuredContext,
                 url: new URL(request.url),
                 pattern: '/p/*',
-            });
+            }).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
 
-            expect(mockFetchProductById.mock.calls[0][1]).toBe('legacy.html');
+            expect(mockFetchProductById.mock.calls[0][1]).toBe('legacy');
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe('/p/legacy');
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('redirects a legacy .html route after one suffix-less product lookup', async () => {
+            mockFetchProductById.mockResolvedValueOnce({ ...mockProduct, id: 'p1', slug: undefined });
+            const request = new Request('https://example.com/p/men/p1.html');
+
+            const response = await loader({
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', '*': 'men/p1.html' },
+                context: configuredContext,
+                url: new URL(request.url),
+                pattern: '/p/*',
+            }).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
+
+            expect(mockFetchProductById.mock.calls.map((call) => call[1])).toEqual(['p1']);
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe('/p/p1');
             expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 

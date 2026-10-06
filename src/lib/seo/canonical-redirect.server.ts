@@ -98,7 +98,7 @@ export function getCanonicalProductRedirect({
         seoRoutes: config.url?.seoRoutes,
     };
     const productRoute = getSiteSeoRoutes(seoUrlContext)?.product;
-    if (productRoute && (!product.slug || !isSafeSlugSegment(product.slug))) return;
+    if (productRoute && product.slug && !product.slug.split('/').every(isSafeSlugSegment)) return;
 
     const canonicalPath = createProductUrl({ productId, slug: productRoute ? product.slug : undefined }, seoUrlContext);
     return getCanonicalResourceRedirect(requestUrl, buildUrlFromContext(canonicalPath, context));

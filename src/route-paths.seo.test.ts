@@ -70,13 +70,13 @@ describe('SEO URL builders', () => {
         expect(
             createProductUrl(
                 {
-                    productId: 'dress/01.html',
+                    productId: 'dress/01',
                     slugSegments: ['women & girls', 'summer/dresses'],
                     searchParams: new URLSearchParams({ color: 'blue sky', pid: 'variant/01' }),
                 },
                 context
             )
-        ).toBe('/p/women%20%26%20girls/summer%2Fdresses/dress%2F01.html?color=blue+sky&pid=variant%2F01');
+        ).toBe('/p/women%20%26%20girls/summer%2Fdresses/dress%2F01?color=blue+sky&pid=variant%2F01');
     });
 
     test('builds standard content and Page Designer URLs through one content grammar', () => {
@@ -107,6 +107,27 @@ describe('SEO URL builders', () => {
 
     test('allows a configured product URL without decorative slugs', () => {
         expect(createProductUrl({ productId: '123' }, { siteId: 'SlugStore', seoRoutes })).toBe('/products/123');
+    });
+
+    test('normalizes a Business Manager product path without duplicating its ID or .html suffix', () => {
+        expect(
+            createProductUrl(
+                {
+                    productId: 'mens-cotton-hoodie',
+                    slug: 'men/knitwear/mens-cotton-hoodie.html',
+                    searchParams: new URLSearchParams({ pid: 'mens-cotton-hoodie-xs' }),
+                },
+                { siteId: 'RefArch', seoRoutes }
+            )
+        ).toBe('/p/men/knitwear/mens-cotton-hoodie?pid=mens-cotton-hoodie-xs');
+    });
+
+    test('falls back to the authoritative product ID when a slug contains an unsafe path segment', () => {
+        for (const slug of ['men/../mens-cotton-hoodie.html', 'men/.html']) {
+            expect(createProductUrl({ productId: 'mens-cotton-hoodie', slug }, { siteId: 'RefArch', seoRoutes })).toBe(
+                '/p/mens-cotton-hoodie'
+            );
+        }
     });
 
     test('preserves the complete category hierarchy for ID-suffix mode', () => {

@@ -477,13 +477,17 @@ describe('CategoryPage', () => {
             expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 
-        test('does not redirect an ID-suffix category when the authoritative slug is missing', async () => {
+        test('redirects a stale ID-suffix hierarchy to the slugless canonical path when the slug is missing', async () => {
             (getConfig as any).mockReturnValue(mockIdSuffixConfig);
             vi.mocked(fetchCategory).mockResolvedValue({ ...mockCategory, id: 'electronics', slug: undefined });
 
-            const result = await loader(createLoaderArgs('https://example.com/c/old/electronics'));
+            const response = await loader(createLoaderArgs('https://example.com/c/old/electronics')).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
 
-            expect(result.categoryId).toBe('electronics');
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe('/c/electronics');
             expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 

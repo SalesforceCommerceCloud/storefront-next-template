@@ -60,6 +60,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', () => ({
 
 vi.mock('@/lib/utils', () => ({
     getErrorMessage: vi.fn((err?: any) => (err && err.message) || 'An error occurred'),
+    getBasePath: vi.fn(() => ''),
     isAbsoluteURL: vi.fn((url: string) => url.startsWith('http')),
 }));
 

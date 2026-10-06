@@ -36,10 +36,10 @@ The alternate URLs are built from the current request path plus the configured m
 
 ```html
 <!-- When viewing the en-GB version of a page with en-GB (default) and fr-FR locales: -->
-<link rel="canonical" href="https://www.example.com/global/en-GB/product/123" />
-<link rel="alternate" hreflang="en-GB" href="https://www.example.com/global/en-GB/product/123" /> <!-- self-referencing -->
-<link rel="alternate" hreflang="fr-FR" href="https://www.example.com/global/fr-FR/product/123" />
-<link rel="alternate" hreflang="x-default" href="https://www.example.com/global/en-GB/product/123" />
+<link rel="canonical" href="https://www.example.com/global/en-GB/p/123" />
+<link rel="alternate" hreflang="en-GB" href="https://www.example.com/global/en-GB/p/123" /> <!-- self-referencing -->
+<link rel="alternate" hreflang="fr-FR" href="https://www.example.com/global/fr-FR/p/123" />
+<link rel="alternate" hreflang="x-default" href="https://www.example.com/global/en-GB/p/123" />
 ```
 
 ### When You Need to Change `hreflang` Tags
@@ -72,7 +72,7 @@ It applies three normalizations:
 
 1. **Allowlisted query parameters** — Only parameters that change page content are kept. Everything else (tracking params, analytics IDs, unknown params) is stripped.
 2. **Sorted parameters** — Retained params are sorted alphabetically so that `?sort=price&q=jacket` and `?q=jacket&sort=price` produce the same canonical URL.
-3. **Trailing slash removal** — Trailing slashes are removed from non-root paths (`/product/jacket/` → `/product/jacket`).
+3. **Trailing slash removal** — Trailing slashes are removed from non-root paths (`/p/jacket/` → `/p/jacket`).
 
 ### One page URL across every crawler-visible surface
 
@@ -126,8 +126,8 @@ const CONTENT_PARAMS = new Set([
 
 ```typescript
 it('preserves view param', () => {
-    expect(buildCanonicalUrl(origin, '/category/mens', '?view=grid')).toBe(
-        'https://www.example.com/category/mens?view=grid'
+    expect(buildCanonicalUrl(origin, '/c/mens', '?view=grid')).toBe(
+        'https://www.example.com/c/mens?view=grid'
     );
 });
 ```
@@ -175,7 +175,7 @@ import { SeoMeta } from '@/components/seo-meta';
     description="A premium leather jacket with a tailored fit."
     openGraph={{
         type: 'product',
-        url: 'https://www.example.com/product/classic-jacket',
+        url: 'https://www.example.com/p/classic-jacket',
         image: 'https://www.example.com/images/classic-jacket.jpg',
     }}
 />
@@ -350,8 +350,9 @@ export default function MyNewPage() {
 | Route | Title | Description | Open Graph / Twitter | noIndex |
 |-------|-------|-------------|----------------------|---------|
 | `/` (Home) | Store name (raw) | Welcome message | Yes | — |
-| `/category/:id` | Category name | Category page/general description | Yes | — |
-| `/product/:id` | Product name | Product page/short description | Yes | — |
+| `/c/*` or configured category prefix | Category name | Category page/general description | Yes | — |
+| `/p/*` or configured product prefix | Product name | Product page/short description | Yes | — |
+| Configured `/{content-prefix}/{content|page}/*` | Content or page name | Content description | Yes | — |
 | `/search` | Search query | Result count + query | Yes | — |
 | `/about-us` | About Us | Store mission description | Yes | — |
 | `/login` | Sign In | Sign in prompt | Yes | — |

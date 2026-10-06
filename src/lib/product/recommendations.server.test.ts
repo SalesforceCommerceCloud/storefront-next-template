@@ -179,7 +179,7 @@ describe('fetchProductRecommendations', () => {
             ['p-1', 'p-2'],
             expect.objectContaining({
                 allImages: true,
-                expand: ['availability', 'images', 'prices', 'variations'],
+                expand: ['availability', 'images', 'prices', 'variations', 'slug'],
             })
         );
         expect(result.recs).toHaveLength(2);

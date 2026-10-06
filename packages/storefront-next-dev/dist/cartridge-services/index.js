@@ -180,7 +180,14 @@ function getReactRouterRoutes(projectDirectory) {
 function filePathToRoute(filePath, projectRoot) {
 	const filePathPosix = filePath.replace(/\\/g, "/");
 	const canonicalRoutes = flattenRoutes(getReactRouterRoutes(projectRoot)).filter((route) => !route.id.endsWith("--root-duplicate"));
-	for (const route of canonicalRoutes) if (routeFileMatches(filePathPosix, route.file.replace(/\\/g, "/"))) return route.path;
+	for (const route of canonicalRoutes) if (routeFileMatches(filePathPosix, route.file.replace(/\\/g, "/"))) {
+		const seoAliases = canonicalRoutes.filter((candidate) => candidate.id.startsWith(`${route.id}--seo-alias--`)).sort((left, right) => left.path.localeCompare(right.path));
+		if (seoAliases.length > 0) {
+			if (seoAliases.length > 1) logger.warn(`Multiple SEO route aliases match ${filePath}; using ${seoAliases[0].path} for Page Designer metadata.`);
+			return seoAliases[0].path;
+		}
+		return route.path;
+	}
 	logger.warn(`Could not find route for file: ${filePath}`);
 	return "/unknown";
 }

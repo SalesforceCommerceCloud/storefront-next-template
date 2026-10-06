@@ -216,7 +216,7 @@ export type SeoUrlContext = {
 
 export type ProductUrlInput = {
     productId?: string;
-    /** Authoritative product slug returned by Shopper APIs. */
+    /** Authoritative Business Manager product path returned by Shopper APIs. */
     slug?: string;
     /** Explicit decorative path segments for custom product URL grammars. */
     slugSegments?: readonly string[];
@@ -255,9 +255,44 @@ function encodePathSegment(segment: string): string {
     );
 }
 
+/** Reject path segments that would normalize the route or cannot be URI encoded. */
+export function isSafePathSegment(segment: string): boolean {
+    if (!segment.trim() || segment === '.' || segment === '..') return false;
+
+    try {
+        encodeURIComponent(segment);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 function appendSearchParams(path: string, searchParams?: URLSearchParams): string {
     const search = searchParams?.toString();
     return search ? `${path}?${search}` : path;
+}
+
+/** Remove the legacy HTML extension that B2C Commerce appends to SEO URL paths. */
+export function stripHtmlSuffix(value: string): string {
+    return value.replace(/\.html$/i, '');
+}
+
+function getProductPathSegments(productId: string, slug?: string, slugSegments?: readonly string[]): readonly string[] {
+    // One terminal .html is the Commerce-generated extension. Doubling it keeps
+    // an ID that already ends in .html intact when the route is resolved.
+    const routeProductId = /\.html$/i.test(productId) ? `${productId}.html` : productId;
+    const segments = slugSegments ? [...slugSegments] : slug?.trim() ? slug.split('/') : [];
+    const finalSegment = segments.at(-1);
+    if (finalSegment) {
+        segments[segments.length - 1] = stripHtmlSuffix(finalSegment);
+    }
+    if (!segments.every(isSafePathSegment)) return [routeProductId];
+    if (segments.at(-1) === productId) {
+        segments[segments.length - 1] = routeProductId;
+    } else if (segments.at(-1) !== routeProductId) {
+        segments.push(routeProductId);
+    }
+    return segments;
 }
 
 export function getSiteSeoRoutes(context?: SeoUrlContext) {
@@ -315,8 +350,9 @@ export function createProductUrl(
     if (!productId) return '#';
 
     const productConfig = getSiteSeoRoutes(context)?.product;
-    const productSlug = slugSegments ?? (slug?.trim() ? [slug] : []);
-    const segments = productConfig ? [productConfig.prefix, ...productSlug, productId] : ['p', productId];
+    const segments = productConfig
+        ? [productConfig.prefix, ...getProductPathSegments(productId, slug, slugSegments)]
+        : ['p', productId];
     return appendSearchParams(buildPath(segments), searchParams);
 }
 

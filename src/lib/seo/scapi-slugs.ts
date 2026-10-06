@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createCategoryUrl, getSiteSeoRoutes, type SeoUrlContext } from '@/route-paths';
+import { createCategoryUrl, getSiteSeoRoutes, isSafePathSegment, type SeoUrlContext } from '@/route-paths';
 import type { SeoRoutesConfig } from '@salesforce/storefront-next-runtime/config';
 
 type SlugSource = {
@@ -27,14 +27,7 @@ export function getSeoSlugExpansion(seoRoutes?: SeoRoutesConfig): [] | ['slug'] 
 
 /** Reject slug segments that would normalize the path or fail URI encoding. */
 export function isSafeSlugSegment(segment: string): boolean {
-    if (!segment.trim() || segment === '.' || segment === '..') return false;
-
-    try {
-        encodeURIComponent(segment);
-        return true;
-    } catch {
-        return false;
-    }
+    return isSafePathSegment(segment);
 }
 
 /** Split the complete category slug path returned by Shopper Products into route segments. */

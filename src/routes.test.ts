@@ -59,11 +59,33 @@ describe('routes.ts', () => {
                 }),
                 expect.objectContaining({
                     id: 'routes/_app.c.$',
-                    path: 'c/*',
+                    path: undefined,
+                    children: expect.arrayContaining([
+                        expect.objectContaining({
+                            id: 'routes/_app.c.$--seo-alias--c',
+                            path: 'c/*',
+                        }),
+                    ]),
                 }),
                 expect.objectContaining({
                     id: 'routes/_app.p.$',
-                    path: 'p/*',
+                    path: undefined,
+                    children: expect.arrayContaining([
+                        expect.objectContaining({
+                            id: 'routes/_app.p.$--seo-alias--p',
+                            path: 'p/*',
+                        }),
+                    ]),
+                }),
+                expect.objectContaining({
+                    id: 'routes/_app.cms.$',
+                    path: undefined,
+                    children: expect.arrayContaining([
+                        expect.objectContaining({
+                            id: 'routes/_app.cms.$--seo-alias--cms',
+                            path: 'cms/*',
+                        }),
+                    ]),
                 }),
                 expect.objectContaining({
                     id: 'routes/_app.cart',

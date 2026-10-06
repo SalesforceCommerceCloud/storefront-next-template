@@ -88,7 +88,7 @@ describe('fetchProductsInBasket', () => {
                 allImages: true,
                 perPricebook: true,
                 currency: 'USD',
-                expand: ['availability', 'bundled_products', 'images', 'prices', 'promotions', 'variations'],
+                expand: ['availability', 'bundled_products', 'images', 'prices', 'promotions', 'slug', 'variations'],
             })
         );
     });
@@ -168,7 +168,7 @@ describe('fetchProductsInBasket', () => {
             ['sku-1'],
             expect.objectContaining({
                 inventoryIds: ['inv-1'],
-                expand: ['availability', 'bundled_products', 'images', 'prices', 'promotions', 'variations'],
+                expand: ['availability', 'bundled_products', 'images', 'prices', 'promotions', 'slug', 'variations'],
             })
         );
     });

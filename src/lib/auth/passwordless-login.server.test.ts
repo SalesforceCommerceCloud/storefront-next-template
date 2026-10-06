@@ -73,6 +73,7 @@ vi.mock('@/lib/api/basket.server', () => ({
 // Mock utility functions
 vi.mock('@/lib/utils', () => ({
     getErrorMessage: vi.fn(),
+    getBasePath: vi.fn(() => ''),
 }));
 
 vi.mock('@/lib/origin', () => ({

@@ -141,6 +141,19 @@ export function filePathToRoute(filePath: string, projectRoot: string): string {
         const routeFilePosix = route.file.replace(/\\/g, '/');
 
         if (routeFileMatches(filePathPosix, routeFilePosix)) {
+            const seoAliases = canonicalRoutes
+                .filter((candidate) => candidate.id.startsWith(`${route.id}--seo-alias--`))
+                .sort((left, right) => left.path.localeCompare(right.path));
+
+            if (seoAliases.length > 0) {
+                if (seoAliases.length > 1) {
+                    logger.warn(
+                        `Multiple SEO route aliases match ${filePath}; using ${seoAliases[0].path} for Page Designer metadata.`
+                    );
+                }
+                return seoAliases[0].path;
+            }
+
             return route.path;
         }
     }

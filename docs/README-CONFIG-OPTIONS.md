@@ -585,6 +585,45 @@ PUBLIC__app__commerce__sites='[
 
 ---
 
+## url
+
+Controls the outer site/locale URL shape and the build-time product, category,
+and standalone-content route grammar. See [Multi-Site URL Config](./README-MULTI-SITE.md#url-config)
+for builders, validation rules, and examples.
+
+```typescript
+url: {
+    prefix: '/:siteId/:localeId',
+    excludeRoutes: ['/resource/**', '/action/**'],
+    seoRoutes: {
+        RefArchGlobal: {
+            product: {prefix: 'p'},
+            category: {prefix: 'c', mode: 'id-suffix'},
+            content: {prefix: 'cms'},
+        },
+        RefArch: {
+            product: {prefix: 'p'},
+            category: {prefix: 'c', mode: 'id-suffix'},
+            content: {prefix: 'cms'},
+        },
+    },
+}
+```
+
+- `prefix` adds site and locale path segments to page routes.
+- `search` optionally places site or locale references in query parameters.
+- `excludeRoutes` keeps resource and action routes outside the outer prefix.
+- `seoRoutes` mirrors each site's Business Manager prefixes. Product and
+  category are required per site; content is optional. Category mode is
+  `id-suffix` or `slug-path`.
+
+`prefix`, `excludeRoutes`, and `seoRoutes` are protected build-time values.
+They cannot be overridden through `PUBLIC__` environment variables. Update
+`config.server.ts`, rebuild, and redeploy. Keep one `seoRoutes` entry for every
+active Commerce site.
+
+---
+
 ## seoFallback
 
 Per-site policy for the terminal Shopper SEO URL Rules fallback. Business Manager is the URL Rules source of truth; keep its rules aligned with `url.seoRoutes` and this policy. See [Shopper SEO URL Rules Fallback](./README-MULTI-SITE.md#shopper-seo-url-rules-fallback) for request behavior.
