@@ -13,6 +13,7 @@
         "**/generate-config.cjs",
         "**/cartridges/**/cartridge/scripts/**/*.js",
         "e2e/**",
+        "tsconfig.grocery.json",
         ".storybook/**/*",
         "build/**/*",
         "coverage/**/*",
