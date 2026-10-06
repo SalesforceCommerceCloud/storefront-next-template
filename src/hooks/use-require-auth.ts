@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { useCallback } from 'react';
+import { useLocation } from 'react-router';
 import { useNavigate } from '@/hooks/use-navigate';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/providers/auth';
@@ -23,6 +24,7 @@ import { routes } from '@/route-paths';
 export interface RequireAuthOptions {
     actionName: string;
     getActionParams?: (...args: unknown[]) => Record<string, unknown>;
+    /** Returns an application-relative path without the MRT base path. */
     getReturnUrl?: () => string;
     toastMessage?: string;
 }
@@ -43,7 +45,6 @@ export interface RequireAuthOptions {
  *   {
  *     actionName: 'addToWishlist',
  *     getActionParams: (productId) => ({ productId }),
- *     getReturnUrl: () => window.location.pathname,
  *     toastMessage: 'Sign in to add items to your wishlist'
  *   }
  * );
@@ -56,6 +57,7 @@ export function useRequireAuth<T extends (...args: unknown[]) => Promise<unknown
     const { t } = useTranslation();
     const session = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const { addToast } = useToast();
 
     return useCallback(
@@ -70,7 +72,9 @@ export function useRequireAuth<T extends (...args: unknown[]) => Promise<unknown
 
             // Preserve action metadata - encode in returnUrl (URL-based approach)
             const actionParams = options.getActionParams?.(...args) || {};
-            const baseReturnUrl = options.getReturnUrl?.() || window.location.pathname;
+            // React Router removes its basename from location.pathname, keeping this return target
+            // application-relative so the server can apply the MRT base path exactly once.
+            const baseReturnUrl = options.getReturnUrl?.() || location.pathname;
 
             // Build returnUrl with action params embedded (URL-based approach)
             const returnUrlWithAction = new URL(baseReturnUrl, window.location.origin);
@@ -111,6 +115,6 @@ export function useRequireAuth<T extends (...args: unknown[]) => Promise<unknown
             // Note: This error is internal and won't be displayed to users
             return Promise.reject(new Error('Authentication required'));
         },
-        [session, action, options, navigate, addToast, t]
+        [session, action, options, navigate, location.pathname, addToast, t]
     ) as T;
 }

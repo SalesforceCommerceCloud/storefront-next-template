@@ -284,7 +284,7 @@ function getProductPathSegments(productId: string, slug?: string, slugSegments?:
     const segments = slugSegments ? [...slugSegments] : slug?.trim() ? slug.split('/') : [];
     const finalSegment = segments.at(-1);
     if (finalSegment) {
-        segments[segments.length - 1] = stripHtmlSuffix(finalSegment);
+        segments[segments.length - 1] = finalSegment === productId ? routeProductId : stripHtmlSuffix(finalSegment);
     }
     if (!segments.every(isSafePathSegment)) return [routeProductId];
     if (segments.at(-1) === productId) {

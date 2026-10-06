@@ -122,6 +122,18 @@ describe('SEO URL builders', () => {
         ).toBe('/p/men/knitwear/mens-cotton-hoodie?pid=mens-cotton-hoodie-xs');
     });
 
+    test('preserves a product ID ending in .html when the supplied slug matches it', () => {
+        expect(
+            createProductUrl(
+                {
+                    productId: 'prod-A01.html',
+                    slug: 'prod-A01.html',
+                },
+                { siteId: 'RefArch', seoRoutes }
+            )
+        ).toBe('/p/prod-A01.html.html');
+    });
+
     test('falls back to the authoritative product ID when a slug contains an unsafe path segment', () => {
         for (const slug of ['men/../mens-cotton-hoodie.html', 'men/.html']) {
             expect(createProductUrl({ productId: 'mens-cotton-hoodie', slug }, { siteId: 'RefArch', seoRoutes })).toBe(

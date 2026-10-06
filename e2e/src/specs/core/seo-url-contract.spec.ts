@@ -46,17 +46,23 @@ for (const testCase of canonicalCases) {
 }
 
 Scenario('stale SEO paths converge in one redirect', async () => {
+    // A slug-path category needs an actual Business Manager URL mapping to make a stale slug resolvable.
+    // Config-only CI legs use __NONE__ when no deterministic stale category URL exists in their fixture.
     const redirectCases = [
         {
             name: 'product',
             source: process.env.SEO_TEST_STALE_PRODUCT_PATH || '/p/outdated/25591227M',
             destination: productPath,
         },
-        {
-            name: 'category',
-            source: process.env.SEO_TEST_STALE_CATEGORY_PATH || '/c/outdated/womens',
-            destination: categoryPath,
-        },
+        ...(process.env.SEO_TEST_STALE_CATEGORY_PATH === '__NONE__'
+            ? []
+            : [
+                  {
+                      name: 'category',
+                      source: process.env.SEO_TEST_STALE_CATEGORY_PATH || '/c/outdated/womens',
+                      destination: categoryPath,
+                  },
+              ]),
     ] as const;
 
     for (const testCase of redirectCases) {

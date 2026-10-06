@@ -35,7 +35,7 @@ import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config
 import { getLoginPreferences } from '@/lib/login-preferences.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { updateBasketResource } from '@/middlewares/basket.server';
-import { buildUrlFromContext } from '@/lib/url.server';
+import { buildUrlFromContext, stripMrtBasePathFromUrl } from '@/lib/url.server';
 import { TurnstileWidget } from '@/components/security/turnstile-widget';
 import { getTurnstileSiteKey, getTurnstileMode, isTurnstileEnabled } from '@/lib/turnstile/utils';
 
@@ -99,7 +99,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     const session = getAuth(context);
     const url = new URL(request.url);
     const pageUrl = buildCanonicalUrl(url.origin, url.pathname, url.search);
-    const returnUrl = getSafeReturnUrl(url.searchParams.get('returnUrl'));
+    const returnUrl = stripMrtBasePathFromUrl(getSafeReturnUrl(url.searchParams.get('returnUrl')));
 
     // If user is already logged in as registered user, redirect to returnUrl or home
     const { accessToken, accessTokenExpiry, userType, customerId } = session;
@@ -314,7 +314,7 @@ export async function action({
 
             // Build redirectPath from returnUrl, action, and actionParams for passwordless flow
             const url = new URL(request.url);
-            const returnUrl = getSafeReturnUrl(url.searchParams.get('returnUrl'));
+            const returnUrl = stripMrtBasePathFromUrl(getSafeReturnUrl(url.searchParams.get('returnUrl')));
             const pendingAction = url.searchParams.get('action');
             const actionParams = url.searchParams.get('actionParams');
 
@@ -453,7 +453,7 @@ export async function action({
             // Otherwise fall back to URL query params
             const returnUrlFromForm = formData.get('returnUrl')?.toString()?.trim();
             const returnUrlFromUrl = new URL(request.url).searchParams.get('returnUrl');
-            const returnUrl = getSafeReturnUrl(returnUrlFromForm || returnUrlFromUrl);
+            const returnUrl = stripMrtBasePathFromUrl(getSafeReturnUrl(returnUrlFromForm || returnUrlFromUrl));
 
             // Get action and actionParams to preserve in redirect URL
             const actionFromForm = formData.get('action')?.toString();

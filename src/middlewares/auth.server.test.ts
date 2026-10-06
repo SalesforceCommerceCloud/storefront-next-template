@@ -24,6 +24,7 @@ import type { AppConfig } from '@/types/config';
 import { getSitePrefix, mockAltSiteObject, mockConfig, mockSiteObject } from '@/test-utils/config';
 import { buildMockAccessToken, buildMockTokenResponse } from '@/test-utils/auth';
 import { TrackingConsent } from '@/types/tracking-consent';
+import { getBasePath } from '@/lib/utils';
 import authMiddleware, {
     refreshAccessToken,
     loginGuestUser,
@@ -250,6 +251,7 @@ function getMockRegisteredAuthData(): AuthData {
 describe('auth middleware (server)', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(getBasePath).mockReturnValue('');
 
         // Set required environment variables
         vi.stubEnv('COMMERCE_API_SLAS_SECRET', 'test-secret');
@@ -3276,7 +3278,7 @@ describe('auth middleware (server)', () => {
             expect(mockAuth.loginAsGuest).toHaveBeenCalled();
         });
 
-        it('applies the site/locale prefix to the login redirect path', async () => {
+        it('applies the MRT and site prefixes once during session-expired recovery', async () => {
             // Regression guard for the buildUrlFromContext call: a populated siteContext must
             // produce a prefixed login path (e.g. /RefArchGlobal/en-GB/login), not a bare
             // /login. This exercises the real buildUrlFromContext, so swapping it for a literal
@@ -3289,7 +3291,9 @@ describe('auth middleware (server)', () => {
             mockAuth.refreshToken.mockRejectedValue(new Error('SLAS 400: invalid refresh token'));
             mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
 
-            const requestPath = `${getSitePrefix()}/checkout`;
+            vi.mocked(getBasePath).mockReturnValue('/shop');
+            const returnPath = `${getSitePrefix()}/checkout`;
+            const requestPath = `/shop${returnPath}`;
             const request = new Request(`https://example.com${requestPath}`, {
                 headers: {
                     Cookie: 'cc-nx=registered-refresh-token',
@@ -3326,9 +3330,10 @@ describe('auth middleware (server)', () => {
             expect(response.status).toBe(307);
             const location = response.headers.get('Location');
             // The login path itself carries the prefix - this is what buildUrlFromContext adds.
-            expect(location?.startsWith(`${getSitePrefix()}/login`)).toBe(true);
+            expect(location?.startsWith(`/shop${getSitePrefix()}/login`)).toBe(true);
             expect(location).toContain('error=session_expired');
-            expect(location).toContain(encodeURIComponent(requestPath));
+            expect(location).toContain(encodeURIComponent(returnPath));
+            expect(location).not.toContain(encodeURIComponent(requestPath));
         });
 
         it('should serialize dw_dnt cookie with httpOnly:false for client-side consent banner', async () => {
