@@ -7614,8 +7614,8 @@ packages:
     resolution: {integrity: sha512-vtFqbC3Egl4nVa1FSIrQvMPO6HZtb9lo+3IW7/crdvrLNW2IH8lUsxaK0TsKNmMO2mhFWwqQywLV2CZelqPgwA==}
     hasBin: true
 
-  monocart-locator@1.0.3:
-    resolution: {integrity: sha512-pe29W2XAoA1WQmZZqxXoP7s06ZEXUhcb81086v68cqjk1HnVL7Q/iU/WJnnetxjPcLqwb4qG8vaSGUOMQU602g==}
+  monocart-locator@1.0.5:
+    resolution: {integrity: sha512-ttFw5JoWnpIlecVimqtTBA/HS7rfLtBgrMhyRsA+m6Oafagj5geuBUbzjNouikcT7Xn9UP0qQsc24EJ3d8PrUw==}
 
   morgan@1.11.0:
     resolution: {integrity: sha512-zSkVu3t18r39pw4ixfBKvfZi3y2UOqr7d4WYwcj3m8nXpEQK4rPO6GLzs/CExoRgmX3y9EjmmcXqv6jq0SK46g==}
@@ -18099,9 +18099,9 @@ snapshots:
       istanbul-lib-report: 3.0.1
       istanbul-reports: 3.2.0
       lz-utils: 2.1.1
-      monocart-locator: 1.0.3
+      monocart-locator: 1.0.5
 
-  monocart-locator@1.0.3: {}
+  monocart-locator@1.0.5: {}
 
   morgan@1.11.0:
     dependencies:

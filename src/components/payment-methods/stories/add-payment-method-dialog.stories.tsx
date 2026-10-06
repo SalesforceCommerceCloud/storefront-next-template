@@ -74,7 +74,7 @@ function PlaygroundHarness(args: Partial<SyntheticArgs>) {
     return (
         <>
             <Button onClick={() => setOpen(true)} variant="outline">
-                Add payment method
+                Add Payment Method
             </Button>
             <AddPaymentMethodDialog
                 open={open}

@@ -1159,7 +1159,7 @@
             "subtitle": "Manage your saved payment methods",
             "noSavedPaymentMethods": "No Saved Payment Methods",
             "empty": "Add a payment method to make checkout faster!",
-            "addPaymentMethod": "Add payment method",
+            "addPaymentMethod": "Add Payment Method",
             "setDefault": "Set Default",
             "remove": "Remove",
             "default": "Default",

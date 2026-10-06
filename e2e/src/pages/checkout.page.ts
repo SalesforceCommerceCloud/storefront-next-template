@@ -1888,10 +1888,10 @@ class CheckoutPage {
         // UI fallback when SCAPI config is unavailable (e.g. CI)
         I.amOnPage(buildSitePath('/account/payment-methods'));
         I.waitForElement(locate('h1').withText('Payment Methods'), 15);
-        I.waitForElement(locate('button').withText('Add payment method'), 10);
+        I.waitForElement(locate('button').withText('Add Payment Method'), 10);
 
         for (const payment of payments) {
-            I.click(locate('button').withText('Add payment method'));
+            I.click(locate('button').withText('Add Payment Method'));
             I.waitForElement(locate('[role="dialog"]'), 5);
 
             I.fillField(locate('[role="dialog"] input[name="cardholderName"]'), payment.cardholderName);

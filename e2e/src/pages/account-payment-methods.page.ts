@@ -31,7 +31,7 @@ const { I } = inject();
 class AccountPaymentMethodsPage {
     locators = {
         pageTitle: locate('h1').withText('Payment Methods').as('Page Title'),
-        addPaymentMethodButton: locate('button').withText('Add payment method').as('Add Payment Method Button'),
+        addPaymentMethodButton: locate('button').withText('Add Payment Method').as('Add Payment Method Button'),
         addDialog: locate('[role="dialog"]').as('Add Payment Method Dialog'),
         addDialogTitle: locate('[data-slot="dialog-title"]').withText('Add Payment Method').as('Add Dialog Title'),
         cardholderNameField: locate('[role="dialog"] input[name="cardholderName"]').as('Cardholder Name Field'),
