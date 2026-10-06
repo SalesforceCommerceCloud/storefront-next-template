@@ -1,16 +1,33 @@
 # SCAPI Non-Personalized Responses
 
-SCAPI caches eligible `GET` responses in [a web-tier cache and a CDN cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html). The CDN cache is implicit. The site must have page caching enabled in Business Manager. The two caches then operate automatically.
+SCAPI caches eligible `GET` responses in [a web-tier cache and a CDN cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html). The CDN cache is implicit. With page caching enabled, the two caches operate automatically.
 
 The [`personalized=none` parameter](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html#the-personalizednone-query-parameter) is an explicit instruction. It tells SCAPI to treat the request as non-personalized. SCAPI then skips Shopper Context and suppresses hook personalization, including `setVaryBy`.
 
 SCAPI does not have full knowledge of customer customizations. Hooks, custom fields, custom headers, overrides, and custom APIs can change a response. Thus, use `personalized=none` only when all shoppers can safely receive the same response.
+
+## Prerequisites
+
+To use SCAPI caching with Storefront Next's automatic non-personalized response classification:
+
+1. [Enable page caching in Business Manager](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html#enable-caching) for the site. Classification alone does not enable caching.
+2. Use the October 2026 Storefront Next template (`2026.10.0`) or later. Earlier templates do not include the automatic classification policy described below.
 
 ## Central Classification
 
 Previously, a customer could add `personalized=none` to each SCAPI call. This method puts the safety decision in many call sites. The decisions can be inconsistent or become out of date.
 
 Storefront Next now puts this decision in one [server policy](../src/lib/scapi/non-personalized-response-policy.server.ts). It examines each final SCAPI request. A final request is the request after Storefront Next applies defaults, serializes parameters, and runs its request middleware. The final query is the serialized query in that request. Middleware adds `personalized=none` only when the policy returns `true`.
+
+```mermaid
+flowchart TD
+    A[SCAPI client] --> B[Middleware attached to active clients]
+    B --> C[Customer-owned non-personalized response policy classifier]
+    C -->|true| D["Add personalized=none"]
+    C -->|false| E[Leave request unchanged]
+    D --> F[Outbound SCAPI]
+    E --> F
+```
 
 This classification does not enable caching. It does not select a cache time-to-live. It explicitly tells SCAPI to expect a non-personalized response. SCAPI can still use implicit caching for an eligible request when classification does not add the parameter.
 
@@ -82,7 +99,7 @@ To disable automatic classification, make the policy return `false`. You can als
 
 ## Middleware Ordering
 
-Classification runs after all template request middleware. Thus, it examines the final destination, serialized query, and response-affecting headers.
+The [classification middleware](../src/lib/scapi/non-personalized-response.server.ts) is registered on each active client in [API client setup](../src/lib/api-clients.server.ts). It runs after all template request middleware. Thus, it examines the final destination, serialized query, and response-affecting headers.
 
 Per-call middleware runs after classification. It must not change a response-affecting destination, path, query, or header. Move such changes to template middleware that runs before classification. If this is not possible, leave the request unclassified.
 
