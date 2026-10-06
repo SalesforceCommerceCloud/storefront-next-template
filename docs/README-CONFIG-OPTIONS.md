@@ -1796,7 +1796,7 @@ Set as a single JSON string. Defaults in `config.server.ts` are empty or disable
 | Path                            | Type                                        | Description                                                          |
 | ------------------------------- | ------------------------------------------- | -------------------------------------------------------------------- |
 | `enabled`                       | `string \| boolean`                         | `true` / `'true'` to enable.                                         |
-| `commerceClientScriptSourceUrl` | `string`                                    | Full URL to the Cimulate UMD bundle (must be from a trusted domain). |
+| `commerceClientScriptSourceUrl` | `string`                                    | Full URL to the Cimulate UMD bundle (must be from a trusted domain). Use widget 1.32.0 or newer for identity linking. |
 | `scrt2Url`                      | `string`                                    | SCRT2 URL for your org.                                              |
 | `salesforceOrgId`               | `string`                                    | Salesforce org ID.                                                   |
 | `esDeveloperName`               | `string`                                    | Embedded Service developer name.                                     |
@@ -1808,6 +1808,8 @@ Set as a single JSON string. Defaults in `config.server.ts` are empty or disable
 | `commerceClientTheme`           | `object` (optional)                         | Theme overrides (primaryColor, fontFamily, etc.).                    |
 | `routingAttributes`             | `object` (optional)                         | Routing attributes for agent assignment.                             |
 | `disabledPathPatterns`          | `string[]` (optional)                       | Regex strings. On each navigation the code takes the URL's path (e.g. `/global/en-GB/category/gift-certificates`) and asks each regex "do you match anywhere in this path?" — if any says yes, the widget is hidden. Example: `["/category/gift-certificates(/\|$)"]`. |
+
+Shopper Agent identity linking also requires the server-only `AGENT_MYDOMAIN` environment variable. See `src/components/cimulate/README.md` for the AuthLink and Token Bridge flow.
 
 ---
 

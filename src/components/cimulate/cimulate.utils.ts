@@ -443,7 +443,9 @@ export const CIMULATE_LOAD_EVENT = 'cimulate:load';
 declare global {
     interface Window {
         CimulateMessaging?: {
+            CIMULATE_WIDGET_READY_EVENT?: string;
             injectMessagingWidget: (options: Record<string, unknown>) => void;
+            getAuthLinkKey?: () => Promise<string>;
             eventHandlers?: {
                 components?: {
                     toggleWidgetOpen?: (show: boolean) => void;

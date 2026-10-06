@@ -69,6 +69,8 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | `GUEST_ORDER_LOOKUP_COOKIE_SECRET` | `src/lib/order/session.server.ts` | Signs the guest order lookup state cookie. Required whenever `guestOrderLookup.enabled` is `true` — falls back to `CLIENT_SECRET`, but that's rarely set (only present with private-client SCAPI auth), so set this explicitly. Unset in either var → the feature fails closed with a `CONFIGURATION_ERROR`, not silent breakage. |
 | `MARKETING_CLOUD_CLIENT_ID`, `MARKETING_CLOUD_CLIENT_SECRET`, `MARKETING_CLOUD_AUTH_BASE_URL`, `MARKETING_CLOUD_REST_BASE_URL` | Passwordless login email delivery | Required only when `passwordlessLogin.mode = 'email'` and you ship your own MC tenant. |
 | `SCAPI_PROXY_HOST` | `vite-plugins/env-validation.ts`, `src/middlewares/app-config.server.ts` | Internal-developer-only override (workspace proxy). |
+| `AGENT_MYDOMAIN` | Cimulate Token Bridge | Optional Core My Domain hostname used for Shopper Agent identity linking, for example `example.my.salesforce.com`. Set only when Cimulate identity linking is enabled. |
+| `AGENT_MYDOMAIN_ALLOWED_HOST` | Cimulate Token Bridge | Optional exact-host override for controlled environments whose Core My Domain does not use the public `*.my.salesforce.com` suffix. Must exactly match `AGENT_MYDOMAIN`; no schemes, paths, ports, or wildcards. |
 
 ### Optional `PUBLIC__*` overrides (defaults in `config.server.ts`)
 
@@ -643,9 +645,14 @@ See [README-TURNSTILE.md](./README-TURNSTILE.md) and `e2e/feature-specs/checkout
 # Legacy (deprecated) — still supported for backward compatibility.
 # When both are set, PUBLIC__app__commerce__shopperAgent wins and PUBLIC__app__cimulateAgent is ignored.
 # PUBLIC__app__cimulateAgent='{"enabled":true,"provider":"commerce-client","commerceClientScriptSourceUrl":"https://...","scrt2Url":"https://...","salesforceOrgId":"...","esDeveloperName":"..."}'
+
+# AGENT_MYDOMAIN=example.internal.salesforce.com
+# AGENT_MYDOMAIN_ALLOWED_HOST=example.internal.salesforce.com
 ```
 
 Set as a single JSON string. Required fields: `enabled`, `commerceClientScriptSourceUrl`, `scrt2Url`, `salesforceOrgId`, `esDeveloperName`. Today the widget is provided by Cimulate (`provider: 'commerce-client'`); the top-level naming leaves room for other agent implementations in the future. Optional `cc_`-prefixed keys (e.g. `cc_widgetPosition`, `cc_isOpen`, `cc_capabilitiesVersion`, `cc_enableDownloadTranscript`, `cc_progressStepsLimit`) tune the widget; some have defaults and the rest fall back to the widget's own default. See `src/components/cimulate/README.md` for the full list and setup.
+Identity linking requires Commerce Client widget 1.32.0 or newer and the server-only `AGENT_MYDOMAIN`. The browser sends only a single-use AuthLink key to the storefront; SLAS tokens remain in server auth context. See `src/components/cimulate/README.md` for setup.
+
 
 ### Cookie domain
 

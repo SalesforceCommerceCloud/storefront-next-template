@@ -15,12 +15,16 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { linkCimulateIdentity } from './cimulate-identity-link';
 import { buildMessagingWidgetOptions, flushPendingCimulateActions, type CimulateConfig } from './cimulate.utils';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger();
 
 let globalInjected = false;
+
+const MAX_IDENTITY_LINK_ATTEMPTS = 2;
+const DEFAULT_IDENTITY_LINK_RETRY_MS = 1000;
 
 interface CimulateWindowProps {
     config: CimulateConfig;
@@ -33,6 +37,7 @@ interface CimulateWindowProps {
 export function CimulateWindow({ config }: CimulateWindowProps) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     const hasInjectedRef = useRef(false);
+    const identityLinkStartedRef = useRef(false);
 
     const { commerceClientScriptSourceUrl } = config;
 
@@ -70,21 +75,60 @@ export function CimulateWindow({ config }: CimulateWindowProps) {
         document.body.appendChild(script);
     }, [commerceClientScriptSourceUrl]);
 
-    // Inject the widget once the bundle is loaded
+    // Link only after the SDK signals that a fresh conversation is connected.
     useEffect(() => {
-        if (!scriptLoaded || hasInjectedRef.current || globalInjected) return;
+        if (!scriptLoaded) return;
 
-        try {
-            const commerceClient = window.CimulateMessaging;
-            if (!commerceClient || typeof commerceClient.injectMessagingWidget !== 'function') {
-                logger.error('CimulateMessaging bundle loaded but injectMessagingWidget not available');
+        const commerceClient = window.CimulateMessaging;
+        const readyEvent = commerceClient?.CIMULATE_WIDGET_READY_EVENT;
+        let disposed = false;
+        let retryTimer: number | undefined;
+
+        const attemptIdentityLink = async (attempt: number): Promise<void> => {
+            const result = await linkCimulateIdentity();
+            if (disposed || result.success) return;
+
+            if (result.error.retryable && attempt < MAX_IDENTITY_LINK_ATTEMPTS) {
+                const retryDelay =
+                    result.error.retryAfterSeconds === undefined
+                        ? DEFAULT_IDENTITY_LINK_RETRY_MS
+                        : result.error.retryAfterSeconds * 1000;
+                retryTimer = window.setTimeout(() => void attemptIdentityLink(attempt + 1), retryDelay);
                 return;
             }
 
-            commerceClient.injectMessagingWidget(widgetOptions as unknown as Record<string, unknown>);
-            hasInjectedRef.current = true;
-            globalInjected = true;
-            flushPendingCimulateActions();
+            logger.error('Cimulate identity linking failed', { code: result.error.code });
+        };
+
+        const handleWidgetReady = (): void => {
+            if (identityLinkStartedRef.current) return;
+            identityLinkStartedRef.current = true;
+            void attemptIdentityLink(1);
+        };
+
+        if (readyEvent) window.addEventListener(readyEvent, handleWidgetReady);
+
+        return () => {
+            disposed = true;
+            if (retryTimer !== undefined) window.clearTimeout(retryTimer);
+            if (readyEvent) window.removeEventListener(readyEvent, handleWidgetReady);
+        };
+    }, [scriptLoaded]);
+
+    // Inject the widget once the bundle is loaded.
+    useEffect(() => {
+        if (!scriptLoaded || hasInjectedRef.current || globalInjected) return;
+
+        const commerceClient = window.CimulateMessaging;
+        try {
+            if (!commerceClient || typeof commerceClient.injectMessagingWidget !== 'function') {
+                logger.error('CimulateMessaging bundle loaded but injectMessagingWidget not available');
+            } else {
+                commerceClient.injectMessagingWidget(widgetOptions as unknown as Record<string, unknown>);
+                hasInjectedRef.current = true;
+                globalInjected = true;
+                flushPendingCimulateActions();
+            }
         } catch (error) {
             logger.error('Error injecting Cimulate messaging widget', { error });
         }

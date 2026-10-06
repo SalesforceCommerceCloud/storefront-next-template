@@ -100,14 +100,21 @@ To disable multiple pages, add more patterns:
 ]
 ```
 
+Use Commerce Client widget version 1.32.0 or newer. Identity linking relies on its public `window.CimulateMessaging.getAuthLinkKey()` API.
+
+To enable the server-side Token Bridge, also set `AGENT_MYDOMAIN` to the Core My Domain hostname, for example `example.my.salesforce.com`. This optional feature variable is server-only and must not use the `PUBLIC__` prefix.
+
+Controlled environments that use a non-public Core domain can also set `AGENT_MYDOMAIN_ALLOWED_HOST` to the exact hostname in `AGENT_MYDOMAIN`. This server-only override does not accept schemes, ports, paths, or wildcards.
+
 ## Usage
 
 - **Root layout** — `<CimulateAgent />` mounts when the resolved shopper-agent config's `enabled` is truthy. The resolver `resolveShopperAgentConfig(appConfig)` from `@/components/cimulate` returns `config.commerce.shopperAgent` when populated, else the legacy `config.cimulateAgent`. No extra wiring needed.
 - **Open widget programmatically** — `openCimulateWidget()`, provider-aware `openAgentWidget()`, or `openAgentWidgetAndSendMessage()` from `@/components/cimulate`.
+- **Identity linking** — On the widget-ready event for the first fresh conversation in a widget mount, `linkCimulateIdentity()` obtains a single-use AuthLink key from the widget SDK, then sends only that key to the same-origin Token Bridge route. The route reads SLAS tokens from the server auth context and forwards them to Core. One retryable failure gets a bounded full-flow retry with a newly minted key. Later new or resumed conversations and shopper identity changes require separate lifecycle handling.
 
 ## Security
 
-The script URL is validated against trusted domains (`*.cimulate.ai`, `*.sfcc-store-internal.net`). CSP origins are contributed dynamically via `src/middlewares/csp-contributors/cimulate.ts`.
+The script URL is validated against trusted domains (`*.cimulate.ai`, `*.sfcc-store-internal.net`). CSP origins are contributed dynamically via `src/middlewares/csp-contributors/cimulate.ts`. SLAS access and refresh tokens remain server-only and are never accepted from the browser by the Token Bridge route.
 
 ## Deprecation of Existing Shopper Agent
 
