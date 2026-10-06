@@ -41,7 +41,7 @@ function buildSlides(count: number, longCopy: boolean): HeroSlide[] {
         'Early access perks',
     ];
     const ctas = ['Shop Now', 'Explore', 'Shop Deals', 'Discover Gear', 'Sign in'];
-    const ctaLinks = ['/category/all', '/category/new', '/category/sale', '/category/outdoors', '/account'];
+    const ctaLinks = ['/c/all', '/c/new', '/c/sale', '/c/outdoors', '/account'];
 
     const longHeadline =
         'A Substantially Longer Editorial Headline That Tests How the Carousel Slide Handles Multi-Line Authored Content Across Responsive Breakpoints';

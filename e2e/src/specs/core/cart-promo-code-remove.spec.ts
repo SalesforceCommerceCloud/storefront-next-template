@@ -26,7 +26,7 @@ Feature('Cart Promo Code Remove').tag('@core').tag('@cart').tag('@promo-code');
 const { storefrontPage, productDetailPage, cartPage } = inject();
 import { expect } from 'chai';
 
-const PRODUCT_PATH = '/product/25752235M?color=YELLOSI&pid=682875540326M';
+const PRODUCT_PATH = '/p/25752235M?color=YELLOSI&pid=682875540326M';
 const COUPON_CODE = '5ties';
 
 Before(async () => {

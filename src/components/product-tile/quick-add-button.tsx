@@ -15,13 +15,15 @@
  */
 import { lazy, Suspense, useState, useCallback, type MouseEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { createProductUrl } from '@/lib/product/product-utils';
+import { createProductUrlFromAttributes } from '@/lib/product/product-utils';
 import { useDeferredUnmount } from '@/hooks/use-deferred-unmount';
 import { useProductTileContext } from './context';
 
 interface QuickAddButtonProps {
     productId: string;
     productName: string;
+    /** Authoritative product slug returned by SCAPI, when available. */
+    productSlug?: string;
     /** Currently selected color value — pre-seeds the PDP URL when "Buy It Now" is clicked */
     selectedColorValue?: string | null;
     /**
@@ -47,6 +49,7 @@ const CartItemModal = lazy(() =>
 export function QuickAddButton({
     productId,
     productName,
+    productSlug,
     selectedColorValue,
     initialVariantSelections,
     label,
@@ -55,14 +58,19 @@ export function QuickAddButton({
     // Keep the modal subtree mounted while open, then unmount shortly after close so its
     // Radix exit animation plays and its SCAPI fetchers deregister from the registry.
     const mounted = useDeferredUnmount(open);
-    const { navigate, t } = useProductTileContext();
+    const { navigate, t, seoUrlContext } = useProductTileContext();
 
     const resolvedLabel = label ?? t('quickAdd');
 
     const handleBuyItNow = useCallback(() => {
         setOpen(false);
-        void navigate(createProductUrl(productId, selectedColorValue ?? null, 'color'));
-    }, [navigate, productId, selectedColorValue]);
+        void navigate(
+            createProductUrlFromAttributes(productId, selectedColorValue ?? null, 'color', null, {
+                context: seoUrlContext,
+                slug: productSlug,
+            })
+        );
+    }, [navigate, productId, productSlug, selectedColorValue, seoUrlContext]);
     const handleOpenModal = useCallback((e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         setOpen(true);

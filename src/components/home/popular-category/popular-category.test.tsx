@@ -21,6 +21,7 @@ import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { mockConfig, getSitePrefix, mockSiteObject } from '@/test-utils/config';
 import { SiteProvider, type Site } from '@salesforce/storefront-next-runtime/site-context';
 import type { ShopperProducts } from '@/scapi';
+import type { AppConfig } from '@/types/config';
 
 // Mock decorators (minimal mocking to avoid testing them)
 vi.mock('@/lib/decorators/component', async (importOriginal) => {
@@ -67,16 +68,29 @@ const mockCategory: ShopperProducts.schemas['Category'] = {
 
 const mockSite: Site = mockSiteObject;
 
+const slugPathConfig: AppConfig = {
+    ...mockConfig,
+    url: {
+        ...mockConfig.url,
+        seoRoutes: {
+            [mockSite.id]: {
+                product: { prefix: 'p' },
+                category: { prefix: 'catalog', mode: 'slug-path' },
+            },
+        },
+    },
+};
+
 const mockLocale =
     mockSite.supportedLocales.find((l) => l.id === mockSite.defaultLocale) ?? mockSite.supportedLocales[0];
 
-const renderComponent = (component: React.ReactElement) => {
+const renderComponent = (component: React.ReactElement, config: AppConfig = mockConfig) => {
     const router = createMemoryRouter(
         [
             {
                 path: '/',
                 element: (
-                    <ConfigProvider config={mockConfig}>
+                    <ConfigProvider config={config}>
                         <SiteProvider
                             site={mockSite}
                             locale={mockLocale}
@@ -107,7 +121,7 @@ describe('PopularCategory', () => {
         expect(screen.getByText('Shop Now')).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /new arrivals/i })).toHaveAttribute(
             'href',
-            `${getSitePrefix()}/category/newarrivals`
+            `${getSitePrefix()}/c/newarrivals`
         );
     });
 
@@ -204,7 +218,23 @@ describe('PopularCategory', () => {
         renderComponent(<PopularCategory data={mockCategory} />);
 
         const link = screen.getByRole('link', { name: /new arrivals/i });
-        expect(link).toHaveAttribute('href', `${getSitePrefix()}/category/newarrivals`);
+        expect(link).toHaveAttribute('href', `${getSitePrefix()}/c/newarrivals`);
+    });
+
+    test('uses the complete authoritative category slug in slug-path mode', () => {
+        renderComponent(<PopularCategory data={{ ...mockCategory, slug: 'new/women/arrivals' }} />, slugPathConfig);
+
+        expect(screen.getByRole('link', { name: /new arrivals/i })).toHaveAttribute(
+            'href',
+            `${getSitePrefix()}/catalog/new/women/arrivals`
+        );
+    });
+
+    test('does not render an enabled card link when slug-path data has no slug', () => {
+        renderComponent(<PopularCategory data={mockCategory} />, slugPathConfig);
+
+        expect(screen.getByText('New Arrivals')).toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: /new arrivals/i })).not.toBeInTheDocument();
     });
 
     test('can fill a parent grid cell without changing the default square media layout', () => {
@@ -232,7 +262,7 @@ describe('PopularCategory', () => {
         renderComponent(<PopularCategory data={categoryWithEmptyId} />);
 
         const link = screen.getByRole('link', { name: /new arrivals/i });
-        expect(link).toHaveAttribute('href', `${getSitePrefix()}/category/`);
+        expect(link).toHaveAttribute('href', `${getSitePrefix()}/c/`);
     });
 
     test('handles category with empty name', () => {

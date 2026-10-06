@@ -79,9 +79,9 @@ export function getLastFourDigits(maskedNumber: string | undefined, numberLastDi
 }
 
 /**
- * Gets a display-friendly card type from the payment instrument
- * @param paymentInstrument - Payment instrument from basket or order
- * @returns Card type (e.g., "Visa", "Mastercard") or default fallback
+ * Gets a display-friendly card type from the payment instrument.
+ * Display-only — never write these labels into SCAPI payment payloads.
+ * Business Manager cardType ids must be passed through unchanged on the wire.
  */
 export function getCardTypeDisplay(
     paymentInstrument:
@@ -98,11 +98,11 @@ export function getCardTypeDisplay(
     const cardType = paymentInstrument.paymentCard?.cardType || paymentInstrument.paymentMethodId;
 
     if (cardType) {
-        // Normalize common card type values
-        const normalizedType = cardType.toLowerCase();
+        // Normalize common card type values for UI labels only
+        const normalizedType = cardType.toLowerCase().replace(/[_\s-]+/g, '');
 
         if (normalizedType.includes('visa')) return 'Visa';
-        if (normalizedType.includes('mastercard') || normalizedType.includes('master')) return 'Mastercard';
+        if (normalizedType.includes('mastercard') || normalizedType === 'master') return 'Mastercard';
         if (normalizedType.includes('amex') || normalizedType.includes('american')) return 'American Express';
         if (normalizedType.includes('discover')) return 'Discover';
         if (normalizedType.includes('diners')) return 'Diners Club';
@@ -117,27 +117,11 @@ export function getCardTypeDisplay(
 }
 
 /**
- * Normalizes a card type string to the SFCC-expected capitalization.
- * SFCC Business Manager configures card types; capitalization must match exactly.
+ * Detects a card brand from a PAN using standard BIN ranges.
+ * Used only when the shopper enters a new card and Commerce has no cardType yet
+ * (e.g. BASIC_CREDIT demo). Prefer exact Business Manager ids when known.
  * Common BM values: Visa, MasterCard, Amex, Discover, DinersClub, JCB, UnionPay.
- */
-export function normalizeCardType(cardType: string | undefined): string | undefined {
-    if (!cardType) return undefined;
-    const lower = cardType.toLowerCase().replace(/[_\s-]+/g, '');
-    if (lower === 'visa') return 'Visa';
-    if (lower === 'mastercard' || lower === 'master') return 'Master Card';
-    if (lower === 'amex' || lower === 'americanexpress') return 'Amex';
-    if (lower === 'discover') return 'Discover';
-    if (lower === 'dinersclub' || lower === 'diners') return 'DinersClub';
-    if (lower === 'jcb') return 'JCB';
-    if (lower === 'unionpay') return 'UnionPay';
-    return cardType;
-}
-
-/**
- * Detects the card type from a card number using standard BIN (Bank Identification Number) ranges
- * @param cardNumber - Card number (with or without spaces/dashes)
- * @returns Detected card type
+ * Do not remap Commerce-returned cardType strings — pass those through as-is.
  */
 export function detectCardType(cardNumber: string): string {
     if (!cardNumber) {
@@ -152,19 +136,19 @@ export function detectCardType(cardNumber: string): string {
         return 'Visa';
     }
 
-    // Mastercard: starts with 5[1-5] or 2[2-7], length 16
+    // MasterCard: starts with 5[1-5] or 2[2-7], length 16 (BM id, not "Master Card")
     if ((/^5[1-5]/.test(cleanNumber) || /^2[2-7]/.test(cleanNumber)) && cleanNumber.length === 16) {
-        return 'Mastercard';
+        return 'MasterCard';
     }
 
-    // American Express: starts with 34 or 37, length 15
+    // Amex: starts with 34 or 37, length 15 (common BM id)
     if (/^3[47]/.test(cleanNumber) && cleanNumber.length === 15) {
-        return 'American Express';
+        return 'Amex';
     }
 
-    // Diners Club: starts with 30[0-5], 36, or 38, length 14 (check before other 3x)
+    // DinersClub: starts with 30[0-5], 36, or 38, length 14 (check before other 3x)
     if ((/^30[0-5]/.test(cleanNumber) || /^3[68]/.test(cleanNumber)) && cleanNumber.length === 14) {
-        return 'Diners Club';
+        return 'DinersClub';
     }
 
     // JCB: starts with 35, length 16
@@ -222,4 +206,119 @@ export function hasValidPaymentCard(
     );
 
     return hasCardNumber;
+}
+
+export type ApplicableCardSpec = {
+    cardType?: string;
+    numberPrefixes?: string[];
+    numberLengths?: string[];
+};
+
+export type ApplicablePaymentMethodSpec = {
+    id?: string;
+    paymentProcessorId?: string;
+    cards?: ApplicableCardSpec[];
+};
+
+/**
+ * Match a PAN against Business Manager card specs from GET basket payment-methods.
+ * Returns the exact `cardType` id Commerce expects (e.g. "Master Card" or "MasterCard").
+ * Never invents a BM id — if nothing matches, returns undefined.
+ */
+export function resolveCardTypeFromCatalog(
+    cardNumber: string,
+    cards: ApplicableCardSpec[] | undefined
+): string | undefined {
+    if (!cardNumber || !cards?.length) {
+        return undefined;
+    }
+
+    const digits = cardNumber.replace(/\D/g, '');
+    if (!digits) {
+        return undefined;
+    }
+
+    for (const card of cards) {
+        if (!card.cardType || !card.numberPrefixes?.length) {
+            continue;
+        }
+
+        if (card.numberLengths?.length) {
+            const allowed = card.numberLengths.map((len) => Number(len));
+            if (!allowed.includes(digits.length)) {
+                continue;
+            }
+        }
+
+        if (card.numberPrefixes.some((prefix) => matchesNumberPrefix(digits, prefix))) {
+            return card.cardType;
+        }
+    }
+
+    return undefined;
+}
+
+/**
+ * Pick the applicable payment method whose BM card catalog matches this PAN.
+ * Prefers CREDIT_CARD / BASIC_CREDIT (OOTB), then any method that has matching cards[].
+ * Returns that method's id plus the exact catalog cardType — never invents either.
+ */
+export function resolveCardPaymentFromApplicableMethods(
+    cardNumber: string,
+    methods: ApplicablePaymentMethodSpec[] | undefined
+): { paymentMethodId: string; cardType: string } | undefined {
+    if (!cardNumber || !methods?.length) {
+        return undefined;
+    }
+
+    const withCards = methods.filter((method) => method.id && method.cards?.length);
+    if (!withCards.length) {
+        return undefined;
+    }
+
+    const isPreferredCreditCard = (method: ApplicablePaymentMethodSpec) =>
+        method.id === 'CREDIT_CARD' || method.paymentProcessorId === 'BASIC_CREDIT';
+
+    const ordered = [
+        ...withCards.filter(isPreferredCreditCard),
+        ...withCards.filter((method) => !isPreferredCreditCard(method)),
+    ];
+
+    for (const method of ordered) {
+        const cardType = resolveCardTypeFromCatalog(cardNumber, method.cards);
+        if (cardType && method.id) {
+            return { paymentMethodId: method.id, cardType };
+        }
+    }
+
+    return undefined;
+}
+
+/** Supports exact prefixes ("4", "6011") and inclusive ranges ("51-55", "644-649"). */
+function matchesNumberPrefix(cardDigits: string, prefixSpec: string): boolean {
+    const spec = prefixSpec.trim();
+    if (!spec) {
+        return false;
+    }
+
+    if (spec.includes('-')) {
+        const [startRaw, endRaw] = spec.split('-', 2);
+        if (!startRaw || !endRaw || startRaw.length !== endRaw.length) {
+            return false;
+        }
+        const width = startRaw.length;
+        if (cardDigits.length < width) {
+            return false;
+        }
+        const slice = cardDigits.slice(0, width);
+        const start = Number(startRaw);
+        const end = Number(endRaw);
+        const value = Number(slice);
+        if (Number.isNaN(start) || Number.isNaN(end) || Number.isNaN(value)) {
+            return false;
+        }
+        return value >= start && value <= end;
+    }
+
+    return cardDigits.startsWith(spec);
 }

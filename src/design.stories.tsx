@@ -15,17 +15,60 @@
  */
 import type { StoryObj } from '@storybook/react-vite';
 import React from 'react';
+import { expect, waitFor, within } from 'storybook/test';
 import {
     PageDesignerProvider,
     PageDesignerPageMetadataProvider,
     createReactComponentDesignDecorator,
+    type PageUpdateMode,
 } from '@salesforce/storefront-next-runtime/design/react/core';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
+import type { HostApi, HostToClientConfiguration } from '@salesforce/storefront-next-runtime/design/messaging';
+import { ConfigProvider, useConfig } from '@salesforce/storefront-next-runtime/config';
 import { PageDesignerInit } from '@/page-designer-init';
 import { PageDesignerHostProvider } from '@/test-utils/page-designer-host-provider';
 import { RegionWrapper } from '@/components/region/region-wrapper';
+import { Region, type ComponentType } from '@/components/region';
+import { registry } from '@/lib/page-designer/registry';
 import type { ShopperExperience } from '@/scapi';
-import type { ComponentType } from '@/components/region';
+
+/**
+ * Enables the per-component render-count badge. Only the LivePropertyEditing
+ * story turns this on, so every other story renders PlaceholderComponent exactly
+ * as before (no badge, no behavioral change).
+ */
+const ShowRenderCountContext = React.createContext(false);
+
+/**
+ * Small badge showing how many times the enclosing component has rendered.
+ *
+ * The counter lives in a ref bumped in the render body, so it reflects real
+ * renders. It's the visible proof of subtree-scoped re-rendering: editing one
+ * component's live properties bumps only that component's count, while its
+ * siblings stay put.
+ */
+function RenderCountBadge() {
+    const renderCount = React.useRef(0);
+    renderCount.current += 1;
+
+    return (
+        <span
+            data-testid="render-count-badge"
+            style={{
+                display: 'inline-block',
+                marginLeft: '0.5rem',
+                padding: '0.125rem 0.5rem',
+                fontSize: '0.6875rem',
+                fontWeight: 600,
+                color: '#fff',
+                backgroundColor: '#0b5cff',
+                borderRadius: '999px',
+                verticalAlign: 'middle',
+            }}>
+            renders: {renderCount.current}
+        </span>
+    );
+}
 
 /**
  * Simple placeholder component for demonstration purposes
@@ -43,6 +86,7 @@ function PlaceholderComponent({
     flushAxis?: 'x' | 'y';
     children?: React.ReactNode;
 }) {
+    const showRenderCount = React.useContext(ShowRenderCountContext);
     const padding = flushAxis === 'x' ? '1rem 0' : flushAxis === 'y' ? '0 1rem' : '1rem';
     const inlinePad = flushAxis === 'x' ? '0 1rem' : undefined;
 
@@ -63,6 +107,7 @@ function PlaceholderComponent({
                     padding: inlinePad,
                 }}>
                 {title}
+                {showRenderCount && <RenderCountBadge />}
             </h3>
             {description && (
                 <p
@@ -810,9 +855,176 @@ function DesignLayerStory({
 type DesignMode = 'design' | 'preview' | 'none';
 
 /**
- * Decorator component that sets URL search param for mode detection
+ * Collects every component id in a page (including nested regions), in
+ * document order, so the story can offer them as targets for live edits.
  */
-function ModeDecorator({ Story, mode }: { Story: React.ComponentType; mode: DesignMode }) {
+function collectComponentIds(page: ShopperExperience.schemas['Page']): string[] {
+    const ids: string[] = [];
+    const walkRegions = (regions: ShopperExperience.schemas['Region'][] | undefined) => {
+        for (const region of regions ?? []) {
+            for (const component of region.components ?? []) {
+                ids.push(component.id);
+                walkRegions((component as { regions?: ShopperExperience.schemas['Region'][] }).regions);
+            }
+        }
+    };
+    walkRegions(page.regions);
+    return ids;
+}
+
+/**
+ * In-canvas editor for the live-preview flow.
+ *
+ * The panel owns its own state, so typing re-renders ONLY the panel — never the
+ * page tree, which is a sibling. Each edit calls `setComponentProperties` on the
+ * test host (`window.PageDesignerHost`, exposed by `PageDesignerHostProvider
+ * expose={true}` in `ModeDecorator`), which emits `ComponentPropertiesChanged`
+ * to the client. The SDK merges the delta and re-renders only the target
+ * component's subtree — the "renders: N" badge on that component ticks up while
+ * every sibling badge stays put. Driving this from Storybook args instead would
+ * re-run the story's `render(args)` on every keystroke and rebuild the whole
+ * page, which is exactly what this flow is meant to avoid.
+ *
+ * The host's messenger buffers emits until the client handshake completes, so an
+ * edit fired before the client is ready is queued and delivered on connect.
+ *
+ * Only non-empty values are sent. Like the real SDK, merges are additive:
+ * clearing a field leaves the last applied value in place rather than reverting
+ * to the base prop, and each component retains its own edits.
+ */
+function LivePropertyPanel({ componentIds }: { componentIds: string[] }) {
+    const [targetComponentId, setTargetComponentId] = React.useState(componentIds[0] ?? '');
+    const [title, setTitle] = React.useState('');
+    const [description, setDescription] = React.useState('');
+
+    React.useEffect(() => {
+        if (!targetComponentId || typeof window === 'undefined') {
+            return;
+        }
+
+        const host = (window as unknown as { PageDesignerHost?: HostApi }).PageDesignerHost;
+        if (!host) {
+            return;
+        }
+
+        const properties: Record<string, unknown> = {};
+        if (title) {
+            properties.title = title;
+        }
+        if (description) {
+            properties.description = description;
+        }
+
+        if (Object.keys(properties).length === 0) {
+            return;
+        }
+
+        host.setComponentProperties({ componentId: targetComponentId, properties });
+    }, [targetComponentId, title, description]);
+
+    const fieldStyle: React.CSSProperties = {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.25rem',
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        color: '#333',
+    };
+    const inputStyle: React.CSSProperties = {
+        padding: '0.375rem 0.5rem',
+        fontSize: '0.875rem',
+        fontWeight: 400,
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        minWidth: '16rem',
+    };
+
+    return (
+        <div
+            style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                alignItems: 'flex-end',
+                padding: '1rem',
+                marginBottom: '1rem',
+                border: '1px solid #0b5cff',
+                borderRadius: '8px',
+                backgroundColor: '#f0f5ff',
+            }}>
+            <strong style={{ flexBasis: '100%', fontSize: '0.875rem', color: '#0b5cff' }}>Live Preview Controls</strong>
+            <label style={fieldStyle}>
+                Component
+                <select
+                    style={inputStyle}
+                    value={targetComponentId}
+                    onChange={(event) => setTargetComponentId(event.target.value)}>
+                    {componentIds.map((id) => (
+                        <option key={id} value={id}>
+                            {id}
+                        </option>
+                    ))}
+                </select>
+            </label>
+            <label style={fieldStyle}>
+                title
+                <input
+                    style={inputStyle}
+                    type="text"
+                    value={title}
+                    placeholder="Type to edit title live…"
+                    onChange={(event) => setTitle(event.target.value)}
+                />
+            </label>
+            <label style={fieldStyle}>
+                description
+                <input
+                    style={inputStyle}
+                    type="text"
+                    value={description}
+                    placeholder="Type to edit description live…"
+                    onChange={(event) => setDescription(event.target.value)}
+                />
+            </label>
+        </div>
+    );
+}
+
+/**
+ * Empty host configuration the test host acknowledges on connect. Stories seed
+ * their own page through `<Region page={...}>`, so the connect-time config
+ * carries no `page` — `pageDesignerConfig.page` stays undefined and `<Region>`
+ * falls through to its `page` prop. The LivePageSwitching story later pushes a
+ * populated config (with `page`) via `host.setClientConfiguration(...)`.
+ */
+const EMPTY_HOST_CONFIGURATION: HostToClientConfiguration = {
+    components: {},
+    componentTypes: {},
+    labels: {},
+    regions: {},
+};
+
+/**
+ * Decorator component that sets URL search param for mode detection.
+ *
+ * `pageUpdateMode` maps to the `PageDesignerProvider` prop of the same name:
+ * - 'server' (default) — page updates arrive as fresh loader data on reload.
+ * - 'client' — the SDK subscribes to `ClientConfigurationChanged` and swaps the
+ *   live page in-place without a route change. The LivePageSwitching story relies
+ *   on this.
+ */
+function ModeDecorator({
+    Story,
+    mode,
+    pageUpdateMode = 'server',
+}: {
+    Story: React.ComponentType;
+    mode: DesignMode;
+    pageUpdateMode?: PageUpdateMode;
+}) {
     const [currentMode, setCurrentMode] = React.useState<string | null>(null);
 
     if (currentMode !== mode) {
@@ -840,9 +1052,13 @@ function ModeDecorator({ Story, mode }: { Story: React.ComponentType; mode: Desi
     };
 
     return (
-        <PageDesignerProvider clientId="storybook-client" targetOrigin="*" clientLogger={clientLogger}>
+        <PageDesignerProvider
+            clientId="storybook-client"
+            targetOrigin="*"
+            pageUpdateMode={pageUpdateMode}
+            clientLogger={clientLogger}>
             <PageDesignerInit />
-            <PageDesignerHostProvider expose={true} logEvents={true} />
+            <PageDesignerHostProvider expose={true} logEvents={true} configuration={EMPTY_HOST_CONFIGURATION} />
             <Story />
         </PageDesignerProvider>
     );
@@ -886,6 +1102,16 @@ Use the \`designMode\` parameter to control the mode:
                 defaultValue: { summary: 'design' },
             },
         },
+        pageUpdateMode: {
+            control: 'select',
+            options: ['server', 'client'],
+            description:
+                'Page-update behavior passed to PageDesignerProvider. `client` lets the SDK swap page data in-place on `ClientConfigurationChanged` without a route change; `server` expects a reload. Only the LivePageSwitching story depends on `client`.',
+            table: {
+                category: 'Page Designer',
+                defaultValue: { summary: 'server' },
+            },
+        },
         pageFactory: {
             control: 'select',
             options: ['default', 'empty', 'singleRegion', 'multipleRegions', 'nestedRegions'],
@@ -921,9 +1147,13 @@ Use the \`designMode\` parameter to control the mode:
         },
     },
     decorators: [
-        (Story: React.ComponentType, context: { args?: { designMode?: DesignMode } }) => {
-            const mode = ((context.args as { designMode?: DesignMode })?.designMode as DesignMode) || 'design';
-            return <ModeDecorator Story={Story} mode={mode} />;
+        (
+            Story: React.ComponentType,
+            context: { args?: { designMode?: DesignMode; pageUpdateMode?: PageUpdateMode } }
+        ) => {
+            const mode = (context.args?.designMode as DesignMode) || 'design';
+            const pageUpdateMode = context.args?.pageUpdateMode ?? 'server';
+            return <ModeDecorator Story={Story} mode={mode} pageUpdateMode={pageUpdateMode} />;
         },
     ],
     tags: ['autodocs', 'skip-a11y'],
@@ -932,6 +1162,7 @@ Use the \`designMode\` parameter to control the mode:
 export default meta;
 type StoryArgs = {
     designMode?: DesignMode;
+    pageUpdateMode?: PageUpdateMode;
     pageFactory?: PageFactoryKey;
     title?: string;
     description?: string;
@@ -1147,5 +1378,279 @@ export const NoMode: Story = {
                 story: 'Shows the page without any design mode active. No mode parameter is added to the URL.',
             },
         },
+    },
+};
+
+/**
+ * Component ids of the default page, offered as targets for the live editor.
+ */
+const defaultPageComponentIds = collectComponentIds(pageFactories.default(true));
+
+export const LivePropertyEditing: Story = {
+    args: {
+        designMode: 'design',
+        pageFactory: 'default',
+        title: 'Live Property Editing',
+        description:
+            'Edit a component’s properties live from the in-canvas panel and watch only its subtree re-render. Pick a target component, then type a new title or description — the values are pushed to the test host, which emits ComponentPropertiesChanged to the client. The per-component "renders: N" badge shows that only the edited component re-renders while its siblings stay put. The panel owns its own state, so typing never re-renders the page tree.',
+        componentLocalized: true,
+    },
+    render: (args: StoryArgs) => {
+        const pageData = pageFactories.default(args.componentLocalized ?? true);
+        return (
+            <ShowRenderCountContext.Provider value={true}>
+                <div style={{ padding: '2rem 2rem 0', maxWidth: '1200px', margin: '0 auto' }}>
+                    <LivePropertyPanel componentIds={defaultPageComponentIds} />
+                </div>
+                <DesignLayerStory
+                    pageData={pageData}
+                    title={args.title || 'Live Property Editing'}
+                    description={args.description}
+                />
+            </ShowRenderCountContext.Provider>
+        );
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Exercises the full live-preview flow entirely in the canvas: the panel calls `host.setComponentProperties`, the client consumes `ComponentPropertiesChanged`, and only the target component re-renders with merged props — the page tree is never re-rendered. Merges are additive — clearing a field leaves the last applied value rather than reverting to the base prop.',
+            },
+        },
+    },
+};
+
+/**
+ * Component type id used by the live-page-switching layouts. The real `<Region>`
+ * render path resolves every component through the shared `registry`, so the
+ * layouts below can only render if this type is registered.
+ */
+const LIVE_PREVIEW_TYPE_ID = 'StoryPreview.card';
+
+/**
+ * A minimal leaf component for the live-page-switching layouts.
+ *
+ * `<Region>` renders each component by looking its `typeId` up in the registry,
+ * so a story that renders through the real component cannot reuse the local
+ * `PlaceholderComponent` — it must register a real component under a type id.
+ * `component.data` is spread onto these props by the SDK decorator, so the
+ * `title` authored in the page fixture arrives here as a prop.
+ */
+function LivePreviewCard({ title, tone = '#0b5cff' }: { title?: string; tone?: string }) {
+    return (
+        <div
+            data-testid="live-preview-card"
+            style={{
+                padding: '1.25rem',
+                border: `2px solid ${tone}`,
+                borderRadius: '8px',
+                backgroundColor: '#fff',
+                marginBottom: '1rem',
+            }}>
+            <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: tone }}>{title}</h3>
+        </div>
+    );
+}
+
+// Register the leaf component once, at module scope, so the registry is ready
+// before any story renders. Registering inside render would race the first
+// `registry.getComponent` call and flash the Suspense fallback on every render.
+registry.registerComponent(LIVE_PREVIEW_TYPE_ID, LivePreviewCard);
+
+/**
+ * Builds a page whose single `main` region holds one card per title. Both
+ * live-preview layouts share the region id and component type id so the only
+ * thing that changes across a switch is the component set — which is exactly
+ * what the client is expected to swap in-place.
+ */
+function buildLivePreviewPage(id: string, cardTitles: string[]): ShopperExperience.schemas['Page'] {
+    return {
+        id,
+        typeId: 'homepage',
+        regions: [
+            {
+                id: 'main',
+                components: cardTitles.map((title, index) => ({
+                    id: `${id}-card-${index}`,
+                    typeId: LIVE_PREVIEW_TYPE_ID,
+                    contentLinkUuid: `uuid-${id}-card-${index}`,
+                    data: { title } as unknown as Record<string, never>,
+                    visible: true,
+                    localized: true,
+                })),
+            },
+        ],
+    } as unknown as ShopperExperience.schemas['Page'];
+}
+
+/**
+ * The two layouts the switcher toggles between. `switchTo` alternates the label
+ * on the button; the fixtures differ in both count and copy so the swap is
+ * unmistakable on screen and in a snapshot.
+ */
+const livePreviewLayouts = {
+    A: {
+        label: 'Layout A — Landing',
+        page: buildLivePreviewPage('layout-a', ['Hero Banner', 'Featured Collection', 'Newsletter Signup']),
+    },
+    B: {
+        label: 'Layout B — Promotion',
+        page: buildLivePreviewPage('layout-b', ['Sale Countdown', 'Doorbuster Grid']),
+    },
+} as const;
+
+type LivePreviewLayoutKey = keyof typeof livePreviewLayouts;
+
+/**
+ * In-canvas control that pushes a whole new page layout to the client.
+ *
+ * Mirrors the LivePropertyEditing flow: it grabs the test host exposed on
+ * `window.PageDesignerHost` (via `PageDesignerHostProvider expose={true}` in
+ * `ModeDecorator`) and calls `setClientConfiguration({ ...config, page })`. That
+ * emits the isomorphic `ClientConfigurationChanged` event; in
+ * `pageUpdateMode='client'` the SDK's `DesignContext` swaps the new configuration
+ * (page included) into `pageDesignerConfig`, and every `<Region>` re-reads it —
+ * no route change, no reload, no new loader data.
+ */
+function LivePageSwitcher({
+    activeLayout,
+    onSwitch,
+}: {
+    activeLayout: LivePreviewLayoutKey;
+    onSwitch: (layout: LivePreviewLayoutKey) => void;
+}) {
+    const nextLayout: LivePreviewLayoutKey = activeLayout === 'A' ? 'B' : 'A';
+
+    const handleSwitch = () => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        const host = (window as unknown as { PageDesignerHost?: HostApi }).PageDesignerHost;
+        if (!host) {
+            return;
+        }
+        host.setClientConfiguration({
+            ...EMPTY_HOST_CONFIGURATION,
+            page: livePreviewLayouts[nextLayout].page,
+        });
+        onSwitch(nextLayout);
+    };
+
+    return (
+        <div
+            style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                alignItems: 'center',
+                padding: '1rem',
+                marginBottom: '1rem',
+                border: '1px solid #0b5cff',
+                borderRadius: '8px',
+                backgroundColor: '#f0f5ff',
+            }}>
+            <strong style={{ fontSize: '0.875rem', color: '#0b5cff' }}>Live Page Switching</strong>
+            <span style={{ fontSize: '0.875rem', color: '#333' }}>
+                Active: <strong data-testid="active-layout-label">{livePreviewLayouts[activeLayout].label}</strong>
+            </span>
+            <button
+                type="button"
+                data-testid="switch-layout-button"
+                onClick={handleSwitch}
+                style={{
+                    padding: '0.5rem 0.875rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    color: '#fff',
+                    backgroundColor: '#0b5cff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                }}>
+                Switch to {livePreviewLayouts[nextLayout].label}
+            </button>
+        </div>
+    );
+}
+
+/**
+ * Re-provides the ambient Storybook config with `features.livePreview` forced on
+ * for the enclosed subtree.
+ *
+ * `<Region>` gates the live-page swap on `config.features.livePreview` — with it
+ * off, the `ClientConfigurationChanged`-delivered page is discarded and the
+ * region keeps rendering its `page` prop. The shared Storybook `mockConfig` sets
+ * `livePreview: false`, so without this override the switch fires the event but
+ * nothing swaps. In production the two are coupled (`root.tsx` derives
+ * `pageUpdateMode='client'` from `livePreview`), so enabling the flag alongside
+ * this story's `pageUpdateMode: 'client'` mirrors the real configuration rather
+ * than inventing one. Inherits the ambient config and flips only the one flag.
+ */
+function LivePreviewConfigProvider({ children }: { children: React.ReactNode }) {
+    const config = useConfig();
+    const livePreviewConfig = React.useMemo(
+        () => ({ ...config, features: { ...config.features, livePreview: true } }),
+        [config]
+    );
+
+    return <ConfigProvider config={livePreviewConfig}>{children}</ConfigProvider>;
+}
+
+/**
+ * Renders the current live page through the real `<Region>` component and swaps
+ * layouts on button click by emitting `ClientConfigurationChanged`. The story
+ * seeds the initial page via `<Region page={...}>`; once the client is
+ * connected, the host-driven event takes over and drives every subsequent
+ * render.
+ */
+function LivePageSwitchingStory() {
+    const [activeLayout, setActiveLayout] = React.useState<LivePreviewLayoutKey>('A');
+
+    return (
+        <LivePreviewConfigProvider>
+            <div style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto' }}>
+                <LivePageSwitcher activeLayout={activeLayout} onSwitch={setActiveLayout} />
+                <Region page={livePreviewLayouts.A.page} regionId="main" />
+            </div>
+        </LivePreviewConfigProvider>
+    );
+}
+
+export const LivePageSwitching: Story = {
+    // The design story meta is tagged `skip-a11y` (no `interaction`), so the
+    // interaction runner won't execute play functions by default. This story's
+    // whole point is the ClientConfigurationChanged swap, so opt it into the
+    // interaction suite explicitly.
+    tags: ['interaction'],
+    args: {
+        designMode: 'design',
+        pageUpdateMode: 'client',
+    },
+    render: () => <LivePageSwitchingStory />,
+    parameters: {
+        docs: {
+            description: {
+                story: 'Renders a page through the real `<Region>` component and switches to a different page layout without a route change. Clicking "Switch layout" calls `host.setClientConfiguration({ ...config, page })` on the exposed test host, which emits the isomorphic `ClientConfigurationChanged` event. Because `PageDesignerProvider` runs with `pageUpdateMode="client"`, the SDK swaps the new configuration (page included) into `pageDesignerConfig` and every `<Region>` re-reads it in place — the loader never re-runs.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+
+        // Layout A is seeded on first render.
+        await expect(await canvas.findByText('Hero Banner')).toBeInTheDocument();
+        await expect(canvas.getByTestId('active-layout-label')).toHaveTextContent('Layout A — Landing');
+
+        // Switching pushes Layout B through ClientConfigurationChanged; the Region
+        // swaps in place once the client consumes the event.
+        canvas.getByTestId('switch-layout-button').click();
+
+        await waitFor(async () => {
+            await expect(canvas.getByText('Sale Countdown')).toBeInTheDocument();
+        });
+        await expect(canvas.queryByText('Hero Banner')).not.toBeInTheDocument();
+        await expect(canvas.getByTestId('active-layout-label')).toHaveTextContent('Layout B — Promotion');
     },
 };

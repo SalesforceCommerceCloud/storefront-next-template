@@ -24,7 +24,12 @@ import type {
 
 export interface ProductContentDataContextValue {
     product: ShopperProducts.schemas['Product'];
-    returnsWarrantyPromise: Promise<ReturnsAndWarrantyData>;
+    /**
+     * Optional: the `returns-and-warranty-target` already renders `null` when this is absent, so a
+     * storefront that surfaces returns/warranty elsewhere (or not at all) can omit it while keeping
+     * the `sfcc.pdp.returnsWarranty` seam present.
+     */
+    returnsWarrantyPromise?: Promise<ReturnsAndWarrantyData>;
     pdpCollapsiblesPromise: Promise<Array<SectionContent | null>>;
 }
 

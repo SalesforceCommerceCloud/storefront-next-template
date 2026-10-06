@@ -96,7 +96,7 @@ describe('DeliveryOptions', () => {
             'Deliver to shipping address'
         );
         expect(
-            screen.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+            screen.queryByRole('button', { name: 'Enter a postal code to get a delivery estimate' })
         ).not.toBeInTheDocument();
     });
     // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
@@ -349,14 +349,86 @@ describe('DeliveryOptions', () => {
         );
 
         expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
-            'Enter postal code to see delivery estimate'
+            'Enter a postal code to get a delivery estimate'
         );
         expect(
-            screen.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+            screen.queryByRole('button', { name: 'Enter a postal code to get a delivery estimate' })
         ).not.toBeInTheDocument();
-        expect(screen.getAllByText('Enter postal code to see delivery estimate')).toHaveLength(2);
-        expect(screen.getAllByText('Enter postal code to see delivery estimate')[0]).toHaveClass('sr-only');
-        expect(screen.getAllByText('Enter postal code to see delivery estimate')[1].tagName).toBe('P');
+        expect(screen.getAllByText('Enter a postal code to get a delivery estimate')).toHaveLength(2);
+        expect(screen.getAllByText('Enter a postal code to get a delivery estimate')[0]).toHaveClass('sr-only');
+        expect(screen.getAllByText('Enter a postal code to get a delivery estimate')[1].tagName).toBe('P');
+    });
+
+    it('keeps the Delivery explanation description when the estimator is re-opened after a resolve', async () => {
+        const user = userEvent.setup();
+
+        function PresentationSource() {
+            const shippingDelivery = useShippingDelivery();
+            const sourceId = useRef({});
+            const [isEditing, setIsEditing] = useState(false);
+            const registerPresentationSource = shippingDelivery?.registerPresentationSource;
+            const publishPresentation = shippingDelivery?.publishPresentation;
+
+            useLayoutEffect(
+                () =>
+                    registerPresentationSource?.({
+                        sourceId: sourceId.current,
+                        productId: 'product-1',
+                        estimateProductId: 'product-1',
+                    }),
+                [registerPresentationSource]
+            );
+            useLayoutEffect(() => {
+                // First resolve (sets hasPublishedResolvedPresentation), then switch to editing on demand —
+                // mirrors clicking the "Deliver to X" link to re-open the estimator.
+                publishPresentation?.(
+                    isEditing
+                        ? { kind: 'editing', sourceId: sourceId.current, productId: 'product-1' }
+                        : {
+                              kind: 'resolved',
+                              sourceId: sourceId.current,
+                              productId: 'product-1',
+                              title: 'Deliver to 94105',
+                              text: 'Sat 2 Jan - Tue 5 Jan',
+                          },
+                    sourceId.current
+                );
+            }, [isEditing, publishPresentation]);
+
+            return (
+                <button type="button" onClick={() => setIsEditing(true)}>
+                    re-open estimator
+                </button>
+            );
+        }
+
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={product as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <PresentationSource />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        // While resolved, the row shows the arrival window, not the explanation prompt.
+        expect(await screen.findByText('Sat 2 Jan - Tue 5 Jan')).toBeInTheDocument();
+        expect(screen.queryByText('Enter a postal code to get a delivery estimate')).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: 're-open estimator' }));
+
+        // After re-opening, the explanation description returns as the Delivery row description
+        // (a visible <p>) and as the radio's accessible description.
+        const descriptions = screen.getAllByText('Enter a postal code to get a delivery estimate');
+        expect(descriptions.some((node) => node.tagName === 'P')).toBe(true);
+        expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
+            'Enter a postal code to get a delivery estimate'
+        );
     });
     // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
     // @sfdc-extension-block-end SFDC_EXT_BOPIS

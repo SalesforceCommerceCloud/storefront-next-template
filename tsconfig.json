@@ -35,6 +35,7 @@
         "src/verticals/footwear/**/*",
         "src/verticals/foundations/**/*",
         "src/verticals/furniture/**/*",
+        "src/verticals/luxury/**/*",
         "lint-plugins/**/*",
         "e2e/**/*",
         "**/*-snapshot.tsx",

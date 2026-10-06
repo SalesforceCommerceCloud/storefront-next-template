@@ -25,7 +25,12 @@ import logo from '/images/logo.svg';
 import { Button } from '@/components/ui/button';
 import { SparklesIcon } from '@/components/icons';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { openAgentWidget, isCimulateEnabled, validateCimulateConfig } from '@/components/cimulate';
+import {
+    openAgentWidget,
+    isCimulateEnabled,
+    validateCimulateConfig,
+    resolveShopperAgentConfig,
+} from '@/components/cimulate';
 import { UITarget } from '@/targets/ui-target';
 import { Component } from '@/lib/decorators/component';
 import { RegionDefinition } from '@/lib/decorators';
@@ -68,10 +73,9 @@ export default function Header({
     const { t } = useTranslation('header');
     const headerRef = useRef<HTMLElement>(null);
     const config = useConfig();
+    const shopperAgent = resolveShopperAgentConfig(config);
     const showChat =
-        variant === 'full' &&
-        isCimulateEnabled(config.cimulateAgent?.enabled) &&
-        validateCimulateConfig(config.cimulateAgent);
+        variant === 'full' && isCimulateEnabled(shopperAgent?.enabled) && validateCimulateConfig(shopperAgent);
     const updateHeaderHeight = useCallback(() => {
         if (headerRef.current) {
             const height = `${headerRef.current.offsetHeight}px`;

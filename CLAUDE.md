@@ -4,6 +4,8 @@ Storefront template for Salesforce Commerce Cloud built with React Router v7, Re
 
 This file is the single source of truth for AI coding agents (Claude Code, Cursor, Codex, etc.) working in this package. `CLAUDE.md` is a symlink to this file.
 
+> **Agent tooling**: use the [B2C MCP server](https://salesforcecommercecloud.github.io/b2c-developer-tooling/mcp/) (`@salesforce/b2c-dx-mcp`). It provides the Storefront Next skills (start with `sfnext-overview`), docs search, SCAPI, Managed Runtime, and log tools. See [Storefront Next with the B2C tooling](https://salesforcecommercecloud.github.io/b2c-developer-tooling/guide/storefront-next.html).
+
 > **Changesets**: any change in this package needs a changeset. Run `pnpm changeset` from the repo root, pick `@salesforce/template` (and `@salesforce/storefront-next-{dev,runtime}` if applicable), and commit the generated `.changeset/<id>.md`. See [`../../CONTRIBUTING.md#changesets`](../../CONTRIBUTING.md#changesets).
 
 ## Project Structure
@@ -328,6 +330,7 @@ The docs below are where architectural detail lives — consult them for tasks i
 
 **Migrations:**
 - [docs/migrations/react-router-7.18/README.md](./docs/migrations/react-router-7.18/README.md) — Upgrading your project from React Router 7.12 to 7.18.0 (security fixes, API renames, behavioral quirks)
+- [docs/migrations/seo-url-rules/README.md](./docs/migrations/seo-url-rules/README.md) — Adopting configurable SEO product and category URLs (`seoRoutes`): prerequisites, category modes, redirects, verification checklist
 
 **Development:**
 - [docs/README-HYBRID-PROXY.md](./docs/README-HYBRID-PROXY.md) — Hybrid proxy for local development

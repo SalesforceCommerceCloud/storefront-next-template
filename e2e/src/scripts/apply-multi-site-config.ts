@@ -29,11 +29,13 @@
  *   tsx apply-multi-site-config.ts no-site-locale
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
 
 const TEMPLATE_APP_PATH = resolve(__dirname, '../../../');
-const CONFIG_PATH = resolve(TEMPLATE_APP_PATH, 'config.server.ts');
+const BASE_CONFIG_PATH = resolve(TEMPLATE_APP_PATH, 'config.server.base.ts');
+const CONFIG_PATH = existsSync(BASE_CONFIG_PATH) ? BASE_CONFIG_PATH : resolve(TEMPLATE_APP_PATH, 'config.server.ts');
+const CONFIG_FILE_NAME = basename(CONFIG_PATH);
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -57,39 +59,39 @@ interface Preset {
 // ─── Presets ─────────────────────────────────────────────────────────────────
 
 const PRESETS: Record<string, Preset> = {
-    // Case 1: /:siteId/:localeId/...  →  /global/en-GB/product/123
+    // Case 1: /:siteId/:localeId/...  →  /global/en-GB/p/123
     'prefix-site-locale': {
         url: { prefix: '/:siteId/:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
     },
 
-    // Case 2: /:localeId/...  →  /en-GB/product/123
+    // Case 2: /:localeId/...  →  /en-GB/p/123
     'prefix-locale-only': {
         url: { prefix: '/:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
         siteDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
         localeDetectionConfig: { order: ['path', 'querystring', 'cookie', 'header'], lookupFromPathIndex: 0 },
     },
 
-    // Case 3: /:siteId/...?lng=:localeId  →  /global/product/123?lng=en-GB
+    // Case 3: /:siteId/...?lng=:localeId  →  /global/p/123?lng=en-GB
     'prefix-site-search-locale': {
         url: { prefix: '/:siteId', search: '?lng=:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
         localeDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
     },
 
-    // Case 4: /...?site=:siteId&lng=:localeId  →  /product/123?site=global&lng=en-GB
+    // Case 4: /...?site=:siteId&lng=:localeId  →  /p/123?site=global&lng=en-GB
     'search-all': {
         url: { search: '?site=:siteId&lng=:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
         siteDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
         localeDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
     },
 
-    // Case 5: /...?lng=:localeId  →  /product/123?lng=en-GB
+    // Case 5: /...?lng=:localeId  →  /p/123?lng=en-GB
     'search-locale-only': {
         url: { search: '?lng=:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
         siteDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
         localeDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
     },
 
-    // Case 6: /...  →  /product/123
+    // Case 6: /...  →  /p/123
     'no-site-locale': {
         url: { excludeRoutes: ['/resource/**', '/action/**'] },
         siteDetectionConfig: { order: ['cookie', 'header'] },
@@ -157,7 +159,7 @@ const originalConfig = config;
 // 1. Replace the url block
 const urlBlockRegex = /( {12})url:\s*\{[^}]+\},/s;
 if (!urlBlockRegex.test(config)) {
-    console.error('❌ Could not find the url: { ... } block in config.server.ts');
+    console.error(`❌ Could not find the url: { ... } block in ${CONFIG_FILE_NAME}`);
     process.exit(1);
 }
 config = config.replace(urlBlockRegex, serializeUrlBlock(preset.url));
@@ -181,7 +183,7 @@ if (detectionBlocks.length > 0) {
     const siteAliasMapRegex = /(siteAliasMap:\s*\{[^}]+\},)/s;
     const match = config.match(siteAliasMapRegex);
     if (!match) {
-        console.error('❌ Could not find siteAliasMap block in config.server.ts');
+        console.error(`❌ Could not find siteAliasMap block in ${CONFIG_FILE_NAME}`);
         writeFileSync(CONFIG_PATH, originalConfig, 'utf-8');
         process.exit(1);
     }
@@ -191,7 +193,7 @@ if (detectionBlocks.length > 0) {
 
 // 4. Write patched config
 writeFileSync(CONFIG_PATH, config, 'utf-8');
-console.log(`   ✅ Patched config.server.ts\n`);
+console.log(`   ✅ Patched ${CONFIG_FILE_NAME}\n`);
 
 // 5. Sanity check
 if (!config.includes('url:') || !config.includes('excludeRoutes') || !config.includes('defineConfig')) {

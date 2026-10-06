@@ -31,7 +31,8 @@ export interface SpecTableProps {
  * matching the legacy `table-2-column` HTML look. Backward-compatible for any consumer.
  */
 export default function SpecTable({ content, className }: SpecTableProps): ReactElement {
-    const { rows, groups, views, defaultViewId, viewSwitchLabel } = content;
+    const { rows, groups, views, defaultViewId, viewSwitchLabel, cta, badge, layout } = content;
+    const isGrid = layout === 'grid';
     const hasSwitch = (views?.length ?? 0) >= 2;
     const initialView = defaultViewId ?? views?.[0]?.id ?? '';
     const [activeView, setActiveView] = useState(initialView);
@@ -57,18 +58,31 @@ export default function SpecTable({ content, className }: SpecTableProps): React
         return Object.values(row.values)[0] ?? '';
     };
 
-    // A row list rendered as a 2-column definition list. The switch (if any) flips only rows that
-    // carry a value for the active view; single-value rows fall back and stay static.
-    const renderRows = (rowsToRender: SpecTableRow[]) => (
-        <dl className="border-t border-border">
-            {rowsToRender.map((row) => (
-                <div key={row.label} className="flex items-start justify-between gap-4 border-b border-border py-1.5">
-                    <dt className="w-1/2 font-semibold">{row.label}</dt>
-                    <dd className="text-right tabular-nums">{valueFor(row)}</dd>
-                </div>
-            ))}
-        </dl>
-    );
+    // Rows rendered either as the default 2-column definition list, or — when `layout: 'grid'` — as a
+    // responsive grid of stacked label-over-value cells (a "highlights" strip). The switch (if any)
+    // flips only rows that carry a value for the active view; single-value rows fall back and stay static.
+    const renderRows = (rowsToRender: SpecTableRow[]) =>
+        isGrid ? (
+            <dl data-slot="spec-table-grid" className="grid grid-cols-2 gap-x-8 gap-y-4 md:grid-cols-4">
+                {rowsToRender.map((row) => (
+                    <div key={row.label}>
+                        <dt className="text-xs uppercase tracking-wide text-muted-foreground">{row.label}</dt>
+                        <dd className="mt-1 font-medium">{valueFor(row)}</dd>
+                    </div>
+                ))}
+            </dl>
+        ) : (
+            <dl className="border-t border-border">
+                {rowsToRender.map((row) => (
+                    <div
+                        key={row.label}
+                        className="flex items-start justify-between gap-4 border-b border-border py-1.5">
+                        <dt className="w-1/2 font-semibold">{row.label}</dt>
+                        <dd className="text-right tabular-nums">{valueFor(row)}</dd>
+                    </div>
+                ))}
+            </dl>
+        );
 
     return (
         <div className={cn('text-sm text-foreground', className)} data-slot="spec-table">
@@ -104,6 +118,20 @@ export default function SpecTable({ content, className }: SpecTableProps): React
                     })}
                 </div>
             )}
+            {badge ? (
+                <div
+                    data-slot="spec-table-badge"
+                    className="mb-3 inline-flex w-fit items-center gap-2 rounded-ui bg-secondary px-3 py-1.5 text-sm">
+                    {badge.mark ? (
+                        <span
+                            aria-hidden="true"
+                            className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] leading-none text-primary-foreground">
+                            {badge.mark}
+                        </span>
+                    ) : null}
+                    <span>{badge.label}</span>
+                </div>
+            ) : null}
             {groups?.length ? (
                 <div className="space-y-4">
                     {groups.map((group) => (
@@ -116,6 +144,16 @@ export default function SpecTable({ content, className }: SpecTableProps): React
             ) : (
                 renderRows(rows ?? [])
             )}
+            {cta ? (
+                <a
+                    href={cta.href}
+                    data-slot="spec-table-cta"
+                    className="mt-4 inline-flex w-fit items-center gap-2 rounded-ui bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                    {...(cta.download ? { download: '' } : {})}
+                    {...(cta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                    {cta.label}
+                </a>
+            ) : null}
         </div>
     );
 }

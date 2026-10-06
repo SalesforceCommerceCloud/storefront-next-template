@@ -396,6 +396,7 @@ export default function ShippingMultiAddress({
                             );
                             const priceData = getPriceData(productItem as ShopperProducts.schemas['Product'], {
                                 quantity,
+                                currency,
                             });
                             const currentPrice = priceData.currentPrice;
 

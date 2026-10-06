@@ -16,6 +16,7 @@
 import { useMemo } from 'react';
 import type { ShopperSearch } from '@/scapi';
 import { searchUrlBuilder } from '@/lib/url';
+import { createCategoryUrlFromLegacyPath, createProductUrl, type SeoUrlContext } from '@/route-paths';
 
 // Simple transformation interface for UI purposes only
 interface TransformedSuggestions {
@@ -60,7 +61,8 @@ interface TransformedSuggestions {
  * Uses only official SDK types as input, minimal transformation for UI needs
  */
 export function useTransformSearchSuggestions(
-    data: ShopperSearch.schemas['SuggestionResult'] | null | undefined
+    data: ShopperSearch.schemas['SuggestionResult'] | null | undefined,
+    seoUrlContext?: SeoUrlContext
 ): TransformedSuggestions | null {
     return useMemo(() => {
         if (!data) return null;
@@ -70,7 +72,10 @@ export function useTransformSearchSuggestions(
                 const image = cat.image as ShopperSearch.schemas['Image'] | undefined;
                 return {
                     name: cat.name || '',
-                    link: `/category/${cat.id}`,
+                    link: createCategoryUrlFromLegacyPath(
+                        `/category/${encodeURIComponent(cat.id ?? '')}`,
+                        seoUrlContext
+                    ),
                     type: 'category',
                     image: image?.disBaseLink || image?.link,
                     parentCategoryName: cat.parentCategoryName,
@@ -78,17 +83,29 @@ export function useTransformSearchSuggestions(
             }) || [];
 
         const productSuggestions =
-            data.productSuggestions?.products?.map((product) => {
-                const image = product.image as ShopperSearch.schemas['Image'] | undefined;
-                return {
-                    name: product.productName || '',
-                    link: `/product/${product.productId}`,
-                    type: 'product',
-                    image: image?.disBaseLink || image?.link,
-                    price: product.price,
-                    currency: product.currency,
-                };
-            }) || [];
+            data.productSuggestions?.products
+                ?.filter((product) => {
+                    // Exclude products flagged as c_hideFromSearchResults (e.g. swatches)
+                    const hideFlag = (product as { c_hideFromSearchResults?: boolean }).c_hideFromSearchResults;
+                    return hideFlag !== true;
+                })
+                .map((product) => {
+                    const image = product.image as ShopperSearch.schemas['Image'] | undefined;
+                    return {
+                        name: product.productName || '',
+                        link: createProductUrl(
+                            {
+                                productId: product.productId,
+                                slug: product.slug,
+                            },
+                            seoUrlContext
+                        ),
+                        type: 'product',
+                        image: image?.disBaseLink || image?.link,
+                        price: product.price,
+                        currency: product.currency,
+                    };
+                }) || [];
 
         const phraseSuggestions =
             data.productSuggestions?.suggestedPhrases?.map((phrase) => ({
@@ -123,5 +140,5 @@ export function useTransformSearchSuggestions(
             ...(recentSearchSuggestions.length > 0 && { recentSearchSuggestions }),
             searchPhrase: data.searchPhrase,
         };
-    }, [data]);
+    }, [data, seoUrlContext]);
 }

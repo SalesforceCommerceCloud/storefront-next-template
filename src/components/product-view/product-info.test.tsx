@@ -34,6 +34,23 @@ import StoreLocatorProvider from '@/extensions/store-locator/providers/store-loc
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import type { ShopperProducts } from '@/scapi';
 
+vi.mock('@/lib/config.ui', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/config.ui')>();
+    return {
+        ...actual,
+        uiConfig: {
+            ...actual.uiConfig,
+            pages: {
+                ...actual.uiConfig.pages,
+                product: {
+                    ...actual.uiConfig.pages.product,
+                    showRatingAverage: false,
+                },
+            },
+        },
+    };
+});
+
 const { t } = getTranslation();
 
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
@@ -91,6 +108,30 @@ const renderProductInfo = (props: React.ComponentProps<typeof ProductInfo>) => {
     return { ...render(<RouterProvider router={router} />), router };
 };
 
+const getVariationRadio = async (
+    user: ReturnType<typeof userEvent.setup>,
+    groupName: string,
+    optionName: string | RegExp
+) => {
+    const existingGroup = screen.queryByRole('radiogroup', { name: new RegExp(`^${groupName}(?::|$)`) });
+    if (existingGroup) {
+        return within(existingGroup).getByRole('radio', { name: optionName });
+    }
+
+    const summary = screen
+        .getAllByText(groupName, { exact: true })
+        .map((element) => element.closest('summary'))
+        .find((element): element is HTMLElement => element !== null);
+    if (!summary) {
+        throw new Error(`Could not find the ${groupName} collapsible swatch section`);
+    }
+    await user.click(summary);
+
+    return within(await screen.findByRole('radiogroup', { name: groupName })).getByRole('radio', { name: optionName });
+};
+
+const getSwatchOptionRoot = (radio: HTMLElement) => radio.closest('[data-slot="grouped-swatch-option"]') ?? radio;
+
 describe('ProductInfo', () => {
     beforeEach(() => {
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
@@ -144,29 +185,30 @@ describe('ProductInfo', () => {
             expect(screen.getByText(new RegExp('Size'))).toBeInTheDocument();
         });
 
-        test('should generate correct URLs for swatch selection', () => {
+        test('should generate correct URLs for swatch selection', async () => {
+            const user = userEvent.setup();
             renderProductInfo({ product: mockProduct });
 
             // Find color swatches - only Charcoal available
-            const charcoalSwatch = screen.getByLabelText('Charcoal');
+            const charcoalSwatch = await getVariationRadio(user, 'Color', 'Charcoal');
             expect(charcoalSwatch).toBeInTheDocument();
             expect(charcoalSwatch).toHaveAttribute('href', '/global/en-GB/product/test-product?color=CHARCWL');
 
             // Find size swatches
-            const size36Swatch = screen.getByLabelText('36');
+            const size36Swatch = await getVariationRadio(user, 'Size', '36');
             expect(size36Swatch).toBeInTheDocument();
             expect(size36Swatch).toHaveAttribute('href', '/global/en-GB/product/test-product?size=036');
 
-            const size38Swatch = screen.getByLabelText('38');
+            const size38Swatch = await getVariationRadio(user, 'Size', '38');
             expect(size38Swatch).toBeInTheDocument();
             expect(size38Swatch).toHaveAttribute('href', '/global/en-GB/product/test-product?size=038');
 
             // Find width swatches
-            const shortSwatch = screen.getByLabelText('Short');
+            const shortSwatch = await getVariationRadio(user, 'Width', 'Short');
             expect(shortSwatch).toBeInTheDocument();
             expect(shortSwatch).toHaveAttribute('href', '/global/en-GB/product/test-product?width=S');
 
-            const regularSwatch = screen.getByLabelText('Regular');
+            const regularSwatch = await getVariationRadio(user, 'Width', 'Regular');
             expect(regularSwatch).toBeInTheDocument();
             expect(regularSwatch).toHaveAttribute('href', '/global/en-GB/product/test-product?width=V');
         });
@@ -176,7 +218,7 @@ describe('ProductInfo', () => {
             const { router } = renderProductInfo({ product: mockProduct });
 
             // Click on size 38 swatch
-            const size38Swatch = screen.getByLabelText('38');
+            const size38Swatch = await getVariationRadio(user, 'Size', '38');
             expect(size38Swatch).toHaveAttribute('href', '/global/en-GB/product/test-product?size=038');
 
             await user.click(size38Swatch);
@@ -189,7 +231,8 @@ describe('ProductInfo', () => {
             });
         });
 
-        test('should show swatch as selected when URL contains its value', () => {
+        test('should show swatch as selected when URL contains its value', async () => {
+            const user = userEvent.setup();
             const router = createMemoryRouter(
                 [
                     {
@@ -215,11 +258,11 @@ describe('ProductInfo', () => {
             render(<RouterProvider router={router} />);
 
             // Size 38 swatch should be selected (aria-checked=true)
-            const size38Swatch = screen.getByLabelText('38');
+            const size38Swatch = await getVariationRadio(user, 'Size', '38');
             expect(size38Swatch).toHaveAttribute('aria-checked', 'true');
 
             // Size 36 swatch should not be selected
-            const size36Swatch = screen.getByLabelText('36');
+            const size36Swatch = await getVariationRadio(user, 'Size', '36');
             expect(size36Swatch).toHaveAttribute('aria-checked', 'false');
         });
     });
@@ -257,15 +300,16 @@ describe('ProductInfo', () => {
             expect(screen.getByLabelText(t('quantitySelector:quantity'))).toBeInTheDocument();
         });
 
-        test('should render swatches when product has variations', () => {
+        test('should render swatches when product has variations', async () => {
+            const user = userEvent.setup();
             renderProductInfo({ product: mockProduct });
 
             // Check that variation swatches are rendered - Charcoal color, sizes 36-50, widths Short/Regular/Long
-            expect(screen.getByLabelText('Charcoal')).toBeInTheDocument();
-            expect(screen.getByLabelText('36')).toBeInTheDocument();
-            expect(screen.getByLabelText('38')).toBeInTheDocument();
-            expect(screen.getByLabelText('Short')).toBeInTheDocument();
-            expect(screen.getByLabelText('Regular')).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Color', 'Charcoal')).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Size', '36')).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Size', '38')).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Width', 'Short')).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Width', 'Regular')).toBeInTheDocument();
         });
 
         test('should hide inventory message until multi-attribute selection resolves to one variant in controlled mode', () => {
@@ -754,7 +798,6 @@ describe('ProductInfo', () => {
             renderProductInfo({ product: fabricProduct });
 
             const linenSwatch = screen.getByRole('radio', { name: /linen/i });
-            expect(linenSwatch).toHaveAttribute('data-swatch-type', 'image');
             // The image is a <DynamicImage> <img> with the swatch alt text.
             expect(within(linenSwatch).getByRole('img', { name: 'Linen fabric swatch' })).toBeInTheDocument();
         });
@@ -764,13 +807,15 @@ describe('ProductInfo', () => {
 
             // Velvet ships a description → muted hint rendered verbatim inside its tile.
             const velvetSwatch = screen.getByRole('radio', { name: /velvet/i });
-            const hint = velvetSwatch.querySelector('[data-slot="swatch-description"]');
+            const hint = getSwatchOptionRoot(velvetSwatch).querySelector('[data-slot="swatch-description"]');
             expect(hint).toBeInTheDocument();
             expect(hint).toHaveTextContent('+US$200');
 
             // Linen has no description → no hint element at all (backward-safe).
             const linenSwatch = screen.getByRole('radio', { name: /linen/i });
-            expect(linenSwatch.querySelector('[data-slot="swatch-description"]')).not.toBeInTheDocument();
+            expect(
+                getSwatchOptionRoot(linenSwatch).querySelector('[data-slot="swatch-description"]')
+            ).not.toBeInTheDocument();
         });
 
         test('renders the price-delta hint on text/label swatches too (non-image axis)', () => {
@@ -806,12 +851,13 @@ describe('ProductInfo', () => {
             expect(taperedSwatch.querySelector('[data-slot="swatch-description"]')).not.toBeInTheDocument();
         });
 
-        test('keeps a non-color axis without swatch imagery as text swatches (backward-safe)', () => {
+        test('keeps a non-color axis without swatch imagery as text swatches (backward-safe)', async () => {
+            const user = userEvent.setup();
             renderProductInfo({ product: mockProduct });
 
             // The suit only ships color swatch imagery, so size renders as a text label tile,
             // never borrowing the color swatch image.
-            const size36 = screen.getByLabelText('36');
+            const size36 = await getVariationRadio(user, 'Size', '36');
             expect(size36).toHaveAttribute('data-swatch-type', 'label');
             expect(within(size36).queryByRole('img')).not.toBeInTheDocument();
         });

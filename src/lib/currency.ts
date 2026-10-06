@@ -44,6 +44,15 @@ export function formatCurrency(price: number, locale: string, currency: string):
 }
 
 /**
+ * Return the number of decimal places used when displaying a currency.
+ * @param currency - The ISO 4217 currency code to inspect
+ * @returns The currency's maximum number of fractional digits
+ */
+export function getCurrencyFractionDigits(currency: string): number {
+    return getFormatter('en', currency).resolvedOptions().maximumFractionDigits ?? 2;
+}
+
+/**
  * Extract the currency symbol for a given locale and currency code.
  * Uses the same narrowSymbol display as formatCurrency for consistency.
  * @param locale - The locale to use (e.g. "en-US", "de-DE")

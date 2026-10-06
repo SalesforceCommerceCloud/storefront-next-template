@@ -23,6 +23,7 @@ import { useProductImages } from '@/hooks/product/use-product-images';
 import { useSelectedVariations } from '@/hooks/product/use-selected-variations';
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
 import { uiConfig } from '@/lib/config.ui';
+import { usesInlineAddToCartQuantity } from '@/lib/product/add-to-cart-quantity-mode';
 import CollapsibleHtmlSection from '@/components/collapsible-section/collapsible-html-section';
 import { useTranslation } from 'react-i18next';
 import { UITarget } from '@/targets/ui-target';
@@ -55,6 +56,8 @@ export default function ProductView({ product, mode = 'add' }: ProductViewProps)
     const { t } = useTranslation('product');
     // Furniture opts into the mosaic PDP gallery via config; every other vertical stays stacked.
     const galleryLayout = uiConfig.pages.product.galleryLayout ?? 'stacked';
+    const useInlineCartQuantity =
+        (productView?.mode ?? mode) === 'add' && !isProductASet && !isProductABundle && usesInlineAddToCartQuantity();
 
     const content = (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-12">
@@ -83,12 +86,13 @@ export default function ProductView({ product, mode = 'add' }: ProductViewProps)
             <div className="order-2">
                 <ProductInfo
                     product={product}
+                    showQuantityPicker={!useInlineCartQuantity}
                     // @sfdc-extension-block-start SFDC_EXT_BOPIS
                     // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
                     enableDeliveryEstimatePresentation
                     // @sfdc-extension-block-end SFDC_EXT_BOPIS
                 />
-                <ProductCartActions product={product} />
+                <ProductCartActions product={product} showInlineCartQuantity={useInlineCartQuantity} />
                 <UITarget targetId="sfcc.pdp.returnsWarranty" />
                 <UITarget targetId="sfcc.pdp.collapsibles" />
             </div>

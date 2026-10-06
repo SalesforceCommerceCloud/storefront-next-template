@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
-import { buildSitePath } from '../utils/url-utils';
+import { expect, type Page } from '@playwright/test';
+import { getCartActionButton } from '../utils/cart-action-button';
+import { buildSitePath, isRoutePath } from '../utils/url-utils';
+import { isCartMutationResponse } from '../utils/cart-response';
 
 const { I } = inject();
 
@@ -36,12 +38,12 @@ class ProductDetailPage {
         productSKU: locate('[data-testid*="sku"], [class*="sku"]').as('Product SKU'),
 
         // Variant selectors (dynamic - size, color, etc.)
-        // Based on actual HTML: <div role="radiogroup"><a role="radio" href="/product/...">...</a></div>
+        // Based on actual HTML: <div role="radiogroup"><a role="radio" href="/p/...">...</a></div>
         variantGroups: locate('[role="radiogroup"]').as('Variant Groups'),
 
         // Link-based variant options (actual HTML structure)
         // More specific: <a> tag with role="radio" and href to product page
-        variantLinks: locate('a[role="radio"][href*="/product/"]').as('Variant Links'),
+        variantLinks: locate('a[role="radio"][href*="/p/"]').as('Variant Links'),
 
         // Legacy button-based variants (fallback)
         variantButtons: locate(
@@ -89,7 +91,7 @@ class ProductDetailPage {
 
     /**
      * Navigate directly to a product detail page.
-     * @param path - Product path including any query string (e.g. '/product/25752235M?color=YELLOSI&pid=682875540326M').
+     * @param path - Product path including any query string (e.g. '/p/25752235M?color=YELLOSI&pid=682875540326M').
      */
     navigate(path: string): void {
         I.amOnPage(buildSitePath(path));
@@ -143,7 +145,7 @@ class ProductDetailPage {
 
     /**
      * Select first available option for all link-based variants
-     * HTML pattern: <div role="radiogroup"><a role="radio" href="/product/...">...</a></div>
+     * HTML pattern: <div role="radiogroup"><a role="radio" href="/p/...">...</a></div>
      */
     private async selectVariantLinks(): Promise<void> {
         const variantGroupCount = await I.grabNumberOfVisibleElements(this.locators.variantGroups);
@@ -255,7 +257,18 @@ class ProductDetailPage {
     }
 
     /**
-     * Click "Add to Cart" and report the outcome from the cart-item-add response.
+     * Gets the quantity that will be added from the PDP.
+     *
+     * The pre-select mode exposes a numeric input, while inline mode begins with
+     * a single-unit Add to Cart CTA and renders its stepper only after the add.
+     */
+    async getInitialAddQuantity(): Promise<string> {
+        const quantityInputCount = await I.grabNumberOfVisibleElements(this.locators.quantityInput);
+        return quantityInputCount > 0 ? this.getQuantity() : '1';
+    }
+
+    /**
+     * Add a product or increment its existing cart line and report the cart mutation outcome.
      *
      * The add's authoritative signal is the POST response, not the mini-cart sheet: the
      * sheet is lazy-loaded, so under a slow target a successful add can render its feedback
@@ -267,8 +280,9 @@ class ProductDetailPage {
      * the POST can resolve in ~100ms, well inside the post-click settle delay, so attaching
      * the listener after clicking would miss an already-delivered response and hang.
      *
-     * Classified by HTTP status: a 2xx add is success; a non-2xx (e.g. out of stock) is an
-     * error the caller can skip past. A missing response within the window also reads as error.
+     * Classified by HTTP status: a 2xx add or quantity update is success; a non-2xx (e.g. out of
+     * stock) is an error the caller can skip past. A missing response within the window also reads
+     * as error.
      *
      * @param timeoutSeconds - How long to wait for the add-to-cart response
      * @returns 'success' if the server confirmed the add, 'error' otherwise
@@ -277,18 +291,13 @@ class ProductDetailPage {
         try {
             const ok = (await I.usePlaywrightTo('add to cart and await response', async ({ page }: { page: Page }) => {
                 const responsePromise = page.waitForResponse(
-                    (res) =>
-                        (res.url().includes('/action/cart-item-add') ||
-                            res.url().includes('/action/cart-bundle-add')) &&
-                        res.request().method() === 'POST',
+                    (res) => isCartMutationResponse({ method: res.request().method(), url: res.url() }),
                     { timeout: timeoutSeconds * 1000 }
                 );
-                // .first() assumes a single add-to-cart button on this PDP (variation masters);
-                // set/bundle PDPs emit the testid per child + once for the set, so .first() could
-                // hit a child button — harden before pointing this flow at a set-bearing category.
-                const addToCartBtn = page.locator('[data-testid="add-to-cart"]').first();
-                await addToCartBtn.scrollIntoViewIfNeeded();
-                await addToCartBtn.click();
+                const cartActionButton = await getCartActionButton(page);
+                await expect(cartActionButton).toBeEnabled({ timeout: timeoutSeconds * 1000 });
+                await cartActionButton.scrollIntoViewIfNeeded();
+                await cartActionButton.click();
                 const response = await responsePromise;
                 return response.ok();
             })) as unknown as boolean;
@@ -320,10 +329,9 @@ class ProductDetailPage {
     async waitForAddToCartReady(timeoutSeconds: number = 10): Promise<boolean> {
         try {
             await (I.usePlaywrightTo('wait for add-to-cart button to enable', async ({ page }) => {
-                await page
-                    .locator('[data-testid="add-to-cart"]:not([disabled])')
-                    .first()
-                    .waitFor({ state: 'visible', timeout: timeoutSeconds * 1000 });
+                const cartActionButton = await getCartActionButton(page);
+                await cartActionButton.waitFor({ state: 'visible', timeout: timeoutSeconds * 1000 });
+                await expect(cartActionButton).toBeEnabled({ timeout: timeoutSeconds * 1000 });
             }) as unknown as Promise<void>);
             return true;
         } catch {
@@ -336,7 +344,7 @@ class ProductDetailPage {
      *
      * Changed from a synchronous `I.waitForElement(productTitle)` (which only waited for one element
      * and did not confirm the URL had navigated) to an async Playwright-based implementation that:
-     *   1. Waits for the URL to contain `/product/` (event-driven via waitForURL, not polling).
+     *   1. Waits for the URL to contain `/p/` (event-driven via waitForURL, not polling).
      *   2. Waits for any key PDP element (title, h1, or add-to-cart button) to become visible.
      * This fixed flaky E2E failures where the old approach resolved on stale elements from the
      * previous page, or timed out when the title hadn't rendered yet but the add-to-cart button had.
@@ -344,7 +352,7 @@ class ProductDetailPage {
     async waitForPageReady(timeoutSeconds: number = 30): Promise<void> {
         const timeoutMs = timeoutSeconds * 1000;
         await (I.usePlaywrightTo('wait for PDP to be ready', async ({ page }) => {
-            await page.waitForURL(/\/product\//, { timeout: timeoutMs });
+            await page.waitForURL((url: URL) => isRoutePath(url, 'p'), { timeout: timeoutMs });
             await page
                 .locator(
                     '[data-testid="product-title"], main h1, [data-testid*="add-to-cart"], button:has-text("Add to Cart"), button:has-text("Add to Bag")'

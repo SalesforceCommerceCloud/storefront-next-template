@@ -1,7 +1,7 @@
 # Migrating to React Router 7.18
 
 This guide walks you through upgrading your storefront-next project from
-`react-router` 7.12 to 7.18.0. It covers the security fixes it delivers, the
+`react-router` 7.12 to 7.18.2. It covers the security fixes it delivers, the
 eight API renames stabilized in 7.15, two behavioral quirks that ride along
 with 7.16 and 7.18, and how to drive the whole migration by pasting this
 document into Claude Code.
@@ -14,14 +14,17 @@ dependency. This is a **peer dependency** of `@salesforce/storefront-next-*`,
 so the SDK release that stabilizes the API renames does not itself pull the
 fix into your app — the version is pinned by your own `package.json`.
 
+7.18.2 also patches an RSC-mode CSRF bypass (GHSA-qwww-vcr4-c8h2) that the
+earlier 7.18.0 build still carried, so pin the patch release, not 7.18.0.
+
 You must bump both packages together:
 
-- `react-router` to `7.18.0`
+- `react-router` to `7.18.2`
 - every `@react-router/*` package your project depends on (`@react-router/node`,
   `@react-router/dev`, `@react-router/express`, `@react-router/fs-routes`) to
-  `7.18.0`
+  `7.18.2`
 
-**Pin exactly `7.18.0`, not `^7.18.0`.** A caret leaves the resolved version
+**Pin exactly `7.18.2`, not `^7.18.2`.** A caret leaves the resolved version
 up to the lockfile, so the manifest stops describing what shipped and the
 next `pnpm install` can silently roll into an untested patch. Exact pins keep
 the manifest declarative and give a single version to attest against.
@@ -283,7 +286,7 @@ needs the same guard.
 You can drive the entire rename set by pasting this document into a Claude
 Code session as the migration prompt. A framing sentence that works:
 
-> Migrate this repo from react-router 7.12 to 7.18.0 by applying every
+> Migrate this repo from react-router 7.12 to 7.18.2 by applying every
 > rename in the guide below. Leave `unstable_optimizeDeps` and
 > `unstable_devTools` as-is. Do not add `url` to production loaders or
 > actions (runtime is unchanged); update test fixtures only where the
@@ -296,7 +299,7 @@ still run through § 8 before you ship.
 
 ## 8. Verification Checklist
 
-- [ ] `react-router` and every `@react-router/*` package pin exactly `7.18.0`
+- [ ] `react-router` and every `@react-router/*` package pin exactly `7.18.2`
       in `package.json` (no caret, no tilde).
 - [ ] `pnpm install` reconciles cleanly with the pinned versions.
 - [ ] `pnpm typecheck` is green — the six prefix-drop renames and the two

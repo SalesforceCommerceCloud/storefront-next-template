@@ -36,9 +36,9 @@ import type { SearchSuggestions } from '../types';
 // ---------------------------------------------------------------------------
 
 const ALL_CATEGORIES = [
-    { name: 'Footwear', link: '/category/footwear', type: 'category' },
-    { name: 'Outerwear', link: '/category/outerwear', type: 'category' },
-    { name: 'Accessories', link: '/category/accessories', type: 'category' },
+    { name: 'Footwear', link: '/c/footwear', type: 'category' },
+    { name: 'Outerwear', link: '/c/outerwear', type: 'category' },
+    { name: 'Accessories', link: '/c/accessories', type: 'category' },
 ];
 const ALL_PRODUCTS = [
     {

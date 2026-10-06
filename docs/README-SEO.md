@@ -1,6 +1,6 @@
 # SEO
 
-Storefront Next template's built-in SEO features helps optimize your store’s search and product discoverability. The storefront template provides SEO features with `hreflang` alternate links, canonical URLs, page titles, meta tags, indexing control, and structured data (JSON-LD)
+Storefront Next template’s built-in SEO features helps optimize your store’s search and product discoverability. The storefront template provides SEO features with `hreflang` alternate links, canonical URLs, page titles, meta tags, indexing control, and structured data (JSON-LD)
 
 ## Hreflang Alternate Links
 
@@ -36,10 +36,10 @@ The alternate URLs are built from the current request path plus the configured m
 
 ```html
 <!-- When viewing the en-GB version of a page with en-GB (default) and fr-FR locales: -->
-<link rel="canonical" href="https://www.example.com/global/en-GB/product/123" />
-<link rel="alternate" hreflang="en-GB" href="https://www.example.com/global/en-GB/product/123" /> <!-- self-referencing -->
-<link rel="alternate" hreflang="fr-FR" href="https://www.example.com/global/fr-FR/product/123" />
-<link rel="alternate" hreflang="x-default" href="https://www.example.com/global/en-GB/product/123" />
+<link rel="canonical" href="https://www.example.com/global/en-GB/p/123" />
+<link rel="alternate" hreflang="en-GB" href="https://www.example.com/global/en-GB/p/123" /> <!-- self-referencing -->
+<link rel="alternate" hreflang="fr-FR" href="https://www.example.com/global/fr-FR/p/123" />
+<link rel="alternate" hreflang="x-default" href="https://www.example.com/global/en-GB/p/123" />
 ```
 
 ### When You Need to Change `hreflang` Tags
@@ -72,7 +72,21 @@ It applies three normalizations:
 
 1. **Allowlisted query parameters** — Only parameters that change page content are kept. Everything else (tracking params, analytics IDs, unknown params) is stripped.
 2. **Sorted parameters** — Retained params are sorted alphabetically so that `?sort=price&q=jacket` and `?q=jacket&sort=price` produce the same canonical URL.
-3. **Trailing slash removal** — Trailing slashes are removed from non-root paths (`/product/jacket/` → `/product/jacket`).
+3. **Trailing slash removal** — Trailing slashes are removed from non-root paths (`/p/jacket/` → `/p/jacket`).
+
+### One page URL across every crawler-visible surface
+
+The canonical `<link>`, `og:url`, and JSON-LD `url` must all point at the same preferred URL, or search engines see the page disagreeing with itself. Product, category, and search loaders build that URL once through [`src/lib/seo/page-url.server.ts`](../src/lib/seo/page-url.server.ts):
+
+```typescript
+const pageUrl = buildSeoPageUrl(context, requestUrl);
+```
+
+`buildSeoPageUrl` resolves the public-facing origin (`getAppOrigin`, which honors the forwarded host and falls back to `EXTERNAL_DOMAIN_NAME`) and runs it through `buildCanonicalUrl`, so the result carries the allowlisted, sorted, trailing-slash-stripped form on the public origin — never the internal serverless URL the request actually arrived on. Loaders reuse this single `pageUrl` for `og:url` and structured data rather than recomputing an origin per surface.
+
+Pagination `rel="prev"`/`rel="next"` links are the deliberate exception: they are distinct crawlable URLs that carry a `page` param, so they can't be the single `pageUrl`. They resolve their origin through the same `getAppOrigin`, keeping them on the public host, but build their own path + query so the `page` param survives (the canonical `<link>` stays the base URL).
+
+Loaders also call [`redirectToCanonicalPath(requestUrl)`](../src/lib/seo/canonical-redirect.server.ts) at the top, which issues a 301 to the trailing-slash-free path (preserving the query, exempting root). Because a React Router loader runs on both full document requests and client `.data` navigations, the redirect applies identically whether a shopper lands cold or navigates in-app. It stays loop-safe because the target path already normalizes to itself, and it only touches the path — tracking params such as `utm_*` are stripped by the canonical tag, not by a redirect, so campaign attribution survives.
 
 ### Query Parameter Allowlist
 
@@ -112,8 +126,8 @@ const CONTENT_PARAMS = new Set([
 
 ```typescript
 it('preserves view param', () => {
-    expect(buildCanonicalUrl(origin, '/category/mens', '?view=grid')).toBe(
-        'https://www.example.com/category/mens?view=grid'
+    expect(buildCanonicalUrl(origin, '/c/mens', '?view=grid')).toBe(
+        'https://www.example.com/c/mens?view=grid'
     );
 });
 ```
@@ -155,13 +169,13 @@ import { SeoMeta } from '@/components/seo-meta';
 
 // `SeoMeta` is a component that you render in your route
 // Standard page — site name is appended automatically
-// Renders: <title>Classic Jacket | NextGen PWA Kit Store</title>
+// Renders: <title>Classic Jacket | My Storefront Next Store</title>
 <SeoMeta
     title="Classic Jacket"
     description="A premium leather jacket with a tailored fit."
     openGraph={{
         type: 'product',
-        url: 'https://www.example.com/product/classic-jacket',
+        url: 'https://www.example.com/p/classic-jacket',
         image: 'https://www.example.com/images/classic-jacket.jpg',
     }}
 />
@@ -185,24 +199,24 @@ import { SeoMeta } from '@/components/seo-meta';
 
 | Mode | Props | `<title>` output | When to use |
 |------|-------|------------------|-------------|
-| **Suffixed** (default) | `title="My Page"` | `My Page \| NextGen PWA Kit Store` | Most pages: product, category, search, account, and content pages. |
+| **Suffixed** (default) | `title="My Page"` | `My Page \| My Storefront Next Store` | Most pages: product, category, search, account, and content pages. |
 | **Raw** | `rawTitle title="My Page"` | `My Page` | Pages that need full control, for example, the homepage that passes the full store name. |
-| **Fallback** | *(no title)* | `NextGen PWA Kit Store` | Only the site name. |
+| **Fallback** | *(no title)* | `My Storefront Next Store` | Only the site name. |
 
 **Examples:**
 
 ```tsx
 // Suffixed (default) — most pages use this
 <SeoMeta title="Classic Jacket" />
-// → <title>Classic Jacket | NextGen PWA Kit Store</title>
+// → <title>Classic Jacket | My Storefront Next Store</title>
 
 // Raw — homepage or any page needing exact title control
-<SeoMeta rawTitle title="NextGen PWA Kit Store — Shop the Latest" />
-// → <title>NextGen PWA Kit Store — Shop the Latest</title>
+<SeoMeta rawTitle title="My Storefront Next Store — Shop the Latest" />
+// → <title>My Storefront Next Store — Shop the Latest</title>
 
 // Fallback — no title provided
 <SeoMeta />
-// → <title>NextGen PWA Kit Store</title>
+// → <title>My Storefront Next Store</title>
 ```
 
 ### General Meta Tag Behavior
@@ -269,7 +283,7 @@ This keeps search and social signals aligned around the same preferred URL.
 
 ### Changing the Site Name
 
-The site name appended to page titles (for example, `" | NextGen PWA Kit Store"`) comes from the `common.defaultSiteName` translation key. To change it, update the value in each locale's `translations.json`:
+The site name appended to page titles (for example, `" | My Storefront Next Store"`) comes from the `common.defaultSiteName` translation key. To change it, update the value in each locale's `translations.json`:
 
 ```json
 // src/locales/en-US/translations.json
@@ -336,8 +350,9 @@ export default function MyNewPage() {
 | Route | Title | Description | Open Graph / Twitter | noIndex |
 |-------|-------|-------------|----------------------|---------|
 | `/` (Home) | Store name (raw) | Welcome message | Yes | — |
-| `/category/:id` | Category name | Category page/general description | Yes | — |
-| `/product/:id` | Product name | Product page/short description | Yes | — |
+| `/c/*` or configured category prefix | Category name | Category page/general description | Yes | — |
+| `/p/*` or configured product prefix | Product name | Product page/short description | Yes | — |
+| Configured `/{content-prefix}/{content|page}/*` | Content or page name | Content description | Yes | — |
 | `/search` | Search query | Result count + query | Yes | — |
 | `/about-us` | About Us | Store mission description | Yes | — |
 | `/login` | Sign In | Sign in prompt | Yes | — |
@@ -368,3 +383,15 @@ For an ecommerce storefront, `noIndex` helps by:
 - Keeping checkout, account, and other private flows out of search results
 - Preventing thin, empty, or session-specific pages from being indexed
 - Helping search engines spend more attention on high-value pages such as product, category, brand, and content pages
+
+## Crawler Rendering and Pagination
+
+Two storefront behaviors keep product and category content fully crawlable. Both are on by default; you don't configure them.
+
+### Full HTML for Crawlers
+
+The storefront streams HTML to shoppers, sending the shell as soon as it's ready. Crawlers get the complete, fully-rendered page instead. `entry.server.tsx` detects known crawler user agents with the `isbot` library and waits for the full render (`onAllReady`) before responding, so a crawler never receives a partial shell.
+
+### Crawlable Load-More Pagination
+
+Category pages (PLPs) use a JavaScript "load more" flow for shoppers, but the full result set stays crawlable through a `?page=N` query parameter. Each paginated request server-renders one result window and emits `<link rel="prev">` and `<link rel="next">` tags so a crawler can traverse the set. The canonical URL of every page in the set stays the base category URL (see [Canonical URLs](#canonical-urls)), so the paginated variants don't compete for ranking.

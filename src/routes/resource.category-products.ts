@@ -21,6 +21,7 @@ import { getAllQueryParams, getQueryParam, PRODUCT_SEARCH_QUERY_PARAMS } from '@
 import { resolveRequestOrigin } from '@/lib/origin';
 import { getLogger } from '@/lib/logger.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
+import { isCategoryRefinement } from '@/lib/seo/url-resolution.server';
 
 type ProductSearchHit = ShopperSearch.schemas['ProductSearchHit'];
 
@@ -78,6 +79,7 @@ function isSameOrigin(request: Request): boolean {
  * Consumed by the product listing page "Load more" control via `useFetcher`,
  * so the shopper can append additional products without a full route navigation. Accepts the same
  * `offset` / `sort` / `refine` query parameters the category loader uses, plus a `limit`.
+ * Exactly one `cgid` or `cgslug` refinement is required.
  *
  * @example
  * GET /resource/category-products?offset=24&limit=24&refine=cgid%3Dwomens&sort=best-matches
@@ -108,8 +110,8 @@ export async function loader({ request, context }: Route.LoaderArgs): Promise<Re
         context.get(siteContext)?.currency ||
         undefined;
 
-    if (refine.length === 0) {
-        return new Response('Missing refine', { status: 400, headers: NO_STORE_HEADERS });
+    if (refine.length === 0 || refine.filter(isCategoryRefinement).length !== 1) {
+        return new Response('Expected one category refinement', { status: 400, headers: NO_STORE_HEADERS });
     }
 
     try {

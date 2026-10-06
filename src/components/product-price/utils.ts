@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { ShopperBasketsV2, ShopperOrders, ShopperProducts, ShopperSearch } from '@/scapi';
+import { getCurrencyFractionDigits } from '@/lib/currency';
 import { createLogger } from '@/lib/logger';
 import { hasPurchasablePrice, isAvailablePrice } from '@/lib/product/price-utils';
 
@@ -160,8 +161,8 @@ function findHighestPrice(product: Product): number | undefined {
  * @param {Product} product - product detail object
  * @param {object} opts - options to pass into the function like intl, quantity, and currency
  */
-export const getPriceData = (product: Product, opts: { quantity?: number } = {}) => {
-    const { quantity = 1 } = opts;
+export const getPriceData = (product: Product, opts: { quantity?: number; currency?: string } = {}) => {
+    const { quantity = 1, currency = 'USD' } = opts;
 
     // Check if this is a basket/order line item. We detect on `itemId` rather than the previously
     // co-required `basePrice` (which is optional in the SCAPI ProductItem schema) — but use a
@@ -188,7 +189,9 @@ export const getPriceData = (product: Product, opts: { quantity?: number } = {})
             ? Math.max(...tieredPrices.map((item) => item.price || 0))
             : undefined;
         const listPrice = maxTieredPrice && maxTieredPrice > basePrice ? maxTieredPrice : basePrice;
-        const isOnSale = currentPrice < listPrice;
+        const scale = 10 ** getCurrencyFractionDigits(currency);
+        const isOnSale =
+            Math.round(discountedPrice * scale) < Math.round(listPrice * (itemQuantity > 0 ? itemQuantity : 1) * scale);
 
         return {
             currentPrice,

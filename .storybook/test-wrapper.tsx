@@ -14,6 +14,7 @@
  */
 import type { ReactElement, ReactNode } from 'react';
 import { createMemoryRouter, RouterProvider, useInRouterContext } from 'react-router';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
 import StoreLocatorProvider from '../src/extensions/store-locator/providers/store-locator';
 import CheckoutOneClickProvider from '../src/components/checkout/utils/checkout-context';
 import BasketProvider from '../src/providers/basket';
@@ -62,10 +63,12 @@ export function StoryTestWrapper({
             <SiteProvider site={siteWithAlias} locale={locale} language={site.defaultLocale} currency={site.defaultCurrency}>
                 <AuthProvider value={{ userType: 'guest', customerId: undefined }}>
                     <BasketProvider basket={undefined}>
+                        {/* @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */}
                         <StoreLocatorProvider>
                             <CheckoutOneClickProvider customerProfile={undefined} shippingDefaultSet={Promise.resolve(undefined)}>
                                 {children}
                             </CheckoutOneClickProvider>
+                            {/* @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */}
                         </StoreLocatorProvider>
                     </BasketProvider>
                 </AuthProvider>

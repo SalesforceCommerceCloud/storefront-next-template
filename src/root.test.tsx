@@ -102,6 +102,14 @@ vi.mock('@/components/tracking-consent-banner', async () => ({
     TrackingConsentBanner: () => <div data-testid="tracking-consent-banner">Tracking Consent Banner</div>,
 }));
 
+// Spy on applyAttribution (the seam ErrorBoundary imports) while keeping the real useAttribution for
+// the App tests. useAttribution calls its module-internal applyAttribution, not this export mock, so
+// mocking here only intercepts ErrorBoundary's cross-module call — exactly the P2 #1 path we assert.
+vi.mock('@/hooks/use-attribution', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/hooks/use-attribution')>()),
+    applyAttribution: vi.fn(),
+}));
+
 // @sfdc-extension-block-start SFDC_EXT_HYBRID_PROXY
 vi.mock('@/extensions/hybrid-proxy/navigation-interceptor', () => ({
     HybridProxyNavigationInterceptor: () => <div data-testid="hybrid-proxy-interceptor">Hybrid Proxy Interceptor</div>,
@@ -667,6 +675,66 @@ describe('root.tsx', () => {
 
                 expect(getByText('404')).toBeInTheDocument();
                 expect(getByText('Page not found')).toBeInTheDocument();
+            });
+        });
+
+        // W-23493124: a campaign link landing directly on a 404/route error renders ErrorBoundary
+        // instead of App, so the App-tree AttributionCapture never runs. ErrorBoundary must capture
+        // first touch itself, resolving the cookie domain from loader data (no Site/Config providers
+        // on this path) with the same per-site-over-global precedence useAttribution uses.
+        describe('attribution capture', () => {
+            afterEach(async () => {
+                const reactRouter = await import('react-router');
+                vi.mocked(reactRouter.useRouteLoaderData).mockRestore();
+            });
+
+            it('captures attribution using the per-site cookie domain from loader data', async () => {
+                const reactRouter = await import('react-router');
+                vi.mocked(reactRouter.useRouteLoaderData).mockReturnValue({
+                    errorTranslations: enGBRouteError,
+                    appConfig: { i18n: { fallbackLng: 'en-GB' }, cookies: { domain: '.global.example.com' } },
+                    locale: { id: 'en-GB' },
+                    site: { ...mockSite, cookies: { domain: '.site.example.com' } },
+                } as any);
+
+                const { applyAttribution } = await import('@/hooks/use-attribution');
+                const error = { status: 404, statusText: 'Not Found', data: {}, internal: false };
+                render(<ErrorBoundary error={error} />);
+
+                // Per-site domain wins over the global app default.
+                await waitFor(() => {
+                    expect(vi.mocked(applyAttribution)).toHaveBeenCalledWith('.site.example.com');
+                });
+            });
+
+            it('falls back to the global app cookie domain when the site has none', async () => {
+                const reactRouter = await import('react-router');
+                vi.mocked(reactRouter.useRouteLoaderData).mockReturnValue({
+                    errorTranslations: enGBRouteError,
+                    appConfig: { i18n: { fallbackLng: 'en-GB' }, cookies: { domain: '.global.example.com' } },
+                    locale: { id: 'en-GB' },
+                    site: mockSite,
+                } as any);
+
+                const { applyAttribution } = await import('@/hooks/use-attribution');
+                const error = { status: 404, statusText: 'Not Found', data: {}, internal: false };
+                render(<ErrorBoundary error={error} />);
+
+                await waitFor(() => {
+                    expect(vi.mocked(applyAttribution)).toHaveBeenCalledWith('.global.example.com');
+                });
+            });
+
+            it('still captures (host-only) when loader data is unavailable (root loader threw)', async () => {
+                // useRouteLoaderData returns null → no domain resolvable → capture host-only rather
+                // than skip. The capture must never itself depend on loader data being present.
+                const { applyAttribution } = await import('@/hooks/use-attribution');
+                const error = { status: 404, statusText: 'Not Found', data: {}, internal: false };
+                render(<ErrorBoundary error={error} />);
+
+                await waitFor(() => {
+                    expect(vi.mocked(applyAttribution)).toHaveBeenCalledWith(undefined);
+                });
             });
         });
     });

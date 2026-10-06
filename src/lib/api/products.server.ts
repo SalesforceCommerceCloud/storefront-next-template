@@ -21,6 +21,7 @@ import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 
 type GetProductsQuery = ShopperProducts.operations['getProducts']['parameters']['query'];
 type GetProductQuery = ShopperProducts.operations['getProduct']['parameters']['query'];
+type ProductExpand = NonNullable<GetProductsQuery['expand']>[number];
 
 export type FetchProductsByIdsOptions = Partial<Omit<GetProductsQuery, 'ids' | 'siteId'>>;
 export type FetchProductByIdOptions = Partial<Omit<GetProductQuery, 'siteId'>>;
@@ -31,6 +32,29 @@ export type FetchProductByIdOptions = Partial<Omit<GetProductQuery, 'siteId'>>;
  * Larger ID lists (e.g. a cart with 25+ distinct products) must be split into chunks of this size.
  */
 export const SCAPI_GET_PRODUCTS_MAX_IDS = 24;
+
+/**
+ * Expansions SCAPI applies when `expand` is omitted. Use this helper when adding an expansion to a
+ * request that previously relied on those defaults so the existing response shape is preserved.
+ */
+const DEFAULT_PRODUCT_EXPANSIONS: ProductExpand[] = [
+    'availability',
+    'bundled_products',
+    'links',
+    'promotions',
+    'options',
+    'images',
+    'prices',
+    'variations',
+    'set_products',
+    'recommendations',
+    'shipping_methods',
+    'primary_category',
+];
+
+export function getDefaultProductExpansions(...additionalExpansions: ProductExpand[]): ProductExpand[] {
+    return [...new Set([...DEFAULT_PRODUCT_EXPANSIONS, ...additionalExpansions])];
+}
 
 /**
  * Fetch multiple products by IDs.

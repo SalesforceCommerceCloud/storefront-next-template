@@ -36,6 +36,27 @@ export interface CollapsibleSectionProps {
     /** Whether the section starts open. Defaults to false. */
     defaultOpen?: boolean;
     /**
+     * When true, keep the section permanently expanded. On its own the summary stays interactive
+     * for keyboard/AT but clicking it does nothing. Combined with `hideToggle` the section renders
+     * as a plain, non-interactive header + content (no `<summary>` disclosure control) so assistive
+     * technology doesn't announce a focusable toggle that has no effect. Defaults to false.
+     */
+    forceOpen?: boolean;
+    /**
+     * When true, hide the chevron/spinner toggle on the right side of the summary. Use with
+     * `forceOpen` for always-visible content that still uses collapsible-section structure — in that
+     * combination the header is rendered as non-interactive static content rather than a disclosure
+     * control. Defaults to false.
+     */
+    hideToggle?: boolean;
+    /**
+     * Optional content rendered as a footer band at the bottom of the expanded body (below
+     * `children`), separated from the content by a top border — e.g. a "learn more" or verification
+     * link. Omitted by default, so sections that don't set it render exactly as before. Lazy-mounted
+     * alongside `children`.
+     */
+    footer?: ReactNode;
+    /**
      * When true, move focus to the section's `<summary>` on mount. Used when the section is remounted
      * collapsed after an in-place selection (e.g. a collapsible swatch section) so keyboard/AT focus
      * isn't dropped to `<body>` when the just-interacted control leaves the DOM. Default false.
@@ -68,13 +89,16 @@ export default function CollapsibleSection({
     summary,
     children,
     defaultOpen = false,
+    forceOpen = false,
+    hideToggle = false,
+    footer,
     focusSummaryOnMount = false,
     className,
 }: CollapsibleSectionProps): ReactElement {
     // Whether the section is visually open (controls the open attribute).
-    const [isOpen, setIsOpen] = useState(defaultOpen);
+    const [isOpen, setIsOpen] = useState(defaultOpen || forceOpen);
     // Whether children have been mounted at least once (for lazy mounting).
-    const [hasOpened, setHasOpened] = useState(defaultOpen);
+    const [hasOpened, setHasOpened] = useState(defaultOpen || forceOpen);
     // Set to true when the user clicks to open while content is still loading.
     const [pendingOpen, setPendingOpen] = useState(false);
     // Rendered loading state — drives the spinner visibility.
@@ -122,6 +146,8 @@ export default function CollapsibleSection({
 
     const handleSummaryClick = (e: React.MouseEvent<HTMLElement>) => {
         e.preventDefault();
+        // When forceOpen is true, the section stays expanded — do nothing.
+        if (forceOpen) return;
         if (isOpen) {
             setIsOpen(false);
         } else {
@@ -129,6 +155,33 @@ export default function CollapsibleSection({
             setPendingOpen(true);
         }
     };
+
+    // Always-open, non-interactive mode (forceOpen + hideToggle): render a plain header + content
+    // instead of a `<details>`/`<summary>` disclosure. A permanently-open section has nothing to
+    // toggle, so exposing a focusable disclosure control that does nothing is a poor AT experience —
+    // this renders the label as static text with the content always visible.
+    if (forceOpen && hideToggle) {
+        return (
+            <CollapsibleLoadingContext value={loadingContextValue}>
+                <div className={cn('group border-b border-border', className)} data-slot="collapsible-section">
+                    <div
+                        data-slot="collapsible-heading"
+                        className="flex items-center justify-between gap-4 py-4 text-base font-medium text-foreground">
+                        {summary ?? (
+                            <span className="flex items-center gap-2">
+                                {label}
+                                {labelSupplement}
+                            </span>
+                        )}
+                    </div>
+                    <div data-slot="collapsible-content" className="pb-4">
+                        {children}
+                        {footer ? <div className="mt-4 border-t border-border pt-4">{footer}</div> : null}
+                    </div>
+                </div>
+            </CollapsibleLoadingContext>
+        );
+    }
 
     return (
         <CollapsibleLoadingContext value={loadingContextValue}>
@@ -143,16 +196,20 @@ export default function CollapsibleSection({
                             {labelSupplement}
                         </span>
                     )}
-                    {isLoading || pendingOpen ? (
-                        <Spinner size="sm" />
-                    ) : (
-                        <ChevronDownIcon
-                            aria-hidden="true"
-                            className="text-muted-foreground pointer-events-none size-5 shrink-0 translate-y-0.5 transition-transform duration-200 group-open:rotate-180"
-                        />
-                    )}
+                    {!hideToggle &&
+                        (isLoading || pendingOpen ? (
+                            <Spinner size="sm" />
+                        ) : (
+                            <ChevronDownIcon
+                                aria-hidden="true"
+                                className="text-muted-foreground pointer-events-none size-5 shrink-0 translate-y-0.5 transition-transform duration-200 group-open:rotate-180"
+                            />
+                        ))}
                 </summary>
-                <div className="pb-4">{hasOpened && children}</div>
+                <div className="pb-4">
+                    {hasOpened && children}
+                    {footer && hasOpened ? <div className="mt-4 border-t border-border pt-4">{footer}</div> : null}
+                </div>
             </details>
         </CollapsibleLoadingContext>
     );

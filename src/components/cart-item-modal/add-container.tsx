@@ -18,8 +18,12 @@ import type { ShopperProducts } from '@/scapi';
 import { useTranslation } from 'react-i18next';
 import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
 import { useProductImages } from '@/hooks/product/use-product-images';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
+import { createProductUrl } from '@/route-paths';
 import { isProductBundle, isProductSet } from '@/lib/product/product-utils';
 import { computeInitialVariationValues } from '@/lib/product/initial-variation-values';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { CartItemModalView } from './view';
 import type { CartItemModalProps } from './types';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
@@ -41,6 +45,7 @@ export function CartItemModalAddContainer({
     open = false,
 }: CartItemModalAddContainerProps): ReactElement {
     const { t } = useTranslation('editItem');
+    const config = useConfig();
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const selectedStoreInventoryId = useStoreLocator((state) => state.selectedStoreInfo?.inventoryId);
     const inventoryIds = selectedStoreInventoryId ? [selectedStoreInventoryId] : undefined;
@@ -61,6 +66,7 @@ export function CartItemModalAddContainer({
                     'images',
                     'prices',
                     'promotions',
+                    ...getSeoSlugExpansion(config.url?.seoRoutes),
                     'set_products',
                     'bundled_products',
                 ],
@@ -133,6 +139,7 @@ export function CartItemModalAddContainer({
                     'images',
                     'prices',
                     'promotions',
+                    ...getSeoSlugExpansion(config.url?.seoRoutes),
                     'set_products',
                     'bundled_products',
                 ],
@@ -218,6 +225,7 @@ export function CartItemModalAddContainer({
     }, []);
 
     const currentProduct = baseProduct;
+    const seoUrlContext = useSeoUrlContext();
     const safeProduct = currentProduct ?? ({} as Product);
     const { galleryImages } = useProductImages({ product: safeProduct, selectedAttributes: variationValues });
 
@@ -248,9 +256,15 @@ export function CartItemModalAddContainer({
         if (selectedVariantId) {
             params.set('pid', selectedVariantId);
         }
-        const search = params.toString();
-        return search ? `/product/${baseProductId}?${search}` : `/product/${baseProductId}`;
-    }, [currentProduct?.id, productId, variationValues, selectedVariantId]);
+        return createProductUrl(
+            {
+                productId: baseProductId,
+                slug: currentProduct?.slug,
+                searchParams: params,
+            },
+            seoUrlContext
+        );
+    }, [currentProduct, productId, variationValues, selectedVariantId, seoUrlContext]);
 
     return (
         <CartItemModalView

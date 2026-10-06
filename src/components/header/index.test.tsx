@@ -45,6 +45,10 @@ vi.mock('@/components/cimulate', () => ({
     openAgentWidget: vi.fn(),
     isCimulateEnabled: vi.fn(() => false),
     validateCimulateConfig: vi.fn(() => false),
+    resolveShopperAgentConfig: vi.fn(
+        (cfg: { cimulateAgent?: unknown; commerce?: { shopperAgent?: unknown } }) =>
+            cfg?.commerce?.shopperAgent ?? cfg?.cimulateAgent
+    ),
 }));
 
 vi.mock('@/targets/ui-target', () => ({

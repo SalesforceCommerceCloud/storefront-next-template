@@ -207,6 +207,7 @@ export default function CheckoutPickup({
                                             productItem as ShopperProducts.schemas['Product'],
                                             {
                                                 quantity,
+                                                currency,
                                             }
                                         );
                                         const currentPrice = priceData.currentPrice;

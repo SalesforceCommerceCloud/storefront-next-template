@@ -70,6 +70,20 @@ class LoginPage {
     }
 
     /**
+     * Auth-mode-agnostic readiness gate for the a11y scan. Waits only for the email
+     * field, which both password login and email-verification (passwordless) login
+     * render. Does NOT assert the "Sign In" button, which becomes "Continue" when
+     * `emailVerificationEnabled`, so this holds under either supported configuration.
+     * The email field is a body element, so its presence also guarantees the `<head>`
+     * (and thus `<html lang>` / `<title>`) has committed, past the scan-race window.
+     */
+    validateA11yReady(timeoutSeconds: number = 30): void {
+        I.waitInUrl('/login', timeoutSeconds / 2);
+        I.waitForElement(this.locators.emailInput, timeoutSeconds);
+        I.seeElement(this.locators.emailInput);
+    }
+
+    /**
      * Fill in the email field
      */
     fillEmail(email: string): void {

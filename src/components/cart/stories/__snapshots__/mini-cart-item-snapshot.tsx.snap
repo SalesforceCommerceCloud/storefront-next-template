@@ -125,7 +125,7 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
                     <a
                       class="hover:underline"
                       data-discover="true"
-                      href="/RefArchGlobal/en-GB/product/mock-product-1"
+                      href="/RefArchGlobal/en-GB/p/mock-product-1"
                     >
                       <h3
                         class="text-left text-xl font-semibold leading-none tracking-[-0.6px] text-card-foreground line-clamp-2"
@@ -429,7 +429,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                     <a
                       class="hover:underline"
                       data-discover="true"
-                      href="/RefArchGlobal/en-GB/product/mock-product-1"
+                      href="/RefArchGlobal/en-GB/p/mock-product-1"
                     >
                       <h3
                         class="text-left text-xl font-semibold leading-none tracking-[-0.6px] text-card-foreground line-clamp-2"

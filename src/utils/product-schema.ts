@@ -261,8 +261,8 @@ function getCurrency(product: ShopperProducts.schemas['Product']): string | unde
  * Generates a Product JSON-LD schema from product data
  *
  * @param product - Product data from SFCC API
- * @param productUrl - Absolute product URL using public storefront domain.
- *   Should be constructed using getPublicOrigin() in the loader to avoid exposing internal URLs.
+ * @param productUrl - Absolute product URL using the public storefront domain. Pass the loader's
+ *   canonical page URL so structured data matches the canonical <link> and og:url.
  *   Do NOT rely on slugUrl from product API data as it may contain internal routing URLs.
  * @returns Product schema object ready for JSON-LD
  */

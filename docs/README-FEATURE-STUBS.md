@@ -127,7 +127,7 @@ Config updates:
 The inline installment message ("Pay in 4 interest-free payments of …") and the "Learn more" modal (payment schedule + how-it-works steps + provider disclosures) are fully functional but backed by mock fixtures in `lib/api/bnpl.server.ts`. The fixtures return the same payment schedule for every product — the `productId` argument is accepted but ignored. Currency formatting honors the active site/locale via `useSite()`.
 
 **To productionize:**
-Replace the bodies of `getBuyNowPayLaterMessage` and `getBuyNowPayLaterLearnMore` in `src/extensions/bnpl/lib/api/bnpl.server.ts` with calls into your BNPL provider's API (PayPal, Klarna, Affirm, etc.). The PDP loader (`src/routes/_app.product.$productId.tsx`) and the UITarget wrapper (`components/target/bnpl-target.tsx`) do not need to change. Drop the `(Demo)` prefix from the extension name in `src/extensions/config.json` once a real provider is wired up.
+Replace the bodies of `getBuyNowPayLaterMessage` and `getBuyNowPayLaterLearnMore` in `src/extensions/bnpl/lib/api/bnpl.server.ts` with calls into your BNPL provider's API (PayPal, Klarna, Affirm, etc.). The PDP loader (`src/routes/_app.p.$.tsx`) and the UITarget wrapper (`components/target/bnpl-target.tsx`) do not need to change. Drop the `(Demo)` prefix from the extension name in `src/extensions/config.json` once a real provider is wired up.
 
 **To remove:**
 Uninstall the extension by stripping the `@sfdc-extension-*` markers from core files and deleting the extension folder.
@@ -136,7 +136,7 @@ Files to delete:
 - `src/extensions/bnpl/` (entire folder)
 
 Parent components to update (remove the marker block):
-- `src/routes/_app.product.$productId.tsx` — the `bnplMessage` / `bnplLearnMore` loader Promises and the import
+- `src/routes/_app.p.$.tsx` — the `bnplMessage` / `bnplLearnMore` loader Promises and the import
 - `src/components/product-cart-actions/index.tsx` — the `<UITarget targetId="sfcc.pdp.bnpl.message" />` block
 
 Config updates:
@@ -163,7 +163,7 @@ Three PDP surfaces are wired up and fully functional, but backed by hard-coded f
 The fixtures return the same content for every product — the `productId` argument is accepted but ignored.
 
 **To productionize:**
-Replace the bodies of `getReturnsAndWarranty`, `getIngredientsData`, `getUsageInstructions`, `getCareInstructions`, `getTechSpecs`, and `getFaqQuestions` in `src/extensions/product-content/lib/api/product-content.server.ts` with calls into your CMS, PIM, or Page Designer-backed content service. The PDP loader (`src/routes/_app.product.$productId.tsx`) and the UITarget wrappers do not need to change. Customize the ordered list of collapsibles per product via `src/extensions/product-content/lib/pdp-sections.ts`. Drop the `(Demo)` prefix from the extension name in `src/extensions/config.json` once a real backend is wired up.
+Replace the bodies of `getReturnsAndWarranty`, `getIngredientsData`, `getUsageInstructions`, `getCareInstructions`, `getTechSpecs`, and `getFaqQuestions` in `src/extensions/product-content/lib/api/product-content.server.ts` with calls into your CMS, PIM, or Page Designer-backed content service. The PDP loader (`src/routes/_app.p.$.tsx`) and the UITarget wrappers do not need to change. Customize the ordered list of collapsibles per product via `src/extensions/product-content/lib/pdp-sections.ts`. Drop the `(Demo)` prefix from the extension name in `src/extensions/config.json` once a real backend is wired up.
 
 **To remove:**
 Uninstall the extension by stripping the `@sfdc-extension-*` markers from core files and deleting the extension folder.
@@ -172,7 +172,7 @@ Files to delete:
 - `src/extensions/product-content/` (entire folder)
 
 Parent components to update (remove the marker block):
-- `src/routes/_app.product.$productId.tsx` — the `returnsWarranty` / `faqQuestions` / `pdpCollapsibles` loader Promises and the imports
+- `src/routes/_app.p.$.tsx` — the `returnsWarranty` / `faqQuestions` / `pdpCollapsibles` loader Promises and the imports
 - `src/components/product-view/product-view.tsx` — the three `<UITarget>` calls (`sfcc.pdp.returnsWarranty`, `sfcc.pdp.faq`, `sfcc.pdp.collapsibles`)
 
 Config updates:
@@ -203,7 +203,7 @@ Files to delete:
 - `src/extensions/ratings-reviews/` (entire folder)
 
 Parent components to update (remove the marker block):
-- `src/routes/_app.product.$productId.tsx` — the `reviewsSummary` / `reviewsList` / `writeReviewForm` loader Promises and the `ProductReviewsProvider` wrapper
+- `src/routes/_app.p.$.tsx` — the `reviewsSummary` / `reviewsList` / `writeReviewForm` loader Promises and the `ProductReviewsProvider` wrapper
 - `src/routes/_app.account.orders.$orderNo.tsx` — the `writeReviewForm` loader Promise and the `ProductReviewsProvider` wrapper in order-items
 - `src/components/cart-item-modal/view.tsx` — the `<UITarget targetId="sfcc.pdp.reviews.summary" />` block
 

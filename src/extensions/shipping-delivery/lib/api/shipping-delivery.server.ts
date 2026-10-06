@@ -19,9 +19,11 @@ import type { LoaderFunctionArgs } from 'react-router';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { createApiClients } from '@/lib/api-clients.server';
 import { fetchProductById } from '@/lib/api/products.server';
+import { getLogger } from '@/lib/logger.server';
 import type { ShopperDeliveryEstimates, ShopperProducts } from '@/scapi';
 import { getCountryCodeFromLocale } from '@/lib/shipping-estimate/postal-code-formats';
 import type { ShippingEstimate, ShippingEstimateOption } from '@/lib/shipping-estimate/types';
+import { compareRfc3339Timestamps } from '@/lib/rfc3339';
 
 const PICKUP_SHIPPING_METHOD_ID = '005';
 
@@ -37,7 +39,8 @@ type ProductShippingMethod = NonNullable<ShopperProducts.schemas['Product']['shi
 /**
  * Returns the first merchant-authored delivery-method description available for a product.
  * The product API provides localized catalog descriptions but cannot calculate a
- * destination-specific date, so this is only used for selected Delivery Estimates failures.
+ * destination-specific date, so this is only used when Delivery Estimates returns
+ * no eligible options or fails with a fallback-eligible response.
  */
 export async function getFallbackDeliveryDescription(
     context: LoaderFunctionArgs['context'],
@@ -71,6 +74,11 @@ function toShippingEstimateOption(
         deliveryWindow: option.deliveryWindow,
         ...(option.orderCutoffAt ? { orderCutoffAt: option.orderCutoffAt } : {}),
     };
+}
+
+function isValidDeliveryWindow(deliveryWindow: DeliveryWindow): boolean {
+    const comparison = compareRfc3339Timestamps(deliveryWindow.startAt, deliveryWindow.endAt);
+    return comparison !== null && comparison <= 0;
 }
 
 export function getEstimateCountryCode(context: LoaderFunctionArgs['context']): string {
@@ -118,30 +126,37 @@ export async function getShippingEstimates(
         return null;
     }
 
-    const deliverableOptions = productEstimate.shippingOptions.filter(
-        (o): o is ScapiShippingOption & { deliveryWindow: DeliveryWindow } => !!o.deliveryWindow
+    const optionsWithDeliveryWindows = productEstimate.shippingOptions.filter(
+        (option): option is ScapiShippingOption & { deliveryWindow: DeliveryWindow } => !!option.deliveryWindow
     );
+    const deliverableOptions = optionsWithDeliveryWindows.filter((option) =>
+        isValidDeliveryWindow(option.deliveryWindow)
+    );
+    const invalidDeliveryWindowCount = optionsWithDeliveryWindows.length - deliverableOptions.length;
+
+    if (optionsWithDeliveryWindows.length > 0 && deliverableOptions.length === 0) {
+        getLogger(context).warn('ShippingEstimate: no valid delivery windows', { invalidDeliveryWindowCount });
+    }
 
     if (deliverableOptions.length === 0) {
         return null;
     }
 
     const shippingOptions = deliverableOptions.map(toShippingEstimateOption).sort((a, b) => {
-        if (a.price !== undefined && b.price !== undefined) {
-            const priceDiff = a.price - b.price;
-            if (priceDiff !== 0) return priceDiff;
-        } else if (a.price !== undefined) {
-            return -1;
-        } else if (b.price !== undefined) {
-            return 1;
-        }
+        const startAtDiff = compareRfc3339Timestamps(b.deliveryWindow.startAt, a.deliveryWindow.startAt) ?? 0;
+        if (startAtDiff !== 0) return startAtDiff;
 
-        return new Date(a.deliveryWindow.endAt).getTime() - new Date(b.deliveryWindow.endAt).getTime();
+        const endAtDiff = compareRfc3339Timestamps(b.deliveryWindow.endAt, a.deliveryWindow.endAt) ?? 0;
+        if (endAtDiff !== 0) return endAtDiff;
+
+        if (a.shippingMethodId < b.shippingMethodId) return -1;
+        if (a.shippingMethodId > b.shippingMethodId) return 1;
+        return 0;
     });
 
     return {
         shippingOptions,
-        // The PDP summary represents the default option, not the span of every available method.
+        // The PDP summary represents the temporary slowest display option, not the span of every method.
         deliveryWindow: shippingOptions[0].deliveryWindow,
     };
 }

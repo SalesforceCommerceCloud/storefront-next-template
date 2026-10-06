@@ -31,7 +31,7 @@ const CartSheet = lazy(() => import('./cart-sheet'));
 export default function CartBadge(): ReactElement {
     const snapshot = useBasketSnapshot();
     const { t } = useTranslation('cart');
-    const numberOfItems = snapshot?.uniqueProductCount ?? 0;
+    const numberOfItems = snapshot?.totalItemCount ?? 0;
     const [clicked, setClicked] = useState<boolean>(false);
     const miniCartOpen = useMiniCartStore((s) => s.open);
 

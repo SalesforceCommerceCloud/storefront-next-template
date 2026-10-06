@@ -1,0 +1,27 @@
+@import 'tw-animate-css';
+
+/* Tailwind theme bridge — registers CSS vars as Tailwind utilities */
+@import './tailwind.css';
+
+/* Token definitions (:root values) */
+@import './tokens/core.css';
+@import './tokens/custom.css';
+@import './tokens/status.css';
+@import './tokens/swatch.css';
+@import './tokens/header.css';
+@import './tokens/sidebar.css';
+@import './tokens/agentic.css';
+@import './tokens/brand.css';
+@import './tokens/components.css';
+
+/* Animation keyframes */
+@import './animations.css';
+
+/* Global base layer */
+@import './base.css';
+
+/* Component-specific CSS overrides */
+@import './overrides/sonner.css';
+@import './overrides/navigation.css';
+@import './overrides/store-locator.css';
+@import './overrides/cart-sheet.css';

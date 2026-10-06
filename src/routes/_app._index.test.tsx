@@ -239,6 +239,10 @@ vi.mock('@/middlewares/auth.server', () => ({
     getAuth: vi.fn(() => ({ customerId: null })),
 }));
 
+vi.mock('@/hooks/use-seo-url-context', () => ({
+    useSeoUrlContext: () => ({ siteId: 'RefArchGlobal' }),
+}));
+
 const renderComponent = (loaderDataOverrides?: Partial<HomePageData>) => {
     const defaultData: HomePageData = {
         page: {

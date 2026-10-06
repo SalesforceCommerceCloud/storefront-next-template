@@ -720,7 +720,7 @@ describe('CartContent', () => {
             expect(editButton2).toHaveClass('pl-0');
         });
 
-        test('opens product modal when edit button is clicked', () => {
+        test('opens product modal when edit button is clicked', async () => {
             renderCartContent({
                 basket: mockBasket,
                 productsByItemId: mockProductMap,
@@ -732,11 +732,11 @@ describe('CartContent', () => {
             const editButton = screen.getByTestId('edit-item-item-1');
             fireEvent.click(editButton);
 
-            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(await screen.findByRole('dialog')).toBeInTheDocument();
             expect(screen.getByText(t('editItem:title'))).toBeInTheDocument();
         });
 
-        test('can close modal using close button', () => {
+        test('can close modal using close button', async () => {
             renderCartContent({
                 basket: mockBasket,
                 productsByItemId: mockProductMap,
@@ -746,7 +746,7 @@ describe('CartContent', () => {
             const editButton = screen.getByTestId('edit-item-item-1');
             fireEvent.click(editButton);
 
-            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
             const closeButton = screen.getByRole('button', { name: /close/i });
             fireEvent.click(closeButton);
@@ -1137,6 +1137,25 @@ describe('CartContent', () => {
             expect(lastOpen.bonusDiscountSlots).toEqual([
                 { id: 'bli-active', maxBonusItems: 1, bonusProductsSelected: 0 },
             ]);
+        });
+    });
+
+    describe('Hidden product IDs (display filter)', () => {
+        test('renders all products when hiddenProductIds is empty (canonical default)', () => {
+            // Canonical default: hiddenProductIds is empty, so no products are filtered from display.
+            renderCartContent({
+                basket: mockBasket,
+                productsByItemId: mockProductMap,
+                bonusProductsById: mockBonusProductsById,
+            });
+
+            // All products should be rendered (no filtering)
+            expect(screen.getByTestId('sf-product-item-product-1')).toBeInTheDocument();
+            expect(screen.getByTestId('sf-product-item-product-2')).toBeInTheDocument();
+
+            // Item count should include all products
+            const heading = screen.getByRole('heading', { level: 1 });
+            expect(heading).toHaveTextContent(t('cart:itemCount', { count: 3 }));
         });
     });
 });

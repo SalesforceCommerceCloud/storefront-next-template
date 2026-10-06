@@ -22,6 +22,7 @@ import { expect } from 'chai';
 import {
     TEST_SHIPPING_ADDRESS,
     TEST_PAYMENT,
+    TEST_PAYMENT_MASTERCARD,
     TEST_PRODUCT_CATEGORIES,
     generateTestEmail,
 } from '../../test-data/checkout.data';
@@ -58,6 +59,25 @@ Scenario('Guest shopper should complete checkout and place order', async () => {
     .tag('@guest-checkout')
     .tag('@place-order')
     .tag('@smoke');
+
+Scenario('Guest shopper should place order with MasterCard', async () => {
+    const productInfo = await apiCartSetupFlow.executeAndNavigateToCheckout(TEST_PRODUCT_CATEGORIES.MENS_JACKETS);
+    expect(productInfo).to.not.be.undefined;
+
+    checkoutPage.validatePageLoaded();
+
+    const orderNumber = await checkoutPage.completeCheckout({
+        email: generateTestEmail('guest-mc'),
+        shippingAddress: TEST_SHIPPING_ADDRESS,
+        payment: TEST_PAYMENT_MASTERCARD,
+    });
+
+    expect(orderNumber).to.not.be.empty;
+    expect(orderNumber).to.match(/^\d+$/);
+})
+    .tag('@guest-checkout')
+    .tag('@place-order')
+    .tag('@mastercard');
 
 Scenario('Registered shopper should complete checkout', async () => {
     await apiLoginFlow.executeWithEnsuredCredentials();

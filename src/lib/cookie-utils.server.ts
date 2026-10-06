@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 import type { RouterContextProvider } from 'react-router';
+import { getLogger } from '@/lib/logger.server';
 import { COOKIE_TRACKING_CONSENT, COOKIE_DWSID } from '@/middlewares/auth.utils';
 import { modeDetectionContext } from '@/middlewares/mode-detection';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { isRemote } from '@salesforce/storefront-next-runtime/env';
+import { isValidCookieDomain } from '@salesforce/storefront-next-runtime/cookie-domain';
 
 /**
  * List of cookie names that should NOT be namespaced.
@@ -135,12 +137,36 @@ export const getCookieNameWithSiteId = (name: string, context: Readonly<RouterCo
  *   defaults to the request's resolved site from the site context.
  * @returns The resolved cookie domain, or `undefined` for host-only scoping.
  */
+// Warn at most once per distinct invalid value so a misconfigured merchant does not get a
+// per-cookie, per-request log flood. Persists for the process lifetime; cold starts reset it.
+// Validation itself (which values a browser rejects) lives in the runtime's shared
+// `isValidCookieDomain` so the server, the client (dw_attribution), and the site-context
+// middleware all agree on the same rule.
+const warnedCookieDomains = new Set<string>();
+
 export const resolveCookieDomain = (
     context: Readonly<RouterContextProvider>,
     site?: { cookies?: { domain?: string } }
 ): string | undefined => {
     const resolvedSite = site ?? context.get(siteContext)?.site;
-    return resolvedSite?.cookies?.domain || getConfig(context).cookies?.domain || undefined;
+    const cookieDomain = resolvedSite?.cookies?.domain || getConfig(context).cookies?.domain || undefined;
+    if (!cookieDomain) return undefined;
+
+    // Fall back to host-only scoping on an invalid domain rather than emitting a malformed
+    // (browser-rejected) or attribute-injecting Set-Cookie. Applies to every storefront cookie,
+    // since this is the single choke point they all resolve their Domain through.
+    if (!isValidCookieDomain(cookieDomain)) {
+        if (!warnedCookieDomains.has(cookieDomain)) {
+            warnedCookieDomains.add(cookieDomain);
+            getLogger(context).warn(
+                'Invalid cookie domain; falling back to host-only scoping. Cookie domains must not ' +
+                    'contain wildcards or special characters (e.g. ".example.com").',
+                { cookieDomain }
+            );
+        }
+        return undefined;
+    }
+    return cookieDomain;
 };
 
 export const parseAllCookies = (cookieHeader: string | null): Record<string, string> => {

@@ -23,6 +23,11 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();
 
+// Passthrough — transformTargets strips <UITarget> at compile time in tests.
+vi.mock('@/targets/ui-target', () => ({
+    UITarget: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+}));
+
 describe('RemovePaymentMethodDialog', () => {
     const mockPaymentMethod: PaymentMethod = {
         id: '1',
@@ -57,7 +62,39 @@ describe('RemovePaymentMethodDialog', () => {
         render(<RemovePaymentMethodDialog {...defaultProps} />);
 
         expect(screen.getByText(/4242/)).toBeInTheDocument();
-        expect(screen.getByText(/John Doe/)).toBeInTheDocument();
+        expect(screen.getByText('12/2026 | John Doe')).toBeInTheDocument();
+    });
+
+    test('omits trailing pipe when cardholder name is empty', () => {
+        render(
+            <RemovePaymentMethodDialog {...defaultProps} paymentMethod={{ ...mockPaymentMethod, cardholderName: '' }} />
+        );
+
+        expect(screen.getByText('12/2026')).toBeInTheDocument();
+        expect(screen.queryByText(/\|/)).not.toBeInTheDocument();
+    });
+
+    test('shows localized SEPA Debit label instead of raw sepa_debit type', () => {
+        render(
+            <RemovePaymentMethodDialog
+                {...defaultProps}
+                paymentMethod={{
+                    id: 'pm_sepa',
+                    type: 'sepa_debit',
+                    last4: '3000',
+                    expiryMonth: '',
+                    expiryYear: '',
+                    cardholderName: 'Sushma Yadupathi',
+                    isDefault: false,
+                }}
+            />
+        );
+
+        expect(screen.getByText('SEPA Debit **** 3000')).toBeInTheDocument();
+        expect(screen.getByText('Sushma Yadupathi')).toBeInTheDocument();
+        expect(screen.queryByText(/sepa_debit/i)).not.toBeInTheDocument();
+        // SEPA wordmark (not GenericCardIcon's 40×24 card silhouette).
+        expect(document.querySelector('svg[viewBox="0 0 36 13"]')).toBeInTheDocument();
     });
 
     test('shows warning for default payment method', () => {

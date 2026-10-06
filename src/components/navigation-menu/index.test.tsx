@@ -19,6 +19,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMockCategory, createMockCategoryWithChildren, testData } from './__tests__/data';
 import CategoryNavigationMenu from './impl';
 import { WithCategoryNavigationMenu } from './index';
+import type { ShopperProducts } from '@/scapi';
 // oxlint-disable-next-line import/no-namespace
 import * as contextModule from './context';
 
@@ -80,6 +81,7 @@ describe('WithCategoryNavigationMenu Component', () => {
                 resolve: Promise.resolve(
                     createMockCategoryWithChildren({ id: 'root', name: 'Root', categories: testData.mixedVisibility })
                 ),
+                itemsFilter: 'c_showInMenu',
             });
 
             await waitFor(() => {
@@ -107,7 +109,7 @@ describe('WithCategoryNavigationMenu Component', () => {
                 ],
             });
 
-            renderComponent({ resolve: Promise.resolve(rootCategory) });
+            renderComponent({ resolve: Promise.resolve(rootCategory), itemsFilter: 'c_showInMenu' });
 
             await waitFor(() => {
                 expect(MockCategoryNavigationMenu).toHaveBeenCalledTimes(1);
@@ -174,7 +176,7 @@ describe('WithCategoryNavigationMenu Component', () => {
             expect(container.firstChild).toBeNull();
         });
 
-        it('should render nested categories filtered based on the "c_showInMenu" property', async () => {
+        it('should filter deferred children and preserve root category metadata during enrichment', async () => {
             // Spy on createSubCategoryStore to capture the store's update call
             const updateSpy = vi.fn();
             const originalCreate = contextModule.createSubCategoryStore;
@@ -190,7 +192,20 @@ describe('WithCategoryNavigationMenu Component', () => {
 
             const { getByTestId } = renderComponent({
                 resolve: Promise.resolve(
-                    createMockCategoryWithChildren({ id: 'root', name: 'Root', categories: testData.mixedVisibility })
+                    createMockCategoryWithChildren({
+                        id: 'root',
+                        name: 'Root',
+                        categories: testData.mixedVisibility.map((category) =>
+                            category.id === 'visible-1'
+                                ? {
+                                      ...category,
+                                      c_headerMenuBanner: '<p>Root banner</p>',
+                                      c_slotBannerImage: '/images/root-banner.jpg',
+                                      c_headerMenuOrientation: 'horizontal',
+                                  }
+                                : category
+                        ),
+                    })
                 ),
                 defer: Promise.all([
                     Promise.resolve(
@@ -258,6 +273,7 @@ describe('WithCategoryNavigationMenu Component', () => {
                         })
                     ),
                 ]),
+                itemsFilter: 'c_showInMenu',
                 fallback: <div data-testid="fallback">Loading...</div>,
             });
 
@@ -303,6 +319,9 @@ describe('WithCategoryNavigationMenu Component', () => {
             expect(enrichedVisible1).toEqual(
                 expect.objectContaining({
                     id: 'visible-1',
+                    c_headerMenuBanner: '<p>Root banner</p>',
+                    c_slotBannerImage: '/images/root-banner.jpg',
+                    c_headerMenuOrientation: 'horizontal',
                     categories: expect.arrayContaining([
                         expect.objectContaining({
                             id: 'visible-1-1',
@@ -399,6 +418,59 @@ describe('WithCategoryNavigationMenu Component', () => {
             }),
         ];
 
+        it.each([undefined, '', '   '])('should not filter items when itemsFilter is %j', async (itemsFilter) => {
+            renderComponent({
+                resolve: Promise.resolve(
+                    createMockCategoryWithChildren({ id: 'root', name: 'Root', categories: testData.mixedVisibility })
+                ),
+                itemsFilter,
+            });
+
+            await waitFor(() => {
+                expect(MockCategoryNavigationMenu).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        categories: expect.arrayContaining([
+                            expect.objectContaining({ id: 'visible-1' }),
+                            expect.objectContaining({ id: 'hidden-1', c_showInMenu: false }),
+                        ]),
+                    }),
+                    undefined
+                );
+            });
+        });
+
+        it('should not filter deferred category children when itemsFilter is omitted', async () => {
+            const updateSpy = vi.fn();
+            const originalCreate = contextModule.createSubCategoryStore;
+            vi.spyOn(contextModule, 'createSubCategoryStore').mockImplementation(() => {
+                const store = originalCreate();
+                store.update = updateSpy;
+                return store;
+            });
+
+            renderComponent({
+                resolve: Promise.resolve(createMockCategoryWithChildren({ id: 'root', name: 'Root' })),
+                defer: Promise.resolve([
+                    createMockCategoryWithChildren({
+                        id: 'parent',
+                        name: 'Parent',
+                        categories: [
+                            createMockCategory({ id: 'visible', name: 'Visible', c_showInMenu: true }),
+                            createMockCategory({ id: 'hidden', name: 'Hidden', c_showInMenu: false }),
+                        ],
+                    }),
+                ]),
+            });
+
+            await waitFor(() => expect(updateSpy).toHaveBeenCalledTimes(1));
+            expect(updateSpy.mock.calls[0][0].get('parent').categories).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({ id: 'visible' }),
+                    expect.objectContaining({ id: 'hidden' }),
+                ])
+            );
+        });
+
         it('should filter items using a custom filter key', async () => {
             renderComponent({
                 resolve: Promise.resolve(
@@ -409,20 +481,13 @@ describe('WithCategoryNavigationMenu Component', () => {
 
             await waitFor(() => {
                 expect(MockCategoryNavigationMenu).toHaveBeenCalledTimes(1);
-                expect(MockCategoryNavigationMenu).toHaveBeenCalledWith(
-                    expect.objectContaining({
-                        categories: expect.arrayContaining([
-                            expect.objectContaining({ id: 'cat-1', name: 'Category 1' }),
-                            expect.objectContaining({ id: 'cat-3', name: 'Category 3' }),
-                        ]),
-                    }),
-                    undefined
-                );
+                const renderedCategories = vi.mocked(MockCategoryNavigationMenu).mock.calls[0]?.[0].categories;
+                expect(renderedCategories?.map((category) => category.id)).toEqual(['cat-1', 'cat-3']);
             });
         });
 
         it('should filter items using a custom filter function', async () => {
-            const filterFn = vi.fn().mockReturnValue(false).mockReturnValue(true);
+            const filterFn = vi.fn((category: ShopperProducts.schemas['Category']) => category.id !== 'cat-1');
 
             renderComponent({
                 resolve: Promise.resolve(
@@ -438,6 +503,8 @@ describe('WithCategoryNavigationMenu Component', () => {
                 expect(filterFn).toHaveBeenNthCalledWith(3, customItems[2]);
 
                 expect(MockCategoryNavigationMenu).toHaveBeenCalledTimes(1);
+                const renderedCategories = vi.mocked(MockCategoryNavigationMenu).mock.calls[0]?.[0].categories;
+                expect(renderedCategories?.map((category) => category.id)).toEqual(['cat-2', 'cat-3']);
                 expect(MockCategoryNavigationMenu).toHaveBeenCalledWith(
                     expect.objectContaining({
                         categories: expect.arrayContaining([
@@ -448,6 +515,119 @@ describe('WithCategoryNavigationMenu Component', () => {
                     undefined
                 );
             });
+        });
+
+        it('should ignore deferred categories after unmount', async () => {
+            let resolveDeferred!: (categories: ShopperProducts.schemas['Category'][]) => void;
+            const deferred = new Promise<ShopperProducts.schemas['Category'][]>((resolve) => {
+                resolveDeferred = resolve;
+            });
+            const updateSpy = vi.fn();
+            const originalCreate = contextModule.createSubCategoryStore;
+            vi.spyOn(contextModule, 'createSubCategoryStore').mockImplementation(() => {
+                const store = originalCreate();
+                store.update = updateSpy;
+                return store;
+            });
+
+            const { unmount } = renderComponent({
+                resolve: Promise.resolve(createMockCategoryWithChildren({ id: 'root', name: 'Root' })),
+                defer: deferred,
+            });
+            await waitFor(() => expect(MockCategoryNavigationMenu).toHaveBeenCalledTimes(1));
+
+            unmount();
+            await act(async () => {
+                resolveDeferred([createMockCategory({ id: 'stale', name: 'Stale' })]);
+                await deferred;
+            });
+
+            expect(updateSpy).not.toHaveBeenCalled();
+        });
+
+        it('should ignore a stale deferred promise after defer changes', async () => {
+            let resolveFirst!: (categories: ShopperProducts.schemas['Category'][]) => void;
+            let resolveSecond!: (categories: ShopperProducts.schemas['Category'][]) => void;
+            const firstDeferred = new Promise<ShopperProducts.schemas['Category'][]>((resolve) => {
+                resolveFirst = resolve;
+            });
+            const secondDeferred = new Promise<ShopperProducts.schemas['Category'][]>((resolve) => {
+                resolveSecond = resolve;
+            });
+            const updateSpy = vi.fn();
+            const originalCreate = contextModule.createSubCategoryStore;
+            vi.spyOn(contextModule, 'createSubCategoryStore').mockImplementation(() => {
+                const store = originalCreate();
+                store.update = updateSpy;
+                return store;
+            });
+            const root = Promise.resolve(createMockCategoryWithChildren({ id: 'root', name: 'Root' }));
+            const renderTree = (defer: Promise<ShopperProducts.schemas['Category'][]>) => (
+                <WithCategoryNavigationMenu resolve={root} defer={defer}>
+                    {({ categories }) => <MockCategoryNavigationMenu categories={categories} />}
+                </WithCategoryNavigationMenu>
+            );
+            const { rerender } = render(renderTree(firstDeferred));
+            await waitFor(() => expect(MockCategoryNavigationMenu).toHaveBeenCalledTimes(1));
+
+            rerender(renderTree(secondDeferred));
+            await act(async () => {
+                resolveSecond([createMockCategory({ id: 'current', name: 'Current' })]);
+                await secondDeferred;
+            });
+            await waitFor(() => expect(updateSpy).toHaveBeenCalledTimes(1));
+
+            await act(async () => {
+                resolveFirst([createMockCategory({ id: 'stale', name: 'Stale' })]);
+                await firstDeferred;
+            });
+
+            expect(updateSpy).toHaveBeenCalledTimes(1);
+            expect(updateSpy.mock.calls[0][0].has('current')).toBe(true);
+            expect(updateSpy.mock.calls[0][0].has('stale')).toBe(false);
+        });
+
+        it('should apply the latest itemsFilter when deferred categories resolve', async () => {
+            let resolveDeferred!: (categories: ShopperProducts.schemas['Category'][]) => void;
+            const deferred = new Promise<ShopperProducts.schemas['Category'][]>((resolve) => {
+                resolveDeferred = resolve;
+            });
+            const updateSpy = vi.fn();
+            const originalCreate = contextModule.createSubCategoryStore;
+            vi.spyOn(contextModule, 'createSubCategoryStore').mockImplementation(() => {
+                const store = originalCreate();
+                store.update = updateSpy;
+                return store;
+            });
+            const root = Promise.resolve(createMockCategoryWithChildren({ id: 'root', name: 'Root' }));
+            const renderTree = (itemsFilter: 'c_showInMenu' | 'c_customShowInMenu') => (
+                <WithCategoryNavigationMenu resolve={root} defer={deferred} itemsFilter={itemsFilter}>
+                    {({ categories }) => <MockCategoryNavigationMenu categories={categories} />}
+                </WithCategoryNavigationMenu>
+            );
+            const { rerender } = render(renderTree('c_showInMenu'));
+            await waitFor(() => expect(MockCategoryNavigationMenu).toHaveBeenCalledTimes(1));
+
+            rerender(renderTree('c_customShowInMenu'));
+            await act(async () => {
+                resolveDeferred([
+                    createMockCategoryWithChildren({
+                        id: 'parent',
+                        name: 'Parent',
+                        categories: [
+                            createMockCategory({ id: 'visible', name: 'Visible', c_customShowInMenu: true }),
+                            createMockCategory({ id: 'hidden', name: 'Hidden', c_customShowInMenu: false }),
+                        ],
+                    }),
+                ]);
+                await deferred;
+            });
+
+            await waitFor(() => expect(updateSpy).toHaveBeenCalledTimes(1));
+            const categories = updateSpy.mock.calls[0][0].get('parent').categories as
+                | ShopperProducts.schemas['Category'][]
+                | undefined;
+            expect(categories?.map((category) => category.id)).toEqual(['visible']);
         });
     });
 });

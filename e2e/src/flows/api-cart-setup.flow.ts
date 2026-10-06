@@ -32,8 +32,8 @@ import { TEST_VARIANT_PRODUCTS } from '../test-data/checkout.data';
 import type { ProductInfo } from '../types/product.types';
 
 const CATEGORY_TO_VARIANT: Record<string, string> = {
-    'category/mens-clothing-jackets': TEST_VARIANT_PRODUCTS.MENS_JACKET_VARIANT,
-    'category/womens-clothing-dresses': TEST_VARIANT_PRODUCTS.WOMENS_DRESS_VARIANT,
+    'c/mens-clothing-jackets': TEST_VARIANT_PRODUCTS.MENS_JACKET_VARIANT,
+    'c/womens-clothing-dresses': TEST_VARIANT_PRODUCTS.WOMENS_DRESS_VARIANT,
 };
 
 /**

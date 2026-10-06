@@ -20,8 +20,9 @@ import { Button } from '@/components/ui/button';
 import type { Order } from '@/components/account/order-list';
 import { useTranslation } from 'react-i18next';
 import { formatStatusFallbackLabel, getOrderReturnStatusConfig, getOrderStatusConfig } from '@/lib/order/status';
-import { routes, routeHref } from '@/route-paths';
+import { createProductUrl, routes, routeHref } from '@/route-paths';
 import { accountPrimaryButtonClasses } from '@/lib/account-action-styles';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 
 const MAX_THUMBNAILS = 2;
 
@@ -40,6 +41,7 @@ function buildProductTitleLine(order: Order): string {
 
 export function RateRecentPurchasesCard({ order }: RateRecentPurchasesCardProps): ReactElement {
     const { t } = useTranslation('account');
+    const seoUrlContext = useSeoUrlContext();
     const productItems = order.productItems ?? [];
     const thumbs = productItems.slice(0, MAX_THUMBNAILS);
     const titleLine = buildProductTitleLine(order);
@@ -75,7 +77,7 @@ export function RateRecentPurchasesCard({ order }: RateRecentPurchasesCardProps)
                                         {thumbs.map((item) => (
                                             <Link
                                                 key={item.productId}
-                                                to={routeHref(routes.product, { productId: item.productId })}
+                                                to={createProductUrl({ productId: item.productId }, seoUrlContext)}
                                                 className="relative block">
                                                 <div className="h-16 w-16 overflow-hidden border border-border bg-muted">
                                                     {item.imageUrl ? (

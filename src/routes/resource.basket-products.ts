@@ -30,6 +30,8 @@ import { getInventoryIdsFromPickupShipments } from '@/extensions/bopis/lib/baske
 import { getLogger } from '@/lib/logger.server';
 import type { ProductWithPromotions, ProductsWithPromotionsMap } from '@/lib/cart/bonus-product-utils';
 import { isMiniCartPanelMounted } from '@/hooks/mini-cart-store';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 
 export type BasketProductsLoaderData = {
     basket: ShopperBasketsV2.schemas['Basket'] | null;
@@ -91,6 +93,7 @@ export async function loader({ context }: Route.LoaderArgs): Promise<BasketProdu
             throw new Response('Site context is not available', { status: 500 });
         }
         const { currency } = siteCtx;
+        const config = getConfig(context);
 
         // Route through the shared helper so baskets with more than SCAPI's 24-ID getProducts limit
         // still load: fetchProductsByIds dedupes the IDs and splits them into batches of
@@ -102,7 +105,14 @@ export async function loader({ context }: Route.LoaderArgs): Promise<BasketProdu
             allImages: true,
             perPricebook: true,
             ...(currency ? { currency } : {}),
-            expand: ['availability', 'images', 'prices', 'promotions', 'variations'],
+            expand: [
+                'availability',
+                'images',
+                'prices',
+                'promotions',
+                ...getSeoSlugExpansion(config.url?.seoRoutes),
+                'variations',
+            ],
             // @sfdc-extension-block-start SFDC_EXT_BOPIS
             // Include store inventory IDs for pickup items
             ...(inventoryIds.length > 0 ? { inventoryIds } : {}),

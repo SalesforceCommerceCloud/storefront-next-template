@@ -36,18 +36,18 @@ import type { SearchSuggestions } from '../types';
 const ALL_CATEGORIES = [
     {
         name: 'Footwear',
-        link: '/category/footwear',
+        link: '/c/footwear',
         type: 'category',
         image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop',
     },
     {
         name: 'Clothing',
-        link: '/category/clothing',
+        link: '/c/clothing',
         type: 'category',
     },
     {
         name: 'Accessories',
-        link: '/category/accessories',
+        link: '/c/accessories',
         type: 'category',
     },
 ];

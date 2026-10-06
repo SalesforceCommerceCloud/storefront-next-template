@@ -15,12 +15,19 @@
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import type { ShopperSearch } from '@/scapi';
+import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import { mockAltSiteObject, mockConfig } from '@/test-utils/config';
 import CategoryRefinements from './index';
+
+const mockNavigate = vi.hoisted(() => vi.fn());
+
+vi.mock('@/hooks/use-navigate', () => ({
+    useNavigate: () => mockNavigate,
+}));
 
 // `uiConfig` is a build-time static read at module scope (not from ConfigProvider). Mock it with a
 // mutable object so individual tests can flip the `sidebarCategoryRefinement` opt-in. Default matches
@@ -68,29 +75,35 @@ vi.mock('./refine-price', () => ({
 const renderComponent = ({
     result,
     refine = [],
+    initialPath = '/',
+    config = mockConfig,
+    category,
 }: {
     result: ShopperSearch.schemas['ProductSearchResult'];
     refine?: string[];
+    initialPath?: string;
+    config?: typeof mockConfig;
+    category?: ShopperProducts.schemas['Category'];
 }) => {
     const router = createMemoryRouter(
         [
             {
                 path: '/',
                 element: (
-                    <ConfigProvider config={mockConfig}>
+                    <ConfigProvider config={config}>
                         <SiteProvider
                             site={defaultMockSite}
                             locale={mockLocale}
                             language={mockAltSiteObject.defaultLocale}
                             currency={mockAltSiteObject.defaultCurrency}>
-                            <CategoryRefinements result={result} refine={refine} />
+                            <CategoryRefinements result={result} refine={refine} category={category} />
                         </SiteProvider>
                     </ConfigProvider>
                 ),
             },
         ],
         {
-            initialEntries: ['/'],
+            initialEntries: [initialPath],
         }
     );
 
@@ -115,6 +128,7 @@ const createProductSearchResult = (
 beforeEach(() => {
     // Default: opt-in flag absent (canonical baseline — cgid excluded from the sidebar).
     mockUiConfig.pages.category.sidebarCategoryRefinement = undefined;
+    mockNavigate.mockClear();
 });
 
 describe('CategoryRefinements accessibility headings', () => {
@@ -219,5 +233,160 @@ describe('CategoryRefinements sidebar category facet (opt-in)', () => {
         // Empty-values refinements are skipped entirely (no section heading, no radios, no crash).
         expect(screen.queryByRole('heading', { level: 3, name: 'Activity' })).not.toBeInTheDocument();
         expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    });
+
+    test('navigates to the selected category path when SEO routes are configured', async () => {
+        const user = userEvent.setup();
+        const config = {
+            ...mockConfig,
+            url: {
+                ...mockConfig.url,
+                seoRoutes: {
+                    [defaultMockSite.id]: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'c', mode: 'id-suffix' as const },
+                    },
+                },
+            },
+        };
+        const result = createProductSearchResult([
+            {
+                attributeId: 'cgid',
+                label: 'Activity',
+                values: [
+                    {
+                        value: 'activity',
+                        label: 'Activity',
+                        hitCount: 60,
+                        values: [{ value: 'trail', label: 'Trail', hitCount: 18 }],
+                    },
+                ],
+            },
+        ]);
+
+        renderComponent({
+            result,
+            config,
+            refine: ['cgid=running'],
+            category: { id: 'activity', name: 'Activity' },
+            initialPath: '/?refine=c_refinementColor%3Dblack&refine=cgid%3Drunning&offset=24&page=2',
+        });
+
+        await user.click(screen.getByRole('radio', { name: /Trail/ }));
+
+        expect(mockNavigate).toHaveBeenCalledOnce();
+        const destination = new URL(mockNavigate.mock.calls[0][0], 'https://example.com');
+        expect(destination.pathname).toBe('/c/trail');
+        expect(destination.searchParams.getAll('refine')).toEqual(['c_refinementColor=black']);
+        expect(destination.searchParams.has('offset')).toBe(false);
+        expect(destination.searchParams.has('page')).toBe(false);
+    });
+
+    test('uses the authoritative child slug for slug-path category navigation', async () => {
+        const user = userEvent.setup();
+        const config = {
+            ...mockConfig,
+            url: {
+                ...mockConfig.url,
+                seoRoutes: {
+                    [defaultMockSite.id]: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'catalog', mode: 'slug-path' as const },
+                    },
+                },
+            },
+        };
+        const result = createProductSearchResult([
+            {
+                attributeId: 'cgid',
+                label: 'Activity',
+                values: [{ value: 'trail', label: 'Trail', hitCount: 18 }],
+            },
+        ]);
+
+        renderComponent({
+            result,
+            config,
+            refine: ['cgid=running'],
+            category: {
+                id: 'activity',
+                name: 'Activity',
+                categories: [{ id: 'trail', name: 'Trail', slug: 'activity/trail' }],
+            },
+        });
+
+        await user.click(screen.getByRole('radio', { name: /Trail/ }));
+
+        expect(mockNavigate).toHaveBeenCalledWith('/catalog/activity/trail');
+    });
+
+    test('disables a slug-path category refinement without an authoritative slug', async () => {
+        const user = userEvent.setup();
+        const config = {
+            ...mockConfig,
+            url: {
+                ...mockConfig.url,
+                seoRoutes: {
+                    [defaultMockSite.id]: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'catalog', mode: 'slug-path' as const },
+                    },
+                },
+            },
+        };
+        const result = createProductSearchResult([
+            {
+                attributeId: 'cgid',
+                label: 'Activity',
+                values: [{ value: 'trail', label: 'Trail', hitCount: 18 }],
+            },
+        ]);
+
+        renderComponent({
+            result,
+            config,
+            refine: ['cgid=running'],
+            category: {
+                id: 'activity',
+                name: 'Activity',
+                categories: [{ id: 'trail', name: 'Trail' }],
+            },
+        });
+
+        const radio = screen.getByRole('radio', { name: /Trail/ });
+        expect(radio).toBeDisabled();
+        await user.click(radio);
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    test('keeps cgid as a query refinement outside a category page', async () => {
+        const user = userEvent.setup();
+        const config = {
+            ...mockConfig,
+            url: {
+                ...mockConfig.url,
+                seoRoutes: {
+                    [defaultMockSite.id]: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'c', mode: 'id-suffix' as const },
+                    },
+                },
+            },
+        };
+        const result = createProductSearchResult([
+            {
+                attributeId: 'cgid',
+                label: 'Category',
+                values: [{ value: 'trail', label: 'Trail', hitCount: 18 }],
+            },
+        ]);
+
+        renderComponent({ result, config, refine: ['cgid=running'] });
+        await user.click(screen.getByRole('radio', { name: /Trail/ }));
+
+        expect(mockNavigate).toHaveBeenCalledWith({
+            pathname: '/',
+            search: '?refine=cgid%3Dtrail&offset=0',
+        });
     });
 });

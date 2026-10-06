@@ -17,9 +17,10 @@ import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vite
 import { render, waitFor } from '@testing-library/react';
 import { PageDesignerInit } from './page-designer-init';
 import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
-import { useBlocker } from 'react-router';
+import { useBlocker, useLocation } from 'react-router';
 
 const mockCssImport = vi.fn();
+const notifyClientRouteChangedMock = vi.fn();
 
 vi.mock(import('@salesforce/storefront-next-runtime/design/styles.css'), () => {
     mockCssImport();
@@ -29,11 +30,17 @@ vi.mock(import('@salesforce/storefront-next-runtime/design/styles.css'), () => {
 
 vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
     usePageDesignerMode: vi.fn(() => ({ isDesignMode: true })),
+    usePreviewContext: vi.fn(() => ({
+        isPreviewMode: false,
+        isConnected: false,
+        notifyClientRouteChanged: notifyClientRouteChangedMock,
+    })),
 }));
 
 vi.mock('react-router', () => ({
     href: (path: string) => path,
     useBlocker: vi.fn(),
+    useLocation: vi.fn(() => ({ pathname: '/', search: '', hash: '' })),
 }));
 
 describe('Page Designer Styles Component', () => {
@@ -84,6 +91,45 @@ describe('Page Designer Styles Component', () => {
 
             const blockerFunction = (useBlocker as Mock).mock.calls[0][0];
             expect(blockerFunction()).toBe(false);
+        });
+    });
+
+    describe('client route notifications', () => {
+        it('emits the composed origin+pathname+search+hash URL to notifyClientRouteChanged', async () => {
+            (usePageDesignerMode as Mock).mockReturnValue({ isDesignMode: false, isPreviewMode: true });
+            (useLocation as Mock).mockReturnValue({
+                pathname: '/products/abc',
+                search: '?utm=x',
+                hash: '#top',
+            });
+            render(<PageDesignerInit />);
+
+            const expected = `${window.location.origin}/products/abc?utm=x#top`;
+            await waitFor(() => {
+                expect(notifyClientRouteChangedMock).toHaveBeenLastCalledWith(expected);
+            });
+        });
+
+        it('emits a URL without query or hash when the route has neither', async () => {
+            (usePageDesignerMode as Mock).mockReturnValue({ isDesignMode: false, isPreviewMode: true });
+            (useLocation as Mock).mockReturnValue({
+                pathname: '/home',
+                search: '',
+                hash: '',
+            });
+            render(<PageDesignerInit />);
+
+            await waitFor(() => {
+                expect(notifyClientRouteChangedMock).toHaveBeenLastCalledWith(`${window.location.origin}/home`);
+            });
+        });
+
+        it('does not emit when not in preview mode', () => {
+            (usePageDesignerMode as Mock).mockReturnValue({ isDesignMode: true, isPreviewMode: false });
+            (useLocation as Mock).mockReturnValue({ pathname: '/home', search: '', hash: '' });
+            render(<PageDesignerInit />);
+
+            expect(notifyClientRouteChangedMock).not.toHaveBeenCalled();
         });
     });
 });

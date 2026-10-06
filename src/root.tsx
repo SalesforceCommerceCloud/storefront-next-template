@@ -27,6 +27,7 @@ import {
     Outlet,
     Scripts,
     ScrollRestoration,
+    useLocation,
     useRevalidator,
     useRouteLoaderData,
 } from 'react-router';
@@ -36,7 +37,7 @@ import { routes } from '@/route-paths';
 // Third-party libraries
 import { createInstance, type i18n } from 'i18next';
 import { I18nextProvider, useTranslation, initReactI18next } from 'react-i18next';
-import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
+import { PageDesignerProvider, type PageUpdateMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import { createStorefrontStylesheetLink } from '@salesforce/storefront-next-runtime/design/react/preload';
 import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-next-runtime/design/mode';
 import { dataStoreMiddlewareLazy, sitesMiddlewareLazy } from '@salesforce/storefront-next-runtime/data-store';
@@ -78,6 +79,7 @@ import { requestOriginMiddleware } from '@/middlewares/request-origin';
 import { getAppOrigin } from '@/lib/origin';
 import { loggingMiddleware } from '@/middlewares/logging.server';
 import { pageDesignerResolutionMiddleware } from '@/middlewares/page-designer-content-resolution.server';
+import { attributionForwardingMiddleware } from '@/middlewares/attribution-forwarding.server';
 import { siteUrlConfigMiddleware } from '@/middlewares/site-url-config.server';
 import { modeDetectionMiddlewareServer, modeDetectionMiddlewareClient } from '@/middlewares/mode-detection';
 import { maintenanceMiddleware } from '@/middlewares/maintenance.server';
@@ -86,9 +88,12 @@ import { getSecurityNonce } from '@salesforce/storefront-next-runtime/security';
 import { useSecurityNonceFromContext } from '@salesforce/storefront-next-runtime/security/react';
 import { errorCacheControlMiddleware } from '@/middlewares/error-cache-control.server';
 
+// Components
+import { CartMutationToastWatcher } from '@/components/cart/cart-mutation-toast-watcher';
+
 // Providers
 import AuthProvider from '@/providers/auth';
-import BasketProvider from '@/providers/basket';
+import BasketProvider, { BasketCookieReconciler } from '@/providers/basket';
 import { ComposeProviders } from '@/providers/compose-providers';
 import { CorrelationProvider } from '@/providers/correlation';
 import { PasskeyRegistrationProvider } from '@/providers/passkey-registration';
@@ -97,11 +102,12 @@ import { correlationContext } from '@/lib/correlation';
 // Components
 import { AppToaster } from '@/components/toast';
 import { TrackingConsentBanner } from '@/components/tracking-consent-banner';
-import CimulateAgent, { isCimulateEnabled } from '@/components/cimulate';
+import CimulateAgent, { isCimulateEnabled, resolveShopperAgentConfig } from '@/components/cimulate';
 
 // Hooks
 import { useExecutePendingAction } from '@/hooks/use-execute-pending-action';
 import { usePasskeyRegistration } from '@/hooks/use-passkey-registration';
+import { applyAttribution, useAttribution } from '@/hooks/use-attribution';
 
 // Lib/Utils
 import type { PublicSessionData } from '@/lib/api/types';
@@ -162,6 +168,10 @@ export const middleware: MiddlewareFunction<Response>[] = [
     siteUrlConfigMiddleware, // Must run after siteContextMiddleware (entry key uses site id)
     i18nextMiddleware,
     pageDesignerResolutionMiddleware,
+    // Registers a SCAPI forward of the client-written `dw_attribution` cookie onto the outbound
+    // createOrder call (W-23493124). Order-independent — the factory reads the value off the
+    // inbound request and closes over it; it depends on no other middleware's context.
+    attributionForwardingMiddleware,
     selectedStoreMiddleware /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
     performanceMetricsMiddlewareServer,
     maintenanceMiddleware,
@@ -210,6 +220,7 @@ export const loader = ({
     currency: string;
     selectedStoreInfo: SelectedStoreInfo | null /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
     correlationId: string;
+    pageDesignerPageUpdateMode: PageUpdateMode;
     pageDesignerMode: 'EDIT' | 'PREVIEW' | undefined;
     // Pre-computed in the loader (server-only) so seo.ts stays out of the client bundle
     seoMeta: MetaDescriptor[];
@@ -288,6 +299,7 @@ export const loader = ({
         seoMeta,
         getI18next: () => i18next,
         errorTranslations: (i18next.getResourceBundle(i18next.language, 'routeError') as Record<string, unknown>) ?? {},
+        pageDesignerPageUpdateMode: appConfig.features.livePreview ? 'client' : 'server',
         pageDesignerMode: isDesignModeActive(request) ? 'EDIT' : isPreviewModeActive(request) ? 'PREVIEW' : undefined,
         nonce,
     };
@@ -601,6 +613,18 @@ export function ErrorBoundary({ error }: { error: unknown }) {
           })
         : '/';
 
+    // Capture first-touch `dw_attribution` here too (W-23493124). A campaign link that lands
+    // directly on a 404/route error renders this ErrorBoundary instead of App, so the App-tree
+    // `AttributionCapture` never mounts and first touch would be lost for that landing. The effect
+    // is browser-only (never runs during SSR), and `applyAttribution` is fail-open, so it cannot
+    // destabilize the error page. ErrorBoundary has no Site/Config providers, so resolve the cookie
+    // domain from loader data with the same per-site-over-global precedence `useAttribution` uses;
+    // the DNT decision is read straight from the cookie inside `applyAttribution`.
+    const attributionCookieDomain = rootData?.site?.cookies?.domain || rootData?.appConfig?.cookies?.domain;
+    useEffect(() => {
+        applyAttribution(attributionCookieDomain);
+    }, [attributionCookieDomain]);
+
     // Redirect maintenance errors before rendering.
     if (error && error.toString().includes('MAINTENANCE_ERROR')) {
         return <Navigate to={routes.maintenance} replace />;
@@ -663,6 +687,7 @@ export default function App({
         currency: loaderCurrency,
         correlationId,
         pageDesignerMode,
+        pageDesignerPageUpdateMode,
         site,
         locale,
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
@@ -741,29 +766,51 @@ export default function App({
 
     const passkeyEnabled = Boolean(appConfig?.features?.passkey?.enabled);
 
+    const shopperAgent = resolveShopperAgentConfig(appConfig);
+    const shopperAgentEnabled = isCimulateEnabled(shopperAgent?.enabled);
+    const { pathname } = useLocation();
+    const shopperAgentDisabledByRoute = useMemo(() => {
+        const patterns = shopperAgent?.disabledPathPatterns;
+        if (!patterns || patterns.length === 0) return false;
+        return patterns.some((pat: string) => {
+            try {
+                return new RegExp(pat).test(pathname);
+            } catch {
+                return false;
+            }
+        });
+    }, [shopperAgent?.disabledPathPatterns, pathname]);
+
     const innerTree = (
         <UITargetProviders>
             <AuthActionExecutor />
+            <BasketCookieReconciler />
+            <CartMutationToastWatcher />
             {passkeyEnabled && <PasskeyRegistrationTrigger />}
             {hybridEnabled && <BackNavigationRevalidator />}
             <PageDesignerProvider
                 clientId="storefront-next"
                 targetOrigin="*"
                 usid={clientAuth?.usid}
+                pageUpdateMode={pageDesignerPageUpdateMode}
                 mode={pageDesignerMode}>
                 <PageDesignerInit />
                 <Outlet />
             </PageDesignerProvider>
             <TrackingConsentBanner />
             {typeof window !== 'undefined' && <PageViewTracker />}
+            {typeof window !== 'undefined' && <AttributionCapture />}
         </UITargetProviders>
     );
 
     return (
         <ComposeProviders providers={providers}>
             {passkeyEnabled ? <PasskeyRegistrationProvider>{innerTree}</PasskeyRegistrationProvider> : innerTree}
-            {isCimulateEnabled(appConfig.cimulateAgent?.enabled) && (
-                <CimulateAgent cimulateConfiguration={appConfig.cimulateAgent} />
+            {shopperAgentEnabled && !shopperAgentDisabledByRoute && (
+                <CimulateAgent cimulateConfiguration={shopperAgent} />
+            )}
+            {shopperAgentEnabled && shopperAgentDisabledByRoute && (
+                <style>{'.commerce-client-shopper-agent{display:none !important;}'}</style>
             )}
         </ComposeProviders>
     );
@@ -780,6 +827,17 @@ function AuthActionExecutor() {
 
 function PasskeyRegistrationTrigger() {
     usePasskeyRegistration();
+    return null;
+}
+
+/**
+ * Writes/clears the first-touch `dw_attribution` marketing cookie in the browser (W-23493124).
+ * Client-only (mounted behind `typeof window`) — a CDN document-cache hit never runs the SSR
+ * handler, so a server-written cookie would be lost on cached campaign landing pages; running in
+ * the browser also lets it clear the cookie the instant a shopper opts out. See `useAttribution`.
+ */
+function AttributionCapture(): null {
+    useAttribution();
     return null;
 }
 

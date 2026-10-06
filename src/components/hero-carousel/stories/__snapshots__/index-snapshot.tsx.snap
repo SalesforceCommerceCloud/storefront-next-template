@@ -74,7 +74,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/all"
+                      href="/c/all"
                     >
                       Shop Now
                     </a>
@@ -136,7 +136,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/new"
+                      href="/c/new"
                     >
                       Explore
                     </a>
@@ -198,7 +198,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/sale"
+                      href="/c/sale"
                     >
                       Shop Deals
                     </a>
@@ -439,7 +439,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/all"
+                      href="/c/all"
                     >
                       Shop Now
                     </a>
@@ -501,7 +501,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/new"
+                      href="/c/new"
                     >
                       Explore
                     </a>
@@ -563,7 +563,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/sale"
+                      href="/c/sale"
                     >
                       Shop Deals
                     </a>
@@ -768,7 +768,7 @@ exports[`HeroCarousel stories snapshot > PageDesignerMode story renders and matc
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/all"
+                      href="/c/all"
                     >
                       Shop Now
                     </a>
@@ -830,7 +830,7 @@ exports[`HeroCarousel stories snapshot > PageDesignerMode story renders and matc
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/new"
+                      href="/c/new"
                     >
                       Explore
                     </a>
@@ -892,7 +892,7 @@ exports[`HeroCarousel stories snapshot > PageDesignerMode story renders and matc
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/sale"
+                      href="/c/sale"
                     >
                       Shop Deals
                     </a>
@@ -1131,7 +1131,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/all"
+                      href="/c/all"
                     >
                       Shop Now
                     </a>
@@ -1193,7 +1193,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/new"
+                      href="/c/new"
                     >
                       Explore
                     </a>
@@ -1255,7 +1255,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/sale"
+                      href="/c/sale"
                     >
                       Shop Deals
                     </a>
@@ -1494,7 +1494,7 @@ exports[`HeroCarousel stories snapshot > SingleSlide story renders and matches s
                       data-size="default"
                       data-slot="button"
                       data-variant="default"
-                      href="/category/all"
+                      href="/c/all"
                     >
                       Shop Now
                     </a>

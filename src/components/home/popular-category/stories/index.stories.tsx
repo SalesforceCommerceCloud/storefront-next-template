@@ -48,8 +48,8 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
                 event.preventDefault();
 
                 // Log specific category selection if it's a category link
-                if (href.startsWith('/category/')) {
-                    const categoryId = href.replace('/category/', '');
+                if (href.startsWith('/c/')) {
+                    const categoryId = href.replace('/c/', '');
                     logCategorySelect({ categoryId, categoryName: text, href });
                 }
 
@@ -163,7 +163,7 @@ export const Default: Story = {
         await expect(shopNowButton).toBeInTheDocument();
 
         const link = canvas.getByRole('link', { name: /mens/i });
-        await expect(link).toHaveAttribute('href', `${SITE_PREFIX}/category/mens`);
+        await expect(link).toHaveAttribute('href', `${SITE_PREFIX}/c/mens`);
     },
 };
 
@@ -196,7 +196,7 @@ export const LabelBelow: Story = {
         await expect(canvas.queryByText(/shop now/i)).not.toBeInTheDocument();
 
         const link = canvas.getByRole('link', { name: /mens/i });
-        await expect(link).toHaveAttribute('href', `${SITE_PREFIX}/category/mens`);
+        await expect(link).toHaveAttribute('href', `${SITE_PREFIX}/c/mens`);
     },
 };
 
@@ -223,7 +223,7 @@ export const WithCategoryProp: Story = {
         await expect(canvas.queryByText(/shop mens's ties/i)).not.toBeInTheDocument();
         await expect(canvas.getByRole('link', { name: /ties/i })).toHaveAttribute(
             'href',
-            `${SITE_PREFIX}/category/mens-accessories-ties`
+            `${SITE_PREFIX}/c/mens-accessories-ties`
         );
     },
 };

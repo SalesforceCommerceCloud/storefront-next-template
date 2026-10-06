@@ -16,7 +16,12 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { ApiError } from '@/scapi';
 import { NormalizedApiError } from './normalized-api-error';
-import { fetchProductById, fetchProductsByIds, SCAPI_GET_PRODUCTS_MAX_IDS } from './products.server';
+import {
+    fetchProductById,
+    fetchProductsByIds,
+    getDefaultProductExpansions,
+    SCAPI_GET_PRODUCTS_MAX_IDS,
+} from './products.server';
 
 const mockGetProduct = vi.fn();
 const mockGetProducts = vi.fn();
@@ -39,6 +44,32 @@ vi.mock('@/lib/logger.server', () => ({
         debug: vi.fn(),
     })),
 }));
+
+describe('getDefaultProductExpansions', () => {
+    test('preserves the SCAPI default response shape while adding requested expansions', () => {
+        const expansions = getDefaultProductExpansions('slug');
+
+        expect(expansions).toEqual([
+            'availability',
+            'bundled_products',
+            'links',
+            'promotions',
+            'options',
+            'images',
+            'prices',
+            'variations',
+            'set_products',
+            'recommendations',
+            'shipping_methods',
+            'primary_category',
+            'slug',
+        ]);
+    });
+
+    test('does not duplicate a default expansion', () => {
+        expect(getDefaultProductExpansions('images').filter((expansion) => expansion === 'images')).toHaveLength(1);
+    });
+});
 
 describe('fetchProductById', () => {
     const mockContext = {} as any;

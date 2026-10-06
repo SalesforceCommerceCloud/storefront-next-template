@@ -21,6 +21,8 @@ import { useProductImages } from '@/hooks/product/use-product-images';
 import { isProductBundle, isProductSet } from '@/lib/product/product-utils';
 import { CartItemModalView } from './view';
 import type { CartItemModalProps } from './types';
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { usePickup } from '@/extensions/bopis/context/pickup-context';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
@@ -41,6 +43,7 @@ export function CartItemModalEditContainer({
     open = false,
 }: CartItemModalEditContainerProps): ReactElement {
     const { t } = useTranslation('editItem');
+    const config = useConfig();
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const pickupContext = usePickup();
@@ -80,7 +83,13 @@ export function CartItemModalEditContainer({
             path: { id: needsVariantFetch ? variantProductId : '' },
             query: {
                 allImages: true,
-                expand: ['availability', 'images', 'prices', 'promotions'],
+                expand: [
+                    'availability',
+                    'images',
+                    'prices',
+                    'promotions',
+                    ...getSeoSlugExpansion(config.url?.seoRoutes),
+                ],
                 // @sfdc-extension-block-start SFDC_EXT_BOPIS
                 ...(inventoryIds ? { inventoryIds } : {}),
                 // @sfdc-extension-block-end SFDC_EXT_BOPIS
@@ -140,9 +149,7 @@ export function CartItemModalEditContainer({
             open={open}
             onOpenChange={onOpenChange}
             dialogTitle={t('title')}
-            // The product prop comes fully expanded from the cart loader (getProducts returns all
-            // expand fields by default), so it's always available synchronously — no async fetch needed.
-            // Therefore, isLoading is always false.
+            // The cart loader supplies product data synchronously.
             isLoading={false}
             hasError={hasError}
             retryLabel={t('retry')}

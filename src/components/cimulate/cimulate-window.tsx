@@ -15,33 +15,12 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { flushPendingCimulateActions, type CimulateConfig } from './cimulate.utils';
+import { buildMessagingWidgetOptions, flushPendingCimulateActions, type CimulateConfig } from './cimulate.utils';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger();
 
 let globalInjected = false;
-
-const DEFAULT_ELEMENT_ID = 'cimulate-messaging-container';
-const DEFAULT_PANEL_WIDTH = '420px';
-const GLOBAL_CLASS = 'commerce-client-shopper-agent';
-
-const DEFAULT_THEME = {
-    primaryColor: '#0176d3',
-    secondaryColor: '#014486',
-    fontColor: '#1a202c',
-    fontFamily: 'inherit',
-    backgroundColor: '#ffffff',
-    borderColor: '#dddddd',
-};
-
-const DEFAULT_COMPONENT_CONFIG = {
-    isOpen: false,
-    type: 'dialog' as const,
-    options: {
-        dialogPosition: 'bottom-right',
-    },
-};
 
 interface CimulateWindowProps {
     config: CimulateConfig;
@@ -55,85 +34,10 @@ export function CimulateWindow({ config }: CimulateWindowProps) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     const hasInjectedRef = useRef(false);
 
-    const {
-        commerceClientScriptSourceUrl,
-        scrt2Url,
-        salesforceOrgId,
-        esDeveloperName,
-        commerceClientMode = 'messaging',
-        commerceClientLogoUrl,
-        headerText,
-        disclaimerMarkdown,
-        commerceClientElementId = DEFAULT_ELEMENT_ID,
-        commerceClientDisplayMode = 'panel',
-        commerceClientPanelWidth = DEFAULT_PANEL_WIDTH,
-        commerceClientSearchConfig,
-        commerceClientTheme,
-        routingAttributes,
-        isDevelopment = 'false',
-    } = config;
+    const { commerceClientScriptSourceUrl } = config;
 
-    const isPanel = commerceClientDisplayMode === 'panel';
-
-    const widgetOptions = useMemo(() => {
-        const messagingConfig: Record<string, unknown> = {
-            scrt2Url,
-            orgId: salesforceOrgId,
-            esDeveloperName,
-        };
-        if (routingAttributes && typeof routingAttributes === 'object') {
-            messagingConfig.routingAttributes = routingAttributes;
-        }
-
-        return {
-            elementId: commerceClientElementId,
-            ...(commerceClientMode ? { mode: commerceClientMode } : {}),
-            messagingConfig,
-            ...(commerceClientLogoUrl ? { logoUrl: commerceClientLogoUrl } : {}),
-            ...(headerText ? { headerText } : {}),
-            ...(disclaimerMarkdown ? { disclaimerMarkdown } : {}),
-            ...(commerceClientSearchConfig && typeof commerceClientSearchConfig === 'object'
-                ? { searchConfig: commerceClientSearchConfig }
-                : {}),
-            globalClassName: GLOBAL_CLASS,
-            isDevelopment: isDevelopment === 'true',
-            componentConfig: {
-                ...DEFAULT_COMPONENT_CONFIG,
-                ...(isPanel
-                    ? {
-                          type: 'dialog' as const,
-                          options: {
-                              dialogPosition: 'bottom-right',
-                              dialogFullHeight: true,
-                              dialogWidth: commerceClientPanelWidth,
-                          },
-                      }
-                    : {
-                          type: commerceClientDisplayMode,
-                          options: {
-                              dialogPosition: 'bottom-right',
-                          },
-                      }),
-            },
-            theme: { ...DEFAULT_THEME, ...commerceClientTheme },
-        };
-    }, [
-        commerceClientElementId,
-        scrt2Url,
-        salesforceOrgId,
-        esDeveloperName,
-        routingAttributes,
-        commerceClientMode,
-        commerceClientLogoUrl,
-        headerText,
-        disclaimerMarkdown,
-        commerceClientSearchConfig,
-        isDevelopment,
-        isPanel,
-        commerceClientDisplayMode,
-        commerceClientPanelWidth,
-        commerceClientTheme,
-    ]);
+    // Config → widget-option mapping lives in buildMessagingWidgetOptions (unit-testable, no DOM).
+    const widgetOptions = useMemo(() => buildMessagingWidgetOptions(config), [config]);
 
     // Load the Cimulate messaging UMD bundle
     useEffect(() => {
@@ -186,5 +90,5 @@ export function CimulateWindow({ config }: CimulateWindowProps) {
         }
     }, [scriptLoaded, widgetOptions]);
 
-    return <div id={commerceClientElementId} data-testid="cimulate-agent-widget" />;
+    return <div id={widgetOptions.elementId} data-testid="cimulate-agent-widget" />;
 }

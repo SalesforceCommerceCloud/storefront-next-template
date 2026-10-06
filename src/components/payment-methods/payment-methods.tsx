@@ -29,6 +29,7 @@ import { useToast } from '@/components/toast';
 import { getLastFourDigits } from '@/lib/payment/payment-utils';
 import { UITarget } from '@/targets/ui-target';
 import { resourceRoutes } from '@/route-paths';
+import { AccountPaymentMethodsListActionsProvider } from './account-payment-methods-list-context';
 
 export interface PaymentMethodsProps {
     customer: ShopperCustomers.schemas['Customer'] | null;
@@ -75,6 +76,7 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
     >();
     const previousFetcherStateRef = useRef(paymentFetcher.state);
     const currentIntentRef = useRef<string | null>(null);
+    const didCompleteAddRef = useRef(false);
 
     const paymentMethods = useMemo(() => {
         return (customer?.paymentInstruments || [])
@@ -90,7 +92,10 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
 
     const hasPaymentMethods = paymentMethods.length > 0;
 
-    const handleAddClick = () => setIsAddDialogOpen(true);
+    const handleAddClick = () => {
+        didCompleteAddRef.current = false;
+        setIsAddDialogOpen(true);
+    };
 
     const handleAddSubmitForm = (formData: FormData) => {
         currentIntentRef.current = 'add';
@@ -120,6 +125,19 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
         const formData = new FormData();
         formData.append('paymentInstrumentId', method.id);
         void paymentFetcher.submit(formData, { method: 'POST', action: resourceRoutes.paymentMethodSetDefault });
+    };
+
+    const handleAddComplete = () => {
+        if (didCompleteAddRef.current) return;
+        didCompleteAddRef.current = true;
+        setIsAddDialogOpen(false);
+        addToast(t('paymentMethods.addSuccess'), 'success');
+        // CAP owns the SFP list refresh via the shared keyed fetcher. Do not
+        // revalidate here — that would re-run the same fetcher and double-load.
+    };
+
+    const handleAddError = () => {
+        addToast(t('paymentMethods.addError'), 'error');
     };
 
     useEffect(() => {
@@ -167,69 +185,71 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
                 </CardContent>
             </Card>
 
-            {/* Payment Methods Section */}
-            <UITarget targetId="sfcc.accountPaymentOptions.payments.savedPaymentMethods">
-                <Card className="p-6">
-                    <div className="flex items-center justify-between pb-6 border-b">
-                        <div>
-                            <h2 className="text-base font-semibold text-foreground mb-1">
-                                {t('navigation.paymentMethods')}
-                            </h2>
-                            <p className="text-sm text-muted-foreground">{t('paymentMethods.subtitle')}</p>
-                        </div>
-                        <Button variant="outline" onClick={handleAddClick}>
-                            {t('paymentMethods.addPaymentMethod')}
-                        </Button>
+            {/* Payment Methods Section — header + Add stay host-owned so CAP list
+                replacements cannot orphan isAddDialogOpen. List body only is extensible.
+                Until CAP replaces sfcc.myAccount.payments.addMethod, Add still creates
+                native instruments even when the list shows SFP refs. */}
+            <Card className="p-6">
+                <div className="flex items-center justify-between pb-6 border-b">
+                    <div>
+                        <h2 className="text-base font-semibold text-foreground mb-1">
+                            {t('navigation.paymentMethods')}
+                        </h2>
+                        <p className="text-sm text-muted-foreground">{t('paymentMethods.subtitle')}</p>
                     </div>
+                    <Button variant="outline" onClick={handleAddClick}>
+                        {t('paymentMethods.addPaymentMethod')}
+                    </Button>
+                </div>
 
-                    <div className="pt-2">
-                        {!hasPaymentMethods ? (
-                            /* Empty State */
-                            <div className="py-8 text-center">
-                                <div className="flex flex-col items-center gap-4">
-                                    <div className="text-muted-foreground">
-                                        <p className="text-sm font-medium">
-                                            {t('paymentMethods.noSavedPaymentMethods')}
-                                        </p>
-                                        <p className="text-sm mt-1">{t('paymentMethods.empty')}</p>
+                <div className="pt-2">
+                    <AccountPaymentMethodsListActionsProvider value={{ openAdd: handleAddClick }}>
+                        <UITarget targetId="sfcc.accountPaymentOptions.payments.savedPaymentMethods">
+                            {!hasPaymentMethods ? (
+                                /* Empty State */
+                                <div className="py-8 text-center">
+                                    <div className="flex flex-col items-center gap-4">
+                                        <div className="text-muted-foreground">
+                                            <p className="text-sm font-medium">
+                                                {t('paymentMethods.noSavedPaymentMethods')}
+                                            </p>
+                                            <p className="text-sm mt-1">{t('paymentMethods.empty')}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ) : (
-                            /* Payment Methods List */
-                            <div className="space-y-6">
-                                {paymentMethods.map((method) => (
-                                    <PaymentMethodCard
-                                        key={method.id}
-                                        paymentMethod={method}
-                                        onRemove={() => handleRemoveClick(method)}
-                                        onSetDefault={() => handleSetDefault(method)}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </Card>
-            </UITarget>
+                            ) : (
+                                /* Payment Methods List */
+                                <div className="space-y-6">
+                                    {paymentMethods.map((method) => (
+                                        <PaymentMethodCard
+                                            key={method.id}
+                                            paymentMethod={method}
+                                            onRemove={() => handleRemoveClick(method)}
+                                            onSetDefault={() => handleSetDefault(method)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </UITarget>
+                    </AccountPaymentMethodsListActionsProvider>
+                </div>
+            </Card>
             <UITarget targetId="sfcc.myAccountPaymentMethods.giftCards.manage" />
 
-            {/* Add Payment Method Dialog */}
-            {isAddDialogOpen && (
-                <UITarget targetId="sfcc.myAccount.payments.addMethod">
-                    <AddPaymentMethodDialog
-                        open={isAddDialogOpen}
-                        onOpenChange={setIsAddDialogOpen}
-                        onSubmitForm={handleAddSubmitForm}
-                        addresses={customer?.addresses || []}
-                        isLoading={
-                            (paymentFetcher.state === 'submitting' || paymentFetcher.state === 'loading') &&
-                            currentIntentRef.current === 'add'
-                        }
-                    />
-                </UITarget>
-            )}
-
-            {/* Remove Payment Method Dialog */}
+            {/* CAP replaces the native add form body inside the host-owned dialog shell. */}
+            <AddPaymentMethodDialog
+                open={isAddDialogOpen}
+                onOpenChange={setIsAddDialogOpen}
+                onSubmitForm={handleAddSubmitForm}
+                addresses={customer?.addresses || []}
+                email={customer?.email || (customer?.login?.includes('@') ? customer.login : undefined)}
+                isLoading={
+                    (paymentFetcher.state === 'submitting' || paymentFetcher.state === 'loading') &&
+                    currentIntentRef.current === 'add'
+                }
+                onComplete={handleAddComplete}
+                onError={handleAddError}
+            />
             <RemovePaymentMethodDialog
                 open={isRemoveDialogOpen}
                 onOpenChange={handleRemoveDialogClose}

@@ -151,6 +151,14 @@ describe('ProductTileProvider', () => {
         expect(result.current.currency).toBe('USD');
     });
 
+    test('provides the outer URL prefix through the shared context', () => {
+        const { result } = renderHook(() => useProductTileContext(), {
+            wrapper: createProviderWrapper(),
+        });
+
+        expect(result.current.seoUrlContext.urlPrefix).toBe('/:siteId/:localeId');
+    });
+
     test('provides navigate function from react-router', () => {
         const { result } = renderHook(() => useProductTileContext(), {
             wrapper: createProviderWrapper(),
@@ -263,6 +271,14 @@ describe('ProductTileProvider value stability', () => {
         expect(captured.length).toBeGreaterThan(initialRenderCount);
         expect(captured[captured.length - 1]).toBe(before);
     });
+
+    test('provides the outer URL prefix outside a provider', () => {
+        const { result } = renderHook(() => useProductTileContext(), {
+            wrapper: createRouterWrapper(),
+        });
+
+        expect(result.current.seoUrlContext.urlPrefix).toBe('/:siteId/:localeId');
+    });
 });
 
 describe('useProductTileContext', () => {
@@ -312,7 +328,7 @@ describe('useProductTileContext', () => {
         const keys = Object.keys(withProvider.current).sort();
         const fallbackKeys = Object.keys(withoutProvider.current).sort();
         expect(keys).toEqual(fallbackKeys);
-        expect(keys).toEqual(['config', 'currency', 'getBadges', 'navigate', 't']);
+        expect(keys).toEqual(['config', 'currency', 'getBadges', 'navigate', 'seoUrlContext', 't']);
     });
 });
 

@@ -87,7 +87,7 @@ describe('resource.shipping-estimate', () => {
 
     it('accepts a same-origin Referer when Origin is unavailable', async () => {
         vi.mocked(getShippingEstimates).mockResolvedValue({
-            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-02T00:00:00Z' },
             shippingOptions: [],
         });
 
@@ -135,7 +135,7 @@ describe('resource.shipping-estimate', () => {
 
     it('does not persist a destination from an automatic successful lookup', async () => {
         vi.mocked(getShippingEstimates).mockResolvedValue({
-            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-02T00:00:00Z' },
             shippingOptions: [],
         });
 
@@ -148,7 +148,7 @@ describe('resource.shipping-estimate', () => {
 
     it('returns every deliverable method and stores an explicitly submitted postal code after a successful lookup', async () => {
         vi.mocked(getShippingEstimates).mockResolvedValue({
-            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+            deliveryWindow: { startAt: '2027-01-02T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
             shippingOptions: [
                 {
                     shippingMethodId: 'ground',
@@ -177,7 +177,7 @@ describe('resource.shipping-estimate', () => {
             zipcode: '94105',
             countryCode: 'US',
             estimate: {
-                deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+                deliveryWindow: { startAt: '2027-01-02T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
                 shippingOptions: [
                     {
                         shippingMethodId: 'ground',
@@ -205,7 +205,7 @@ describe('resource.shipping-estimate', () => {
 
     it('normalizes, forwards, echoes, and persists an explicit country', async () => {
         vi.mocked(getShippingEstimates).mockResolvedValue({
-            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-02T00:00:00Z' },
             shippingOptions: [],
         });
 
@@ -220,7 +220,7 @@ describe('resource.shipping-estimate', () => {
             zipcode: 'M5V 3A8',
             countryCode: 'CA',
             estimate: {
-                deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+                deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-02T00:00:00Z' },
                 shippingOptions: [],
             },
         });
@@ -234,8 +234,48 @@ describe('resource.shipping-estimate', () => {
         expect(getShippingEstimates).not.toHaveBeenCalled();
     });
 
-    it('returns a neutral empty estimate without persisting the postal code', async () => {
+    it('returns catalog delivery guidance for an empty estimate and persists a shopper-entered destination', async () => {
         vi.mocked(getShippingEstimates).mockResolvedValue(null);
+        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Order received within 7-10 business days');
+
+        const response = await invoke(
+            request({ productId: 'product-1', zipcode: '94105', persistDestination: 'true' })
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({
+            success: false,
+            productId: 'product-1',
+            zipcode: '94105',
+            countryCode: 'US',
+            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+        });
+        expect(response.headers.get('Set-Cookie')).toBe('deliveryZipCode=94105');
+        expect(serialize).toHaveBeenCalledWith({ postalCode: '94105', countryCode: 'US' });
+        expect(getFallbackDeliveryDescription).toHaveBeenCalledWith(expect.anything(), 'product-1');
+    });
+
+    it('does not persist a destination for an automatic lookup with catalog delivery guidance', async () => {
+        vi.mocked(getShippingEstimates).mockResolvedValue(null);
+        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Order received within 7-10 business days');
+
+        const response = await invoke(request({ productId: 'product-1', zipcode: '94105' }));
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({
+            success: false,
+            productId: 'product-1',
+            zipcode: '94105',
+            countryCode: 'US',
+            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+        });
+        expect(response.headers.get('Set-Cookie')).toBeNull();
+        expect(serialize).not.toHaveBeenCalled();
+    });
+
+    it('returns a neutral empty estimate without a catalog delivery description', async () => {
+        vi.mocked(getShippingEstimates).mockResolvedValue(null);
+        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue(undefined);
 
         const response = await invoke(
             request({ productId: 'product-1', zipcode: '94105', persistDestination: 'true' })
@@ -251,7 +291,7 @@ describe('resource.shipping-estimate', () => {
         });
         expect(response.headers.get('Set-Cookie')).toBeNull();
         expect(serialize).not.toHaveBeenCalled();
-        expect(getFallbackDeliveryDescription).not.toHaveBeenCalled();
+        expect(getFallbackDeliveryDescription).toHaveBeenCalledWith(expect.anything(), 'product-1');
     });
 
     it('returns an opaque failure without persisting a failed postal-code lookup', async () => {
@@ -274,7 +314,7 @@ describe('resource.shipping-estimate', () => {
 
     it('preserves an upstream 403, remembers the postal code, and returns catalog delivery guidance', async () => {
         vi.mocked(getShippingEstimates).mockRejectedValue(createApiError(403));
-        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Order received within 7-10 business days');
+        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Arrives in 7–10 business days');
 
         const response = await invoke(
             request({ productId: 'product-1', zipcode: 'M5V 3A8', countryCode: 'CA', persistDestination: 'true' })
@@ -286,7 +326,7 @@ describe('resource.shipping-estimate', () => {
             productId: 'product-1',
             zipcode: 'M5V 3A8',
             countryCode: 'CA',
-            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            fallbackDeliveryDescription: 'Arrives in 7–10 business days',
         });
         expect(response.headers.get('Set-Cookie')).toBe('deliveryZipCode=94105');
         expect(serialize).toHaveBeenCalledWith({ postalCode: 'M5V 3A8', countryCode: 'CA' });
@@ -295,7 +335,7 @@ describe('resource.shipping-estimate', () => {
 
     it('preserves an upstream 500, remembers the postal code, and returns catalog delivery guidance', async () => {
         vi.mocked(getShippingEstimates).mockRejectedValue(createApiError(500));
-        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Order received within 7-10 business days');
+        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Arrives in 7–10 business days');
 
         const response = await invoke(
             request({ productId: 'product-1', zipcode: '94105', persistDestination: 'true' })
@@ -307,7 +347,7 @@ describe('resource.shipping-estimate', () => {
             productId: 'product-1',
             zipcode: '94105',
             countryCode: 'US',
-            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            fallbackDeliveryDescription: 'Arrives in 7–10 business days',
         });
         expect(response.headers.get('Set-Cookie')).toBe('deliveryZipCode=94105');
         expect(serialize).toHaveBeenCalledWith({ postalCode: '94105', countryCode: 'US' });

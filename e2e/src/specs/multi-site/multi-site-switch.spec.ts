@@ -46,7 +46,7 @@ Before(async () => {
 });
 
 scenarioFn('Navigate to RefArchGlobal site and verify SFCC cookies', async () => {
-    storefrontPage.navigateToUrl('/global/en-GB/category/mens-clothing-jackets');
+    storefrontPage.navigateToUrl('/global/en-GB/c/mens-clothing-jackets');
     storefrontPage.validatePageLoaded();
 
     const productCount = await productListPage.getProductCount();
@@ -56,7 +56,7 @@ scenarioFn('Navigate to RefArchGlobal site and verify SFCC cookies', async () =>
 }).tag('@refarchglobal');
 
 scenarioFn('Navigate to RefArch (US) site and verify SFCC cookies', async () => {
-    storefrontPage.navigateToUrl('/us/en-US/category/mens-clothing-jackets');
+    storefrontPage.navigateToUrl('/us/en-US/c/mens-clothing-jackets');
     storefrontPage.validatePageLoaded();
 
     const productCount = await productListPage.getProductCount();
@@ -67,7 +67,7 @@ scenarioFn('Navigate to RefArch (US) site and verify SFCC cookies', async () => 
 
 scenarioFn('Switch between sites and verify each loads correctly', async () => {
     // Start on RefArchGlobal
-    storefrontPage.navigateToUrl('/global/en-GB/category/mens-clothing-jackets');
+    storefrontPage.navigateToUrl('/global/en-GB/c/mens-clothing-jackets');
     storefrontPage.validatePageLoaded();
     await storefrontPage.validateSFCCCookies('RefArchGlobal');
 
@@ -75,7 +75,7 @@ scenarioFn('Switch between sites and verify each loads correctly', async () => {
     expect(globalProductCount, 'RefArchGlobal should display products').to.be.greaterThan(0);
 
     // Switch to RefArch (US)
-    storefrontPage.navigateToUrl('/us/en-US/category/mens-clothing-jackets');
+    storefrontPage.navigateToUrl('/us/en-US/c/mens-clothing-jackets');
     storefrontPage.validatePageLoaded();
     await storefrontPage.validateSFCCCookies('RefArch');
 
@@ -83,14 +83,14 @@ scenarioFn('Switch between sites and verify each loads correctly', async () => {
     expect(usProductCount, 'RefArch should display products').to.be.greaterThan(0);
 
     // Switch back to RefArchGlobal
-    storefrontPage.navigateToUrl('/global/en-GB/category/mens-clothing-jackets');
+    storefrontPage.navigateToUrl('/global/en-GB/c/mens-clothing-jackets');
     storefrontPage.validatePageLoaded();
     await storefrontPage.validateSFCCCookies('RefArchGlobal');
 }).tag('@site-switch-roundtrip');
 
 scenarioFn('Add to cart on RefArch (US) site via URL prefix', async () => {
     const sitePrefix = '/us/en-US';
-    const productInfo = await addToCartFlow.execute('category/mens-clothing-jackets', { sitePrefix });
+    const productInfo = await addToCartFlow.execute('c/mens-clothing-jackets', { sitePrefix });
 
     storefrontPage.navigateToUrl(`${sitePrefix}/cart`);
     cartPage.validateCartHasItems();
@@ -111,7 +111,7 @@ scenarioFn('Add to cart on RefArch (US) site via URL prefix', async () => {
 
 scenarioFn('Guest checkout on RefArch (US) site completes successfully', async () => {
     const sitePrefix = '/us/en-US';
-    await addToCartFlow.executeAndNavigateToCheckout('category/mens-clothing-jackets', 3, { sitePrefix });
+    await addToCartFlow.executeAndNavigateToCheckout('c/mens-clothing-jackets', 3, { sitePrefix });
 
     checkoutPage.validatePageLoaded();
 
@@ -131,7 +131,7 @@ scenarioFn('Registered shopper checkout on RefArch (US) site completes successfu
     await loginFlow.execute();
 
     const sitePrefix = '/us/en-US';
-    await addToCartFlow.executeAndNavigateToCheckout('category/mens-clothing-jackets', 3, { sitePrefix });
+    await addToCartFlow.executeAndNavigateToCheckout('c/mens-clothing-jackets', 3, { sitePrefix });
 
     checkoutPage.validatePageLoaded();
 

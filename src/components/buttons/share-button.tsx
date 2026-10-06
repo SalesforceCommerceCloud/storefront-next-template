@@ -70,7 +70,10 @@ export function ShareButton({ product, size = 'md', className, tabIndex }: Share
 
     const productName = product.name || 'Check out this product';
     const productDescription = product.shortDescription || 'I found this great product';
-    // Safely access window.location.href - only on client side
+    // Share the URL the shopper is actually viewing so the selected variant (color, size — carried
+    // as query params on this PDP) survives the share. The canonical <link>/og:url/JSON-LD strip
+    // those to the master URL for crawler dedup, but a shared link should open the exact variant
+    // the shopper picked.
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
     const encodedUrl = encodeURIComponent(shareUrl);
     const encodedTitle = encodeURIComponent(productName);

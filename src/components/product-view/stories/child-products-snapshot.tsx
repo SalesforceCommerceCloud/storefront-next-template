@@ -16,7 +16,7 @@
 import { vi, expect, test, describe, afterEach } from 'vitest';
 import { composeStories } from '@storybook/react-vite';
 import * as ChildProductsStories from './child-products.stories';
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, waitFor } from '@testing-library/react';
 
 // Mock useItemFetcher
 vi.mock('@/hooks/use-item-fetcher', () => ({
@@ -101,8 +101,14 @@ afterEach(() => {
 
 describe('ChildProducts stories snapshot', () => {
     for (const [storyName, Story] of Object.entries(composed)) {
-        test(`${storyName} story renders and matches snapshot`, () => {
+        test(`${storyName} story renders and matches snapshot`, async () => {
             const { container } = render(<Story />);
+            // Assert the reserved fallback before the lazy gallery resolves, then snapshot the shopper-visible gallery.
+            expect(container.querySelector('div[aria-hidden="true"].h-full.w-full.bg-muted')).toBeInTheDocument();
+            // Snapshot the shopper-visible gallery after its lazy chunk resolves.
+            await waitFor(() => {
+                expect(container.querySelector('[data-gallery-hero]')).toBeInTheDocument();
+            });
             expect(container.firstChild).toMatchSnapshot();
         });
     }

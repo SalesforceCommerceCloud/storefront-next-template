@@ -19,10 +19,16 @@ import { resolveAssetUrl } from '@/lib/utils';
  * Custom swatch-image support for variation axes that SCAPI does not natively decorate with a
  * swatch image. SFCC only expands ONE image-swatch axis (typically `color`, or `fabric` here) into
  * `VariationAttributeValue.image`; other axes (e.g. `size`, `legStyle`) can carry swatch imagery via
- * a custom master attribute `c_swatchImages` — a JSON-string map of `{ axisId: { value: path } }`.
+ * a custom master attribute `c_swatchImages` — a map of `{ axisId: { value: path-or-URL } }`.
+ *
+ * Values may be either a local overlay path (`images/products/size-loveseat.webp`) or an absolute
+ * URL. The recommended source is a hidden "swatch product" per value, whose DIS image URL is resolved
+ * server-side and merged into `c_swatchImages` by `resolveSwatchProductImages`
+ * (see `swatch-products.server.ts`); those absolute URLs pass through `resolveCustomSwatchImagePath`
+ * untouched and are DIS-optimized by `<DynamicImage>`, so no bundled art is needed.
  *
  * @example
- * // product.c_swatchImages (raw JSON string on the master)
+ * // product.c_swatchImages (raw JSON string on the master, or an object set by the loader)
  * '{"size":{"loveseat":"images/products/size-loveseat.webp"},"legStyle":{"tapered":"images/products/leg-tapered.webp"}}'
  */
 

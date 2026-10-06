@@ -34,25 +34,25 @@ import { mockConfig } from '@/test-utils/config';
 const ALL_CATEGORY_SUGGESTIONS = [
     {
         name: 'Footwear',
-        link: '/category/footwear',
+        link: '/c/footwear',
         type: 'category',
         image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop',
     },
     {
         name: 'Clothing',
-        link: '/category/clothing',
+        link: '/c/clothing',
         type: 'category',
         image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop',
     },
     {
         name: 'Accessories',
-        link: '/category/accessories',
+        link: '/c/accessories',
         type: 'category',
         image: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=100&h=100&fit=crop',
     },
     {
         name: 'Outerwear',
-        link: '/category/outerwear',
+        link: '/c/outerwear',
         type: 'category',
         image: 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=100&h=100&fit=crop',
     },

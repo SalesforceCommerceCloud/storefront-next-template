@@ -31,6 +31,15 @@
  * as they need overridable UI flags.
  */
 export interface UIConfig {
+    checkout: {
+        /**
+         * When true, allow placing orders with $0 total without payment
+         * instruments or billing addresses (e.g. furniture free swatches).
+         *
+         * @default false
+         */
+        allowZeroTotalOrders: boolean;
+    };
     pages: {
         cart: {
             /**
@@ -74,6 +83,21 @@ export interface UIConfig {
              */
             showLineItemBonusBadge: boolean;
         };
+        swatches: {
+            /**
+             * Maximum number of distinct swatches that can be selected per order.
+             * Set to 0 to disable the swatches feature.
+             *
+             * @default 0
+             */
+            maxDistinctSwatches: number;
+            /**
+             * Maximum quantity allowed per individual swatch product.
+             *
+             * @default 1
+             */
+            maxQtyPerSwatch: number;
+        };
         category: {
             /**
              * When true, the category page's QuickFilters renders a
@@ -110,6 +134,16 @@ export interface UIConfig {
             sidebarCategoryRefinement?: {
                 enabled: boolean;
             };
+            /**
+             * When true, product tiles link to the master product PDP (`/p/<id>`) instead of
+             * deep-linking to the search API's represented variant (`?pid=<variant>`). Use for
+             * verticals where the shopper should configure the product from scratch on the PDP
+             * (e.g. furniture, paired with the "Choose Options" flow). Applies to every ProductTile
+             * the vertical renders (PLP grid, carousels, recommendations).
+             *
+             * @default false (tiles deep-link to the represented variant — unchanged for all verticals)
+             */
+            tileLinksToMasterProduct?: boolean;
         };
         product: {
             /**
@@ -167,6 +201,14 @@ export interface UIConfig {
              * @default 'stacked'
              */
             galleryLayout?: 'stacked' | 'mosaic';
+            /**
+             * PDP quantity UX. `'pre-select'` keeps the standalone quantity picker before add
+             * (the standard experience). `'inline'` adds one item and then replaces the CTA
+             * with an in-cart quantity stepper. Opt-in per storefront.
+             *
+             * @default 'pre-select'
+             */
+            addToCartQuantityMode?: 'inline' | 'pre-select';
         };
     };
 }
@@ -191,6 +233,9 @@ export interface PaginationConfig {
 }
 
 export const uiConfig: UIConfig = {
+    checkout: {
+        allowZeroTotalOrders: false,
+    },
     pages: {
         cart: {
             showRecommendations: true,
@@ -198,6 +243,10 @@ export const uiConfig: UIConfig = {
             showLineItemListPrice: true,
             showLineItemPromoBadge: true,
             showLineItemBonusBadge: true,
+        },
+        swatches: {
+            maxDistinctSwatches: 0,
+            maxQtyPerSwatch: 1,
         },
         category: {
             showCategoryLabel: false,
@@ -210,6 +259,7 @@ export const uiConfig: UIConfig = {
         },
         product: {
             showRatingAverage: false,
+            addToCartQuantityMode: 'pre-select',
         },
     },
 };

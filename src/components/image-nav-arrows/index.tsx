@@ -19,18 +19,25 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface ImageNavArrowsProps {
+    currentIndex: number;
     imageCount: number;
-    onIndexChange: React.Dispatch<React.SetStateAction<number>>;
+    onIndexChange: (index: number) => void;
     /** Arrow button size: "sm" for PLP/cart, "lg" for PDP */
     size?: 'sm' | 'lg';
     className?: string;
 }
 
-export default function ImageNavArrows({ imageCount, onIndexChange, size = 'sm', className }: ImageNavArrowsProps) {
+export default function ImageNavArrows({
+    currentIndex,
+    imageCount,
+    onIndexChange,
+    size = 'sm',
+    className,
+}: ImageNavArrowsProps) {
     const { t } = useTranslation('common');
 
-    const goPrev = () => onIndexChange((i) => (i <= 0 ? imageCount - 1 : i - 1));
-    const goNext = () => onIndexChange((i) => (i >= imageCount - 1 ? 0 : i + 1));
+    const goPrev = () => onIndexChange(currentIndex <= 0 ? imageCount - 1 : currentIndex - 1);
+    const goNext = () => onIndexChange(currentIndex >= imageCount - 1 ? 0 : currentIndex + 1);
 
     const isLarge = size === 'lg';
 

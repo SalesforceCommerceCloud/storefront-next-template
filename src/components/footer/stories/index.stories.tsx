@@ -94,10 +94,12 @@ export const Default: Story = {
         await expect(canvas.getAllByRole('link', { name: /privacy policy/i }).length).toBeGreaterThan(0);
         await expect(canvas.getAllByRole('link', { name: /your privacy choices/i }).length).toBeGreaterThan(0);
 
-        // Newsletter signup is rendered when showNewsletter is true (default).
+        // Newsletter signup is rendered when showNewsletter is true (default). Its functional
+        // elements (email field + subscribe button) are the vertical-stable signal; the heading
+        // copy is i18n and varies per brand (e.g. luxury → "Private client letters"), so it is not
+        // asserted here.
         await expect(canvas.getByPlaceholderText(/your email/i)).toBeInTheDocument();
         await expect(canvas.getByRole('button', { name: /subscribe/i })).toBeInTheDocument();
-        await expect(canvas.getByRole('heading', { name: /join our community/i })).toBeInTheDocument();
     },
 };
 

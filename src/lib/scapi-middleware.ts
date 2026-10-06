@@ -38,6 +38,12 @@ export interface ScapiMiddlewareEntry {
      */
     factory: (context: RouterContextProvider | Readonly<RouterContextProvider>, clients: Clients) => Middleware | null;
     /**
+     * Set when `onRequest` may return a synthetic `Response`. openapi-fetch then short-circuits the remaining request
+     * middleware and skips all response/error handlers, so these entries must run before middleware creates state that
+     * requires response/error cleanup.
+     */
+    mayReturnResponse?: boolean;
+    /**
      * Scope the middleware to specific SCAPI clients.
      * When omitted, the middleware is registered globally on all clients.
      */
@@ -50,8 +56,8 @@ export interface ScapiMiddlewareEntry {
  * previous entry in place without changing its registration order — this
  * makes the registry idempotent across the (rare but possible) cases where
  * a router middleware fires more than once within a single request, while
- * still letting consumers control execution order via the order in which
- * keys are first introduced.
+ * still preserving insertion order within each registration phase. Entries
+ * that may return a synthetic response run before ordinary middleware.
  */
 export class ScapiMiddlewareRegistry {
     private readonly map = new Map<string, ScapiMiddlewareEntry>();

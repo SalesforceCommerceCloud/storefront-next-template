@@ -21,6 +21,7 @@ import {
     createAuthHelpers,
     createBasketHelpers,
     defaultQuerySerializer,
+    BUILT_IN_CLIENT_DEFAULTS,
     SLAS_AUTH_ENDPOINTS,
     type OperationMap,
     type Middleware,
@@ -36,6 +37,11 @@ import { getAppOrigin } from '@/lib/origin';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { customClients, type AppClients } from '@/scapi/custom-clients';
 import { scapiMiddlewareContext } from '@/lib/scapi-middleware';
+import {
+    createNonPersonalizedResponseMiddleware,
+    type ScapiClientProvenance,
+} from '@/lib/scapi/non-personalized-response.server';
+import { defaultNonPersonalizedResponseClassifier } from '@/lib/scapi/non-personalized-response-policy.server';
 
 type CustomClientConfigEntry = {
     key: string;
@@ -43,6 +49,14 @@ type CustomClientConfigEntry = {
     ops: OperationMap;
     locale: boolean;
     orgPrefix: boolean;
+};
+
+type ActiveClient = {
+    key: string;
+    provenance: ScapiClientProvenance;
+    basePath: string;
+    expectedBaseUrl: string;
+    client: { use(middleware: Middleware): void };
 };
 
 type ContextLike = RouterContextProvider | Readonly<RouterContextProvider>;
@@ -654,9 +668,9 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
      * Middleware to ensure that at least one SCAPI call per route request detects maintenance mode from API responses.
      * It keeps track of all SCAPI requests running until the first response is received.
      */
-    const requestMap = new Map<Request, [(...args: unknown[]) => void, (reason?: unknown) => void]>();
+    const requestMap = new Map<string, [Request, (...args: unknown[]) => void, (reason?: unknown) => void]>();
     const maintenanceMiddleware: Middleware = {
-        onRequest({ request }) {
+        onRequest({ request, id }) {
             // oxlint-disable-next-line @typescript-eslint/no-empty-function
             let requestResolver: (...args: unknown[]) => void = () => {};
             // oxlint-disable-next-line @typescript-eslint/no-empty-function
@@ -665,35 +679,46 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
                 requestResolver = resolve;
                 requestRejecter = reject;
             });
-            requestMap.set(request, [requestResolver, requestRejecter]);
+            requestMap.set(id, [request, requestResolver, requestRejecter]);
 
             const maintenance = context.get(maintenanceContext);
             void maintenance.set(request, promise);
             return request;
         },
-        onResponse({ request, response }) {
+        onResponse({ response, id }) {
             const maintenanceHeader = response.headers.get('sfdc_maintenance');
             const maintenance = context.get(maintenanceContext);
-            const [requestResolver, requestRejecter] = requestMap.get(request) ?? [];
+            const [originalRequest, requestResolver, requestRejecter] = requestMap.get(id) ?? [];
 
-            if (maintenance.gate(request) && (maintenanceHeader === 'system' || maintenanceHeader === 'site')) {
+            if (
+                originalRequest &&
+                maintenance.gate(originalRequest) &&
+                (maintenanceHeader === 'system' || maintenanceHeader === 'site')
+            ) {
                 // This will be handled by the middleware, which is waiting for the first promise to resolve
                 requestRejecter?.(new Response('Maintenance', { status: 503 }));
             } else {
                 requestResolver?.(response);
             }
 
-            requestMap.delete(request);
+            requestMap.delete(id);
             return response;
+        },
+        onError({ error, id }) {
+            const [, , requestRejecter] = requestMap.get(id) ?? [];
+            requestRejecter?.(error);
+            requestMap.delete(id);
         },
     };
 
     /**
      * Logging middleware for SCAPI fetch requests.
      *
-     * Logs all outgoing SCAPI requests on response with method, URL, status, and duration.
+     * Logs all outgoing SCAPI requests on response with method, URL, status, duration, final query values, and
+     * personalization mode.
      * - Success responses (< 400): logged at `debug` level
-     * - Error responses (>= 400): logged at `error` level
+     * - Error responses (>= 400): logged at `error` level without query values, plus `debug` with query values
+     * - Query values may contain sensitive shopper data and are therefore emitted only at `debug` level
      * - Server-side only
      *
      * @example
@@ -701,30 +726,45 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
      * [13:21:24.337] DEBUG: fetch GET /search/shopper-search/v1/.../product-search?q=shoes
      *     status: 200
      *     duration: 1280
+     *     apiParams: { q: "shoes", personalized: "none" }
+     *     personalizationMode: "automatic-none"
      * ```
      */
-    const requestTimings = new WeakMap<Request, number>();
+    const requestTimings = new Map<string, number>();
+    const personalizationModes = new Map<string, 'automatic-none' | 'explicit'>();
     const loggingMiddleware: Middleware = {
-        onRequest({ request }) {
-            requestTimings.set(request, performance.now());
+        onRequest({ request, id }) {
+            requestTimings.set(id, performance.now());
             return request;
         },
-        onResponse({ request, response }) {
+        onResponse({ request, response, id }) {
             const logger = getLogger(context);
             const url = new URL(request.url);
-            const startTime = requestTimings.get(request);
+            const startTime = requestTimings.get(id);
+            requestTimings.delete(id);
             const duration = startTime != null ? Math.round(performance.now() - startTime) : undefined;
             const metadata: Record<string, unknown> = {
                 status: response.status,
                 ...(duration != null && { duration }),
             };
+            const apiParams = Object.fromEntries(
+                [...new Set(url.searchParams.keys())].map((key) => {
+                    const values = url.searchParams.getAll(key);
+                    return [key, values.length === 1 ? values[0] : values];
+                })
+            );
+            const personalizationMode = personalizationModes.get(id) ?? 'absent';
+            personalizationModes.delete(id);
             const message = `${LOGGER_PREFIX} fetch ${request.method} ${url.pathname}`;
             if (response.status >= 400) {
                 logger.error(message, metadata);
-            } else {
-                logger.debug(message, metadata);
             }
+            logger.debug(message, { ...metadata, apiParams, personalizationMode });
             return response;
+        },
+        onError({ id }) {
+            requestTimings.delete(id);
+            personalizationModes.delete(id);
         },
     };
 
@@ -741,33 +781,14 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
     // which every proxy client exposes.
     type MiddlewareCapable = { use(mw: Middleware): void };
     const additionEntries: Record<string, MiddlewareCapable> = {};
-    const allCustomClientList: MiddlewareCapable[] = [];
+    const activeClients: ActiveClient[] = Object.entries(BUILT_IN_CLIENT_DEFAULTS).flatMap(([key, { basePath }]) => {
+        const client = clients[key as keyof typeof BUILT_IN_CLIENT_DEFAULTS];
+        return client && 'use' in client
+            ? [{ key, provenance: 'built-in' as const, basePath, expectedBaseUrl: `${baseUrl}${basePath}`, client }]
+            : [];
+    });
     let shopperLoginOverridden = false;
     let shopperBasketsV2Overridden = false;
-
-    // The set of built-in client keys must stay in sync with the runtime SDK's `Clients`
-    // type. Kept inline (rather than imported) because runtime `Clients` is a type, not a
-    // value; encoding it as a string set keeps this file decoupled from generated code.
-    const BUILT_IN_KEYS = new Set<string>([
-        'shopperAvailability',
-        'shopperBasketsV1',
-        'shopperBasketsV2',
-        'shopperConfigurations',
-        'shopperConsents',
-        'shopperContext',
-        'shopperCustomers',
-        'shopperDeliveryEstimates',
-        'shopperExperience',
-        'shopperGiftCertificates',
-        'shopperLogin',
-        'shopperOrders',
-        'shopperPayments',
-        'shopperProducts',
-        'shopperPromotions',
-        'shopperSearch',
-        'shopperSeo',
-        'shopperStores',
-    ]);
 
     for (const {
         key,
@@ -777,23 +798,35 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
         orgPrefix,
     } of customClients as readonly CustomClientConfigEntry[]) {
         const orgPath = orgPrefix ? `/organizations/${organizationId}` : '';
+        const expectedBaseUrl = `${baseUrl}${basePath}${orgPath}`;
         const c = createClient(
-            createOpenApiFetchClient({ baseUrl: `${baseUrl}${basePath}${orgPath}`, ...clientOptions }),
+            createOpenApiFetchClient({ baseUrl: expectedBaseUrl, ...clientOptions }),
             ops,
             supportsLocale ? globalParams : globalParamsWithoutLocale,
             { onAuthTokenInvalid }
         );
-        allCustomClientList.push(c);
 
-        if (BUILT_IN_KEYS.has(key)) {
-            // Substitute the SDK client in place. `clients.use(mw)` still iterates the
-            // SDK's internal client list (which holds the original instance), so we apply
-            // middleware to the override via `allCustomClientList` below.
+        if (key in BUILT_IN_CLIENT_DEFAULTS) {
+            // Substitute the SDK client and its active-client metadata in place.
             (clients as unknown as Record<string, MiddlewareCapable>)[key] = c;
+            const activeClient = activeClients.find((entry) => entry.key === key);
+            if (activeClient) {
+                activeClient.provenance = 'override';
+                activeClient.basePath = basePath;
+                activeClient.expectedBaseUrl = expectedBaseUrl;
+                activeClient.client = c;
+            }
             if (key === 'shopperLogin') shopperLoginOverridden = true;
             if (key === 'shopperBasketsV2') shopperBasketsV2Overridden = true;
         } else {
             additionEntries[key] = c;
+            activeClients.push({
+                key,
+                provenance: 'custom',
+                basePath,
+                expectedBaseUrl,
+                client: c,
+            });
         }
     }
 
@@ -819,37 +852,23 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
 
     // Apply middleware to all clients (base SDK clients + override + addition clients)
     const applyToAllClients = (mw: Middleware) => {
-        clients.use(mw);
-        allCustomClientList.forEach((c) => c.use(mw));
+        activeClients.forEach(({ client }) => client.use(mw));
     };
-
-    // Middleware registration order matters: openapi-fetch runs onRequest in registration
-    // order, but onResponse in reverse order. Logging is registered first so its onResponse
-    // runs last, after all other middleware have processed the request/response.
-    if (typeof window === 'undefined') {
-        applyToAllClients(loggingMiddleware);
-    }
-    applyToAllClients(correlationMiddleware);
-    applyToAllClients(authMiddleware);
-    applyToAllClients(identifyingHeadersMiddleware);
-    // We only detect the maintenance mode from the server, where we actually get data
-    // We currently don't do it from client data access, which will require a client router middleware
-    // Client calls to SCAPI should be rare (basket?), and often shadowed by server calls regarding maintenance
-    if (typeof window === 'undefined') {
-        applyToAllClients(maintenanceMiddleware);
-    }
 
     const appClients = { ...clients, ...additionEntries, use: applyToAllClients } as AppClients;
 
     // Apply context-registered SCAPI middleware factories. The context
     // default is `null` — only middleware that actually registered
     // factories for this request will have populated the registry.
-    // Iteration order matches the order keys were first registered so
-    // consumers can control middleware ordering deterministically.
+    // Synthetic-response middleware runs first. Each phase preserves registry insertion order.
     const registry = context.get(scapiMiddlewareContext);
-
-    if (registry) {
+    const applyRegistryPhase = (phase: 'synthetic' | 'ordinary') => {
+        if (!registry) return;
+        const selectsSyntheticResponses = phase === 'synthetic';
         for (const entry of registry.entries()) {
+            // openapi-fetch stops the chain when onRequest returns a Response and skips all response/error handlers.
+            // Run those entries before stateful middleware so they cannot leave cleanup state pending.
+            if ((entry.mayReturnResponse === true) !== selectsSyntheticResponses) continue;
             const middleware = entry.factory(context, appClients);
             if (!middleware) continue;
 
@@ -861,6 +880,40 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
                 applyToAllClients(middleware);
             }
         }
+    };
+
+    // Synthetic Page Designer responses must run before middleware that creates response cleanup state.
+    applyRegistryPhase('synthetic');
+
+    // openapi-fetch runs onRequest in registration order and response/error handlers in reverse.
+    if (typeof window === 'undefined') applyToAllClients(loggingMiddleware);
+    applyToAllClients(correlationMiddleware);
+    applyToAllClients(authMiddleware);
+    applyToAllClients(identifyingHeadersMiddleware);
+    if (typeof window === 'undefined') applyToAllClients(maintenanceMiddleware);
+
+    applyRegistryPhase('ordinary');
+
+    // Classification must observe the final request after all template-owned global request shaping. Register it last
+    // so its detached snapshot includes effective destinations, query values, and response-affecting headers.
+    for (const activeClient of activeClients) {
+        activeClient.client.use(
+            createNonPersonalizedResponseMiddleware({
+                client: activeClient.key,
+                provenance: activeClient.provenance,
+                clientBasePath: activeClient.basePath,
+                expectedBaseUrl: activeClient.expectedBaseUrl,
+                classifier: defaultNonPersonalizedResponseClassifier,
+                onError(_error, metadata) {
+                    getLogger(context).error(`${LOGGER_PREFIX} non-personalized response classification failed`, {
+                        ...metadata,
+                    });
+                },
+                onPersonalization(id, mode) {
+                    personalizationModes.set(id, mode);
+                },
+            })
+        );
     }
 
     return appClients;

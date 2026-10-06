@@ -275,10 +275,14 @@ describe('CartDeliveryOption', () => {
 
             expect(mockSetSelectedStoreInfo).toHaveBeenCalledWith(null);
             expect(mockOpenStoreLocator).toHaveBeenCalledTimes(1);
+            // Opens scoped to this line item so the picker can show per-boutique stock for it.
+            expect(mockOpenStoreLocator).toHaveBeenCalledWith({ productId: 'product-1', quantity: 2 });
             expect(mockFetcher.submit).not.toHaveBeenCalled();
         });
 
-        it('shows toast when pickup is selected but item is out of stock at store', async () => {
+        it('opens the boutique picker on pickup even when the already-selected store is out of stock for this item', async () => {
+            // Boutique stock is per-item, so a store chosen for another item may not carry this one. Selecting
+            // pickup must open the picker (not error), letting the shopper pick a boutique that stocks this item.
             mockUsePickupAvailability.mockReturnValue(true);
 
             mockUseStoreLocator.mockImplementation((selector: any) => {
@@ -303,7 +307,8 @@ describe('CartDeliveryOption', () => {
             const button = screen.getByRole('button');
             await user.click(button);
 
-            expect(mockAddToast).toHaveBeenCalledWith('Out of stock at store', 'error');
+            expect(mockOpenStoreLocator).toHaveBeenCalled();
+            expect(mockAddToast).not.toHaveBeenCalled();
             expect(mockFetcher.submit).not.toHaveBeenCalled();
         });
 
@@ -361,7 +366,9 @@ describe('CartDeliveryOption', () => {
             });
         });
 
-        it('submits form data with store info when switching to pickup', async () => {
+        it('opens the boutique picker when switching to pickup with a store already selected (selection auto-applies)', async () => {
+            // Even with a store selected, choosing pickup opens the picker so the shopper confirms/chooses a
+            // boutique for THIS item; the pickup PATCH is submitted by the auto-apply effect once they pick one.
             mockUseStoreLocator.mockImplementation((selector: any) => {
                 const mockStoreState = {
                     selectedStoreInfo: { id: 'store-1', inventoryId: 'inv-1' },
@@ -384,16 +391,9 @@ describe('CartDeliveryOption', () => {
             const button = screen.getByRole('button');
             await user.click(button);
 
-            await waitFor(() => {
-                expect(mockFetcher.submit).toHaveBeenCalledTimes(1);
-            });
-
-            const formData = mockFetcher.submit.mock.calls[0][0] as FormData;
-            expect(formData.get('itemId')).toBe('item-1');
-            expect(formData.get('quantity')).toBe('2');
-            expect(formData.get('deliveryOption')).toBe(DELIVERY_OPTIONS.PICKUP);
-            expect(formData.get('storeId')).toBe('store-1');
-            expect(formData.get('inventoryId')).toBe('inv-1');
+            expect(mockOpenStoreLocator).toHaveBeenCalled();
+            // No direct submit here — the pickup is applied after the shopper selects a boutique in the picker.
+            expect(mockFetcher.submit).not.toHaveBeenCalled();
         });
 
         it('shows toast when switching to pickup without store or inventory ID', async () => {

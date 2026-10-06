@@ -13,24 +13,74 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, Suspense, lazy, startTransition, useState, useEffect } from 'react';
+import {
+    Component,
+    type ErrorInfo,
+    type ReactElement,
+    type ReactNode,
+    Suspense,
+    lazy,
+    startTransition,
+    useEffect,
+    useState,
+} from 'react';
 import type { ShopperProducts } from '@/scapi';
+import { createLogger, serializeError } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import ProductQuantityPicker from '@/components/product-quantity-picker';
 import { useProductView } from '@/providers/product-view';
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
+import { addToCartWithAddons, type AdditionalItem } from '@/lib/product/add-to-cart-with-addons';
 import { useCheckAndExecutePendingAction } from '@/hooks/check-and-execute-pending-action';
 import { useTranslation } from 'react-i18next';
 import { UITarget } from '@/targets/ui-target';
 
 /** @feature-stub Express checkout buttons — remove this import and its JSX below to strip the stub */
 const ExpressPayments = lazy(() => import('@/components/checkout/components/express-payments'));
+const ConnectedInlineAddToCart = lazy(() => import('@/components/inline-add-to-cart/connected'));
 
-export interface AdditionalItem {
-    productId: string;
-    quantity: number;
-    price?: number;
+interface InlineCartControllerErrorBoundaryProps {
+    children: ReactNode;
+    fallback: ReactNode;
 }
+
+interface InlineCartControllerErrorBoundaryState {
+    hasError: boolean;
+}
+
+const logger = createLogger({ component: 'ProductCartActions' });
+
+/**
+ * Keeps the PDP purchase path available when the asynchronously loaded inline
+ * cart controller cannot render, such as after a stale client asset is cached.
+ */
+class InlineCartControllerErrorBoundary extends Component<
+    InlineCartControllerErrorBoundaryProps,
+    InlineCartControllerErrorBoundaryState
+> {
+    state: InlineCartControllerErrorBoundaryState = { hasError: false };
+
+    static getDerivedStateFromError(): InlineCartControllerErrorBoundaryState {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: unknown, errorInfo: ErrorInfo): void {
+        // Log before silently falling back so this failure is diagnosable rather than invisible.
+        logger.error('Inline cart controller failed to render; falling back to Add to Cart', {
+            ...serializeError(error),
+            componentStack: errorInfo.componentStack,
+        });
+    }
+
+    render(): ReactNode {
+        return this.state.hasError ? this.props.fallback : this.props.children;
+    }
+}
+
+// `AdditionalItem` and the add-with-add-ons batching live in @/lib/product/add-to-cart-with-addons so
+// this component and the furniture ProductBottomBar share one implementation. Re-exported here for the
+// existing consumers that import it from this module.
+export type { AdditionalItem };
 
 interface ProductCartActionsProps {
     product: ShopperProducts.schemas['Product'];
@@ -64,6 +114,11 @@ interface ProductCartActionsProps {
      * rendered twice. Standard (non-compact, non-set/bundle) add-mode layout only.
      */
     showInlineQuantity?: boolean;
+    /**
+     * Replaces the PDP Add-to-Cart CTA with an in-cart quantity stepper after
+     * the first successful add. Only use for a standard PDP add flow.
+     */
+    showInlineCartQuantity?: boolean;
 }
 
 export default function ProductCartActions({
@@ -77,6 +132,7 @@ export default function ProductCartActions({
     onBuyNow,
     additionalItems = [],
     showInlineQuantity = false,
+    showInlineCartQuantity = false,
 }: ProductCartActionsProps): ReactElement {
     const { t } = useTranslation('product');
     const isProductASet = isProductSet(product);
@@ -103,17 +159,26 @@ export default function ProductCartActions({
         handleProductSetAddToCart,
         handleUpdateCart,
         handleAddToWishlist,
+        fulfillmentSelection,
     } = useProductView();
 
     const isEditMode = mode === 'edit';
     // Compact layout: shown in add mode when a "Buy It Now" handler is provided (e.g. Quick Add modal).
     // Hides express payments, BNPL, wishlist, and share — shopper goes to PDP for those.
     const isCompactAddMode = !isEditMode && !!onBuyNow;
+    const canUseInlineCartQuantity =
+        showInlineCartQuantity && !isCompactAddMode && !isEditMode && !isProductASet && !isProductABundle;
 
     // Get product ID for pending action matching
     const productToCheck = isMasterOrVariantProduct ? currentVariant : product;
-    const currentProductId = productToCheck?.productId || product.id;
-
+    const currentProductId =
+        productToCheck && 'productId' in productToCheck && typeof productToCheck.productId === 'string'
+            ? productToCheck.productId
+            : product.id;
+    const selectedPickupStoreId =
+        fulfillmentSelection?.optionId === 'pickup' && typeof fulfillmentSelection.metadata?.storeId === 'string'
+            ? fulfillmentSelection.metadata.storeId
+            : undefined;
     // Check for pending actions and execute if they match this product
     // This handles actions that were initiated before authentication (e.g., addToWishlist)
     useCheckAndExecutePendingAction({
@@ -142,25 +207,18 @@ export default function ProductCartActions({
         }
 
         try {
-            // Use handleUpdateCart in edit mode, handleAddToCart in add mode
+            // Use handleUpdateCart in edit mode; in add mode, batch any selected add-ons via the shared helper.
             if (isEditMode) {
                 await handleUpdateCart();
-            } else if (additionalItems.length > 0) {
-                // Additional items provided (e.g. service add-ons): add the main variant and the
-                // additional products together in one batch via the product-set path (separate line items).
-                await handleProductSetAddToCart([
-                    { product, variant: currentVariant ?? undefined, quantity },
-                    // Contract: the product-set add path reads ONLY `id` and `price` off each selection's
-                    // product (see `handleProductSetAddToCart` in use-product-actions.ts — it maps to
-                    // `productId`/`price`). We therefore synthesize a minimal stub rather than fetch the full
-                    // Product. If that path ever starts reading other fields, this cast must be revisited.
-                    ...additionalItems.map((item) => ({
-                        product: { id: item.productId, price: item.price } as ShopperProducts.schemas['Product'],
-                        quantity: item.quantity,
-                    })),
-                ]);
             } else {
-                await handleAddToCart();
+                await addToCartWithAddons({
+                    product,
+                    currentVariant,
+                    quantity,
+                    additionalItems,
+                    handleAddToCart,
+                    handleProductSetAddToCart,
+                });
             }
             // Call success callback after API completes
             onCartSuccess?.();
@@ -178,6 +236,20 @@ export default function ProductCartActions({
             setShouldLoadExpressPayments(true);
         });
     }, []);
+
+    // Shared between the error boundary and Suspense fallbacks below so the static Add-to-Cart
+    // button markup ships once, not twice, in the bundle.
+    const inlineAddToCartFallbackButton = (
+        <Button
+            data-testid="add-to-cart"
+            data-slot="add-to-cart-button"
+            onClick={() => void onAddOrUpdateToCart()}
+            disabled={!canAddToCart || isAddingToOrUpdatingCart || isVariantInventoryLoading}
+            className="w-full text-base font-semibold leading-6"
+            size="lg">
+            {isAddingToOrUpdatingCart ? t('addingToCart') : t('addToCart')}
+        </Button>
+    );
 
     return (
         <div className="mt-6">
@@ -219,7 +291,36 @@ export default function ProductCartActions({
                 {!isCompactAddMode &&
                     !isProductASet &&
                     !isProductABundle &&
-                    (showInlineQuantity && !isEditMode ? (
+                    (canUseInlineCartQuantity ? (
+                        <InlineCartControllerErrorBoundary
+                            fallback={
+                                <div className="flex flex-col gap-2" data-slot="inline-add-to-cart">
+                                    {inlineAddToCartFallbackButton}
+                                </div>
+                            }>
+                            <Suspense
+                                fallback={
+                                    <div
+                                        aria-busy="true"
+                                        className="flex flex-col gap-2"
+                                        data-slot="inline-add-to-cart">
+                                        {inlineAddToCartFallbackButton}
+                                        <div role="status" aria-live="polite" aria-atomic="true" />
+                                    </div>
+                                }>
+                                <ConnectedInlineAddToCart
+                                    productId={currentProductId}
+                                    storeId={selectedPickupStoreId}
+                                    stockLevel={stockLevel}
+                                    maxQuantity={maxQuantity}
+                                    onAdd={() => void onAddOrUpdateToCart()}
+                                    disabled={!canAddToCart || isAddingToOrUpdatingCart || isVariantInventoryLoading}
+                                    loading={isAddingToOrUpdatingCart || isVariantInventoryLoading}
+                                    productName={product.name}
+                                />
+                            </Suspense>
+                        </InlineCartControllerErrorBoundary>
+                    ) : showInlineQuantity && !isEditMode ? (
                         <div className="flex items-stretch gap-3" data-slot="qty-add-row">
                             <ProductQuantityPicker
                                 value={quantity.toString()}

@@ -18,13 +18,16 @@ import { useTranslation } from 'react-i18next';
 import { Link } from '@/components/link';
 import type { ShopperProducts } from '@/scapi';
 import { ChevronRight } from 'lucide-react';
-import { routes, routeHref } from '@/route-paths';
+import { routes } from '@/route-paths';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
+import { createCategoryUrlFromScapiCategory } from '@/lib/seo/scapi-slugs';
 
 type PrimaryCategory = NonNullable<ShopperProducts.schemas['Product']['primaryCategory']>;
 type PathRecord = NonNullable<PrimaryCategory['parentCategoryTree']>[number];
 
 export default function CategoryBreadcrumbs({ category }: { category: PrimaryCategory }): ReactElement {
     const { t } = useTranslation('category');
+    const seoUrlContext = useSeoUrlContext();
     const items: PathRecord[] = category.parentCategoryTree ?? [{ id: category.id, name: category.name }];
     return (
         <nav aria-label={t('breadcrumbs.label')} className="mb-6">
@@ -36,15 +39,20 @@ export default function CategoryBreadcrumbs({ category }: { category: PrimaryCat
                 </li>
                 {items.map((item, index) => {
                     const isLast = index === items.length - 1;
+                    const destination = createCategoryUrlFromScapiCategory(item, seoUrlContext);
                     return (
                         <li key={item.id} className="flex items-center">
                             <ChevronRight className="mx-1 size-3" />
-                            <Link
-                                to={routeHref(routes.category, { categoryId: item.id ?? '' })}
-                                className="hover:underline"
-                                aria-current={isLast ? 'page' : undefined}>
-                                {item.name}
-                            </Link>
+                            {destination ? (
+                                <Link
+                                    to={destination}
+                                    className="hover:underline"
+                                    aria-current={isLast ? 'page' : undefined}>
+                                    {item.name}
+                                </Link>
+                            ) : (
+                                <span aria-current={isLast ? 'page' : undefined}>{item.name}</span>
+                            )}
                         </li>
                     );
                 })}

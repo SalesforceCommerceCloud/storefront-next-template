@@ -13,6 +13,78 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const vertical = process.env.VERTICAL ?? 'fashion';
+// Per-vertical Lighthouse script/document ceilings. This branch (@W-23493124@) and main each raised
+// sizes independently; on merge we keep the LARGER ceiling per vertical so neither side's headroom
+// regresses.
+//   - Footwear PDP: both sides land at 486 KB (this branch's main-baseline-drift absorption; main's
+//     canonical `useVariationMedia` hook W-24144914 + Shopper Agent shell helper W-24210721). The
+//     attribution feature this PR adds is not the cause — it contributes ~91B (482092 without vs
+//     482183 with, within run-to-run noise).
+//   - Cart: footwear 538 KB (this branch, above main's 535 KB) plus main's luxury tier, raised to
+//     536 KB (luxury joined the Lighthouse matrix in W-24144914); other verticals stay at 530 KB.
+//   - Luxury drift (post-merge CI): the merged shared shell (this branch's attribution capture +
+//     main's baseline) pushed luxury just past two tiers — home 411584 (> the shared 411 KB) and
+//     cart 534285 (> the 533 KB luxury tier). Both are luxury-only overages (the other five verticals
+//     still pass unchanged), so luxury takes a dedicated 413 KB home tier and a 536 KB cart ceiling,
+//     each with modest headroom (~1.4-1.7 KB) over the measured median.
+// Raised for the inline Add-to-Cart quantity stepper (@W-24184213@). ProductCartActions grew to
+// host the stepper's error boundary, Suspense fallback, and lazy-loaded controller; it's reachable
+// eagerly from the cart-item edit modal (cart route) and from every vertical's PDP. Three size
+// mitigations already landed in this branch (deduping the fallback button markup, lazy-loading the
+// connected controller, splitting the child-product gallery into its own chunk) before these ceilings
+// were touched.
+//   - PDP zoom (@W-24184223@, 2026-09-21, merged from main): the accessible image-zoom feature
+//     extracts the shared gallery rendering out of `image-gallery/index.tsx` into
+//     `image-gallery/gallery-content.tsx` so ProductZoomGallery can reuse it without duplicating
+//     markup. That seam ships to every vertical's product page; the lightbox chunk stays lazy-loaded.
+// Both features land on the shared PDP/home product-view chunks, so on merge we keep the LARGER
+// ceiling per vertical and re-measured the combined build. Per-route numbers are CI-measured.
+// Home tiers absorb baseline drift the rebase pulled in from main's stepper (@W-24184213@), not this
+// PR (CI medians: luxury 415294, footwear 413151, cosmetic 411404, furniture 411099).
+// Raised across the non-canonical home tiers for the mini-cart close-flush confirmation toast
+// (@W-24310245@): the fix mounts a root-level CartMutationToastWatcher plus a tiny module-scoped mutation
+// registry so a quantity change or remove that was flushed as the drawer closed still fires its toast after
+// the owning line item unmounted. That watcher and its store ship in the shared root chunk every page loads,
+// adding ~1.6 KB (measured uniformly on cosmetic/footwear/luxury, which the furniture-only home commits do
+// not touch, so the growth is attributable to this fix, not baseline drift). CI medians rose to luxury
+// 417596, footwear 415592, cosmetic 413822, furniture 413507; each tier keeps ~1.5 KB headroom. Lazy-loading
+// the toast leaf was rejected: the async import gap lets React Router purge the settled fetcher before the
+// leaf re-attaches, reintroducing the lost-toast bug. Fashion/foundations (411000) still pass, untouched.
+const homeScriptSizeLimit =
+    vertical === 'luxury'
+        ? 419000
+        : vertical === 'footwear'
+          ? 417000
+          : vertical === 'cosmetic' || vertical === 'furniture'
+            ? 415000
+            : 411000;
+// Product ceilings re-measured after the latest upstream/main merge: the combined PDP chunk landed a
+// touch above the earlier raise on the three verticals that carry the most PDP code (CI medians:
+// footwear 499656, luxury 491466, cosmetic 486286). Each ceiling sits ~1.5 KB above its measured
+// median. Cosmetic and luxury get their own tiers so the fashion/foundations default (485 KB), which
+// still passes, keeps its existing headroom.
+// Furniture raised 489000 -> 495000 (@W-24184219@): its 489 KB tier was a carryover that was never
+// re-measured against the inline Add-to-Cart stepper baseline, and post-#2790 main merges drifted the
+// shared PDP chunk up. Furniture now medians 493467 across the five CI runs. This PR (opt-in quantity
+// mode) only adds a ~30 B config literal to the furniture config, so it is not the cause; 495000 keeps
+// the file's ~1.5 KB headroom over the measured median.
+// Furniture PDP raised 495000 -> 498000 for the same close-flush watcher (@W-24310245@): the shared root
+// chunk lands on the product view too, so furniture's PDP median rose to 496618. 498000 keeps ~1.4 KB
+// headroom. The other verticals' PDP tiers still pass (only furniture breached here) and stay untouched.
+const productScriptSizeLimit =
+    vertical === 'footwear'
+        ? 501000
+        : vertical === 'luxury'
+          ? 493000
+          : vertical === 'furniture'
+            ? 498000
+            : vertical === 'cosmetic'
+              ? 488000
+              : 485000;
+const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
+const cartScriptSizeLimit = vertical === 'footwear' ? 543000 : vertical === 'luxury' ? 541500 : 535000;
+
 module.exports = {
     ci: {
         collect: {
@@ -22,8 +94,8 @@ module.exports = {
             startServerReadyTimeout: 30000,
             url: [
                 'http://localhost:3001/RefArchGlobal/en-GB/',
-                // 'http://localhost:3001/RefArchGlobal/en-GB/category/womens-clothing-tops',
-                'http://localhost:3001/RefArchGlobal/en-GB/product/25591227M?color=JJ9DFXX',
+                // 'http://localhost:3001/RefArchGlobal/en-GB/c/womens-clothing-tops',
+                'http://localhost:3001/RefArchGlobal/en-GB/p/25591227M?color=JJ9DFXX',
                 'http://localhost:3001/RefArchGlobal/en-GB/cart',
             ],
             settings: {
@@ -68,7 +140,7 @@ module.exports = {
                         'categories:best-practices': ['error', { minScore: 0.7, aggregationMethod: 'median' }],
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 411000, aggregationMethod: 'median' },
+                            { maxNumericValue: homeScriptSizeLimit, aggregationMethod: 'median' },
                         ],
                         'resource-summary:document:size': [
                             'error',
@@ -106,14 +178,21 @@ module.exports = {
                         'categories:accessibility': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:seo': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:best-practices': ['error', { minScore: 0.7, aggregationMethod: 'median' }],
-                        // Keep the current main baseline, which includes shared PDP dependencies.
+                        // Per-vertical ceilings above (`productScriptSizeLimit`) absorb each vertical's
+                        // own PDP baseline: footwear's size/width/colorway controls and SEO URL generator
+                        // plus its zoom trigger, furniture's product overlay plus its zoom trigger,
+                        // luxury's baseline drift plus the shared gallery-content extraction, and
+                        // cosmetic's shared gallery-content extraction alone. See the top-of-file comment
+                        // for the measured medians behind each tier.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 475000, aggregationMethod: 'median' },
+                            { maxNumericValue: productScriptSizeLimit, aggregationMethod: 'median' },
                         ],
+                        // Furniture's PDP server-renders its service configuration and recommendation
+                        // rails. Its measured mirrored document median is 68051 B across five runs.
                         'resource-summary:document:size': [
                             'error',
-                            { maxNumericValue: 55000, aggregationMethod: 'median' },
+                            { maxNumericValue: productDocumentSizeLimit, aggregationMethod: 'median' },
                         ],
                     },
                 },
@@ -200,9 +279,11 @@ module.exports = {
                         // component modules before hydration. Lighthouse counts those intentionally
                         // early module requests as cart script resources even though the cart entry
                         // bundle itself has not grown by the same amount.
+                        // Footwear additionally loads the configurable SEO URL generator for cart-item
+                        // PDP links. Its mirrored payload measures 533586 B across five deterministic runs.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 530000, aggregationMethod: 'median' },
+                            { maxNumericValue: cartScriptSizeLimit, aggregationMethod: 'median' },
                         ],
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.
                         // The 31000 ceiling was too tight - multiple unrelated PRs hit

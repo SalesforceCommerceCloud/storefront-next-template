@@ -38,6 +38,14 @@
         "nextImage": "Next image",
         "thumbnailImage": "Product image {{current}} of {{total}}",
         "thumbnailImageLabeled": "{{label}}, product image {{current}} of {{total}}",
+        "zoom": {
+            "open": "Zoom image",
+            "openImage": "Zoom image {{current}} of {{total}}",
+            "magnify": "Toggle image magnification",
+            "title": "Product image",
+            "description": "Zoomed product image. Click the image to magnify. When magnified, use the arrow keys to pan. Otherwise, use left and right arrow keys to change image.",
+            "counter": "{{current}} of {{total}}"
+        },
         "productGrid": {
             "loadFailed": "Unable to load additional products."
         },
@@ -344,6 +352,8 @@
         "increaseQuantity": "Increase quantity",
         "decreaseQuantityForProduct": "Decrement Quantity for {{productName}}",
         "increaseQuantityForProduct": "Increment Quantity for {{productName}}",
+        "removeFromCartForProduct": "Remove {{productName}} from basket",
+        "quantityInCart": "{{count}} in basket",
         "quantityInput": "Quantity",
         "quantityUpdated": "Quantity updated",
         "quantityUpdateFailed": "Failed to update quantity",
@@ -889,6 +899,17 @@
                 "saveSuccess": "Pickup preferences saved successfully"
             }
         },
+        "lastOrderCard": {
+            "label": "Last order",
+            "heading": "Last order {{orderNo}}",
+            "itemCount_one": "{{count}} item",
+            "itemCount_other": "{{count}} items",
+            "description": "Add everything available from this order, or open it in My Account to add one item at a time.",
+            "addAllToCart": "Add all to cart",
+            "addingToCart": "Adding…",
+            "viewInMyAccount": "View in My Account",
+            "overflow": "+{{count}}"
+        },
         "overview": {
             "welcomeBack": "Welcome back, {{name}}!",
             "welcomeSubtitle": "Manage your account, view orders, and discover personalized recommendations.",
@@ -1143,6 +1164,7 @@
             "remove": "Remove",
             "default": "Default",
             "expires": "Expires",
+            "sepaDebit": "SEPA Debit",
             "addPaymentMethodTitle": "Add Payment Method",
             "creditCard": "Credit Card",
             "nameOnCard": "Name on Card*",
@@ -1821,7 +1843,7 @@
             "delivery": "Delivery",
             "method": "Fulfillment method",
             "deliveryAddressDescription": "Deliver to shipping address",
-            "deliveryDescription": "Enter postal code to see delivery estimate"
+            "deliveryDescription": "Enter a postal code to get a delivery estimate"
         },
         "recommendations": {
             "youMightAlsoLike": "You might also like",
@@ -1858,13 +1880,15 @@
                 "preOrder": "Pre-order: ",
                 "backOrder": "Back order: "
             },
-            "unavailable": "Inventory unavailable"
+            "unavailable": "Inventory unavailable",
+            "allocated": "Limited allocation"
         },
         "selectAllOptions": "Select all your options above",
         "description": "Description",
         "imageAlt": "Product Image",
         "addingToCart": "Adding to Cart...",
         "addToCart": "Add to Cart",
+        "chooseOptions": "Choose Options",
         "moreOptions": "More Options",
         "quickAdd": "Quick Add",
         "buyItNow": "Buy It Now",
@@ -2041,7 +2065,8 @@
             "range": "{{min}} – {{max}}",
             "rangeA11y": "Price range from {{min}} to {{max}}",
             "listPriceFrom": "List price from {{price}}",
-            "listPrice": "List price: {{price}}"
+            "listPrice": "List price: {{price}}",
+            "onRequest": "Price on request"
         },
         "removingFromWishlist": "Removing from wishlist...",
         "inWishlist": "In your wishlist"

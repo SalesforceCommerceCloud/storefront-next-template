@@ -17,7 +17,10 @@ import { vi, expect, test, describe, afterEach } from 'vitest';
 
 type MockLinkProps = React.PropsWithChildren<{ to?: string; href?: string; [key: string]: unknown }>;
 
-vi.mock('react-router', () => ({
+vi.mock('react-router', async (importOriginal) => ({
+    // Preserve real exports so canonical middleware's dependency on react-router's
+    // createContext keeps working when this story runs under the flattened mirror.
+    ...(await importOriginal<typeof import('react-router')>()),
     href: (path: string) => path,
     useLocation: () => ({ pathname: '/checkout', search: '', hash: '', state: null, key: 'test' }),
     Link: (props: MockLinkProps) => {

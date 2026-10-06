@@ -36,6 +36,25 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' } as const;
 
 const MAX_PRODUCT_ID_LENGTH = 100;
 
+async function getEstimateResponseHeaders(
+    context: Route.LoaderArgs['context'],
+    zipcode: string,
+    countryCode: string,
+    shouldPersistDestination: boolean
+) {
+    if (!shouldPersistDestination) return NO_STORE_HEADERS;
+
+    return {
+        ...NO_STORE_HEADERS,
+        // Only a shopper-entered lookup becomes shared browser state. Profile-derived
+        // and prior-cookie automatic lookups must not expose one account's address to another.
+        'Set-Cookie': await createDeliveryDestinationCookie(context).serialize({
+            postalCode: zipcode,
+            countryCode,
+        }),
+    };
+}
+
 function isSameOrigin(request: Request): boolean {
     let serverOrigin: string;
     try {
@@ -96,29 +115,31 @@ export async function loader({ request, context }: Route.LoaderArgs): Promise<Re
     try {
         const estimate = await getShippingEstimates(context, productId, zipcode, countryCode);
         if (!estimate) {
+            // The PDP loader omits shipping_methods and only represents its initial product.
+            // Resolve this on demand so a selected variant receives its own catalog guidance.
+            const fallbackDeliveryDescription = await getFallbackDeliveryDescription(context, productId);
             return Response.json(
-                { success: false, empty: true, productId, zipcode, countryCode } satisfies ShippingEstimateResult,
                 {
-                    headers: NO_STORE_HEADERS,
+                    success: false,
+                    productId,
+                    zipcode,
+                    countryCode,
+                    ...(fallbackDeliveryDescription ? { fallbackDeliveryDescription } : { empty: true as const }),
+                } satisfies ShippingEstimateResult,
+                {
+                    headers: await getEstimateResponseHeaders(
+                        context,
+                        zipcode,
+                        countryCode,
+                        Boolean(fallbackDeliveryDescription && persistDestination)
+                    ),
                 }
             );
         }
         return Response.json(
             { success: true, productId, zipcode, countryCode, estimate } satisfies ShippingEstimateResult,
             {
-                headers: {
-                    ...NO_STORE_HEADERS,
-                    ...(persistDestination
-                        ? {
-                              // Only a shopper-entered lookup becomes shared browser state. Profile-derived
-                              // and prior-cookie automatic lookups must not expose one account's address to another.
-                              'Set-Cookie': await createDeliveryDestinationCookie(context).serialize({
-                                  postalCode: zipcode,
-                                  countryCode,
-                              }),
-                          }
-                        : {}),
-                },
+                headers: await getEstimateResponseHeaders(context, zipcode, countryCode, persistDestination),
             }
         );
     } catch (error) {
@@ -131,16 +152,6 @@ export async function loader({ request, context }: Route.LoaderArgs): Promise<Re
             upstreamStatus === 403 || upstreamStatus === 500
                 ? await getFallbackDeliveryDescription(context, productId)
                 : undefined;
-        const headers =
-            fallbackDeliveryDescription && persistDestination
-                ? {
-                      ...NO_STORE_HEADERS,
-                      'Set-Cookie': await createDeliveryDestinationCookie(context).serialize({
-                          postalCode: zipcode,
-                          countryCode,
-                      }),
-                  }
-                : NO_STORE_HEADERS;
         return Response.json(
             {
                 success: false,
@@ -151,7 +162,12 @@ export async function loader({ request, context }: Route.LoaderArgs): Promise<Re
             } satisfies ShippingEstimateResult,
             {
                 status: upstreamStatus ?? 500,
-                headers,
+                headers: await getEstimateResponseHeaders(
+                    context,
+                    zipcode,
+                    countryCode,
+                    Boolean(fallbackDeliveryDescription && persistDestination)
+                ),
             }
         );
     }

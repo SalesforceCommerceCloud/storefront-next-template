@@ -24,7 +24,7 @@ import { Link } from '@/components/link';
 import type { ShopperBasketsV2, ShopperProducts } from '@/scapi';
 
 // Hooks
-import { useItemFetcher } from '@/hooks/use-item-fetcher';
+import { getItemFetcherKey, useItemFetcher } from '@/hooks/use-item-fetcher';
 import { useCartQuantityUpdate } from '@/hooks/use-cart-quantity-update';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +43,8 @@ import QuantityPicker from '@/components/quantity-picker/quantity-picker';
 import { Label } from '@/components/ui/label';
 import { ProductItemPromotions } from '@/components/product-item';
 import { UITarget } from '@/targets/ui-target';
+import { createProductUrl } from '@/route-paths';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 
 /**
  * Basket item data enriched with product details for mini cart display
@@ -113,8 +115,10 @@ export default function MiniCartItem({
     const { t: tMiniCart, i18n } = useTranslation('miniCart');
     const { t: tRemoveItem } = useTranslation('removeItem');
     const { currency } = useSite();
+    const seoUrlContext = useSeoUrlContext();
     const productAltFallback = tMiniCart('productAltFallback') || 'Product';
 
+    const fetcherKey = getItemFetcherKey(product.itemId || '', 'mini-cart-item');
     const fetcher = useItemFetcher({
         itemId: product.itemId || '',
         componentName: 'mini-cart-item',
@@ -135,6 +139,7 @@ export default function MiniCartItem({
         initialValue: product.quantity || 1,
         stockLevel,
         fetcher,
+        fetcherKey,
     });
 
     // Find the product image for the current variation
@@ -152,7 +157,9 @@ export default function MiniCartItem({
     );
 
     // Build product URL for linking to PDP
-    const productUrl = product.productId ? `/product/${product.productId}` : undefined;
+    const productUrl = product.productId
+        ? createProductUrl({ productId: product.productId, slug: product.slug }, seoUrlContext)
+        : undefined;
 
     return (
         <div className="flex gap-4" data-testid="mini-cart-item">

@@ -41,6 +41,14 @@ void i18next.init({
                 nextImage: 'Next Image',
                 thumbnailImage: 'Product image {{current}} of {{total}}',
                 thumbnailImageLabeled: '{{label}}, product image {{current}} of {{total}}',
+                zoom: {
+                    open: 'Zoom image',
+                    openImage: 'Zoom image {{current}} of {{total}}',
+                    magnify: 'Toggle image magnification',
+                    title: 'Product image',
+                    description: 'Zoomed product image. Use the arrows or arrow keys to change image.',
+                    counter: '{{current}} of {{total}}',
+                },
             },
             product: {
                 imageAlt: 'Product Image',
@@ -56,6 +64,7 @@ const wrapper = ({ children }: { children: ReactNode }) =>
         createElement(I18nextProvider, { i18n: i18next }, children)
     );
 
+// Wrapper whose config toggles DIS on/off, to exercise the graceful-degradation gate.
 // DIS-eligible base URL (already on the imaging host with a `/dw/image/v2/{realm}/` prefix). DIS
 // resizing (`sw=`), format conversion, and quality only apply to URLs carrying this prefix — a bare
 // third-party host (`example.com`) has no derivable realm, so the resolver serves it verbatim and
@@ -479,5 +488,10 @@ describe('ImageGallery — mosaic layout', () => {
         // Only index 0 is full (i%3===0); index 2 is not a pair-start orphan (i%3===2).
         const fullIndexes = tiles.flatMap((t, i) => (t.className.includes('col-span-2') ? [i] : []));
         expect(fullIndexes).toEqual([0]);
+    });
+
+    it('does not render PDP zoom triggers', () => {
+        render(<ImageGallery images={mockImages} />, { wrapper });
+        expect(document.querySelector('[data-slot="gallery-zoom-trigger"]')).not.toBeInTheDocument();
     });
 });

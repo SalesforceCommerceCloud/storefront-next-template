@@ -169,7 +169,7 @@ exports[`OrderDetails stories snapshot > CancelledOrder story renders and matche
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -194,7 +194,7 @@ exports[`OrderDetails stories snapshot > CancelledOrder story renders and matche
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -240,7 +240,7 @@ exports[`OrderDetails stories snapshot > CancelledOrder story renders and matche
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>
@@ -578,7 +578,7 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -603,7 +603,7 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -649,7 +649,7 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>
@@ -969,7 +969,7 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -994,7 +994,7 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -1040,7 +1040,7 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>
@@ -1349,7 +1349,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                           aria-label="View Product for Alice"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/prod-a"
+                          href="/RefArchGlobal/en-GB/p/prod-a"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -1372,7 +1372,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/prod-a"
+                                href="/RefArchGlobal/en-GB/p/prod-a"
                                 title="Product for Alice"
                               >
                                 Product for Alice
@@ -1418,7 +1418,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/prod-a"
+                            href="/RefArchGlobal/en-GB/p/prod-a"
                           >
                             Buy Again
                           </a>
@@ -1490,7 +1490,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                           aria-label="View Product for Bob"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/prod-b"
+                          href="/RefArchGlobal/en-GB/p/prod-b"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -1513,7 +1513,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/prod-b"
+                                href="/RefArchGlobal/en-GB/p/prod-b"
                                 title="Product for Bob"
                               >
                                 Product for Bob
@@ -1559,7 +1559,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/prod-b"
+                            href="/RefArchGlobal/en-GB/p/prod-b"
                           >
                             Buy Again
                           </a>
@@ -1853,7 +1853,7 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -1878,7 +1878,7 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -1924,7 +1924,7 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>
@@ -2265,7 +2265,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -2290,7 +2290,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -2336,7 +2336,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>
@@ -2676,7 +2676,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -2701,7 +2701,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -2747,7 +2747,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>
@@ -3034,7 +3034,7 @@ exports[`OrderDetails stories snapshot > WithCancelButton story renders and matc
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -3059,7 +3059,7 @@ exports[`OrderDetails stories snapshot > WithCancelButton story renders and matc
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -3105,7 +3105,7 @@ exports[`OrderDetails stories snapshot > WithCancelButton story renders and matc
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>
@@ -3459,7 +3459,7 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -3484,7 +3484,7 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -3530,7 +3530,7 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>
@@ -3850,7 +3850,7 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -3875,7 +3875,7 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -3921,7 +3921,7 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>
@@ -4268,7 +4268,7 @@ exports[`OrderDetails stories snapshot > WithReturnStatus story renders and matc
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -4293,7 +4293,7 @@ exports[`OrderDetails stories snapshot > WithReturnStatus story renders and matc
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -4339,7 +4339,7 @@ exports[`OrderDetails stories snapshot > WithReturnStatus story renders and matc
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>
@@ -4666,7 +4666,7 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
                           aria-label="View First Product"
                           class="flex-shrink-0 block"
                           data-discover="true"
-                          href="/RefArchGlobal/en-GB/product/701643108633M"
+                          href="/RefArchGlobal/en-GB/p/701643108633M"
                         >
                           <div
                             class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -4691,7 +4691,7 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
                               <a
                                 class="hover:text-primary block break-words"
                                 data-discover="true"
-                                href="/RefArchGlobal/en-GB/product/701643108633M"
+                                href="/RefArchGlobal/en-GB/p/701643108633M"
                                 title="First Product"
                               >
                                 First Product
@@ -4737,7 +4737,7 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
                             data-size="sm"
                             data-slot="button"
                             data-variant="default"
-                            href="/RefArchGlobal/en-GB/product/701643108633M"
+                            href="/RefArchGlobal/en-GB/p/701643108633M"
                           >
                             Buy Again
                           </a>

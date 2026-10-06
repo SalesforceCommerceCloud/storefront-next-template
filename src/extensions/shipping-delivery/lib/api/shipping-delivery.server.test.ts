@@ -19,12 +19,15 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { fetchProductById } from '@/lib/api/products.server';
 import { getFallbackDeliveryDescription, getShippingEstimates } from './shipping-delivery.server';
 
+const logger = vi.hoisted(() => ({ warn: vi.fn() }));
+
 vi.mock('@/lib/api-clients.server', () => ({
     createApiClients: vi.fn(),
 }));
 vi.mock('@/lib/api/products.server', () => ({
     fetchProductById: vi.fn(),
 }));
+vi.mock('@/lib/logger.server', () => ({ getLogger: () => logger }));
 vi.mock('@salesforce/storefront-next-runtime/i18n', () => ({
     getTranslation: vi.fn(),
 }));
@@ -90,7 +93,7 @@ describe('getShippingEstimates', () => {
         });
     });
 
-    it('keeps every deliverable option and uses the lowest-price option for the summary', async () => {
+    it('keeps every deliverable option and uses the slowest option for the summary', async () => {
         getDeliveryEstimates.mockResolvedValue({
             data: {
                 productDeliveryEstimates: [
@@ -128,7 +131,9 @@ describe('getShippingEstimates', () => {
             },
         });
 
-        await expect(getShippingEstimates(createContext('en-US'), 'product-1', '94105')).resolves.toMatchObject({
+        const estimate = await getShippingEstimates(createContext('en-US'), 'product-1', '94105');
+
+        expect(estimate).toMatchObject({
             deliveryWindow: {
                 startAt: '2027-01-03T00:00:00Z',
                 endAt: '2027-01-06T00:00:00Z',
@@ -160,9 +165,10 @@ describe('getShippingEstimates', () => {
                 },
             ],
         });
+        expect(estimate?.deliveryWindow).toEqual(estimate?.shippingOptions[0]?.deliveryWindow);
     });
 
-    it('uses the first sorted option for the summary when some options have no price', async () => {
+    it('ranks delivery windows by their latest start time', async () => {
         getDeliveryEstimates.mockResolvedValue({
             data: {
                 productDeliveryEstimates: [
@@ -170,22 +176,35 @@ describe('getShippingEstimates', () => {
                         productId: 'product-1',
                         shippingOptions: [
                             {
-                                shippingMethodId: 'unpriced-late',
+                                shippingMethodId: 'later-start',
                                 deliveryWindow: {
-                                    startAt: '2027-01-04T00:00:00Z',
-                                    endAt: '2027-01-07T00:00:00Z',
+                                    startAt: '2027-01-03T00:00:00Z',
+                                    endAt: '2027-01-05T00:00:00Z',
                                 },
                             },
                             {
-                                shippingMethodId: 'priced',
-                                price: 10,
+                                shippingMethodId: 'earlier-start',
                                 deliveryWindow: {
-                                    startAt: '2027-01-03T00:00:00Z',
+                                    startAt: '2027-01-02T00:00:00Z',
+                                    endAt: '2027-01-05T00:00:00Z',
+                                },
+                            },
+                            {
+                                shippingMethodId: 'later-arrival',
+                                deliveryWindow: {
+                                    startAt: '2027-01-01T00:00:00Z',
                                     endAt: '2027-01-06T00:00:00Z',
                                 },
                             },
                             {
-                                shippingMethodId: 'unpriced-early',
+                                shippingMethodId: 'z-method',
+                                deliveryWindow: {
+                                    startAt: '2027-01-02T00:00:00Z',
+                                    endAt: '2027-01-05T00:00:00Z',
+                                },
+                            },
+                            {
+                                shippingMethodId: 'a-method',
                                 deliveryWindow: {
                                     startAt: '2027-01-02T00:00:00Z',
                                     endAt: '2027-01-05T00:00:00Z',
@@ -200,13 +219,209 @@ describe('getShippingEstimates', () => {
         await expect(getShippingEstimates(createContext(), 'product-1', '94105')).resolves.toMatchObject({
             deliveryWindow: {
                 startAt: '2027-01-03T00:00:00Z',
-                endAt: '2027-01-06T00:00:00Z',
+                endAt: '2027-01-05T00:00:00Z',
             },
             shippingOptions: [
-                { shippingMethodId: 'priced' },
-                { shippingMethodId: 'unpriced-early' },
-                { shippingMethodId: 'unpriced-late' },
+                { shippingMethodId: 'later-start' },
+                { shippingMethodId: 'a-method' },
+                { shippingMethodId: 'earlier-start' },
+                { shippingMethodId: 'z-method' },
+                { shippingMethodId: 'later-arrival' },
             ],
+        });
+    });
+
+    it('breaks equal start times by the latest exact delivery-window end time', async () => {
+        getDeliveryEstimates.mockResolvedValue({
+            data: {
+                productDeliveryEstimates: [
+                    {
+                        productId: 'product-1',
+                        shippingOptions: [
+                            {
+                                shippingMethodId: 'later',
+                                deliveryWindow: {
+                                    startAt: '2027-01-02T00:00:00.0001Z',
+                                    endAt: '2027-01-03T00:00:00.0009Z',
+                                },
+                            },
+                            {
+                                shippingMethodId: 'earlier',
+                                deliveryWindow: {
+                                    startAt: '2027-01-02T00:00:00.0001Z',
+                                    endAt: '2027-01-03T00:00:00.0001Z',
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        await expect(getShippingEstimates(createContext(), 'product-1', '94105')).resolves.toMatchObject({
+            deliveryWindow: {
+                startAt: '2027-01-02T00:00:00.0001Z',
+                endAt: '2027-01-03T00:00:00.0009Z',
+            },
+            shippingOptions: [{ shippingMethodId: 'later' }, { shippingMethodId: 'earlier' }],
+        });
+    });
+
+    it('excludes delivery options with invalid delivery windows', async () => {
+        getDeliveryEstimates.mockResolvedValue({
+            data: {
+                productDeliveryEstimates: [
+                    {
+                        productId: 'product-1',
+                        shippingOptions: [
+                            {
+                                shippingMethodId: 'invalid-date',
+                                deliveryWindow: {
+                                    startAt: 'not-a-date',
+                                    endAt: '2027-01-02T00:00:00Z',
+                                },
+                            },
+                            {
+                                shippingMethodId: 'invalid-calendar-date',
+                                deliveryWindow: {
+                                    startAt: '2027-02-30T00:00:00Z',
+                                    endAt: '2027-03-03T00:00:00Z',
+                                },
+                            },
+                            {
+                                shippingMethodId: 'reversed-window',
+                                deliveryWindow: {
+                                    startAt: '2027-01-04T00:00:00Z',
+                                    endAt: '2027-01-03T00:00:00Z',
+                                },
+                            },
+                            {
+                                shippingMethodId: 'unknown-offset',
+                                deliveryWindow: {
+                                    startAt: '2027-01-01T00:00:00-00:00',
+                                    endAt: '2027-01-02T00:00:00-00:00',
+                                },
+                            },
+                            {
+                                shippingMethodId: 'express',
+                                deliveryWindow: {
+                                    startAt: '2027-01-01T00:00:00Z',
+                                    endAt: '2027-01-02T00:00:00Z',
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        const estimate = await getShippingEstimates(createContext(), 'product-1', '94105');
+
+        expect(estimate).toMatchObject({
+            deliveryWindow: {
+                startAt: '2027-01-01T00:00:00Z',
+                endAt: '2027-01-02T00:00:00Z',
+            },
+            shippingOptions: [{ shippingMethodId: 'express' }],
+        });
+        expect(estimate?.shippingOptions).toHaveLength(1);
+        expect(logger.warn).not.toHaveBeenCalled();
+    });
+
+    it('keeps valid RFC 3339 offsets and casing that cross a UTC date boundary', async () => {
+        getDeliveryEstimates.mockResolvedValue({
+            data: {
+                productDeliveryEstimates: [
+                    {
+                        productId: 'product-1',
+                        shippingOptions: [
+                            {
+                                shippingMethodId: 'express',
+                                deliveryWindow: {
+                                    startAt: '2027-01-01t00:30:00+01:00',
+                                    endAt: '2027-01-01t01:30:00z',
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        await expect(getShippingEstimates(createContext(), 'product-1', '94105')).resolves.toMatchObject({
+            deliveryWindow: {
+                startAt: '2027-01-01t00:30:00+01:00',
+                endAt: '2027-01-01t01:30:00z',
+            },
+            shippingOptions: [{ shippingMethodId: 'express' }],
+        });
+    });
+
+    it('ranks delivery windows by their UTC time rather than offset-local time', async () => {
+        getDeliveryEstimates.mockResolvedValue({
+            data: {
+                productDeliveryEstimates: [
+                    {
+                        productId: 'product-1',
+                        shippingOptions: [
+                            {
+                                shippingMethodId: 'later-in-utc',
+                                deliveryWindow: {
+                                    startAt: '2027-01-01T00:00:00-02:00',
+                                    endAt: '2027-01-01T01:00:00-02:00',
+                                },
+                            },
+                            {
+                                shippingMethodId: 'earlier-in-utc',
+                                deliveryWindow: {
+                                    startAt: '2027-01-01T01:30:00+02:00',
+                                    endAt: '2027-01-01T02:30:00+02:00',
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        await expect(getShippingEstimates(createContext(), 'product-1', '94105')).resolves.toMatchObject({
+            deliveryWindow: {
+                startAt: '2027-01-01T00:00:00-02:00',
+                endAt: '2027-01-01T01:00:00-02:00',
+            },
+            shippingOptions: [{ shippingMethodId: 'later-in-utc' }, { shippingMethodId: 'earlier-in-utc' }],
+        });
+    });
+
+    it('breaks equivalent delivery-window timestamps by shipping method ID', async () => {
+        getDeliveryEstimates.mockResolvedValue({
+            data: {
+                productDeliveryEstimates: [
+                    {
+                        productId: 'product-1',
+                        shippingOptions: [
+                            {
+                                shippingMethodId: 'z-method',
+                                deliveryWindow: {
+                                    startAt: '2027-01-01T19:00:00-05:00',
+                                    endAt: '2027-01-02T19:00:00-05:00',
+                                },
+                            },
+                            {
+                                shippingMethodId: 'a-method',
+                                deliveryWindow: {
+                                    startAt: '2027-01-02T00:00:00Z',
+                                    endAt: '2027-01-03T00:00:00Z',
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        await expect(getShippingEstimates(createContext(), 'product-1', '94105')).resolves.toMatchObject({
+            shippingOptions: [{ shippingMethodId: 'a-method' }, { shippingMethodId: 'z-method' }],
         });
     });
 
@@ -228,10 +443,50 @@ describe('getShippingEstimates', () => {
                 },
             ],
         },
+        {
+            name: 'every shipping option has an invalid delivery window',
+            productDeliveryEstimates: [
+                {
+                    productId: 'product-1',
+                    shippingOptions: [
+                        {
+                            shippingMethodId: 'ground',
+                            deliveryWindow: { startAt: '2027-01-04T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+                        },
+                    ],
+                },
+            ],
+        },
     ])('returns no estimate when $name', async ({ productDeliveryEstimates }) => {
         getDeliveryEstimates.mockResolvedValue({ data: { productDeliveryEstimates } });
 
         await expect(getShippingEstimates(createContext(), 'product-1', '94105')).resolves.toBeNull();
+    });
+
+    it('logs when every returned delivery window is invalid', async () => {
+        getDeliveryEstimates.mockResolvedValue({
+            data: {
+                productDeliveryEstimates: [
+                    {
+                        productId: 'product-1',
+                        shippingOptions: [
+                            {
+                                shippingMethodId: 'unknown-offset',
+                                deliveryWindow: {
+                                    startAt: '2027-01-01T00:00:00-00:00',
+                                    endAt: '2027-01-02T00:00:00-00:00',
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        await expect(getShippingEstimates(createContext(), 'product-1', '94105')).resolves.toBeNull();
+        expect(logger.warn).toHaveBeenCalledWith('ShippingEstimate: no valid delivery windows', {
+            invalidDeliveryWindowCount: 1,
+        });
     });
 });
 

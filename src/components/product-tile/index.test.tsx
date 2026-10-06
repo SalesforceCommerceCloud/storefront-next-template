@@ -22,7 +22,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { ProductTile } from './index';
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
-import { mockConfig } from '@/test-utils/config';
+import { mockConfig, mockSiteObject } from '@/test-utils/config';
 import type { AppConfig } from '@/types/config';
 import { masterProduct } from '@/components/__mocks__/master-variant-product';
 
@@ -53,6 +53,31 @@ let mockIsDesignMode = false;
 vi.mock('@salesforce/storefront-next-runtime/design/react/core', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@salesforce/storefront-next-runtime/design/react/core')>();
     return { ...actual, usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }) };
+});
+
+// Drives the "tiles link to the master PDP instead of the represented variant" flag.
+let mockTileLinksToMaster = false;
+vi.mock('@/lib/config.ui', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/config.ui')>();
+    return {
+        ...actual,
+        uiConfig: {
+            ...actual.uiConfig,
+            pages: {
+                ...actual.uiConfig.pages,
+                category: {
+                    ...actual.uiConfig.pages.category,
+                    get tileLinksToMasterProduct() {
+                        return mockTileLinksToMaster;
+                    },
+                },
+                product: {
+                    ...actual.uiConfig.pages.product,
+                    showRatingAverage: false,
+                },
+            },
+        },
+    };
 });
 
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
@@ -117,6 +142,11 @@ const mockSingleVariantProduct: ShopperSearch.schemas['ProductSearchHit'] = {
     ],
 };
 
+// The quick-add button's aria-label is `${label} ${productName}`. The label is the `product:quickAdd`
+// i18n key, which verticals override (luxury renders "Discover"), so match on the product name —
+// test-controlled and vertical-independent (role="button" excludes the tile's link/heading).
+const quickAddButtonName = (product: { productName?: string }): RegExp => new RegExp(product.productName ?? '', 'i');
+
 const renderTile = (
     props: Partial<React.ComponentProps<typeof ProductTile>> = {},
     wrapperProps: { config?: AppConfig; currency?: string } = {}
@@ -138,6 +168,33 @@ const renderTile = (
     return render(<RouterProvider router={router} />);
 };
 
+const getDialogVariationRadio = async (
+    dialog: HTMLElement,
+    user: ReturnType<typeof userEvent.setup>,
+    groupName: string,
+    optionName: string | RegExp
+) => {
+    const dialogQueries = within(dialog);
+    const accessibleGroupName = groupName === 'Color' ? /^colou?r/i : new RegExp(`^${groupName}(?::|$)`, 'i');
+    const existingGroup = dialogQueries.queryByRole('radiogroup', { name: accessibleGroupName });
+    if (existingGroup) {
+        return within(existingGroup).getByRole('radio', { name: optionName });
+    }
+
+    const summary = dialogQueries
+        .getAllByText(groupName, { exact: true })
+        .map((element) => element.closest('summary'))
+        .find((element): element is HTMLElement => element !== null);
+    if (!summary) {
+        throw new Error(`Could not find the ${groupName} collapsible swatch section`);
+    }
+    await user.click(summary);
+
+    return within(await dialogQueries.findByRole('radiogroup', { name: accessibleGroupName })).getByRole('radio', {
+        name: optionName,
+    });
+};
+
 describe('ProductTile — rendering', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -149,7 +206,30 @@ describe('ProductTile — rendering', () => {
         expect(heading).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Simple Test Product' })).toHaveAttribute(
             'href',
-            '/global/en-GB/product/simple-001'
+            '/global/en-GB/p/simple-001'
+        );
+    });
+
+    test('uses the active site SEO prefix and an explicit search-hit slug', () => {
+        const product = { ...mockSingleVariantProduct, slug: 'simple-product' };
+        const config: AppConfig = {
+            ...mockConfig,
+            url: {
+                ...mockConfig.url,
+                seoRoutes: {
+                    [mockSiteObject.id]: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'c', mode: 'id-suffix' },
+                    },
+                },
+            },
+        };
+
+        renderTile({ product }, { config });
+
+        expect(screen.getByRole('link', { name: 'Simple Test Product' })).toHaveAttribute(
+            'href',
+            '/global/en-GB/p/simple-product/simple-001'
         );
     });
 
@@ -198,7 +278,7 @@ describe('ProductTile — rendering', () => {
 
     test('renders a quick-add button with the default label', () => {
         renderTile();
-        expect(screen.getByRole('button', { name: /quick add/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: quickAddButtonName(mockSingleVariantProduct) })).toBeInTheDocument();
     });
 
     test('renders a quick-add button with a custom label', () => {
@@ -209,13 +289,17 @@ describe('ProductTile — rendering', () => {
     test('places the quick-add as an absolute overlay over the image by default', () => {
         renderTile();
         // Default 'overlay' placement: the button lives in the absolutely-positioned hover overlay.
-        expect(screen.getByRole('button', { name: /quick add/i }).closest('.absolute')).not.toBeNull();
+        expect(
+            screen.getByRole('button', { name: quickAddButtonName(mockSingleVariantProduct) }).closest('.absolute')
+        ).not.toBeNull();
     });
 
     test('places the quick-add inline at the tile bottom when quickAddPlacement="inline"', () => {
         renderTile({ quickAddPlacement: 'inline' });
         // Inline placement: the button is in-flow in the info section, not the absolute overlay.
-        expect(screen.getByRole('button', { name: /quick add/i }).closest('.absolute')).toBeNull();
+        expect(
+            screen.getByRole('button', { name: quickAddButtonName(mockSingleVariantProduct) }).closest('.absolute')
+        ).toBeNull();
     });
 });
 
@@ -253,13 +337,23 @@ describe('ProductTile — lazy wishlist load on tile intent', () => {
 describe('ProductTile — PDP URL', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockTileLinksToMaster = false;
+    });
+
+    test('master product links to the master (no pid) when tileLinksToMasterProduct is enabled', () => {
+        mockTileLinksToMaster = true;
+        renderTile({ product: mockMasterProduct });
+        expect(screen.getByRole('link', { name: mockMasterProduct.productName as string })).toHaveAttribute(
+            'href',
+            `/global/en-GB/p/${mockMasterProduct.productId}`
+        );
     });
 
     test('standard product links to the product route without a pid', () => {
         renderTile();
         expect(screen.getByRole('link', { name: 'Simple Test Product' })).toHaveAttribute(
             'href',
-            '/global/en-GB/product/simple-001'
+            '/global/en-GB/p/simple-001'
         );
     });
 
@@ -267,7 +361,7 @@ describe('ProductTile — PDP URL', () => {
         renderTile({ product: mockMasterProduct });
         expect(screen.getByRole('link', { name: mockMasterProduct.productName as string })).toHaveAttribute(
             'href',
-            `/global/en-GB/product/${mockMasterProduct.productId}?pid=750518699578M`
+            `/global/en-GB/p/${mockMasterProduct.productId}?pid=750518699578M`
         );
     });
 
@@ -275,7 +369,7 @@ describe('ProductTile — PDP URL', () => {
         renderTile({ product: { ...mockMasterProduct, productType: { bundle: true } } });
         expect(screen.getByRole('link', { name: mockMasterProduct.productName as string })).toHaveAttribute(
             'href',
-            `/global/en-GB/product/${mockMasterProduct.productId}`
+            `/global/en-GB/p/${mockMasterProduct.productId}`
         );
     });
 
@@ -283,7 +377,7 @@ describe('ProductTile — PDP URL', () => {
         renderTile({ product: { ...mockMasterProduct, productType: { set: true } } });
         expect(screen.getByRole('link', { name: mockMasterProduct.productName as string })).toHaveAttribute(
             'href',
-            `/global/en-GB/product/${mockMasterProduct.productId}`
+            `/global/en-GB/p/${mockMasterProduct.productId}`
         );
     });
 
@@ -365,8 +459,8 @@ describe('ProductTile — color swatches', () => {
         const swatchRegion = await screen.findByRole('group', { name: /available colou?rs/i });
         const swatchLinks = within(swatchRegion).getAllByRole('link');
         expect(swatchLinks).toHaveLength(2);
-        expect(swatchLinks[0]).toHaveAttribute('href', '/global/en-GB/product/master-001?color=RED');
-        expect(swatchLinks[1]).toHaveAttribute('href', '/global/en-GB/product/master-001?color=BLU');
+        expect(swatchLinks[0]).toHaveAttribute('href', '/global/en-GB/p/master-001?color=RED');
+        expect(swatchLinks[1]).toHaveAttribute('href', '/global/en-GB/p/master-001?color=BLU');
     });
 });
 
@@ -434,36 +528,26 @@ describe('ProductTile — quick-add pre-selection', () => {
         const user = userEvent.setup();
         renderTile({ product: mockMasterProduct });
 
-        await user.click(screen.getByRole('button', { name: /quick add/i }));
+        await user.click(screen.getByRole('button', { name: quickAddButtonName(mockMasterProduct) }));
 
         const dialog = await screen.findByRole('dialog');
         // Represented variant is { color: 'CHARCWL', size: '036', width: 'S' },
         // which maps to display names "Charcoal", "36", "Short".
-        expect(
-            within(within(dialog).getByRole('radiogroup', { name: /colou?r/i })).getByRole('radio', {
-                name: /Charcoal/,
-            })
-        ).toBeChecked();
-        expect(
-            within(within(dialog).getByRole('radiogroup', { name: /size/i })).getByRole('radio', {
-                name: /^(?:Size )?36(?:, available)?$/i,
-            })
-        ).toBeChecked();
-        expect(
-            within(within(dialog).getByRole('radiogroup', { name: /width/i })).getByRole('radio', { name: /Short/ })
-        ).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Color', /Charcoal/)).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Size', /^(?:Size )?36(?:, available)?$/i)).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Width', /Short/)).toBeChecked();
     });
 
     test('marks the represented variant swatches as selected inside the modal', async () => {
         const user = userEvent.setup();
         renderTile({ product: mockMasterProduct });
 
-        await user.click(screen.getByRole('button', { name: /quick add/i }));
+        await user.click(screen.getByRole('button', { name: quickAddButtonName(mockMasterProduct) }));
 
         const dialog = await screen.findByRole('dialog');
-        expect(within(dialog).getByRole('radio', { name: /Charcoal/ })).toBeChecked();
-        expect(within(dialog).getByRole('radio', { name: /^(?:Size )?36(?:, available)?$/i })).toBeChecked();
-        expect(within(dialog).getByRole('radio', { name: /Short/ })).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Color', /Charcoal/)).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Size', /^(?:Size )?36(?:, available)?$/i)).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Width', /Short/)).toBeChecked();
     });
 });
 

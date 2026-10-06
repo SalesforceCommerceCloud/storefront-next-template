@@ -118,4 +118,75 @@ describe('getPriceData hasPrice', () => {
         expect(result.hasPrice).toBe(true);
         expect(result.currentPrice).toBe(10);
     });
+
+    test('does not treat currency-equivalent derived unit and list prices as a sale', () => {
+        const basketItem = {
+            itemId: 'i3',
+            basePrice: 34.99,
+            price: 174.95,
+            priceAfterItemDiscount: 174.95,
+            quantity: 5,
+        } as unknown as Product;
+
+        const result = getPriceData(basketItem, { currency: 'USD' });
+
+        expect(result.currentPrice).toBe(34.989999999999995);
+        expect(result.isOnSale).toBe(false);
+        expect(result.listPrice).toBeUndefined();
+    });
+
+    test('defaults to USD precision when the caller does not provide a currency', () => {
+        const basketItem = {
+            itemId: 'i-default-currency',
+            basePrice: 34.99,
+            priceAfterItemDiscount: 174.95,
+            quantity: 5,
+        } as unknown as Product;
+
+        expect(getPriceData(basketItem).isOnSale).toBe(false);
+    });
+
+    test('retains a discount that differs at the currency precision', () => {
+        const basketItem = {
+            itemId: 'i4',
+            basePrice: 34.99,
+            price: 174.9,
+            priceAfterItemDiscount: 174.9,
+            quantity: 5,
+        } as unknown as Product;
+
+        const result = getPriceData(basketItem, { currency: 'USD' });
+
+        expect(result.isOnSale).toBe(true);
+        expect(result.listPrice).toBe(34.99);
+    });
+
+    test('uses the active currency fraction digits for basket total comparisons', () => {
+        const basketItem = {
+            itemId: 'i5',
+            basePrice: 100,
+            price: 99.9,
+            priceAfterItemDiscount: 99.9,
+            quantity: 1,
+        } as unknown as Product;
+
+        expect(getPriceData(basketItem, { currency: 'JPY' }).isOnSale).toBe(false);
+        expect(getPriceData(basketItem, { currency: 'USD' }).isOnSale).toBe(true);
+    });
+
+    test('retains a zero-decimal discount visible in the basket total', () => {
+        const basketItem = {
+            itemId: 'i6',
+            basePrice: 100,
+            price: 999,
+            priceAfterItemDiscount: 999,
+            quantity: 10,
+        } as unknown as Product;
+
+        const result = getPriceData(basketItem, { currency: 'JPY' });
+
+        expect(result.currentPrice).toBe(99.9);
+        expect(result.isOnSale).toBe(true);
+        expect(result.listPrice).toBe(100);
+    });
 });

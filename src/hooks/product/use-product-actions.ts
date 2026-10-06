@@ -1238,8 +1238,11 @@ export function useProductActions({
         isAddingToOrUpdatingCart:
             isAddingToOrUpdatingCart ||
             cartFetcher.state === 'submitting' ||
+            cartFetcher.state === 'loading' ||
             multipleItemsFetcher.state === 'submitting' ||
-            bundleFetcher.state === 'submitting',
+            multipleItemsFetcher.state === 'loading' ||
+            bundleFetcher.state === 'submitting' ||
+            bundleFetcher.state === 'loading',
         /** Current quantity selected for the product */
         quantity,
         /** Maximum quantity allowed (for bonus products, etc.) */

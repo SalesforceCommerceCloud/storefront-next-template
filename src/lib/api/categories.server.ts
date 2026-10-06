@@ -19,19 +19,32 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { getLogger } from '@/lib/logger.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 
+type CategoryQuery = ShopperProducts.operations['getCategory']['parameters']['query'] & { c_select?: string };
+type CategoriesQuery = ShopperProducts.operations['getCategories']['parameters']['query'] & { c_select?: string };
+type CategoryRequestOptions = {
+    select?: string;
+    personalized?: CategoryQuery['personalized'];
+};
+
 export const fetchCategory = async (
     context: LoaderFunctionArgs['context'],
     id: string,
-    levels: ShopperProducts.operations['getCategory']['parameters']['query']['levels'] = 0
+    levels: ShopperProducts.operations['getCategory']['parameters']['query']['levels'] = 0,
+    options: CategoryRequestOptions = {}
 ): Promise<ShopperProducts.schemas['Category']> => {
     const logger = getLogger(context);
     const clients = createApiClients(context);
+    const normalizedSelect = options.select?.trim();
 
     try {
         const { data } = await clients.shopperProducts.getCategory({
             params: {
                 path: { id },
-                query: { levels },
+                query: {
+                    levels,
+                    ...(options.personalized ? { personalized: options.personalized } : {}),
+                    ...(normalizedSelect ? { c_select: normalizedSelect } : {}),
+                } as CategoryQuery,
             },
         });
         return data;
@@ -63,7 +76,8 @@ const CATEGORY_IDS_PER_REQUEST = 50;
 export const fetchCategoriesByIds = async (
     context: LoaderFunctionArgs['context'],
     ids: string[],
-    levels: ShopperProducts.operations['getCategories']['parameters']['query']['levels'] = 1
+    levels: ShopperProducts.operations['getCategories']['parameters']['query']['levels'] = 1,
+    options: CategoryRequestOptions = {}
 ): Promise<ShopperProducts.schemas['Category'][]> => {
     if (ids.length === 0) {
         return [];
@@ -71,6 +85,7 @@ export const fetchCategoriesByIds = async (
 
     const logger = getLogger(context);
     const clients = createApiClients(context);
+    const normalizedSelect = options.select?.trim();
 
     const chunks: string[][] = [];
     for (let i = 0; i < ids.length; i += CATEGORY_IDS_PER_REQUEST) {
@@ -85,7 +100,9 @@ export const fetchCategoriesByIds = async (
                         query: {
                             ids: chunkIds,
                             levels,
-                        },
+                            ...(options.personalized ? { personalized: options.personalized } : {}),
+                            ...(normalizedSelect ? { c_select: normalizedSelect } : {}),
+                        } as CategoriesQuery,
                     },
                 });
                 return data.data ?? [];

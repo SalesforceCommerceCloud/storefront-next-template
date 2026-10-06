@@ -50,7 +50,7 @@ export default function ChangeStoreButton({ currentStoreId }: ChangeStoreButtonP
     }, [selectedStoreInfo?.id, currentStoreId, isOpen]);
 
     return (
-        <Button type="button" variant="outline" onClick={openStoreLocator}>
+        <Button type="button" variant="outline" onClick={() => openStoreLocator()}>
             {t('storePreferences.preferredStore.changeStore')}
         </Button>
     );

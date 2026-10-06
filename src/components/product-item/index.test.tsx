@@ -160,7 +160,7 @@ describe('ProductItem', () => {
             // product title as link
             const link = screen.getByRole('link', { name: 'Test Product' });
             expect(link).toBeInTheDocument();
-            expect(link).toHaveAttribute('href', `${getSitePrefix()}/product/${mockProduct.productId}`);
+            expect(link).toHaveAttribute('href', `${getSitePrefix()}/p/${mockProduct.productId}`);
             expect(link).toHaveTextContent('Test Product');
 
             // image
@@ -520,7 +520,7 @@ describe('ProductItem', () => {
             renderWithRouter(<ProductItem productItem={productWithMaster} />);
 
             const link = screen.getByRole('link', { name: 'Test Product' });
-            expect(link).toHaveAttribute('href', `${getSitePrefix()}/product/master-product-id`);
+            expect(link).toHaveAttribute('href', `${getSitePrefix()}/p/master-product-id`);
         });
     });
 
@@ -603,6 +603,20 @@ describe('ProductItem', () => {
             renderWithRouter(<ProductItem productItem={productWithoutDiscount} promotions={mockPromotions} />);
 
             // No "Saved" badge since there's no price difference
+            expect(screen.queryByText(/Saved/)).not.toBeInTheDocument();
+        });
+
+        test('does not render "Saved" badge when equivalent prices differ only by floating-point precision', () => {
+            const productWithEquivalentPrices = {
+                ...mockProduct,
+                basePrice: 34.99,
+                price: 174.95,
+                priceAfterItemDiscount: 174.95,
+                quantity: 5,
+            };
+
+            renderWithRouter(<ProductItem productItem={productWithEquivalentPrices} />);
+
             expect(screen.queryByText(/Saved/)).not.toBeInTheDocument();
         });
 

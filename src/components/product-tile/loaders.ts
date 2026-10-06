@@ -17,7 +17,9 @@ import type { LoaderFunctionArgs } from 'react-router';
 import type { ShopperExperience } from '@/scapi';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { convertProductToProductSearchHit } from '@/lib/product/product-conversion';
-import { fetchProductById } from '@/lib/api/products.server';
+import { fetchProductById, getDefaultProductExpansions } from '@/lib/api/products.server';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 
 const dataLoader = async (args: { componentData: unknown; context: LoaderFunctionArgs['context'] }) => {
     const { componentData, context: routeContext } = args;
@@ -28,10 +30,12 @@ const dataLoader = async (args: { componentData: unknown; context: LoaderFunctio
     }
 
     const currency = (routeContext.get(siteContext) as SiteContext).currency;
+    const config = getConfig(routeContext);
 
     const product = await fetchProductById(routeContext, productId, {
         allImages: true,
         perPricebook: true,
+        expand: getDefaultProductExpansions(...getSeoSlugExpansion(config.url?.seoRoutes)),
         ...(currency ? { currency } : {}),
     });
 

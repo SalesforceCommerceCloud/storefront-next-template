@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ImageGallery from '@/components/image-gallery';
 import ProductQuantityPicker from '@/components/product-quantity-picker';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +26,7 @@ import { useProductActions } from '@/hooks/product/use-product-actions';
 import ProductPrice from '@/components/product-price';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import type { ShopperProducts } from '@/scapi';
-import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 import { isProductSet, isStandardProduct } from '@/lib/product/product-utils';
 import { useTranslation } from 'react-i18next';
 
@@ -41,6 +40,11 @@ const GALLERY_WIDTHS = {
     main: { base: 360, md: 420 },
     thumbnail: { base: 80, md: 96 },
 } as const;
+
+// A child card appears only on product set and bundle PDPs. Keep its gallery in a separate async
+// chunk so the shared child-products route does not carry image-selection, preload, and thumbnail
+// navigation code before the card is rendered.
+const ChildProductCardGallery = lazy(() => import('./child-product-card-gallery'));
 
 interface ProductSelectionValues {
     product: ShopperProducts.schemas['Product'];
@@ -283,13 +287,14 @@ export default function ChildProductCard({
             <CardContent className="space-y-4">
                 {/* Product Image */}
                 <div className="aspect-square">
-                    <ImageGallery
-                        key={product.id}
-                        images={galleryImages}
-                        eager={false}
-                        productName={product.name}
-                        widths={GALLERY_WIDTHS}
-                    />
+                    <Suspense fallback={<div className="h-full w-full bg-muted" aria-hidden="true" />}>
+                        <ChildProductCardGallery
+                            key={product.id}
+                            images={galleryImages}
+                            productName={product.name}
+                            widths={GALLERY_WIDTHS}
+                        />
+                    </Suspense>
                 </div>
 
                 {/* Variant Selection.

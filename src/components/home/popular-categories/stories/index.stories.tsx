@@ -47,8 +47,8 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
                 event.preventDefault();
 
                 // Log specific category selection if it's a category link
-                if (href.startsWith('/category/')) {
-                    const categoryId = href.replace('/category/', '');
+                if (href.startsWith('/c/')) {
+                    const categoryId = href.replace('/c/', '');
                     logCategorySelect({ categoryId, categoryName: text, href });
                 }
 
@@ -350,7 +350,7 @@ export const LeftAlignedWithShopAll: Story = {
         titleAlign: 'left',
         labelPosition: 'below',
         shopAllText: 'View all activities',
-        shopAllUrl: '/category/activity',
+        shopAllUrl: '/c/activity',
     },
     parameters: {
         docs: {
@@ -367,7 +367,7 @@ export const LeftAlignedWithShopAll: Story = {
 
         // The shop-all link renders (and links out) only in the left-aligned layout.
         const shopAll = canvas.getByRole('link', { name: 'View all activities' });
-        await expect(shopAll).toHaveAttribute('href', expect.stringContaining('/category/activity'));
+        await expect(shopAll).toHaveAttribute('href', expect.stringContaining('/c/activity'));
 
         // Tiles render with the name beneath the image (label-below layout), not the overlay "Shop Now".
         const labels = canvasElement.querySelectorAll('[data-slot="category-label"]');

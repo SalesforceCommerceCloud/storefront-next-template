@@ -24,6 +24,7 @@ import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import type { AppConfig, BadgeDetail } from '@/types/config';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { getProductBadges } from '@/lib/product/product-badges';
+import type { SeoUrlContext } from '@/route-paths';
 
 type ProductBadgesResult = { badges: BadgeDetail[]; hasBadges: boolean };
 
@@ -32,6 +33,7 @@ interface ProductTileContextValue {
     config: AppConfig;
     t: TFunction<'product'>;
     currency?: string;
+    seoUrlContext: SeoUrlContext;
     getBadges: (product: ShopperSearch.schemas['ProductSearchHit']) => ProductBadgesResult;
 }
 
@@ -59,7 +61,11 @@ export function ProductTileProvider({ children }: PropsWithChildren) {
     const navigate = useNavigate();
     const config = useConfig();
     const { t } = useTranslation('product');
-    const { currency } = useSite();
+    const { currency, site } = useSite();
+    const seoUrlContext = useMemo(
+        () => ({ siteId: site.id, urlPrefix: config.url?.prefix, seoRoutes: config.url?.seoRoutes }),
+        [config.url?.prefix, config.url?.seoRoutes, site.id]
+    );
     const getBadges = useCallback(
         (product: ShopperSearch.schemas['ProductSearchHit']) =>
             getProductBadges({ product, badgeDetails: config.global.badges, maxBadges: 2 }),
@@ -68,8 +74,8 @@ export function ProductTileProvider({ children }: PropsWithChildren) {
     // Memoize the value so its reference changes only when a field consumers read actually changes. Without this,
     // every provider re-render mints a new object and re-renders every tile in the grid regardless of what changed.
     const value = useMemo(
-        () => ({ navigate, config, t, currency, getBadges }),
-        [navigate, config, t, currency, getBadges]
+        () => ({ navigate, config, t, currency, seoUrlContext, getBadges }),
+        [navigate, config, t, currency, seoUrlContext, getBadges]
     );
 
     return <ProductTileContext.Provider value={value}>{children}</ProductTileContext.Provider>;
@@ -93,7 +99,12 @@ export function useProductTileContext(): ProductTileContextValue {
     // oxlint-disable-next-line react-hooks/rules-of-hooks
     const { t } = useTranslation('product');
     // oxlint-disable-next-line react-hooks/rules-of-hooks
-    const { currency } = useSite();
+    const { currency, site } = useSite();
+    // oxlint-disable-next-line react-hooks/rules-of-hooks
+    const seoUrlContext = useMemo(
+        () => ({ siteId: site.id, urlPrefix: config.url?.prefix, seoRoutes: config.url?.seoRoutes }),
+        [config.url?.prefix, config.url?.seoRoutes, site.id]
+    );
     // oxlint-disable-next-line react-hooks/rules-of-hooks
     const getBadges = useCallback(
         (product: ShopperSearch.schemas['ProductSearchHit']) =>
@@ -104,5 +115,8 @@ export function useProductTileContext(): ProductTileContextValue {
     // Memoize the fallback value too, so consumers outside a provider get the same referential stability as those
     // inside one.
     // oxlint-disable-next-line react-hooks/rules-of-hooks
-    return useMemo(() => ({ navigate, config, t, currency, getBadges }), [navigate, config, t, currency, getBadges]);
+    return useMemo(
+        () => ({ navigate, config, t, currency, seoUrlContext, getBadges }),
+        [navigate, config, t, currency, seoUrlContext, getBadges]
+    );
 }

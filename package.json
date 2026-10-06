@@ -1,13 +1,13 @@
 {
     "name": "template-retail-rsc-app",
-    "version": "2026.9.2",
+    "version": "2026.10.0-alpha.0",
     "description": "Standalone Salesforce Commerce Cloud storefront (fashion).",
     "private": true,
     "type": "module",
     "storefrontNext": {
-        "templateRelease": "September 2026",
-        "templateVersion": "2026.9.2",
-        "minSdkVersion": "1.3.2"
+        "templateRelease": "October 2026",
+        "templateVersion": "2026.10.0",
+        "minSdkVersion": "1.4.0-alpha.0"
     },
     "scripts": {
         "dev": "pnpm locales:aggregate-extensions && pnpm config:aggregate-extensions && cross-env NODE_OPTIONS=--conditions=dev-data-store sfnext dev",
@@ -23,6 +23,7 @@
         "lint": "oxlint --type-aware --ignore-pattern \"e2e/**\" --report-unused-disable-directives --max-warnings 0 && pnpm --if-present lint:vertical-imports && pnpm format:check && pnpm --filter ./e2e lint",
         "lint:fix": "oxlint --type-aware --ignore-pattern \"e2e/**\" --fix && pnpm --if-present lint:vertical-imports && pnpm format && pnpm --filter ./e2e lint:fix",
         "lint:a11y": "node scripts/lint-a11y.mjs",
+        "lint:css": "node scripts/lint-css.mjs",
         "a11y:scan-coverage": "node scripts/a11yScanCoverage.js",
         "format": "biome format --write .",
         "format:check": "biome format .",
@@ -65,9 +66,9 @@
         "@radix-ui/react-slot": "1.2.3",
         "@radix-ui/react-switch": "1.2.2",
         "@radix-ui/react-tooltip": "1.2.8",
-        "@react-router/node": "7.18.0",
-        "@salesforce/storefront-next-dev": "1.3.2",
-        "@salesforce/storefront-next-runtime": "1.3.2",
+        "@react-router/node": "7.18.2",
+        "@salesforce/storefront-next-dev": "1.4.0-alpha.0",
+        "@salesforce/storefront-next-runtime": "1.4.0-alpha.0",
         "@vis.gl/react-google-maps": "1.7.1",
         "class-variance-authority": "0.7.1",
         "clsx": "2.1.1",
@@ -82,13 +83,13 @@
         "js-cookie": "3.0.8",
         "lodash.debounce": "4.0.8",
         "lucide-react": "0.544.0",
-        "nanoid": "5.1.6",
+        "nanoid": "5.1.16",
         "pino": "10.3.1",
         "react": "19.2.3",
         "react-dom": "19.2.3",
         "react-hook-form": "7.63.0",
         "react-i18next": "16.0.0",
-        "react-router": "7.18.0",
+        "react-router": "7.18.2",
         "reflect-metadata": "0.2.2",
         "remix-i18next": "7.4.2",
         "sonner": "2.0.7",
@@ -104,10 +105,10 @@
         "@biomejs/biome": "2.5.3",
         "@chromatic-com/storybook": "4.1.2",
         "@lhci/cli": "0.15.1",
-        "@react-router/dev": "7.18.0",
-        "@react-router/express": "7.18.0",
-        "@react-router/fs-routes": "7.18.0",
-        "@salesforce/b2c-cli": "1.19.0",
+        "@react-router/dev": "7.18.2",
+        "@react-router/express": "7.18.2",
+        "@react-router/fs-routes": "7.18.2",
+        "@salesforce/b2c-cli": "2.4.0",
         "@storybook/addon-a11y": "10.2.19",
         "@storybook/addon-docs": "10.2.19",
         "@storybook/addon-vitest": "10.2.19",
@@ -125,9 +126,9 @@
         "@types/react": "19.1.13",
         "@types/react-dom": "19.1.9",
         "@vitejs/plugin-react": "5.0.3",
-        "@vitest/browser": "4.1.8",
-        "@vitest/coverage-v8": "4.1.8",
-        "@vitest/ui": "4.1.8",
+        "@vitest/browser": "4.1.10",
+        "@vitest/coverage-v8": "4.1.10",
+        "@vitest/ui": "4.1.10",
         "chromatic": "^18.0.1",
         "compression": "1.8.1",
         "concurrently": "^9.1.2",
@@ -151,7 +152,7 @@
         "vite-plugin-bundlesize": "0.3.0",
         "vite-plugin-devtools-json": "1.0.0",
         "vite-tsconfig-paths": "5.1.4",
-        "vitest": "4.1.8",
+        "vitest": "4.1.10",
         "vitest-localstorage-mock": "^0.1.2",
         "wait-on": "^8.0.1"
     },
@@ -162,7 +163,7 @@
     "pnpm": {
         "overrides": {
             "happy-dom>@types/node": "^24.0.0",
-            "axios": "1.16.1",
+            "axios": "1.18.0",
             "basic-ftp": "^5.3.1",
             "flatted": "^3.4.2",
             "shell-quote": "^1.8.4",
@@ -171,30 +172,32 @@
             "serialize-javascript": "7.0.6",
             "@xmldom/xmldom": "0.9.10",
             "http-proxy-middleware": "3.0.6",
-            "fast-uri": "3.1.3",
+            "undici": "7.29.0",
+            "fast-uri": "3.1.4",
             "lodash": "4.18.1",
             "minimatch": "10.2.5",
             "picomatch": "4.0.4",
             "defu": "6.1.7",
             "tmp": "0.2.7",
-            "tar": "7.5.17",
+            "tar": "7.5.18",
             "multer": "2.2.0",
             "qs": "6.15.3",
-            "postcss": "8.5.16",
-            "js-yaml@4": "4.3.0",
+            "postcss": "8.5.23",
+            "js-yaml@4": "4.3.1",
             "joi@18": "18.2.3",
             "yaml": "2.9.0",
             "ajv@6": "6.15.0",
-            "ip-address": "10.2.0",
+            "ip-address": "10.2.2",
             "uuid@11": "11.1.1",
             "@protobufjs/utf8": "1.1.1",
-            "brace-expansion": "5.0.8",
+            "protobufjs": "7.6.5",
+            "brace-expansion": "5.0.9",
             "@babel/core@7": "7.29.7",
             "diff@5": "5.2.2",
             "lodash-es": "4.18.1",
             "joi@17": "17.13.4",
             "js-yaml@3": "3.15.0",
-            "nanoid@3": "3.3.16",
+            "nanoid@3": "3.3.18",
             "form-data@4": "4.0.6",
             "@opentelemetry/core@2": "2.8.0"
         }
@@ -203,8 +206,8 @@
         "server": [
             {
                 "name": "**/*",
-                "limit": "6.4 mB",
-                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. Delivery estimates add private destination-cookie and resource-route handling, measuring 6,206 kB in the cosmetic vertical. The footwear vertical's server code (PDP recommendation rails in pdp-recommendations.server.ts, the size-guide route, colorway/width/size selectors) measures ~6,201 kB, making it the largest vertical — bumped 6.2 mB → 6.3 mB to admit it. Uncompressed. Follow-up: server-bundle diet (footwear and cosmetic are the largest) to bring this back under 6 mB."
+                "limit": "6.6 mB",
+                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. Delivery estimates add private destination-cookie and resource-route handling, measuring 6,206 kB in the cosmetic vertical. The footwear vertical's server code (PDP recommendation rails in pdp-recommendations.server.ts, the size-guide route, colorway/width/size selectors) measured ~6,201 kB, bumped 6.2 mB → 6.3 mB, then main's growth carried the matrix to 6,309–6,385 kB (furniture largest). Luxury (W-24144914) is now the heaviest — its boutique locator/appointment/directory routes, watch-finder tool, and store-locator extension measure the direct luxury server build at ~6,472 kB — so the limit rises 6.4 mB → 6.6 mB. Uncompressed. Follow-up: server-bundle diet to bring this back under 6 mB."
             }
         ],
         "client": [
@@ -236,8 +239,8 @@
             },
             {
                 "name": "assets/\\(routes\\)-_checkout.checkout.*.js",
-                "limit": "100 kB",
-                "comment": "Checkout route chunk; at ~95 kB after eager-importing the four always-mounted step components (ContactInfo, ShippingAddress, ShippingOptions, Payment) to eliminate a 273 ms hydration-time long task and 100+ ms TBT. See W-23528585 spec (docs/internal/specs/W-23528585-checkout-perf-cls-tbt.md, Decision 1) for the eager-vs-lazy tradeoff. Follow-up: route-level modulepreload for the remaining lazy chunks will let this shrink back."
+                "limit": "102 kB",
+                "comment": "Checkout route chunk; at ~95 kB after eager-importing the four always-mounted step components (ContactInfo, ShippingAddress, ShippingOptions, Payment) to eliminate a 273 ms hydration-time long task and 100+ ms TBT. See W-23528585 spec (docs/internal/specs/W-23528585-checkout-perf-cls-tbt.md, Decision 1) for the eager-vs-lazy tradeoff. Follow-up: route-level modulepreload for the remaining lazy chunks will let this shrink back. Raised 100 → 102 kB: the luxury build (W-24144914) measures this chunk at 100.6 kB (fashion sits at 98.1 kB)."
             },
             {
                 "name": "assets/\\(package\\)-\\(@radix-ui-*\\)-*.js",
@@ -251,8 +254,8 @@
             },
             {
                 "name": "assets/\\(components\\)-\\(product-view\\)-child-products.*.js",
-                "limit": "91 kB",
-                "comment": "Child products component includes Radix UI menu and dropdown dependencies for variant selection plus delivery-option presentation. The footwear mirror measures 90.7 kB; retain 0.3 kB of headroom."
+                "limit": "92 kB",
+                "comment": "Child products component includes Radix UI menu and dropdown dependencies for variant selection plus delivery-option presentation. The direct Footwear build measures 91.1 kB; retain 0.9 kB of headroom."
             },
             {
                 "name": "assets/\\(components\\)-\\(cart-item-modal\\)-index.*.js",
@@ -260,19 +263,29 @@
                 "comment": "Cart item modal bundles full product editing UI: image gallery, swatches, cart actions (incl. ShareButton → @radix-ui/react-dropdown-menu), and ChildProducts"
             },
             {
+                "name": "assets/\\(hooks\\)-\\(product\\)-use-product-images.*.js",
+                "limit": "67 kB",
+                "comment": "PDP zoom (@W-24184223@): removing the redundant chunk boundary around the shared image-gallery rendering (image-gallery/index.tsx now composes gallery-content.tsx, reused by ProductZoomGallery) folds that markup into this shared product-view chunk instead of its own chunk, cutting total page script weight but growing this one. Direct builds measure cosmetic/fashion/foundations and furniture at 59.2-59.3 kB. But per-vertical Mirror builds (packages/storefront-<vertical>) flatten the vertical's own override to this same non-prefixed chunk id, so footwear's Mirror build lands its 65.6 kB override here instead of under the vertical-prefixed entry below — this limit must admit that too. Raised 61 → 67 kB (~1.4 kB headroom over footwear's mirrored measurement) to match the ceiling already budgeted for the direct-build entry below."
+            },
+            {
+                "name": "assets/\\(verticals\\)-\\(footwear\\)-\\(hooks\\)-\\(product\\)-use-product-images.*.js",
+                "limit": "67 kB",
+                "comment": "Footwear vertical override of the use-product-images hook lands in its own vertical-prefixed chunk. Same PDP zoom chunk-boundary removal as the canonical entry above; the direct Footwear build measures 65.7 kB, so retain ~1.3 kB headroom."
+            },
+            {
                 "name": "assets/\\(locales\\)-\\(en-US\\)-index.*.js",
-                "limit": "95 kB",
-                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), localized PDP delivery-estimate content, passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login, the Hero authoring empty-state copy (hero.emptyTitle / hero.emptyButton), and the footwear PDP copy plus home hero + spotlight (running/casual) copy. Footwear is the largest English chunk: the direct footwear build measures it at 93.9 kB, so the 95 kB limit retains about 1.1 kB of headroom."
+                "limit": "115 kB",
+                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), localized PDP delivery-estimate content, passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login, the Hero authoring empty-state copy (hero.emptyTitle / hero.emptyButton), and the footwear PDP copy plus home hero + spotlight (running/casual) copy. Limit shared across all verticals (single global list, no per-vertical override). Luxury (W-24144914) is now the largest English chunk — its watch-finder namespace plus boutique locator/appointment/directory copy measure the direct luxury build at 112.2 kB — so the limit rises to 115 kB (~2.8 kB headroom). Lighter verticals (fashion ~87.6 kB, footwear ~93.9 kB) sit well under it."
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-GB\\)-index.*.js",
-                "limit": "95 kB",
-                "comment": "English (GB) locale chunk. Same limit as en-US; translations are near-identical in size. Includes the shared PDP delivery-estimate content plus the footwear home hero + spotlight (running/casual) copy. Footwear is the largest English chunk: the direct footwear build measures it at 94.6 kB, so the 95 kB limit retains about 0.4 kB of headroom."
+                "limit": "115 kB",
+                "comment": "English (GB) locale chunk. Same limit as en-US; translations are near-identical in size. Includes the shared PDP delivery-estimate content plus the footwear home hero + spotlight (running/casual) copy. Luxury (W-24144914) is the largest English chunk — the direct luxury build measures it at 112.8 kB (watch-finder + boutique copy) — so the shared limit rises to 115 kB (~2.2 kB headroom); footwear measures 94.6 kB."
             },
             {
                 "name": "assets/\\(locales\\)-\\(it-IT\\)-index.*.js",
-                "limit": "88 kB",
-                "comment": "Italian locale chunk. Italian translations are ~10% more verbose than English due to language characteristics (longer words, articles, formal address forms). Baseline: it-IT ~80 kB vs en-US ~73 kB. Includes passkey management translations (account.passkeys), localized PDP delivery-estimate content, the footwear vertical's PDP and marketing copy (size guide, colorway/width selectors, recommendation rails), and the footwear home hero, activity-discovery rail, and spotlight copy (running/casual plus the styleForRealLife editorial card) in Italian. Adding the Italian activity-discovery and editorial copy increases this chunk by about 0.5 kB (measured in a footwear build); applied to the 86.6 kB the last Mirror footwear CI build measured, that takes it just past the previous 87 kB limit, so the limit is raised to 88 kB."
+                "limit": "89 kB",
+                "comment": "Italian locale chunk. Italian translations are ~10% more verbose than English due to language characteristics (longer words, articles, formal address forms). Baseline: it-IT ~80 kB vs en-US ~73 kB. Includes passkey management translations (account.passkeys), localized PDP delivery-estimate content, the footwear vertical's PDP and marketing copy (size guide, colorway/width selectors, recommendation rails), and the footwear home hero, activity-discovery rail, and spotlight copy (running/casual plus the styleForRealLife editorial card) in Italian. The direct footwear build measures 88.1 kB, just over the prior 88 kB ceiling, so this narrow 89 kB ceiling retains under 1 kB headroom."
             },
             {
                 "name": "assets/\\(locales\\)-\\(ja-JP\\)-index.*.js",
@@ -343,6 +356,11 @@
                 "name": "assets/\\(package\\)-\\(i18next-browser-languagedetector\\)-*.js",
                 "limit": "55 kB",
                 "comment": "i18next language detector used by i18n. Slightly over 50 kB baseline."
+            },
+            {
+                "name": "assets/\\(package\\)-\\(@hookform-resolvers\\)-\\(zod\\)-*.js",
+                "limit": "53 kB",
+                "comment": "@hookform-resolvers/zod adapter bundled with its zod schema deps for form validation. Previously fell through to the 50 kB catch-all; the CI luxury build (W-24144914) measures it at 51.1 kB (local builds ~48.9 kB), so it gets a dedicated 53 kB entry rather than loosening the global catch-all."
             },
             {
                 "name": "**/*",

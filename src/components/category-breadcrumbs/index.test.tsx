@@ -19,15 +19,30 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import CategoryBreadcrumbs from './index';
 import type { ShopperProducts } from '@/scapi';
+import { mockConfig, mockSiteObject } from '@/test-utils/config';
+import type { AppConfig } from '@/types/config';
 
 type PrimaryCategory = NonNullable<ShopperProducts.schemas['Product']['primaryCategory']>;
 
-const createTestWrapper = (component: React.ReactElement) => {
+const slugPathConfig: AppConfig = {
+    ...mockConfig,
+    url: {
+        ...mockConfig.url,
+        seoRoutes: {
+            [mockSiteObject.id]: {
+                product: { prefix: 'p' },
+                category: { prefix: 'catalog', mode: 'slug-path' },
+            },
+        },
+    },
+};
+
+const createTestWrapper = (component: React.ReactElement, config: AppConfig = mockConfig) => {
     const router = createMemoryRouter(
         [
             {
                 path: '*',
-                element: <AllProvidersWrapper>{component}</AllProvidersWrapper>,
+                element: <AllProvidersWrapper config={config}>{component}</AllProvidersWrapper>,
             },
         ],
         { initialEntries: ['/'] }
@@ -86,8 +101,40 @@ describe('CategoryBreadcrumbs', () => {
         const secondLink = screen.getByRole('link', { name: 'Second' });
 
         expect(homeLink).toHaveAttribute('href', '/global/en-GB/');
-        expect(firstLink).toHaveAttribute('href', '/global/en-GB/category/cat-1');
-        expect(secondLink).toHaveAttribute('href', '/global/en-GB/category/cat-2');
+        expect(firstLink).toHaveAttribute('href', '/global/en-GB/c/cat-1');
+        expect(secondLink).toHaveAttribute('href', '/global/en-GB/c/cat-2');
+    });
+
+    it('uses each PathRecord authoritative slug and preserves its complete hierarchy', () => {
+        const category: PrimaryCategory = {
+            id: 'category-2',
+            name: 'Category',
+            parentCategoryTree: [
+                { id: 'cat-1', name: 'First', slug: 'women' },
+                { id: 'cat-2', name: 'Second', slug: 'women/clothing' },
+            ],
+        };
+
+        render(createTestWrapper(<CategoryBreadcrumbs category={category} />, slugPathConfig));
+
+        expect(screen.getByRole('link', { name: 'First' })).toHaveAttribute('href', '/global/en-GB/catalog/women');
+        expect(screen.getByRole('link', { name: 'Second' })).toHaveAttribute(
+            'href',
+            '/global/en-GB/catalog/women/clothing'
+        );
+    });
+
+    it('renders a missing-slug breadcrumb as text instead of an invalid link', () => {
+        const category: PrimaryCategory = {
+            id: 'category-2',
+            name: 'Category',
+            parentCategoryTree: [{ id: 'cat-1', name: 'Missing Slug' }],
+        };
+
+        render(createTestWrapper(<CategoryBreadcrumbs category={category} />, slugPathConfig));
+
+        expect(screen.getByText('Missing Slug')).toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Missing Slug' })).not.toBeInTheDocument();
     });
 
     it('should show chevron icons between breadcrumb items', () => {

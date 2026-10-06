@@ -10,6 +10,7 @@ This reference provides detailed documentation for all configuration options ava
     - [pages](#pages) - Page-specific settings
     - [commerce](#commerce) - B2C Commerce API details
     - [siteAliasMap](#sitealiasmap) - Site alias mapping configuration
+    - [seoFallback](#seofallback) - Shopper SEO URL Rules fallback policy
     - [hybrid](#hybrid) - Hybrid mode configuration
     - [auth](#auth) - Authentication configuration shared across all auth features
     - [features](#features) - Feature flags
@@ -20,7 +21,7 @@ This reference provides detailed documentation for all configuration options ava
     - [search](#search) - Search-specific settings
     - [performance](#performance) - Performance optimization settings
     - [engagement](#engagement) - Analytics and engagement adapters
-    - [cimulateAgent](#cimulateagent) - Commerce Client (Cimulate) messaging widget
+    - [commerce.shopperAgent / cimulateAgent](#commerceshopperagent-preferred--cimulateagent-deprecated) - Shopper Agent (Commerce Client messaging widget)
     - [development](#development) - Development tools and features
 
 ---
@@ -73,7 +74,7 @@ The default MRT project identifier. This value can be overridden by the `MRT_PRO
 
 Type: `string` Optional | Default: `''`
 
-The default MRT target environment (e.g., 'production', 'staging'). This value can be overridden by the `MRT_TARGET` environment variable during deployment.
+The default MRT target environment (e.g., 'production', 'staging'). This value can be overridden by the `MRT_ENVIRONMENT` (or `MRT_TARGET`) environment variable during deployment.
 
 Note: This value is reserved for future use and currently has no effect on the application.
 
@@ -584,6 +585,91 @@ PUBLIC__app__commerce__sites='[
 
 ---
 
+## url
+
+Controls the outer site/locale URL shape and the build-time product, category,
+and standalone-content route grammar. See [Multi-Site URL Config](./README-MULTI-SITE.md#url-config)
+for builders, validation rules, and examples.
+
+```typescript
+url: {
+    prefix: '/:siteId/:localeId',
+    excludeRoutes: ['/resource/**', '/action/**'],
+    seoRoutes: {
+        RefArchGlobal: {
+            product: {prefix: 'p'},
+            category: {prefix: 'c', mode: 'id-suffix'},
+            content: {prefix: 'cms'},
+        },
+        RefArch: {
+            product: {prefix: 'p'},
+            category: {prefix: 'c', mode: 'id-suffix'},
+            content: {prefix: 'cms'},
+        },
+    },
+}
+```
+
+- `prefix` adds site and locale path segments to page routes.
+- `search` optionally places site or locale references in query parameters.
+- `excludeRoutes` keeps resource and action routes outside the outer prefix.
+- `seoRoutes` mirrors each site's Business Manager prefixes. Product and
+  category are required per site; content is optional. Category mode is
+  `id-suffix` or `slug-path`.
+
+`prefix`, `excludeRoutes`, and `seoRoutes` are protected build-time values.
+They cannot be overridden through `PUBLIC__` environment variables. Update
+`config.server.ts`, rebuild, and redeploy. Keep one `seoRoutes` entry for every
+active Commerce site.
+
+---
+
+## seoFallback
+
+Per-site policy for the terminal Shopper SEO URL Rules fallback. Business Manager is the URL Rules source of truth; keep its rules aligned with `url.seoRoutes` and this policy. See [Shopper SEO URL Rules Fallback](./README-MULTI-SITE.md#shopper-seo-url-rules-fallback) for request behavior.
+
+Type:
+
+```typescript
+seoFallback: {
+    sites: Record<string, {
+        redirectOrigins: string[];
+        allowedQueryParameters: {
+            product: string[];
+            category: string[];
+            redirect: string[];
+        };
+        contentOwned: boolean;
+    }>;
+}
+```
+
+Default: `{ sites: {} }`
+
+Each `sites` key is a Commerce site ID. A missing site policy fails closed. `redirectOrigins` accepts only exact HTTPS origins, without paths or credentials. The three `allowedQueryParameters` lists explicitly permit parameters on translated product, category, or redirect destinations; empty lists forward none. The incoming query string is never sent to Shopper SEO.
+
+`contentOwned` defaults to `false`. Set it to `true` only when Storefront Next owns standalone content for the site and `url.seoRoutes.<siteId>.content.prefix` is configured. It authorizes the one-call fallback to accept validated standard-content and Page Designer mappings; direct deterministic content routes do not use URL Mapping.
+
+Example:
+
+```typescript
+seoFallback: {
+    sites: {
+        RefArchGlobal: {
+            redirectOrigins: ['https://www.example.com'],
+            allowedQueryParameters: {
+                product: ['campaign'],
+                category: ['cgid'],
+                redirect: ['source'],
+            },
+            contentOwned: false,
+        },
+    },
+}
+```
+
+---
+
 ## hybrid
 
 Hybrid mode configuration for integrating with legacy storefront pages.
@@ -615,6 +701,8 @@ PUBLIC__app__hybrid__legacyRoutes='["/account", "/checkout", "/product/:id", "/c
 ```
 
 See the [Hybrid Proxy guide](./README-HYBRID-PROXY.md#public__app__hybrid__legacyroutes) for full pattern syntax (`:param`, `*`) and matching semantics.
+
+For a legacy-owned content prefix such as `/cms`, include both `/cms` and `/cms/*`. `legacyRoutes` remains runtime-configurable: matching requests hand off before the standalone content loader or URL Mapping fallback runs, even though `seoRoutes.content.prefix` was compiled into the route manifest.
 
 ---
 
@@ -1299,6 +1387,24 @@ pagination: {
 
 ---
 
+### uiConfig.pages.product.addToCartQuantityMode
+
+Controls the PDP add-to-cart quantity experience. Configured in `src/lib/config.ui.ts`.
+
+- **`'pre-select'`** (default): shows the standard quantity selector before Add to Cart, so the shopper picks a quantity, then adds.
+- **`'inline'`**: Add to Cart adds one item, then replaces the button with an in-cart quantity stepper that syncs each tap with the basket (decrementing to zero removes the line). Opt-in per storefront. The furniture storefront enables it by default, since its shoppers rarely buy multiple large items.
+
+Example:
+
+```typescript
+// src/lib/config.ui.ts (or src/verticals/<name>/lib/config.ui.ts to opt in per vertical)
+product: {
+    addToCartQuantityMode: 'inline',
+},
+```
+
+---
+
 ### search.products.images.tile
 
 Type: `string` Optional | Default: `'medium'`
@@ -1674,11 +1780,18 @@ PUBLIC__app__engagement__analytics__pageViewsResetDuration=2000
 
 ---
 
-## cimulateAgent
+## commerce.shopperAgent (preferred) / cimulateAgent (deprecated)
 
-Commerce Client (Cimulate) messaging widget configuration. When enabled, loads the Cimulate UMD bundle and injects a chat widget accessible via the header sparkles icon or Account Help "Ask a question" button.
+Shopper Agent (Commerce Client messaging widget) configuration. When enabled, loads the widget bundle and injects a chat surface accessible via the header sparkles icon or Account Help "Ask a question" button.
 
-Override via `PUBLIC__app__cimulateAgent` as a single JSON string. Defaults in `config.server.ts` are empty or disabled. See `src/components/cimulate/README.md` for setup.
+Two env var names are accepted:
+
+- **`PUBLIC__app__commerce__shopperAgent`** — preferred. Populates `config.commerce.shopperAgent`.
+- **`PUBLIC__app__cimulateAgent`** — deprecated legacy alias. Kept for backward compatibility.
+
+When both are set, `commerce.shopperAgent` wins and `cimulateAgent` is ignored. Read the effective value from consumer code via `resolveShopperAgentConfig(config)` from `@/components/cimulate`.
+
+Set as a single JSON string. Defaults in `config.server.ts` are empty or disabled. Today the widget is provided by Cimulate (`provider: 'commerce-client'`); the `shopperAgent` naming leaves room for other agent implementations via the `provider` field. See `src/components/cimulate/README.md` for setup.
 
 | Path                            | Type                                        | Description                                                          |
 | ------------------------------- | ------------------------------------------- | -------------------------------------------------------------------- |
@@ -1694,6 +1807,7 @@ Override via `PUBLIC__app__cimulateAgent` as a single JSON string. Defaults in `
 | `headerText`                    | `string` (optional)                         | Widget header text.                                                  |
 | `commerceClientTheme`           | `object` (optional)                         | Theme overrides (primaryColor, fontFamily, etc.).                    |
 | `routingAttributes`             | `object` (optional)                         | Routing attributes for agent assignment.                             |
+| `disabledPathPatterns`          | `string[]` (optional)                       | Regex strings. On each navigation the code takes the URL's path (e.g. `/global/en-GB/category/gift-certificates`) and asks each regex "do you match anywhere in this path?" — if any says yes, the widget is hidden. Example: `["/category/gift-certificates(/\|$)"]`. |
 
 ---
 

@@ -61,7 +61,7 @@ Before(async () => {
 Scenario('Guest shopper should be able to add items to cart', async () => {
     // Execute the add-to-cart flow with direct category navigation
     // Update the URL to match your storefront's category structure
-    const productInfo = await addToCartFlow.execute('category/mens-clothing-jackets');
+    const productInfo = await addToCartFlow.execute('c/mens-clothing-jackets');
 
     // Navigate to cart page to validate
     cartPage.navigate('/cart');
@@ -119,7 +119,7 @@ Scenario('Registered shopper should be able to add items to cart', async () => {
     await apiSignupFlow.execute();
 
     // Execute the add-to-cart flow with direct category navigation
-    const productInfo = await addToCartFlow.execute('category/mens-clothing-jackets');
+    const productInfo = await addToCartFlow.execute('c/mens-clothing-jackets');
 
     // Navigate to cart page to validate
     cartPage.navigate('/cart');
@@ -178,7 +178,7 @@ Scenario('Guest item should persist in cart after login (basket merge)', async (
     await storefrontPage.logout();
 
     // Execute add-to-cart flow as guest
-    const productInfo = await addToCartFlow.execute('category/mens-clothing-jackets');
+    const productInfo = await addToCartFlow.execute('c/mens-clothing-jackets');
 
     // Navigate to cart and validate item added as guest
     cartPage.navigate('/cart');
@@ -260,7 +260,7 @@ Scenario('Registered shopper with existing basket merges with guest basket on lo
     // This simulates a registered user who previously added an item
     const { signupData, productInfo: registeredUserProduct } = await signupFlow.execute({
         createBasket: true,
-        categoryUrl: 'category/mens-clothing-jackets',
+        categoryUrl: 'c/mens-clothing-jackets',
     });
 
     expect(registeredUserProduct, 'Basket creation during signup failed — productInfo is undefined').to.not.be
@@ -274,7 +274,7 @@ Scenario('Registered shopper with existing basket merges with guest basket on lo
     // Add a different product to cart as guest — intentionally use a different category
     // so SFCC treats the two items as separate line items rather than merging them
     // into a single line item with combined quantity.
-    const guestProduct = await addToCartFlow.execute('category/womens-clothing-tops');
+    const guestProduct = await addToCartFlow.execute('c/womens-clothing-tops');
 
     // Navigate to cart and validate guest item is present
     cartPage.navigate('/cart');

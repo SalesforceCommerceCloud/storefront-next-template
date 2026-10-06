@@ -39,6 +39,7 @@ describe('createStoreLocatorStore', () => {
             expect(state.deviceCoordinates).toEqual({ latitude: null, longitude: null });
             expect(state.geoError).toBe(false);
             expect(state.selectedStoreInfo).toBeNull();
+            expect(state.pickupContext).toBeNull();
             expect(state.config).toEqual({
                 supportedCountries: [
                     { countryCode: 'US', countryName: 'United States' },
@@ -84,17 +85,27 @@ describe('createStoreLocatorStore', () => {
                 store.getState().open();
 
                 expect(store.getState().isOpen).toBe(true);
+                expect(store.getState().pickupContext).toBeNull();
+            });
+
+            it('records the pickup context when opened for a specific line item', () => {
+                store.getState().open({ productId: 'ln-heritage-005', quantity: 2 });
+
+                expect(store.getState().isOpen).toBe(true);
+                expect(store.getState().pickupContext).toEqual({ productId: 'ln-heritage-005', quantity: 2 });
             });
         });
 
         describe('close', () => {
-            it('sets isOpen to false', () => {
-                store.getState().open();
+            it('sets isOpen to false and clears any pickup context', () => {
+                store.getState().open({ productId: 'ln-heritage-005', quantity: 1 });
                 expect(store.getState().isOpen).toBe(true);
+                expect(store.getState().pickupContext).not.toBeNull();
 
                 store.getState().close();
 
                 expect(store.getState().isOpen).toBe(false);
+                expect(store.getState().pickupContext).toBeNull();
             });
         });
 

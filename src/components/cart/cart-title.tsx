@@ -31,7 +31,7 @@ function formatShippingAddress(address: ShopperBasketsV2.schemas['OrderAddress']
 
 export default function CartTitle({ basket, deliveryCount }: CartTitleProps): ReactElement {
     const { t } = useTranslation('cart');
-    const totalCount = basket?.productItems?.length ?? 0;
+    const totalCount = basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 1), 0) ?? 0;
     const shippingAddress = basket?.shipments?.[0]?.shippingAddress;
     const formattedAddress = shippingAddress ? formatShippingAddress(shippingAddress) : null;
 

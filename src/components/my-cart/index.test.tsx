@@ -455,6 +455,6 @@ describe('MyCart', () => {
             />
         );
 
-        expect(getPriceData).toHaveBeenCalledWith(expect.anything(), { quantity: 5 });
+        expect(getPriceData).toHaveBeenCalledWith(expect.anything(), { quantity: 5, currency: 'GBP' });
     });
 });

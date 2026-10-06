@@ -1,10 +1,19 @@
 # Internationalization (i18n)
 
-This project uses `i18next` with `remix-i18next` for internationalization. The implementation follows a dual-instance architecture with server-side and client-side i18next instances.
+Storefront Next uses `i18next` with `remix-i18next` to support multiple languages and currencies, with runtime switching that doesn't require a page reload. A server-side instance handles server-side rendering (SSR) with full translation access, while a client-side instance loads translations as static JavaScript chunks, keeping server and client in sync without hydration mismatches. 
+
+## Prerequisites
+
+- **Node.js 24+** and **pnpm** installed
+- Project dependencies installed (`pnpm install`) — `i18next` and `remix-i18next` are included
+- At least one translation file at `src/locales/[locale]/translations.json` (e.g., `src/locales/en-GB/translations.json`)
+- For extension translations: run `pnpm dev` or `pnpm build` once to generate the aggregated files under `src/extensions/locales/`. These files are auto-generated and must not be edited manually.
 
 ## Quick Start
 
-**For React Components:**
+React components use the `useTranslation` hook. Everything else uses the `getTranslation` function. 
+
+For React Components:
 
 ```typescript
 import { useTranslation } from 'react-i18next';
@@ -15,7 +24,7 @@ function MyComponent() {
 }
 ```
 
-**For Everything Else (loaders, actions, utilities, helpers, tests):**
+For everything else (loaders, actions, utilities, helpers, tests):
 
 ```typescript
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
@@ -60,6 +69,49 @@ Both instances support **dynamic language switching** at runtime without page re
 6. Subsequent translation requests use the cached data (no additional requests)
 7. When users switch languages, the client loads the new language's translations dynamically (if not already cached) and updates the UI immediately
 
+## File Structure
+
+```
+src/locales/
+├── index.ts                # Exports all language resources
+├── en-GB/
+│   ├── index.ts            # Exports English translations
+│   └── translations.json   # All English translations (namespaced)
+└── es-MX/
+    ├── index.ts            # Exports Spanish translations
+    └── translations.json   # All Spanish translations (namespaced)
+
+src/extensions/
+├── my-extension/
+│   └── locales/
+│       ├── en/
+│       │   └── translations.json   # Extension translations (English)
+│       └── es/
+│           └── translations.json   # Extension translations (Spanish)
+└── locales/                # Auto-generated (do not edit manually)
+    ├── en/
+    │   └── index.ts        # Aggregated extension translations
+    └── es/
+        └── index.ts        # Aggregated extension translations
+
+src/components/
+└── locale-switcher/
+    └── index.tsx           # Client component for switching languages
+
+src/middlewares/
+└── i18next.server.ts       # Thin wrapper around SDK's createI18nMiddleware()
+
+src/routes/
+└── action.set-locale.ts    # Server action to persist locale preference
+```
+
+The i18n utilities (`getTranslation`, `getLocale`, `mockI18nContext`, `createI18nMiddleware`, `initI18next`) are provided by the SDK and split across two subpaths:
+
+- `@salesforce/storefront-next-runtime/i18n` — server-capable APIs (`getTranslation`, `getLocale`, `mockI18nContext`, `createI18nMiddleware`). Safe to import from server modules, route modules, and components.
+- `@salesforce/storefront-next-runtime/i18n/client` — **browser-only** APIs (`initI18next`). This entry pulls in `i18next-browser-languagedetector`, which has no Node support, so it must only be imported from client-side code (e.g. inside `useEffect` in `root.tsx`). Importing it from a `*.server.ts` file will fail to bundle and is blocked by the linter (OxLint `no-restricted-imports`).
+
+They don't live in `src/lib/` anymore.
+
 ## Configuration
 
 ### Supported Languages and Currencies
@@ -94,19 +146,20 @@ i18n: {
 
 **2. `src/middlewares/i18next.server.ts`** reads `supportedLngs` and `fallbackLng` from config automatically — no additional middleware configuration is needed.
 
-> **⚠️ IMPORTANT**: These configurations must be kept in sync:
+> **⚠️ IMPORTANT**: Keep these configurations in sync. Make sure that:
 >
-> - The locales in `i18n.supportedLngs` should match the `id` values in `site.supportedLocales`
-> - Each locale in `site.supportedLocales` should have a `preferredCurrency` that matches one of the `site.supportedCurrencies`
-> - If you add a new language, update both places
+> - The locales in `i18n.supportedLngs` match the `id` values in `site.supportedLocales` (single-site) or across all entries in `commerce.sites[].supportedLocales` (multi-site).
+> - Each locale in `supportedLocales` has a `preferredCurrency` that matches one of `site.supportedCurrencies` (single-site) or `commerce.sites[].supportedCurrencies` (multi-site).
+> - Each locale in `i18n.supportedLngs` has a corresponding translation directory under `src/locales/`.
+> - If you add a new language, update both places and create the translation files.
 
 **Currency System:**
 
 The application supports independent locale and currency switching:
 
-1. **Locale-based currency**: Each locale in `supportedLocales` has a `preferredCurrency` that's used by default
-2. **Manual currency selection**: Users can manually select any currency from `supportedCurrencies`, which takes precedence over the locale's preferred currency
-3. **Currency priority**: User's manual selection (cookie) → Locale's preferred currency → Default site currency
+1. Locale-based currency: Each locale in `commerce.sites[].supportedLocales` has a `preferredCurrency` that's used by default.
+2. Manual currency selection: Users can manually select any currency from `commerce.sites[].supportedCurrencies`, which takes precedence over the locale's preferred currency.
+3. Currency priority: User's manual selection (cookie) → Locale's preferred currency → Site's default currency.
 
 See the Currency Switcher component in `src/components/currency-switcher/` for the implementation.
 
@@ -148,10 +201,10 @@ export function Footer() {
 
 Users can manually select a currency independent of their locale using the `CurrencySwitcher` component. When a new currency is switched:
 
-1. Server will submit an server action
-2. Middlewares (client and server) will run to update latest currency into context
-3. `updateBasket` is called to SCAPI to update currency accordingly
-4. Loader func will revalidate and update the UI to reflect the selected currency
+1. Server submits an server action.
+2. Middlewares (client and server) run to update latest currency into context.
+3. `updateBasket` is called to SCAPI to update currency accordingly.
+4. Loader func will revalidate and update the UI to reflect the selected currency.
 
 **Using the CurrencySwitcher Component:**
 
@@ -256,49 +309,6 @@ export const action: ActionFunction = async ({ request }) => {
 - The preference persists across sessions via the `lng` cookie
 - All client-side translations are loaded as static assets (one JavaScript chunk per language)
 - Switching languages triggers the dynamic import of the new language's translations if not already loaded
-
-## File Structure
-
-```
-src/locales/
-├── index.ts                # Exports all language resources
-├── en-GB/
-│   ├── index.ts            # Exports English translations
-│   └── translations.json   # All English translations (namespaced)
-└── es-MX/
-    ├── index.ts            # Exports Spanish translations
-    └── translations.json   # All Spanish translations (namespaced)
-
-src/extensions/
-├── my-extension/
-│   └── locales/
-│       ├── en/
-│       │   └── translations.json   # Extension translations (English)
-│       └── es/
-│           └── translations.json   # Extension translations (Spanish)
-└── locales/                # Auto-generated (do not edit manually)
-    ├── en/
-    │   └── index.ts        # Aggregated extension translations
-    └── es/
-        └── index.ts        # Aggregated extension translations
-
-src/components/
-└── locale-switcher/
-    └── index.tsx           # Client component for switching languages
-
-src/middlewares/
-└── i18next.server.ts       # Thin wrapper around SDK's createI18nMiddleware()
-
-src/routes/
-└── action.set-locale.ts    # Server action to persist locale preference
-```
-
-The i18n utilities (`getTranslation`, `getLocale`, `mockI18nContext`, `createI18nMiddleware`, `initI18next`) are provided by the SDK and split across two subpaths:
-
-- `@salesforce/storefront-next-runtime/i18n` — server-capable APIs (`getTranslation`, `getLocale`, `mockI18nContext`, `createI18nMiddleware`). Safe to import from server modules, route modules, and components.
-- `@salesforce/storefront-next-runtime/i18n/client` — **browser-only** APIs (`initI18next`). This entry pulls in `i18next-browser-languagedetector`, which has no Node support, so it must only be imported from client-side code (e.g. inside `useEffect` in `root.tsx`). Importing it from a `*.server.ts` file will fail to bundle and is blocked by the linter (OxLint `no-restricted-imports`).
-
-They do not live in `src/lib/` anymore.
 
 ## Usage Examples
 
@@ -656,14 +666,14 @@ export function loader(args: LoaderFunctionArgs) {
 
 ## Using a Different i18n Library
 
-The SDK's i18n support (`@salesforce/storefront-next-runtime/i18n`) is built on i18next. If you prefer a different library (e.g., `next-intl`, `formatjs`, `lingui`), you can replace the i18n layer entirely:
+The SDK's i18n support (`@salesforce/storefront-next-runtime/i18n`) is built on i18next. If you prefer a different library (for example, `next-intl`, `formatjs`, `lingui`), you can replace the i18n layer entirely:
 
-1. **Skip the SDK's i18n subpath** — do not import from `@salesforce/storefront-next-runtime/i18n` or `@salesforce/storefront-next-runtime/i18n/client`
-2. **Locale resolution still works** — the site-context system (`createSiteContextMiddleware`, locale detection from URL/cookie/header, `SiteProvider`) is i18n-library-agnostic and handles determining the active locale
-3. **Write your own middleware** — replace `src/middlewares/i18next.server.ts` with a middleware that initializes your chosen library, reading the resolved locale from `requestToLocaleMap` (exported from `@salesforce/storefront-next-runtime/site-context`)
-4. **Write your own client init** — replace the `initI18next()` call in `root.tsx` with your library's initialization
-5. **Bridge to SiteProvider** — pass the current language string to `SiteProvider`'s `language` prop (it accepts a plain `string`, no i18next dependency)
-6. **Chunk splitting still works** — the Vite `i18nPlugin` splits any files matching `/src/locales/([^/]+)/` into per-language chunks, regardless of i18n library
+1. **Skip the SDK's i18n subpath**: Don't import from `@salesforce/storefront-next-runtime/i18n` or `@salesforce/storefront-next-runtime/i18n/client`.
+2. **Locale resolution still works**: The site-context system (`createSiteContextMiddleware`, locale detection from URL/cookie/header, `SiteProvider`) is i18n-library-agnostic and handles determining the active locale.
+3. **Write your own middleware**: Replace `src/middlewares/i18next.server.ts` with a middleware that initializes your chosen library, reading the resolved locale from `requestToLocaleMap` (exported from `@salesforce/storefront-next-runtime/site-context`).
+4. **Write your own client init**: Replace the `initI18next()` call in `root.tsx` with your library's initialization.
+5. **Bridge to SiteProvider**: Pass the current language string to `SiteProvider`'s `language` prop (it accepts a plain `string`, no i18next dependency).
+6. **Chunk splitting still works**: The Vite `i18nPlugin` splits any files matching `/src/locales/([^/]+)/` into per-language chunks, regardless of i18n library.
 
 The SDK separates **locale resolution** (which locale is active) from **translation** (turning keys into strings). Only the translation layer is i18next-specific.
 

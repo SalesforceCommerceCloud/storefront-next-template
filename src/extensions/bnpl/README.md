@@ -23,9 +23,9 @@ the same.
 
 ## Loader integration
 
-The PDP route loader (`src/routes/_app.product.$productId.tsx`) creates two
+The PDP route loader (`src/routes/_app.p.$.tsx`) creates two
 deferred Promises (`bnplMessage`, `bnplLearnMore`) that are streamed to the
-target wrapper via `useRouteLoaderData('routes/_app.product.$productId')`. The
+target wrapper via `useRouteLoaderData('routes/_app.p.$')`. The
 imports and loader fields are bracketed by `@sfdc-extension-block-start/-end
 SFDC_EXT_BNPL` markers so they're stripped cleanly when the extension is
 uninstalled.

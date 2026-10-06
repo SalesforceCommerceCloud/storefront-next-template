@@ -16,7 +16,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { LoaderFunctionArgs } from 'react-router';
 import { ApiError, type ShopperExperience } from '@/scapi';
-import { fetchPageFromLoader, fetchPageWithComponentData } from './page-loader.server';
+import { attachComponentData, fetchPageFromLoader, fetchPageWithComponentData } from './page-loader.server';
 import { fetchPage } from '@/lib/api/page.server';
 import { registry } from '@/lib/page-designer/registry';
 import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-next-runtime/design/mode';
@@ -198,6 +198,18 @@ describe('pageLoader', () => {
     });
 
     describe('fetchPageWithComponentData', () => {
+        test('attaches component loader promises to an already fetched page', async () => {
+            mockedRegistry.hasLoaders.mockReturnValue(true);
+            mockedRegistry.callLoader.mockReturnValue(Promise.resolve({ loaded: true }));
+            const args = createLoaderArgs(BASE_URL);
+            const page = createMockPage([createMockRegion([createMockComponent('hero-1', 'hero')])]);
+
+            const result = attachComponentData(args, page);
+
+            expect(result.id).toBe('mock-page');
+            await expect(result.componentData?.['hero-1']).resolves.toEqual({ loaded: true });
+        });
+
         test('returns page with empty componentData when page has no regions', async () => {
             const args = createLoaderArgs(BASE_URL);
             const mockPage = createMockPage([]);

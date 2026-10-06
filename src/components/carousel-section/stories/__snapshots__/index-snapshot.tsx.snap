@@ -323,7 +323,7 @@ exports[`CarouselSection stories snapshot > LeftTitleWithShopAll story renders a
       <a
         class="text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 ml-4"
         data-discover="true"
-        href="/RefArchGlobal/en-GB/category/root"
+        href="/RefArchGlobal/en-GB/c/root"
       >
         Shop all
       </a>
@@ -491,7 +491,7 @@ exports[`CarouselSection stories snapshot > LongCopy story renders and matches s
       <a
         class="text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 ml-4"
         data-discover="true"
-        href="/RefArchGlobal/en-GB/category/root"
+        href="/RefArchGlobal/en-GB/c/root"
       >
         Shop the entire editorial collection
       </a>
@@ -659,7 +659,7 @@ exports[`CarouselSection stories snapshot > Playground story renders and matches
       <a
         class="text-sm font-medium text-primary hover:text-primary/80 transition-colors shrink-0 ml-4"
         data-discover="true"
-        href="/RefArchGlobal/en-GB/category/root"
+        href="/RefArchGlobal/en-GB/c/root"
       >
         Shop all
       </a>

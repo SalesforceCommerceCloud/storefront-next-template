@@ -241,7 +241,7 @@ export function transformOrderForList(
     scapiOrder: ShopperCustomers.schemas['Order'],
     productsById?: OrderProductDataById
 ): Order {
-    const itemCount = scapiOrder.productItems?.length ?? 0;
+    const itemCount = scapiOrder.productItems?.reduce((acc, item) => acc + (item.quantity ?? 1), 0) ?? 0;
 
     const productItems = scapiOrder.productItems?.map((item) => {
         const productId = item.productId ?? '';
