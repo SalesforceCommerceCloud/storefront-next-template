@@ -253,14 +253,14 @@ exports[`SavedAddressesList stories snapshot > WithAddNewAddress story renders a
     class="flex justify-end"
   >
     <button
-      aria-label="Add new address"
+      aria-label="Add New Address"
       class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
       data-size="sm"
       data-slot="button"
       data-variant="outline"
       type="button"
     >
-      Add new address
+      Add New Address
     </button>
   </div>
   <div>
@@ -1235,16 +1235,16 @@ exports[`SavedAddressesList stories snapshot > WithViewAll story renders and mat
   <div>
     <button
       aria-expanded="false"
-      aria-label="View all"
+      aria-label="View All"
       class="inline-flex items-center justify-center whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 text-sm font-medium text-foreground"
       data-size="sm"
       data-slot="button"
       data-variant="ghost"
       type="button"
     >
-      View all
+      View All
        
-      (2 more)
+      (2 More)
     </button>
   </div>
 </div>

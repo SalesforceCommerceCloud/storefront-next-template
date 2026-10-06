@@ -193,16 +193,16 @@ class CheckoutPage {
             '[data-testid="sf-toggle-card-shipping-address"] [role="radiogroup"] [role="radio"]'
         ).as('Saved Address Card'),
         addNewAddressButton: locate('[data-testid="sf-toggle-card-shipping-address"] button')
-            .withText('Add new address')
+            .withText('Add New Address')
             .as('Add New Address Button'),
         editAddressLink: locate('[data-testid="sf-toggle-card-shipping-address"] button')
             .withText('Edit Address')
             .as('Edit Address Link'),
         viewAllButton: locate('[data-testid="sf-toggle-card-shipping-address"] button')
-            .withText('View all')
+            .withText('View All')
             .as('View All Button'),
         viewLessButton: locate('[data-testid="sf-toggle-card-shipping-address"] button')
-            .withText('View less')
+            .withText('View Less')
             .as('View Less Button'),
         continueToShippingOptionsButton: locate('[data-testid="sf-toggle-card-shipping-address"] button')
             .withText('Continue to Shipping Method')
@@ -863,21 +863,21 @@ class CheckoutPage {
     }
 
     /**
-     * Click "View all" to expand the saved addresses list
+     * Click "View All" to expand the saved addresses list
      */
     clickViewAllAddresses(): void {
         I.click(this.locators.viewAllButton);
     }
 
     /**
-     * Click "View less" to collapse the saved addresses list
+     * Click "View Less" to collapse the saved addresses list
      */
     clickViewLessAddresses(): void {
         I.click(this.locators.viewLessButton);
     }
 
     /**
-     * Check if "View all" button is visible
+     * Check if "View All" button is visible
      */
     async isViewAllVisible(): Promise<boolean> {
         const count = await I.grabNumberOfVisibleElements(this.locators.viewAllButton);
@@ -885,7 +885,7 @@ class CheckoutPage {
     }
 
     /**
-     * Check if "View less" button is visible
+     * Check if "View Less" button is visible
      */
     async isViewLessVisible(): Promise<boolean> {
         const count = await I.grabNumberOfVisibleElements(this.locators.viewLessButton);
@@ -1090,7 +1090,7 @@ class CheckoutPage {
 
     /**
      * Check if the billing address form inputs are visible (not the dropdown, but the actual form fields).
-     * Returns true only when the address form is rendered (e.g. when "Add new address" is selected).
+     * Returns true only when the address form is rendered (e.g. when "Add New Address" is selected).
      */
     async isBillingAddressFormVisible(): Promise<boolean> {
         return (await I.grabNumberOfVisibleElements(this.locators.billingFirstNameInput)) > 0;
@@ -1174,7 +1174,7 @@ class CheckoutPage {
     /**
      * Fill billing address fields (when "Use a different billing address" is checked).
      * For registered shoppers with saved addresses, opens the billing dropdown and
-     * selects "Add new address" to reveal blank form fields first.
+     * selects "Add New Address" to reveal blank form fields first.
      */
     async fillBillingAddress(address: {
         firstName: string;
@@ -1203,7 +1203,7 @@ class CheckoutPage {
     }
 
     /**
-     * Open the billing address dropdown and select "Add new address" to show blank form fields.
+     * Open the billing address dropdown and select "Add New Address" to show blank form fields.
      * Only applicable for registered shoppers with saved addresses.
      */
     private async selectNewBillingAddressFromDropdown(): Promise<void> {
@@ -1215,7 +1215,7 @@ class CheckoutPage {
             await dropdownTrigger.first().waitFor({ state: 'visible', timeout: 10_000 });
             await dropdownTrigger.first().click();
 
-            const addNewOption = page.locator('button:has-text("Add new address")').last();
+            const addNewOption = page.locator('button:has-text("Add New Address")').last();
             await addNewOption.waitFor({ state: 'visible', timeout: 5_000 });
             await addNewOption.click();
         }) as unknown as Promise<void>);
@@ -1260,7 +1260,7 @@ class CheckoutPage {
 
             const addressOptions = await popoverContent
                 .locator('button')
-                .filter({ hasNotText: 'Add new address' })
+                .filter({ hasNotText: 'Add New Address' })
                 .all();
 
             if (index >= addressOptions.length) {
@@ -1441,7 +1441,7 @@ class CheckoutPage {
                 return;
             }
 
-            const viewAll = paymentContent.locator('button:has-text("View all")');
+            const viewAll = paymentContent.locator('button:has-text("View All")');
             if (await viewAll.isVisible()) {
                 await viewAll.click();
                 await newCardLabel.waitFor({ state: 'visible', timeout: 5_000 });
@@ -1950,7 +1950,7 @@ class CheckoutPage {
      * Check if payment "View All" button is visible
      */
     async isPaymentViewAllButtonVisible(): Promise<boolean> {
-        const viewAllButton = locate('[data-testid="sf-toggle-card-payment"] button').withText('View all');
+        const viewAllButton = locate('[data-testid="sf-toggle-card-payment"] button').withText('View All');
         return (await I.grabNumberOfVisibleElements(viewAllButton)) > 0;
     }
 
@@ -1958,7 +1958,7 @@ class CheckoutPage {
      * Check if payment "View Less" button is visible
      */
     async isPaymentViewLessButtonVisible(): Promise<boolean> {
-        const viewLessButton = locate('[data-testid="sf-toggle-card-payment"] button').withText('View less');
+        const viewLessButton = locate('[data-testid="sf-toggle-card-payment"] button').withText('View Less');
         return (await I.grabNumberOfVisibleElements(viewLessButton)) > 0;
     }
 
@@ -1968,7 +1968,7 @@ class CheckoutPage {
     async clickPaymentViewAll(): Promise<void> {
         await (I.usePlaywrightTo('click payment View All', async ({ page }) => {
             const paymentSection = await page.locator('[data-testid="sf-toggle-card-payment"]');
-            const viewAllButton = paymentSection.locator('button:has-text("View all")');
+            const viewAllButton = paymentSection.locator('button:has-text("View All")');
             await viewAllButton.click();
         }) as unknown as Promise<void>);
     }
@@ -1979,7 +1979,7 @@ class CheckoutPage {
     async clickPaymentViewLess(): Promise<void> {
         await (I.usePlaywrightTo('click payment View Less', async ({ page }) => {
             const paymentSection = await page.locator('[data-testid="sf-toggle-card-payment"]');
-            const viewLessButton = paymentSection.locator('button:has-text("View less")');
+            const viewLessButton = paymentSection.locator('button:has-text("View Less")');
             await viewLessButton.click();
         }) as unknown as Promise<void>);
     }

@@ -49,7 +49,7 @@ exports[`CheckoutErrorBoundary stories snapshot > ComponentError story renders a
         data-slot="button"
         data-variant="link"
       >
-        Try again
+        Try Again
       </button>
     </div>
   </div>

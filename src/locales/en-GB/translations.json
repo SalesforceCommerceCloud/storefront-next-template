@@ -525,10 +525,10 @@
             "title": "Shipping Address",
             "changeLabel": "Edit",
             "selectSavedAddress": "Select a saved address",
-            "viewAllLink": "View all",
-            "viewAllMore": "({{count}} more)",
-            "viewLessAddresses": "View less",
-            "addNewAddressButton": "Add new address",
+            "viewAllLink": "View All",
+            "viewAllMore": "({{count}} More)",
+            "viewLessAddresses": "View Less",
+            "addNewAddressButton": "Add New Address",
             "editAddressLink": "Edit Address",
             "defaultBadge": "Default",
             "firstNameRequired": "Please enter your first name.",
@@ -618,7 +618,7 @@
             "useDifferentBilling": "Use a different billing address",
             "useDifferentBillingDescription": "Use the same address for billing and shipping",
             "sameAsShippingAddress": "Same as shipping address",
-            "selectAnAddress": "Select an address",
+            "selectAnAddress": "Select an Address",
             "noBillingAddressSaved": "No billing address saved",
             "continue": "Continue to Review",
             "saving": "Saving...",
@@ -636,8 +636,8 @@
             "summarySavedLabel": "Saved payment method: {{methodLabel}} ending in {{lastDigits}}",
             "noPaymentMethodSaved": "No payment method saved",
             "billingSummaryTitle": "Billing Address",
-            "viewAllMore": "View all ({{count}} more)",
-            "viewLess": "View less",
+            "viewAllMore": "View All ({{count}} More)",
+            "viewLess": "View Less",
             "savePaymentToProfile": "Save payment method for future use",
             "billingFirstNameRequired": "First name is required",
             "billingLastNameRequired": "Last name is required",
@@ -785,7 +785,7 @@
             "componentError": {
                 "title": "Component temporarily unavailable",
                 "description": "This section couldn't load properly. You can continue with checkout or try refreshing the page.",
-                "tryAgain": "Try again"
+                "tryAgain": "Try Again"
             }
         },
         "savingStatus": "Saving",
