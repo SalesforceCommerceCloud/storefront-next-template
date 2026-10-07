@@ -224,16 +224,21 @@ describe('ProductView', () => {
             expect(screen.getByRole('button', { name: /add to wishlist/i })).toBeInTheDocument();
             // Share button should be visible
             expect(screen.getByRole('button', { name: /share/i })).toBeInTheDocument();
-            // Furniture replaces ProductView with its HowToGetIt composition.
-            if (process.env.VERTICAL !== 'furniture') {
-                // @sfdc-extension-block-start SFDC_EXT_BOPIS
-                // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
-                expect(capturedProductInfoProps.last).toEqual(
-                    expect.objectContaining({ enableDeliveryEstimatePresentation: true })
-                );
-                // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
-                // @sfdc-extension-block-end SFDC_EXT_BOPIS
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+            // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+            const productInfoProps = capturedProductInfoProps.last;
+            expect(productInfoProps).not.toBeNull();
+            if (!productInfoProps) throw new Error('ProductInfo did not render');
+
+            const customFulfillment = document.querySelector('[data-section="how-to-get-it"]');
+            if (customFulfillment) {
+                expect(productInfoProps).toEqual(expect.objectContaining({ hideDeliveryOptions: true }));
+            } else {
+                expect(productInfoProps.hideDeliveryOptions).not.toBe(true);
+                expect(productInfoProps).toEqual(expect.objectContaining({ enableDeliveryEstimatePresentation: true }));
             }
+            // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
         });
     });
 
