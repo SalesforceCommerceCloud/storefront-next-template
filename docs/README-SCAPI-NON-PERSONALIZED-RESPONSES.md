@@ -10,8 +10,9 @@ SCAPI does not have full knowledge of customer customizations. Hooks, custom fie
 
 To use SCAPI caching with Storefront Next's automatic non-personalized response classification:
 
-1. [Enable page caching in Business Manager](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html#enable-caching) for the site. Classification alone does not enable caching.
-2. Use the October 2026 Storefront Next template (`2026.10.0`) or later. Earlier templates do not include the automatic classification policy described below.
+- Storefront Next version 1.4.0 or later. See [storefront-next-template](https://github.com/SalesforceCommerceCloud/storefront-next-template) GitHub repository.
+- B2C Commerce 26.9 or later.
+- [Enable page caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html#enable-caching) for the site in Business Manager. Classification alone doesn't enable caching.
 
 ## Central Classification
 
