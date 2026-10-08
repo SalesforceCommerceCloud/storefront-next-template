@@ -212,6 +212,85 @@ describe('sitesConfigMiddleware', () => {
         expect(context.get(appConfigContext)).toBe(appConfig);
     });
 
+    it('falls back to static when the DAL default locale is not supported', async () => {
+        vi.mocked(getConfig).mockReturnValue(configWith(true));
+        vi.mocked(getSitesFromDataStoreLazy).mockResolvedValue([{ ...DAL_SITE, defaultLocale: 'fr-FR' }]);
+        const { context, appConfig, clientConfig } = makeContext();
+
+        const next = await run(context);
+
+        expect(next).toHaveBeenCalledOnce();
+        expect(context.get(appConfigContext)).toBe(appConfig);
+        expect(context.get(clientAppConfigContext)).toBe(clientConfig);
+    });
+
+    it('falls back to static when the DAL default currency is not supported', async () => {
+        vi.mocked(getConfig).mockReturnValue(configWith(true));
+        vi.mocked(getSitesFromDataStoreLazy).mockResolvedValue([
+            { ...DAL_SITE, defaultCurrency: 'USD', supportedCurrencies: ['EUR'] },
+        ]);
+        const { context, appConfig, clientConfig } = makeContext();
+
+        const next = await run(context);
+
+        expect(next).toHaveBeenCalledOnce();
+        expect(context.get(appConfigContext)).toBe(appConfig);
+        expect(context.get(clientAppConfigContext)).toBe(clientConfig);
+    });
+
+    it('falls back to static when a DAL locale prefers an unsupported currency', async () => {
+        vi.mocked(getConfig).mockReturnValue(configWith(true));
+        vi.mocked(getSitesFromDataStoreLazy).mockResolvedValue([
+            {
+                ...DAL_SITE,
+                supportedLocales: [{ id: DAL_SITE.defaultLocale, preferredCurrency: 'USD' }],
+            },
+        ]);
+        const { context, appConfig, clientConfig } = makeContext();
+
+        const next = await run(context);
+
+        expect(next).toHaveBeenCalledOnce();
+        expect(context.get(appConfigContext)).toBe(appConfig);
+        expect(context.get(clientAppConfigContext)).toBe(clientConfig);
+    });
+
+    it('falls back to static when a DAL site mixes valid and malformed locale entries', async () => {
+        vi.mocked(getConfig).mockReturnValue(configWith(true));
+        vi.mocked(getSitesFromDataStoreLazy).mockResolvedValue([
+            { ...DAL_SITE, supportedLocales: [...DAL_SITE.supportedLocales, null] } as unknown as DalSite,
+        ]);
+        const { context, appConfig, clientConfig } = makeContext();
+
+        const next = await run(context);
+
+        expect(next).toHaveBeenCalledOnce();
+        expect(context.get(appConfigContext)).toBe(appConfig);
+        expect(context.get(clientAppConfigContext)).toBe(clientConfig);
+    });
+
+    it('keeps valid DAL sites and warns with unusable site IDs', async () => {
+        vi.mocked(getConfig).mockReturnValue(configWith(true));
+        vi.mocked(getSitesFromDataStoreLazy).mockResolvedValue([
+            DAL_SITE,
+            { ...DAL_SITE, id: 'InvalidSite', defaultLocale: 'fr-FR' },
+        ]);
+        const { context } = makeContext();
+
+        const next = await run(context);
+
+        expect(next).toHaveBeenCalledOnce();
+        expect((context.get(appConfigContext) as { commerce: { sites: unknown[] } }).commerce.sites).toEqual([
+            DAL_SITE,
+        ]);
+        expect((context.get(clientAppConfigContext) as { commerce: { sites: unknown[] } }).commerce.sites).toEqual([
+            DAL_SITE,
+        ]);
+        expect(logger.warn).toHaveBeenCalledWith('SitesConfig: ignoring unusable DAL sites', {
+            invalidSiteIds: ['InvalidSite'],
+        });
+    });
+
     it('keeps static config and warns with the drift when DAL sites omit the configured defaultSiteId', async () => {
         vi.mocked(getConfig).mockReturnValue(configWith(true));
         // Usable DAL sites, but none has id === defaultSiteId ('RefArch') — applying them

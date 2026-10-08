@@ -40,7 +40,7 @@ export function PageViewTracker() {
     const config = useConfig();
     const auth = useAuth();
     const { trackingConsent, isTrackingConsentEnabled } = useTrackingConsent();
-    const { site, language } = useSite();
+    const { site, locale } = useSite();
     const trackedRef = useRef<{ path: string; timestamp: number } | null>(null);
     const trackingResetDuration = config.engagement.analytics.pageViewsResetDuration;
 
@@ -85,7 +85,7 @@ export function PageViewTracker() {
                       prefix: config.url.prefix,
                       params: {
                           siteId: site.alias ?? config.siteAliasMap?.[site.id] ?? site.id,
-                          localeId: config.localeAliasMap?.[language] ?? language,
+                          localeId: config.localeAliasMap?.[locale.id] ?? locale.id,
                       },
                   })
                 : '';
@@ -120,7 +120,7 @@ export function PageViewTracker() {
                         customerId: auth.customerId,
                     },
                 });
-                const eventSiteInfo = { siteId: site.id, localeId: language };
+                const eventSiteInfo = { siteId: site.id, localeId: locale.id };
                 sendViewPageEvent(event, mediator, eventSiteInfo, consentPreferences);
             } catch (error) {
                 // Silently fail - analytics should not break the app
@@ -144,7 +144,7 @@ export function PageViewTracker() {
         trackingResetDuration,
         isTrackingConsentEnabled,
         site,
-        language,
+        locale,
     ]);
 
     return null;

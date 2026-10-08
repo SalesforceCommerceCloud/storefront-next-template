@@ -17,7 +17,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { act, type ReactNode, type ComponentProps } from 'react';
 import i18next from 'i18next';
-import { mockAltSiteObject } from '@/test-utils/config';
+import { mockAltLocale, mockAltSiteObject } from '@/test-utils/config';
 import CheckoutFormPage from './checkout-form-page';
 
 // Type definitions for mock components
@@ -392,6 +392,7 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
         ...actual,
         useSite: vi.fn(() => ({
             site: { id: mockAltSiteObject.id, defaultLocale: mockAltSiteObject.defaultLocale },
+            locale: mockAltLocale,
             language: mockAltSiteObject.defaultLocale,
             currency: mockAltSiteObject.defaultCurrency,
         })),

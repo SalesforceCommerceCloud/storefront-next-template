@@ -33,7 +33,7 @@ import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import type { InfoModalData } from '@/components/info-modal/types';
 import { formatCurrency } from '@/lib/currency';
 import { formatDeliveryWindow } from '@/lib/date-utils';
-import { getCountryCodeFromLocale, getPostalCodeFormat } from '@/lib/shipping-estimate/postal-code-formats';
+import { getCommerceCountryCode, getPostalCodeFormat } from '@/lib/shipping-estimate/postal-code-formats';
 import { useShippingEstimate } from '@/lib/shipping-estimate/use-shipping-estimate';
 import type { ShippingDestination, ShippingEstimate } from '@/lib/shipping-estimate/types';
 import {
@@ -77,13 +77,13 @@ export default function EstimatedDelivery({
     onPostalCodeFocusHandled,
 }: EstimatedDeliveryProps): ReactElement | null {
     const { t } = useTranslation('extShippingDelivery');
-    const { language } = useSite();
+    const { site, locale, language } = useSite();
     const shippingDelivery = useShippingDelivery();
     const publishPresentation = shippingDelivery?.publishPresentation;
     const registerPresentationSource = shippingDelivery?.registerPresentationSource;
     const localPresentationSourceId = useRef({});
     const presentationSourceId = fulfillmentPresentationSourceId ?? localPresentationSourceId.current;
-    const destinationCountry = initialDestination?.countryCode ?? getCountryCodeFromLocale(language);
+    const destinationCountry = initialDestination?.countryCode ?? getCommerceCountryCode(locale.id, site.defaultLocale);
     const format = useMemo(() => getPostalCodeFormat(destinationCountry), [destinationCountry]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditingDestination, setIsEditingDestination] = useState(false);

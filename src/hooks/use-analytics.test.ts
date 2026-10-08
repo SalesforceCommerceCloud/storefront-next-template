@@ -51,6 +51,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', () => ({
 vi.mock('@salesforce/storefront-next-runtime/site-context', () => ({
     useSite: vi.fn(() => ({
         site: { id: mockSiteObject.id },
+        locale: { id: mockSiteObject.defaultLocale },
         language: mockSiteObject.defaultLocale,
         currency: mockSiteObject.defaultCurrency,
     })),
@@ -168,6 +169,7 @@ describe('useAnalytics', () => {
         vi.mocked(useConfig).mockReturnValue(mockConfig as any);
         vi.mocked(useSite).mockReturnValue({
             site: { id: mockSiteObject.id },
+            locale: { id: mockSiteObject.defaultLocale },
             language: mockSiteObject.defaultLocale,
             currency: mockSiteObject.defaultCurrency,
         } as any);
@@ -209,6 +211,26 @@ describe('useAnalytics', () => {
     });
 
     describe('trackViewPage', () => {
+        it('uses the resolved commerce locale when the translation language differs', async () => {
+            vi.mocked(useAuth).mockReturnValue(mockAuth);
+            vi.mocked(useSite).mockReturnValue({
+                site: { id: mockSiteObject.id },
+                locale: { id: mockSiteObject.defaultLocale },
+                language: 'en-US',
+                currency: mockSiteObject.defaultCurrency,
+            } as any);
+
+            const { result } = renderHook(() => useAnalytics());
+
+            await result.current.trackViewPage({ url: '/test-page' });
+
+            expect(mockAnalytics.track).toHaveBeenCalledWith(
+                expect.anything(),
+                { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
+                mockConsentPreferences
+            );
+        });
+
         it('should track page view for user', async () => {
             vi.mocked(useAuth).mockReturnValue(mockAuth);
 

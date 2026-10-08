@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useTranslation } from 'react-i18next';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 
@@ -22,12 +21,11 @@ import { useConfig } from '@salesforce/storefront-next-runtime/config';
  * Applies alias mappings when configured, falling back to the raw IDs.
  */
 export function useCurrentSiteAndLocaleRef() {
-    const { site } = useSite();
-    const { i18n } = useTranslation();
+    const { site, locale } = useSite();
     const config = useConfig();
 
     return {
         siteRef: site.alias ?? site.id,
-        localeRef: config.localeAliasMap?.[i18n.language] ?? i18n.language,
+        localeRef: config.localeAliasMap?.[locale.id] ?? locale.id,
     };
 }

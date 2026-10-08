@@ -18,7 +18,9 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { type ComponentProps, useState } from 'react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { mockLocale, mockSiteObject } from '@/test-utils/config';
 import type { ShippingEstimate } from '@/lib/shipping-estimate/types';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import DeliveryOptions from '@/components/fulfillment/delivery-options';
@@ -482,6 +484,60 @@ describe('EstimatedDelivery', () => {
         expect(input.value).toBe('SW1A 1AA');
 
         fireEvent.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
+        expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
+    });
+
+    test('uses the commerce locale format when the translation language differs', () => {
+        const load = vi.fn();
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: false,
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            requestSequence: 0,
+            settledSequence: 0,
+            load,
+        });
+        render(
+            <SiteProvider site={mockSiteObject} locale={mockLocale} language="en-US" currency="GBP">
+                <EstimatedDelivery productId="product-1" />
+            </SiteProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        fireEvent.change(screen.getByLabelText('postcode'), { target: { value: 'sw1a1aa' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
+
+        expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
+    });
+
+    test('uses the site default locale format when the commerce locale is regionless', () => {
+        const load = vi.fn();
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: false,
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            requestSequence: 0,
+            settledSequence: 0,
+            load,
+        });
+        render(
+            <SiteProvider
+                site={mockSiteObject}
+                locale={{ id: 'default', preferredCurrency: 'GBP' }}
+                language="en-US"
+                currency="GBP">
+                <EstimatedDelivery productId="product-1" />
+            </SiteProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        fireEvent.change(screen.getByLabelText('postcode'), { target: { value: 'sw1a1aa' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
+
         expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
     });
 

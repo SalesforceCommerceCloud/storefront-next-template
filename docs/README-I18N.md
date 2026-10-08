@@ -165,11 +165,9 @@ See the Currency Switcher component in `src/components/currency-switcher/` for t
 
 ### Locale Detection
 
-The middleware automatically detects the user's locale from:
+Site context selects the commerce locale. By default, it checks the URL path, the `lng` query parameter, the `lng` cookie, and the `Accept-Language` header, in that order. It uses the first locale supported by the selected site. If none matches, it uses that site's `defaultLocale`. See [Multi-Site & Locale Routing](./README-MULTI-SITE.md#request-flow) for details.
 
-1. The `lng` cookie (if previously set)
-2. The `Accept-Language` HTTP header
-3. Falls back to the configured `fallbackLng`
+The server translation middleware uses the resolved commerce locale to select a language for storefront text. If it cannot match that locale to `i18n.supportedLngs`, `i18n.fallbackLng` supplies the translation language.
 
 ### Switching Languages and Currencies at Runtime
 

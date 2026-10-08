@@ -109,8 +109,8 @@ export const useAnalytics = () => {
     const location = useLocation();
     const appConfig = useConfig();
     const { trackingConsent, isTrackingConsentEnabled } = useTrackingConsent();
-    const { site, language } = useSite();
-    const siteInfo = { siteId: site.id, localeId: language };
+    const { site, locale } = useSite();
+    const siteInfo = { siteId: site.id, localeId: locale.id };
     const consentCategories = appConfig.engagement.analytics.trackingConsent?.consentCategories ?? [];
     const consentPreferences = buildConsentPreferences(trackingConsent, consentCategories, isTrackingConsentEnabled);
 

@@ -57,8 +57,11 @@ The homepage lives at the prefixed path (e.g., `/global/en-GB/`). Bare `/` redir
 1. User requests `/global/en-GB/p/123`
 2. Site context middleware resolves site and locale from the URL path (`global` → `RefArchGlobal`, `en-GB` → locale)
 3. Site and locale objects are stored in router context for downstream consumers
-4. i18next middleware reads the resolved locale and initializes translations
-5. Loaders, actions, and components access the resolved site/locale from context
+4. SCAPI and Page Designer use the resolved site and locale; Page Designer uses the resolved site's `defaultLocale` for content fallback
+5. i18next middleware reads the resolved locale and initializes translations
+6. Loaders, actions, and components access the resolved site/locale from context
+
+If no configured detection source yields a supported locale, site context uses the resolved site's `defaultLocale`. `i18n.fallbackLng` selects the language for storefront text when the resolved commerce locale does not match `i18n.supportedLngs`. It does not change the locale used by Commerce APIs or Page Designer.
 
 ## Configuration
 
@@ -447,11 +450,13 @@ commerce: {
 }
 ```
 
+Each site's `defaultLocale` must appear in that site's `supportedLocales`. It is the fallback for requests whose locale cannot be resolved and the default locale for Page Designer content resolution.
+
 ### MRT Data Store Sites
 
 On by default. When `commerce.sitesFromDal` is on, live site data synced through the [MRT Data Store](https://developer.salesforce.com/docs/commerce/sfnext/guide/sfnext-mrt-data-store.html) replaces the static `commerce.sites` for site, locale, and currency resolution, resolved per request. `defaultSiteId`, `siteAliasMap`, and `localeAliasMap` stay static and derived from config, never from the MRT Data Store. Set the flag to `false` to keep the static `commerce.sites` authoritative.
 
-**Fallback behavior.** When the middleware can't get site data from the MRT Data Store, the storefront keeps serving the static `commerce.sites` and doesn't fail the request. This fallback applies whenever `commerce.sitesFromDal` is off, the MRT Data Store entry is unavailable, the payload yields no usable sites, or the usable sites omit the site named by `defaultSiteId`. That last case logs a warning naming the missing default and the site IDs actually present, so the issue is visible in monitoring.
+**Fallback behavior.** When the middleware can't get site data from the MRT Data Store, the storefront keeps serving the static `commerce.sites` and doesn't fail the request. Invalid site entries are ignored with a warning, while the remaining valid entries stay authoritative. The static fallback applies whenever `commerce.sitesFromDal` is off, the MRT Data Store entry is unavailable, the payload yields no usable sites, or the usable sites omit the site named by `defaultSiteId`. That last case logs a warning naming the missing default and the site IDs actually present, so the issue is visible in monitoring.
 
 **URL aliasing stays config-owned.** The MRT Data Store supplies which sites exist and their locale and currency data, but not how their URLs are aliased. `siteContextMiddleware` runs after the data store rewrite and derives each resolved site's routing `alias` from the config `siteAliasMap`, keyed by site `id` (the same key for the data store and static sites), so `siteAliasMap` and `localeAliasMap` stay the config-owned source for the `:siteId` and `:localeId` URL refs. A per-site `alias` on the data store payload would be overwritten before routing reads it, so the rewrite drops it at the source. This is what keeps multi-site URLs stable when sites go live from the data store.
 
@@ -618,9 +623,10 @@ Use `useSite()` to access the current site, language, and currency in components
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 
 function MyComponent() {
-    const { site, language, currency } = useSite();
+    const { site, locale, language, currency } = useSite();
     // site: Site object (id, supportedLocales, supportedCurrencies, etc.)
-    // language: current locale ID (e.g., 'en-GB')
+    // locale: resolved commerce locale used by SCAPI and commerce routing
+    // language: translation locale used by i18next and presentation formatting
     // currency: current currency code (e.g., 'GBP')
 }
 ```
@@ -629,19 +635,19 @@ function MyComponent() {
 
 ## Engagement Data & Site Context
 
-Engagement adapters (Einstein, Active Data, Data 360) are initialized once at application startup with static configuration from `config.server.ts`. However, the current site and locale are injected dynamically at **event-send time** via `EventSiteInfo`, which is resolved from the site context middleware context.
+Engagement adapters (Einstein, Active Data, Data 360) are initialized once at application startup with static configuration from `config.server.ts`. However, the current site and commerce locale are injected dynamically at **event-send time** via `EventSiteInfo`, which is resolved from the site context middleware context.
 
 ### How Site Context Flows to Adapters
 
-1. The `useAnalytics` hook calls `useSite()` to get the current site context (`{ site, language, currency }`)
-2. It constructs an `EventSiteInfo` object: `{ siteId: site.id, localeId: language }`
+1. The `useAnalytics` hook calls `useSite()` to get the current site context (`{ site, locale }`)
+2. It constructs an `EventSiteInfo` object from the resolved commerce context: `{ siteId: site.id, localeId: locale.id }`
 3. Every tracking call (e.g., `trackViewProduct`, `trackAddToCart`) passes `siteInfo` to the event mediator
 4. The mediator forwards `siteInfo` to each registered adapter's `sendEvent` method
 
 ```typescript
 // In use-analytics.ts
-const { site, language } = useSite();
-const siteInfo = { siteId: site.id, localeId: language };
+const { site, locale } = useSite();
+const siteInfo = { siteId: site.id, localeId: locale.id };
 
 // Passed to every tracking call
 mediator.track(event, siteInfo);

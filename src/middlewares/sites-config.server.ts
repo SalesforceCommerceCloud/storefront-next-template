@@ -23,15 +23,15 @@ import type { AppConfig } from '@/types/config';
 import { getLogger } from '@/lib/logger.server';
 
 /**
- * Narrow the DAL payload to the static {@link Site} shape the config expects,
- * dropping any site the config consumers can't safely resolve.
+ * Narrow the DAL payload to the static {@link Site} shape the config expects.
  *
  * `DalSite` is cast from the data-store envelope, not validated, so a site can
- * arrive missing fields the config `Site` type guarantees. A site is dropped when
- * it lacks a usable `defaultCurrency`, `defaultLocale`, `supportedLocales`, or
- * `supportedCurrencies`: feeding an empty/absent value into the config surfaces
- * downstream as a broken currency/locale fallback, and a default site with no
- * `defaultLocale` makes `siteContextMiddleware` throw on every request.
+ * arrive missing fields the config `Site` type guarantees. A site is ignored
+ * when it lacks a usable `defaultCurrency`, `defaultLocale`,
+ * `supportedLocales`, or `supportedCurrencies`, or when its default locale is
+ * unsupported, or when a default/preferred currency is outside the site's
+ * supported currency set. Passing malformed values through can make
+ * `siteContextMiddleware` throw on every request.
  *
  * Each field is copied by name rather than spread so only deliberately mapped
  * fields reach routing config — a field DAL adds later stays out until it's
@@ -42,15 +42,30 @@ import { getLogger } from '@/lib/logger.server';
  * `cookies.domain` is carried because the SDK reads it directly off the site at
  * cookie-serialize time, bypassing that rebuild.
  */
-function toStaticSites(dalSites: DalSite[]): Site[] {
+function toStaticSites(dalSites: DalSite[]): { sites: Site[]; invalidSiteIds: string[] } {
     const sites: Site[] = [];
+    const invalidSiteIds: string[] = [];
     for (const dalSite of dalSites) {
         if (
+            !dalSite ||
+            !dalSite.id ||
             !dalSite.defaultCurrency ||
             !dalSite.defaultLocale ||
-            !dalSite.supportedLocales?.length ||
-            !dalSite.supportedCurrencies?.length
+            !Array.isArray(dalSite.supportedLocales) ||
+            !dalSite.supportedLocales.length ||
+            !Array.isArray(dalSite.supportedCurrencies) ||
+            !dalSite.supportedCurrencies.length ||
+            !dalSite.supportedCurrencies.every(Boolean) ||
+            !dalSite.supportedCurrencies.includes(dalSite.defaultCurrency) ||
+            !dalSite.supportedLocales.every(
+                (locale) =>
+                    locale?.id &&
+                    locale.preferredCurrency &&
+                    dalSite.supportedCurrencies.includes(locale.preferredCurrency)
+            ) ||
+            !dalSite.supportedLocales.some((locale) => locale.id === dalSite.defaultLocale)
         ) {
+            invalidSiteIds.push(dalSite?.id || '<unknown>');
             continue;
         }
         sites.push({
@@ -62,7 +77,7 @@ function toStaticSites(dalSites: DalSite[]): Site[] {
             ...(dalSite.cookies?.domain != null ? { cookies: { domain: dalSite.cookies.domain } } : {}),
         });
     }
-    return sites;
+    return { sites, invalidSiteIds };
 }
 
 /**
@@ -99,7 +114,10 @@ export const sitesConfigMiddleware: MiddlewareFunction<Response> = async ({ cont
         return next();
     }
 
-    const sites = toStaticSites(dalSites);
+    const { sites, invalidSiteIds } = toStaticSites(dalSites);
+    if (invalidSiteIds.length) {
+        logger.warn('SitesConfig: ignoring unusable DAL sites', { invalidSiteIds });
+    }
     if (!sites.length) {
         logger.debug('SitesConfig: DAL entry yielded no usable sites, keeping static config');
         return next();

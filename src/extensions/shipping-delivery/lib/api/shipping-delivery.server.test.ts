@@ -34,9 +34,11 @@ vi.mock('@salesforce/storefront-next-runtime/i18n', () => ({
 
 const getDeliveryEstimates = vi.fn();
 
-function createContext(localeId?: string) {
+function createContext(localeId?: string, defaultLocale = localeId) {
     return {
-        get: vi.fn((key: unknown) => (key === siteContext && localeId ? { locale: { id: localeId } } : null)),
+        get: vi.fn((key: unknown) =>
+            key === siteContext && localeId ? { locale: { id: localeId }, site: { defaultLocale } } : null
+        ),
     } as never;
 }
 
@@ -89,6 +91,16 @@ describe('getShippingEstimates', () => {
         expect(getDeliveryEstimates).toHaveBeenCalledWith({
             params: {
                 query: { productIds: ['product-1'], postalCode: '90210', countryCode: 'US' },
+            },
+        });
+    });
+
+    it('uses the site default country when the commerce locale is regionless', async () => {
+        await getShippingEstimates(createContext('default', 'en-GB'), 'product-1', 'SW1A 1AA');
+
+        expect(getDeliveryEstimates).toHaveBeenCalledWith({
+            params: {
+                query: { productIds: ['product-1'], postalCode: 'SW1A 1AA', countryCode: 'GB' },
             },
         });
     });

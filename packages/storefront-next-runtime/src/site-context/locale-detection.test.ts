@@ -102,10 +102,35 @@ describe('locale-detection', () => {
         expect(locale).toEqual(enUSLocale);
     });
 
-    it('throws when defaultLocale is not in site supportedLocales', async () => {
-        const settings = createSettings({ defaultLocale: 'fr-FR' });
+    it("falls back to the selected site's defaultLocale", async () => {
+        const site: Site = {
+            ...SITE,
+            id: 'site-mx',
+            defaultLocale: 'es-MX',
+            supportedLocales: [
+                { id: 'es-MX', preferredCurrency: 'MXN' },
+                { id: 'en-MX', preferredCurrency: 'MXN' },
+            ],
+            supportedCurrencies: ['MXN'],
+            defaultCurrency: 'MXN',
+        };
+        const settings = createSettings({
+            defaultLocale: 'en-US',
+            localeDetectionConfig: { ...DEFAULT_LOCALE_DETECTION, order: ['path'] },
+        });
+        const request = new Request('https://example.com/mx/default/page');
+
+        const locale = await resolveLocale(request, settings, site);
+
+        expect(locale).toEqual({ id: 'es-MX', preferredCurrency: 'MXN' });
+    });
+
+    it("throws when the selected site's defaultLocale is not in its supportedLocales", async () => {
+        const site = { ...SITE, defaultLocale: 'fr-FR' };
+        const settings = createSettings({ defaultLocale: 'en-US' });
         const request = new Request('https://example.com/');
-        await expect(resolveLocale(request, settings, SITE)).rejects.toThrow(
+
+        await expect(resolveLocale(request, settings, site)).rejects.toThrow(
             'Default locale fr-FR not found in the list of supported locales for site site-us'
         );
     });

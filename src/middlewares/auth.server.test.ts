@@ -42,6 +42,7 @@ import authMiddleware, {
     startPasskeyAuthentication,
     finishPasskeyAuthentication,
     authorizePasskeyRegistration,
+    getSlasLocale,
 } from './auth.server';
 import type { ShopperLogin } from '@/scapi';
 
@@ -130,7 +131,9 @@ vi.mock('@salesforce/storefront-next-runtime/i18n', () => ({
     getTranslation: vi.fn(() => ({
         t: (key: string) => key,
     })),
-    getLocale: vi.fn(() => mockAltSiteObject.defaultLocale),
+    // Keep translation and commerce locales different so auth requests cannot
+    // accidentally regress to using the i18next language.
+    getLocale: vi.fn(() => mockSiteObject.defaultLocale),
     mockI18nContext: vi.fn(),
 }));
 
@@ -175,7 +178,8 @@ function createAuthTokenInvalidError() {
 
 function mockContext(
     data: AuthStorageData = {},
-    isSlasPrivate = false
+    isSlasPrivate = false,
+    siteCtx?: SiteContext
 ): {
     provider: RouterContextProvider;
     storage: Map<keyof AuthStorageData, AuthStorageData[keyof AuthStorageData]>;
@@ -193,13 +197,20 @@ function mockContext(
     // Override commerce.api.privateKeyEnabled after cloning
     appConfig.commerce.api.privateKeyEnabled = isSlasPrivate;
 
-    // Mock provider.get to return storage, performance timer, i18next, or appConfig based on context key
+    // Mock provider.get to return storage, performance timer, site context, or appConfig based on context key
     vi.spyOn(provider, 'get').mockImplementation((key) => {
         if (key === performanceTimerContext) {
             return mockPerformanceTimer;
         }
         if (key === appConfigContext) {
             return appConfig;
+        }
+        if (key === siteContext) {
+            return (siteCtx ?? {
+                site: mockAltSiteObject,
+                locale: mockAltSiteObject.supportedLocales[0],
+                currency: mockAltSiteObject.defaultCurrency,
+            }) as SiteContext;
         }
         return storage;
     });
@@ -246,6 +257,18 @@ function getMockRegisteredAuthData(): AuthData {
         trackingConsent: TrackingConsent.Declined,
     };
 }
+
+describe('getSlasLocale', () => {
+    test('falls back from a regionless commerce locale to the selected site default', () => {
+        const { provider } = mockContext({}, false, {
+            site: { ...mockAltSiteObject, defaultLocale: 'en-US' },
+            locale: { id: 'default', preferredCurrency: 'USD' },
+            currency: 'USD',
+        } as SiteContext);
+
+        expect(getSlasLocale(provider)).toBe('en-US');
+    });
+});
 
 describe('auth middleware (server)', () => {
     beforeEach(() => {
@@ -792,7 +815,7 @@ describe('auth middleware (server)', () => {
     });
 
     describe('authorizePasswordless', () => {
-        it('should authorize passwordless login successfully', async () => {
+        it('uses the resolved commerce locale when authorizing passwordless login', async () => {
             const { provider } = mockContext(getMockAuthData());
             const userid = 'test@example.com';
 
@@ -1034,7 +1057,7 @@ describe('auth middleware (server)', () => {
             };
         }
 
-        it('should authorize passkey registration with default (email) mode', async () => {
+        it('uses the resolved commerce locale when authorizing passkey registration', async () => {
             const { provider } = mockContext(getMockRegisteredAuthDataWithLoginEmail());
 
             mockAuth.webAuthn.authorizeRegistration.mockResolvedValue(undefined);
@@ -1045,6 +1068,7 @@ describe('auth middleware (server)', () => {
                 userId: 'user@example.com',
                 mode: 'email',
                 callbackUri: undefined,
+                locale: mockAltSiteObject.defaultLocale,
             });
             expect(mockLogger.debug).toHaveBeenCalledWith('Auth: authorizePasskeyRegistration starting', {
                 mode: 'email',
@@ -1068,6 +1092,7 @@ describe('auth middleware (server)', () => {
                 userId: 'user@example.com',
                 mode: 'callback',
                 callbackUri: 'https://custom-domain.com/passkey-callback',
+                locale: mockAltSiteObject.defaultLocale,
             });
         });
 
@@ -1282,7 +1307,7 @@ describe('auth middleware (server)', () => {
     });
 
     describe('getPasswordResetToken', () => {
-        it('should request password reset token successfully with public SLAS', async () => {
+        it('uses the resolved commerce locale when requesting a password reset token', async () => {
             const { provider } = mockContext({}, false);
             const email = 'test@example.com';
 
@@ -1417,7 +1442,7 @@ describe('auth middleware (server)', () => {
     });
 
     describe('requestOtp', () => {
-        it('should request OTP successfully with default config', async () => {
+        it('uses the resolved commerce locale when requesting an OTP', async () => {
             const { provider } = mockContext({}, false);
             const email = 'test@example.com';
 
@@ -1476,21 +1501,6 @@ describe('auth middleware (server)', () => {
 
             expect(mockAuth.otp.request).toHaveBeenCalledWith(
                 expect.not.objectContaining({ callbackUri: expect.anything() })
-            );
-        });
-
-        it('should omit locale when not configured', async () => {
-            const { getLocale } = await import('@salesforce/storefront-next-runtime/i18n');
-            vi.mocked(getLocale).mockReturnValueOnce('');
-
-            const { provider } = mockContext({}, false);
-
-            mockAuth.otp.request.mockResolvedValue(undefined);
-
-            await requestOtp(provider, { email: 'test@example.com' });
-
-            expect(mockAuth.otp.request).toHaveBeenCalledWith(
-                expect.not.objectContaining({ locale: expect.anything() })
             );
         });
 

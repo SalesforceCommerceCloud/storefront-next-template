@@ -34,7 +34,6 @@ import { maintenanceContext } from '@/lib/maintenance';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getScapiBaseUrl, isAbsoluteURL } from '@/lib/utils';
 import { getAppOrigin } from '@/lib/origin';
-import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { customClients, type AppClients } from '@/scapi/custom-clients';
 import { scapiMiddlewareContext } from '@/lib/scapi-middleware';
 import {
@@ -534,22 +533,19 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
     const config = getConfig(context);
     const { shortCode, callback, organizationId, clientId } = config.commerce.api;
 
-    // Site ID is always resolved by site context middleware
+    // Site and locale are always resolved by site context middleware.
     const siteCtx = context.get(siteContext);
-    if (!siteCtx?.site?.id) {
+    if (!siteCtx?.site?.id || !siteCtx.locale?.id) {
         throw new Error('Site context not initialized. Ensure site context middleware is configured.');
     }
     const siteId = siteCtx.site.id;
+    const locale = siteCtx.locale.id;
     const scapiProxyHost = typeof window === 'undefined' ? process.env.SCAPI_PROXY_HOST : undefined;
 
     const baseUrl = scapiProxyHost || getScapiBaseUrl(shortCode);
     const scapiOrigin = new URL(baseUrl).origin;
     // Use absolute URL if provided, otherwise construct from app origin
     const redirectUri = callback && isAbsoluteURL(callback) ? callback : `${appOrigin}${callback || ''}`;
-
-    // Get current locale from i18next context
-    const { i18next } = getTranslation(context);
-    const locale = i18next.language ?? config.i18n.fallbackLng;
 
     const onAuthTokenInvalid = () => {
         try {

@@ -413,8 +413,8 @@ function getLocaleFromIdOrAlias(localeIdentifier, locales) {
 * Returns the first valid locale from the first source that yields a valid value.
 */
 async function resolveLocale(request, settings, site) {
-	const { defaultLocale, localeDetectionConfig, localeCookie } = settings;
-	const { supportedLocales } = site;
+	const { localeDetectionConfig, localeCookie } = settings;
+	const { defaultLocale, supportedLocales } = site;
 	let locale = null;
 	const requestUrl = new URL(request.url);
 	const basePathOffset = process.env.MRT_ENV_BASE_PATH ? process.env.MRT_ENV_BASE_PATH.split("/").filter(Boolean).length : 0;

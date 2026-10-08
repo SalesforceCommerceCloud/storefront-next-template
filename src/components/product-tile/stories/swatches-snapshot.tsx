@@ -18,7 +18,7 @@ import { composeStories } from '@storybook/react-vite';
 import * as SwatchesStories from './swatches.stories';
 import { expect, test, describe, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
-import { ConfigWrapper, mockSiteObject } from '@/test-utils/config';
+import { ConfigWrapper, mockLocale, mockSiteObject } from '@/test-utils/config';
 
 vi.mock('react-router', async (importOriginal) => {
     const actual = await importOriginal<typeof import('react-router')>();
@@ -46,6 +46,7 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
                 ],
                 supportedCurrencies: mockSiteObject.supportedCurrencies,
             },
+            locale: mockLocale,
             language: mockSiteObject.defaultLocale,
             currency: mockSiteObject.defaultCurrency,
         })),

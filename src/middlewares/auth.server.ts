@@ -57,7 +57,8 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { performanceTimerContext, PERFORMANCE_MARKS } from '@/middlewares/performance-metrics';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { createCookie, getCookieConfig, getCookieNameWithSiteId, parseAllCookies } from '@/lib/cookie-utils.server';
-import { getTranslation, getLocale } from '@salesforce/storefront-next-runtime/i18n';
+import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { TrackingConsent, trackingConsentToBoolean } from '@/types/tracking-consent';
 import { SHOPPER_CONTEXT_COOKIE_NAME_BASE, SOURCE_CODE_COOKIE_NAME_BASE } from '@/lib/shopper-context/constants';
 
@@ -67,6 +68,25 @@ import { SHOPPER_CONTEXT_COOKIE_NAME_BASE, SOURCE_CODE_COOKIE_NAME_BASE } from '
  * falling through to guest login.
  */
 const SESSION_EXPIRED_REDIRECT = '__session_expired_redirect__';
+
+/**
+ * Resolve the commerce locale to the language-country format required by SLAS templates.
+ * SCAPI also accepts regionless values such as `default`, so fall back to the selected
+ * site's default locale when the active commerce locale has no country.
+ */
+export function getSlasLocale(context: Readonly<RouterContextProvider>): string | undefined {
+    const siteCtx = context.get(siteContext);
+    for (const localeId of [siteCtx?.locale.id, siteCtx?.site.defaultLocale]) {
+        if (!localeId) continue;
+        try {
+            const locale = new Intl.Locale(localeId);
+            if (locale.region) return `${locale.language.toLowerCase()}-${locale.region.toUpperCase()}`;
+        } catch {
+            // Try the site default before leaving locale selection to SLAS.
+        }
+    }
+    return undefined;
+}
 
 /**
  * Refresh access token using refresh token.
@@ -255,7 +275,7 @@ export async function authorizePasswordless(
 
     const usid = session.usid;
 
-    const locale = getLocale(context);
+    const locale = getSlasLocale(context);
 
     const logger = getLogger(context);
     logger.debug('Auth: authorizePasswordless starting', { mode });
@@ -309,7 +329,7 @@ export async function getPasswordResetToken(
 
     const mode = appConfig.features.resetPassword.mode;
 
-    const locale = getLocale(context);
+    const locale = getSlasLocale(context);
 
     const logger = getLogger(context);
     logger.debug('Auth: getPasswordResetToken starting', { mode });
@@ -435,7 +455,7 @@ export async function requestOtp(
 
     const mode = appConfig.features.otpRequest.mode;
 
-    const locale = getLocale(context);
+    const locale = getSlasLocale(context);
 
     const logger = getLogger(context);
     logger.debug('Auth: requestOtp starting', { mode });
@@ -523,6 +543,7 @@ export async function authorizePasskeyRegistration(context: ActionFunctionArgs['
             userId: loginEmailForAuthorize,
             mode,
             callbackUri,
+            locale: getSlasLocale(context),
         });
         logger.debug('Auth: authorizePasskeyRegistration succeeded');
     } catch (error) {

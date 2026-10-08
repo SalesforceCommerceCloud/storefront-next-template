@@ -17,6 +17,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { action } from './action.initiate-checkout-registration';
 import type { ActionFunctionArgs } from 'react-router';
 import { expectStatus } from '@/lib/test-utils';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 
 /** Deterministic HMAC-bound cookie value returned by the mocked enforceTurnstile. */
 const TEST_COOKIE_VALUE = 'b'.repeat(64);
@@ -66,7 +67,7 @@ vi.mock('@/lib/cookie-utils.server', () => ({
 
 const mockCreateApiClients = vi.fn();
 const mockGetAuth = vi.fn();
-const mockGetTranslation = vi.fn();
+const mockGetSlasLocale = vi.fn();
 const mockIsTrackingConsentEnabled = vi.fn();
 const mockTrackingConsentToBoolean = vi.fn();
 const mockGetBasket = vi.fn();
@@ -103,10 +104,6 @@ describe('action.initiate-checkout-registration', () => {
             trackingConsent: null,
         });
 
-        mockGetTranslation.mockReturnValue({
-            t: (key: string) => key,
-        });
-
         mockIsTrackingConsentEnabled.mockReturnValue(false);
 
         mockGetBasket.mockResolvedValue({
@@ -130,10 +127,12 @@ describe('action.initiate-checkout-registration', () => {
 
         const { getAuth } = await import('@/middlewares/auth.server');
         vi.mocked(getAuth).mockImplementation(mockGetAuth);
+        const { getSlasLocale } = await import('@/middlewares/auth.server');
+        vi.mocked(getSlasLocale).mockImplementation(mockGetSlasLocale);
+        mockGetSlasLocale.mockReturnValue('en-US');
 
-        const { getTranslation, getLocale } = await import('@salesforce/storefront-next-runtime/i18n');
-        vi.mocked(getTranslation).mockImplementation(mockGetTranslation);
-        vi.mocked(getLocale).mockReturnValue('en-US');
+        const { getLocale } = await import('@salesforce/storefront-next-runtime/i18n');
+        vi.mocked(getLocale).mockReturnValue('en-GB');
 
         const { isTrackingConsentEnabled } = await import('@/middlewares/auth.utils');
         vi.mocked(isTrackingConsentEnabled).mockImplementation(mockIsTrackingConsentEnabled);
@@ -142,11 +141,11 @@ describe('action.initiate-checkout-registration', () => {
         vi.mocked(getBasket).mockImplementation(mockGetBasket);
 
         mockContext = {
-            get: vi.fn(() => ({ getLocale: () => 'en-US' })),
+            get: vi.fn((key) => (key === siteContext ? { locale: { id: 'en-US' } } : undefined)),
         } as unknown as ActionFunctionArgs['context'];
     });
 
-    it('should successfully initiate registration with email from form data', async () => {
+    it('uses the resolved commerce locale when registering with email from form data', async () => {
         const formData = new FormData();
         formData.append('email', 'user@example.com');
 
@@ -186,7 +185,7 @@ describe('action.initiate-checkout-registration', () => {
         expect(response.data.error?.code).toBe('METHOD_NOT_ALLOWED');
     });
 
-    it('should successfully initiate registration with email from basket', async () => {
+    it('uses the resolved commerce locale when registering with email from basket', async () => {
         const formData = new FormData();
 
         mockRequest = new Request('http://localhost/action/initiate-checkout-registration', {

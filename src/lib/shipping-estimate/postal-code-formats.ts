@@ -305,3 +305,11 @@ export function getCountryCodeFromLocale(locale: string | null | undefined): str
         return undefined;
     }
 }
+
+/** Resolve a country from the active commerce locale, its site default, or the storefront fallback. */
+export function getCommerceCountryCode(
+    locale: string | null | undefined,
+    defaultLocale: string | null | undefined
+): string {
+    return getCountryCodeFromLocale(locale) ?? getCountryCodeFromLocale(defaultLocale) ?? 'US';
+}

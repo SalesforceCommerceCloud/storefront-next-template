@@ -35,7 +35,6 @@ import {
 import type { ShopperExperience, Middleware, Clients } from '@/scapi';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
-import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { getScapiMiddlewareRegistry } from '@/lib/scapi-middleware';
 import { getLogger } from '@/lib/logger.server';
 import type { Logger } from '@/lib/logger';
@@ -304,12 +303,13 @@ function createContentResolutionMiddleware(
     context: RouterContextProvider | Readonly<RouterContextProvider>,
     clients: Clients
 ): Middleware | null {
-    const config = getConfig(context);
     const siteCtx = context.get(siteContext);
-    const { i18next } = getTranslation(context);
-    const siteId = siteCtx?.site.id ?? config.defaultSiteId;
-    const locale = toManifestLocale(i18next.language ?? config.i18n.fallbackLng);
-    const defaultLocale = toManifestLocale(config.i18n.fallbackLng);
+    if (!siteCtx?.site?.id || !siteCtx.locale?.id || !siteCtx.site.defaultLocale) {
+        throw new Error('Site context not initialized. Ensure site context middleware is configured.');
+    }
+    const siteId = siteCtx.site.id;
+    const locale = toManifestLocale(siteCtx.locale.id);
+    const defaultLocale = toManifestLocale(siteCtx.site.defaultLocale);
     const logger = getLogger(context);
     const onError = getErrorHandler(logger);
     const dataStore = DataStore.getDataStore();

@@ -176,16 +176,15 @@ async function invokeMiddlewareAndGetHandler(context: ReturnType<typeof createTe
  * out at its `mediaHostPrefix` guard — tests that exercise the missing-
  * prefix path skip this setup so the loader resolves to `null`.
  */
-async function setupHandler() {
+async function setupHandler(site = mockSiteObject, localeId = 'en-GB') {
     const context = createTestContext({
         appConfig: { features: { mrtBasedPageDesignerResolution: true } } as any,
     });
     // Pin the site context to the mock site so manifest storage keys are
     // deterministic regardless of the developer's local config.app.defaultSiteId.
-    const localeObj =
-        mockSiteObject.supportedLocales.find((l) => l.id === 'en-GB') ?? mockSiteObject.supportedLocales[0];
+    const localeObj = site.supportedLocales.find((locale) => locale.id === localeId) ?? site.supportedLocales[0];
     context.set(siteContext, {
-        site: { ...mockSiteObject, alias: 'global', name: mockSiteObject.id },
+        site: { ...site, alias: 'global', name: site.id },
         locale: { ...localeObj },
         currency: localeObj.preferredCurrency,
         siteCookie: { name: 'site_id' } as unknown as Cookie,
@@ -273,6 +272,15 @@ describe('pageDesignerResolutionMiddleware', () => {
             const handler = await invokeMiddlewareAndGetHandler(context);
 
             expect(handler).toBeDefined();
+        });
+
+        it('should throw when site context is not initialized', async () => {
+            const context = createTestContext({
+                appConfig: { features: { mrtBasedPageDesignerResolution: true } } as any,
+            });
+            context.set(siteContext, null);
+
+            await expect(invokeMiddlewareAndGetHandler(context)).rejects.toThrow('Site context not initialized');
         });
     });
 
@@ -376,6 +384,36 @@ describe('pageDesignerResolutionMiddleware', () => {
     });
 
     describe('page resolution', () => {
+        it('should use the selected site and locale for manifest resolution', async () => {
+            const site = {
+                ...mockSiteObject,
+                id: 'site-ca',
+                defaultLocale: 'en-CA',
+                defaultCurrency: 'CAD',
+                supportedLocales: [
+                    { id: 'en-CA', preferredCurrency: 'CAD' },
+                    { id: 'fr-CA', preferredCurrency: 'CAD' },
+                ],
+                supportedCurrencies: ['CAD'],
+            };
+            const handler = await setupHandler(site, 'fr-CA');
+            mockedResolveContent.mockResolvedValue(null);
+
+            await handler(middlewareParams(new Request(getPageUrl('homepage'))));
+
+            expect(mockedResolveContent).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    locale: 'fr_CA',
+                    defaultLocale: 'en_CA',
+                })
+            );
+
+            mockGetEntry.mockResolvedValue(null);
+            const manifestStorage = mockedResolveContent.mock.calls[0][0].manifestStorage;
+            await manifestStorage.getSiteManifest();
+            expect(mockGetEntry).toHaveBeenCalledWith('site-manifest_site-ca');
+        });
+
         it('should call resolvePage with correct params for a page identifier', async () => {
             const handler = await setupHandler();
             const mockPage = { id: 'homepage', regions: [] };

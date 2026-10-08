@@ -166,7 +166,7 @@ describe('ProductTileProvider', () => {
 
         void result.current.navigate('/product/123');
         // The navigate wrapper prepends the site/locale prefix before calling the router navigate
-        expect(mockNavigate).toHaveBeenCalledWith('/global/en-US/product/123', undefined);
+        expect(mockNavigate).toHaveBeenCalledWith('/global/en-GB/product/123', undefined);
     });
 });
 

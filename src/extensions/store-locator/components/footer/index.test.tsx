@@ -19,7 +19,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import StoreLocatorFooter from './index';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
-import { mockAltSiteObject, mockConfig, mockSiteObject } from '@/test-utils/config';
+import { mockAltSiteObject, mockConfig } from '@/test-utils/config';
 import StoreLocatorProvider from '@/extensions/store-locator/providers/store-locator';
 
 const defaultMockSite = mockAltSiteObject;
@@ -56,7 +56,7 @@ describe('StoreLocatorFooter', () => {
         renderWithRouter(<StoreLocatorFooter />);
         const link = screen.getByRole('link', { name: /store locator/i });
         expect(link).toBeInTheDocument();
-        expect(link).toHaveAttribute('href', `/${mockAltSiteObject.id}/${mockSiteObject.defaultLocale}/store-locator`);
+        expect(link).toHaveAttribute('href', `/${mockAltSiteObject.id}/${defaultMockLocale.id}/store-locator`);
     });
 
     it('has proper styling classes matching footer links', () => {

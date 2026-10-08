@@ -17,7 +17,7 @@ import { vi, expect, test, describe, afterEach } from 'vitest';
 import { composeStories } from '@storybook/react-vite';
 import { render, cleanup } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { mockSiteObject } from '@/test-utils/config';
+import { mockLocale, mockSiteObject } from '@/test-utils/config';
 
 // Partial mock — keep RouterProvider/createMemoryRouter and Form real, only
 // override the hooks the snapshot needs to be deterministic. Full-replacement
@@ -57,6 +57,7 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
                 ],
                 supportedCurrencies: mockSiteObject.supportedCurrencies,
             },
+            locale: mockLocale,
             language: mockSiteObject.defaultLocale,
             currency: mockSiteObject.defaultCurrency,
         })),

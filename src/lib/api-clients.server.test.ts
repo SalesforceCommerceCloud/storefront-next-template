@@ -60,7 +60,7 @@ vi.mock('@/scapi/custom-clients', () => ({
             key: 'loyalty',
             basePath: '/custom/loyalty/v1',
             ops: { getLoyaltyPoints: { m: 'GET', b: '/customers/{customerId}', s: '/loyalty' } },
-            locale: false,
+            locale: true,
             orgPrefix: true,
         },
     ],
@@ -98,14 +98,6 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
         })),
     };
 });
-
-vi.mock('@salesforce/storefront-next-runtime/i18n', () => ({
-    getTranslation: vi.fn(() => ({
-        i18next: {
-            language: 'en-US',
-        },
-    })),
-}));
 
 const createMockContextProvider = (): RouterContextProvider => {
     const store = new Map<unknown, unknown>();
@@ -247,16 +239,19 @@ describe('createApiClients', () => {
             );
         });
 
-        it('should use siteId from site context when available', () => {
+        it('should use site and locale from site context', () => {
             mockContextProvider.set(siteContext, {
                 site: {
                     id: 'site-context-id',
                     defaultCurrency: 'USD',
                     defaultLocale: 'en-US',
-                    supportedCurrencies: ['USD'],
-                    supportedLocales: [{ id: 'en-US', preferredCurrency: 'USD' }],
+                    supportedCurrencies: ['USD', 'MXN'],
+                    supportedLocales: [
+                        { id: 'en-US', preferredCurrency: 'USD' },
+                        { id: 'es-MX', preferredCurrency: 'MXN' },
+                    ],
                 },
-                locale: { id: 'en-US', preferredCurrency: 'USD' },
+                locale: { id: 'es-MX', preferredCurrency: 'MXN' },
             } as never);
 
             createApiClients(mockContextProvider);
@@ -264,6 +259,7 @@ describe('createApiClients', () => {
             expect(mockCreateCommerceApiClients).toHaveBeenCalledWith(
                 expect.objectContaining({
                     siteId: 'site-context-id',
+                    locale: 'es-MX',
                 })
             );
         });
@@ -275,7 +271,32 @@ describe('createApiClients', () => {
             expect(() => createApiClients(mockContextProvider)).toThrow('Site context not initialized');
         });
 
+        it('should throw when site context has no resolved locale', () => {
+            mockContextProvider.set(siteContext, {
+                site: {
+                    id: 'site-context-id',
+                    defaultCurrency: 'USD',
+                    defaultLocale: 'en-US',
+                    supportedCurrencies: ['USD'],
+                    supportedLocales: [{ id: 'en-US', preferredCurrency: 'USD' }],
+                },
+            } as never);
+
+            expect(() => createApiClients(mockContextProvider)).toThrow('Site context not initialized');
+        });
+
         it('should create custom clients from the generated registry', () => {
+            mockContextProvider.set(siteContext, {
+                site: {
+                    id: 'site-context-id',
+                    defaultCurrency: 'MXN',
+                    defaultLocale: 'es-MX',
+                    supportedCurrencies: ['MXN'],
+                    supportedLocales: [{ id: 'es-MX', preferredCurrency: 'MXN' }],
+                },
+                locale: { id: 'es-MX', preferredCurrency: 'MXN' },
+            } as never);
+
             const clients = createApiClients(mockContextProvider);
 
             expect(clients).toHaveProperty('loyalty');
@@ -290,7 +311,8 @@ describe('createApiClients', () => {
                 { getLoyaltyPoints: { m: 'GET', b: '/customers/{customerId}', s: '/loyalty' } },
                 expect.objectContaining({
                     organizationId: 'test-org-id',
-                    siteId: expect.any(String),
+                    siteId: 'site-context-id',
+                    locale: 'es-MX',
                 }),
                 expect.objectContaining({
                     onAuthTokenInvalid: expect.any(Function),

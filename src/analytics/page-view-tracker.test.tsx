@@ -143,6 +143,7 @@ describe('PageViewTracker', () => {
         mockUseConfig.mockReturnValue(defaultConfig);
         mockUseSite.mockReturnValue({
             site: { id: mockSiteObject.id },
+            locale: { id: mockSiteObject.defaultLocale },
             language: mockSiteObject.defaultLocale,
             currency: mockSiteObject.defaultCurrency,
         });
@@ -662,9 +663,14 @@ describe('PageViewTracker', () => {
     });
 
     describe('Dynamic site/locale', () => {
-        it('should pass correct siteInfo for a different site and locale', async () => {
-            mockUseSite.mockReturnValue({ site: { id: 'SiteGenesis' }, language: 'fr-FR', currency: 'USD' });
-            mockUseTranslation.mockReturnValue({ i18n: { language: 'fr-FR' } });
+        it('uses the resolved commerce locale when the translation language differs', async () => {
+            mockUseSite.mockReturnValue({
+                site: { id: 'SiteGenesis' },
+                locale: { id: 'fr-FR' },
+                language: 'en-US',
+                currency: 'USD',
+            });
+            mockUseTranslation.mockReturnValue({ i18n: { language: 'en-US' } });
 
             renderPageViewTracker('/test-page');
 
@@ -684,6 +690,7 @@ describe('PageViewTracker', () => {
         it('should not track when useSite returns undefined site', async () => {
             mockUseSite.mockReturnValue({
                 site: undefined,
+                locale: { id: mockSiteObject.defaultLocale },
                 language: mockSiteObject.defaultLocale,
                 currency: mockSiteObject.defaultCurrency,
             });

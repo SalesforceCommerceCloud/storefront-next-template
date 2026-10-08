@@ -16,7 +16,7 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
-import { mockAltSiteObject } from '@/test-utils/config';
+import { mockAltLocale, mockAltSiteObject } from '@/test-utils/config';
 // oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider } from 'react-router';
@@ -122,6 +122,7 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
         ...actual,
         useSite: vi.fn(() => ({
             site: { id: mockAltSiteObject.id, defaultLocale: mockAltSiteObject.defaultLocale },
+            locale: mockAltLocale,
             language: mockAltSiteObject.defaultLocale,
             currency: mockAltSiteObject.defaultCurrency,
         })),

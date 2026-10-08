@@ -154,6 +154,18 @@ describe('createSiteContextMiddleware', () => {
         expect(cookieSerialize).toHaveBeenCalledWith('en-US', 'lng');
     });
 
+    it("uses the selected site's default locale when the path locale is invalid", async () => {
+        const request = new Request('https://example.com/mx/default/page');
+
+        const { context: ctx } = await run(DEFAULT_CONFIG, request);
+
+        expect(ctx.site.id).toBe('site-mx');
+        expect(ctx.locale.id).toBe('es-MX');
+        expect(requestToLocaleMap.get(request)).toBe('es-MX');
+        expect(cookieSerialize).toHaveBeenCalledWith('site-mx', 'site_id');
+        expect(cookieSerialize).toHaveBeenCalledWith('es-MX', 'lng');
+    });
+
     it('resolves site from header when siteDetectionConfig.lookupHeader is provided', async () => {
         const siteDetectionConfig: DetectionConfig = {
             order: ['path', 'querystring', 'header', 'cookie'],
@@ -263,7 +275,10 @@ describe('createSiteContextMiddleware', () => {
         const { createSiteContextMiddleware } = await getMiddleware();
         const middleware = createSiteContextMiddleware({
             ...DEFAULT_CONFIG,
-            defaultLocale: 'fr-FR',
+            defaultLocale: 'en-US',
+            sites: DEFAULT_CONFIG.sites.map((site) =>
+                site.id === 'site-us' ? { ...site, defaultLocale: 'fr-FR' } : site
+            ),
         });
         const request = new Request('https://example.com/');
 

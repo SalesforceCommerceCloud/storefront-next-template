@@ -18,7 +18,7 @@ import { vi, expect, test, describe, afterEach } from 'vitest';
 import { composeStories } from '@storybook/react-vite';
 import * as ProductCartActionsStories from './product-cart-actions.stories';
 import { render, cleanup } from '@testing-library/react';
-import { mockSiteObject } from '@/test-utils/config';
+import { mockLocale, mockSiteObject } from '@/test-utils/config';
 
 // Mock useItemFetcher
 vi.mock('@/hooks/use-item-fetcher', () => ({
@@ -70,6 +70,7 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
                 ],
                 supportedCurrencies: mockSiteObject.supportedCurrencies,
             },
+            locale: mockLocale,
             language: mockSiteObject.defaultLocale,
             currency: mockSiteObject.defaultCurrency,
         })),

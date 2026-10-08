@@ -46,8 +46,8 @@ function getLocaleFromIdOrAlias(localeIdentifier: string | undefined | null, loc
  * Returns the first valid locale from the first source that yields a valid value.
  */
 export async function resolveLocale(request: Request, settings: SiteSettings, site: Site): Promise<Locale> {
-    const { defaultLocale, localeDetectionConfig, localeCookie } = settings;
-    const { supportedLocales } = site;
+    const { localeDetectionConfig, localeCookie } = settings;
+    const { defaultLocale, supportedLocales } = site;
 
     let locale: Locale | null = null;
     const requestUrl = new URL(request.url);

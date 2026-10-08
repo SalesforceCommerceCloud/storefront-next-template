@@ -64,12 +64,12 @@ describe('Link', () => {
         expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
     });
 
-    test('uses the current i18n language for locale segment', async () => {
+    test('uses the commerce locale when the translation language differs', async () => {
         await i18next.changeLanguage('it-IT');
 
         const { getByRole } = renderWithRouter(<Link to="/product/123">Product</Link>);
 
-        expect(getByRole('link')).toHaveAttribute('href', '/global/it-IT/product/123');
+        expect(getByRole('link')).toHaveAttribute('href', '/global/en-GB/product/123');
     });
 
     test('passes additional props to the rendered anchor', () => {
@@ -422,12 +422,12 @@ describe('NavLink', () => {
         expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
     });
 
-    test('uses the current i18n language for locale segment', async () => {
+    test('uses the commerce locale when the translation language differs', async () => {
         await i18next.changeLanguage('it-IT');
 
         const { getByRole } = renderWithRouter(<NavLink to="/product/123">Product</NavLink>);
 
-        expect(getByRole('link')).toHaveAttribute('href', '/global/it-IT/product/123');
+        expect(getByRole('link')).toHaveAttribute('href', '/global/en-GB/product/123');
     });
 
     test('passes additional props to the rendered anchor', () => {

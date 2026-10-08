@@ -15,7 +15,7 @@
  */
 import { vi, expect, test, describe, afterEach } from 'vitest';
 import type React from 'react';
-import { mockSiteObject } from '@/test-utils/config';
+import { mockLocale, mockSiteObject } from '@/test-utils/config';
 
 vi.mock('react-router', () => ({
     href: (path: string) => path,
@@ -87,6 +87,7 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
                 ],
                 supportedCurrencies: mockSiteObject.supportedCurrencies,
             },
+            locale: mockLocale,
             language: mockSiteObject.defaultLocale,
             currency: mockSiteObject.defaultCurrency,
         })),

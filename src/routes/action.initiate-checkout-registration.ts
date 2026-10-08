@@ -16,8 +16,7 @@
 import type { Route } from './+types/action.initiate-checkout-registration';
 import { data } from 'react-router';
 import { createApiClients } from '@/lib/api-clients.server';
-import { getAuth } from '@/middlewares/auth.server';
-import { getLocale } from '@salesforce/storefront-next-runtime/i18n';
+import { getAuth, getSlasLocale } from '@/middlewares/auth.server';
 import { isTrackingConsentEnabled } from '@/middlewares/auth.utils';
 import { trackingConsentToBoolean } from '@/types/tracking-consent';
 import { getBasket } from '@/middlewares/basket.server';
@@ -48,7 +47,7 @@ export async function action({
     context,
 }: Route.ActionArgs): Promise<ReturnType<typeof data<InitiateRegistrationResponse>>> {
     const logger = getLogger(context);
-    const locale = getLocale(context);
+    const locale = getSlasLocale(context);
 
     logger.debug('InitiateCheckoutRegistration: starting');
 

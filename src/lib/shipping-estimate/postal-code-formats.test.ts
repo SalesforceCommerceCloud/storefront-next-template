@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, it, expect } from 'vitest';
-import { getCountryCodeFromLocale, getPostalCodeFormat } from './postal-code-formats';
+import { getCommerceCountryCode, getCountryCodeFromLocale, getPostalCodeFormat } from './postal-code-formats';
 
 describe('getCountryCodeFromLocale', () => {
     it.each([
@@ -27,6 +27,16 @@ describe('getCountryCodeFromLocale', () => {
 
     it.each(['en-ZZ', 'not_a_locale', 'en', '', '  '])('returns undefined for %p', (locale) => {
         expect(getCountryCodeFromLocale(locale)).toBeUndefined();
+    });
+});
+
+describe('getCommerceCountryCode', () => {
+    it('falls back from a regionless commerce locale to the site default locale', () => {
+        expect(getCommerceCountryCode('default', 'en-GB')).toBe('GB');
+    });
+
+    it('falls back to US when neither locale identifies a country', () => {
+        expect(getCommerceCountryCode('default', 'en')).toBe('US');
     });
 });
 

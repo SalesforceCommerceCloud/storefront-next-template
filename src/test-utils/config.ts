@@ -437,6 +437,13 @@ export const mockLocale =
     mockSiteObject.supportedLocales[0];
 
 /**
+ * The alternative mock locale object for use with `SiteProvider` in tests.
+ */
+export const mockAltLocale =
+    mockAltSiteObject.supportedLocales.find((l) => l.id === mockAltSiteObject.defaultLocale) ??
+    mockAltSiteObject.supportedLocales[0];
+
+/**
  * React Testing Library wrapper component that provides ConfigProvider context
  *
  * @example

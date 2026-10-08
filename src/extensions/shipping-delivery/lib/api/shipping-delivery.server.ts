@@ -21,7 +21,7 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { fetchProductById } from '@/lib/api/products.server';
 import { getLogger } from '@/lib/logger.server';
 import type { ShopperDeliveryEstimates, ShopperProducts } from '@/scapi';
-import { getCountryCodeFromLocale } from '@/lib/shipping-estimate/postal-code-formats';
+import { getCommerceCountryCode } from '@/lib/shipping-estimate/postal-code-formats';
 import type { ShippingEstimate, ShippingEstimateOption } from '@/lib/shipping-estimate/types';
 import { compareRfc3339Timestamps } from '@/lib/rfc3339';
 
@@ -82,8 +82,8 @@ function isValidDeliveryWindow(deliveryWindow: DeliveryWindow): boolean {
 }
 
 export function getEstimateCountryCode(context: LoaderFunctionArgs['context']): string {
-    const localeId = context.get(siteContext)?.locale.id;
-    return getCountryCodeFromLocale(localeId) ?? 'US';
+    const siteCtx = context.get(siteContext);
+    return getCommerceCountryCode(siteCtx?.locale.id, siteCtx?.site.defaultLocale);
 }
 
 // --- SCAPI Client ---
