@@ -679,6 +679,10 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
                 requestResolver = resolve;
                 requestRejecter = reject;
             });
+            // The maintenance gate may already be locked, in which case this promise is not retained by
+            // maintenance.set(). Observe it immediately so a later transport failure cannot become an unhandled
+            // rejection. The original promise remains rejected for maintenance.promise when it is retained.
+            void promise.catch(() => undefined);
             requestMap.set(id, [request, requestResolver, requestRejecter]);
 
             const maintenance = context.get(maintenanceContext);

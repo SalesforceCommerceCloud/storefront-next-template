@@ -24,7 +24,13 @@ import { AllProvidersWrapper } from '@/test-utils/context-provider';
 const NAVIGATION_FIELDS_SELECT_ROOT =
     'id,name,slug,onlineSubCategoriesCount,c_showInMenu,c_headerMenuBanner,c_slotBannerImage,c_headerMenuOrientation';
 const NAVIGATION_FIELDS_SELECT_SUB = 'id,name,slug,onlineSubCategoriesCount,c_showInMenu';
-const { mockNavigationConfig } = vi.hoisted(() => ({
+const { mockLogger, mockNavigationConfig } = vi.hoisted(() => ({
+    mockLogger: {
+        error: vi.fn(),
+        warn: vi.fn(),
+        info: vi.fn(),
+        debug: vi.fn(),
+    },
     mockNavigationConfig: {
         rootCategoryId: 'root',
         maxDepth: 2,
@@ -38,11 +44,11 @@ const { mockNavigationConfig } = vi.hoisted(() => ({
 
 vi.mock('@/lib/api/categories.server', () => ({
     fetchCategory: vi.fn(),
-    fetchCategoriesByIds: vi.fn(),
+    fetchCategoriesByIds: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('@/lib/page-designer/component-loader.server', () => ({
-    fetchComponentWithComponentData: vi.fn(),
+    fetchComponentWithComponentData: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('@/components/region/embedded-component-region', () => ({
@@ -94,12 +100,7 @@ vi.mock('@/components/navigation-menu-mega', () => ({
 }));
 
 vi.mock('@/lib/logger.server', () => ({
-    getLogger: vi.fn(() => ({
-        error: vi.fn(),
-        warn: vi.fn(),
-        info: vi.fn(),
-        debug: vi.fn(),
-    })),
+    getLogger: vi.fn(() => mockLogger),
 }));
 
 vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => {
@@ -428,6 +429,49 @@ describe('_app.tsx - Default Layout Route', () => {
             expect(rootCategory).toEqual(mockRootCategory);
         });
 
+        it('degrades to empty navigation when the root category request fails', async () => {
+            const { fetchCategory, fetchCategoriesByIds } = await import('@/lib/api/categories.server');
+            const navigationError = new Error('Shopper Products unavailable');
+            vi.mocked(fetchCategory).mockRejectedValue(navigationError);
+
+            const result = loader({
+                context: {} as any,
+                request: new Request('https://example.test/'),
+            } as any);
+
+            await expect(result.root).resolves.toEqual({ id: 'root', categories: [] });
+            await expect(result.subs).resolves.toEqual([]);
+            expect(fetchCategoriesByIds).not.toHaveBeenCalled();
+            expect(mockLogger.error).toHaveBeenCalledWith('AppLayout: root navigation fetch failed', {
+                error: navigationError,
+                rootCategoryId: 'root',
+            });
+        });
+
+        it('degrades to root navigation when the subcategory request fails', async () => {
+            const { fetchCategory, fetchCategoriesByIds } = await import('@/lib/api/categories.server');
+            const navigationError = new Error('Shopper Products unavailable');
+            const mockRootCategory: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [{ id: 'cat1', name: 'Category 1', onlineSubCategoriesCount: 1, c_showInMenu: true }],
+            };
+            vi.mocked(fetchCategory).mockResolvedValue(mockRootCategory);
+            vi.mocked(fetchCategoriesByIds).mockRejectedValue(navigationError);
+
+            const result = loader({
+                context: {} as any,
+                request: new Request('https://example.test/'),
+            } as any);
+
+            await expect(result.root).resolves.toEqual(mockRootCategory);
+            await expect(result.subs).resolves.toEqual([]);
+            expect(mockLogger.warn).toHaveBeenCalledWith('AppLayout: subcategory navigation fetch failed', {
+                error: navigationError,
+                rootCategoryId: 'root',
+            });
+        });
+
         it('should fetch header embedded component data with componentId="header"', async () => {
             const { fetchCategory } = await import('@/lib/api/categories.server');
             const { fetchComponentWithComponentData } = await import('@/lib/page-designer/component-loader.server');
@@ -474,6 +518,30 @@ describe('_app.tsx - Default Layout Route', () => {
 
             const megaMenuComponent = await result.megaMenuComponent;
             expect(megaMenuComponent).toEqual({ id: 'mega-menu-component' });
+        });
+
+        it('degrades to empty embedded regions when their requests fail', async () => {
+            const { fetchCategory } = await import('@/lib/api/categories.server');
+            const { fetchComponentWithComponentData } = await import('@/lib/page-designer/component-loader.server');
+            const componentError = new Error('Shopper Experience unavailable');
+            vi.mocked(fetchCategory).mockResolvedValue({ id: 'root', categories: [] });
+            vi.mocked(fetchComponentWithComponentData).mockRejectedValue(componentError);
+
+            const result = loader({
+                context: {} as any,
+                request: new Request('https://example.test/'),
+            } as any);
+
+            await expect(result.headerComponent).resolves.toBeNull();
+            await expect(result.megaMenuComponent).resolves.toBeNull();
+            expect(mockLogger.warn).toHaveBeenCalledWith('AppLayout: embedded component fetch failed', {
+                componentId: 'header',
+                error: componentError,
+            });
+            expect(mockLogger.warn).toHaveBeenCalledWith('AppLayout: embedded component fetch failed', {
+                componentId: 'mega-menu',
+                error: componentError,
+            });
         });
 
         it('should propagate null when fetchComponentWithComponentData resolves to null', async () => {
@@ -580,10 +648,7 @@ describe('_app.tsx - Default Layout Route', () => {
             const subs = await result.subs;
 
             expect(mockFetchCategory).toHaveBeenCalledTimes(1);
-            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, [], 2, {
-                select: NAVIGATION_FIELDS_SELECT_SUB,
-                personalized: 'none',
-            });
+            expect(mockFetchCategoriesByIds).not.toHaveBeenCalled();
             expect(subs).toEqual([]);
         });
 
@@ -606,10 +671,7 @@ describe('_app.tsx - Default Layout Route', () => {
             const subs = await result.subs;
 
             expect(mockFetchCategory).toHaveBeenCalledTimes(1);
-            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, [], 2, {
-                select: NAVIGATION_FIELDS_SELECT_SUB,
-                personalized: 'none',
-            });
+            expect(mockFetchCategoriesByIds).not.toHaveBeenCalled();
             expect(subs).toEqual([]);
         });
 

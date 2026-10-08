@@ -349,6 +349,26 @@ describe('createApiClients', () => {
             );
         });
 
+        it('observes maintenance tracking rejections before the request settles', () => {
+            vi.stubGlobal('window', undefined);
+            const maintenance = createMaintenance();
+            mockContextProvider.set(maintenanceContext, maintenance);
+            createApiClients(mockContextProvider);
+
+            const maintenanceMiddleware = scapiMocks.mockBuiltInUse.mock.calls[4][0];
+            const catchSpy = vi.spyOn(Promise.prototype, 'catch');
+            try {
+                maintenanceMiddleware.onRequest({
+                    request: new Request('https://kv7kzm78.api.commercecloud.salesforce.com/products'),
+                    id: 'request-id',
+                });
+
+                expect(catchSpy).toHaveBeenCalledTimes(1);
+            } finally {
+                catchSpy.mockRestore();
+            }
+        });
+
         it('logs final repeated query values when personalization is absent', () => {
             vi.stubGlobal('window', undefined);
             const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };

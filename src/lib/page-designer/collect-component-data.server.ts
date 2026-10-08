@@ -27,11 +27,15 @@ export function collectComponentData(
 ): void {
     if (!registry.hasLoaders(component.typeId)) return;
 
-    map[component.id] = registry.callLoader(component.typeId, {
+    const loaderPromise = registry.callLoader(component.typeId, {
         componentData: component,
         context: ctx.context,
         request: ctx.request,
     });
+    // React attaches its Await handler after loader serialization begins. Observe early failures now while retaining
+    // the original promise and rejection for the component-local error UI.
+    void loaderPromise.catch(() => undefined);
+    map[component.id] = loaderPromise;
 }
 
 /** Recursively collect component data promises from regions. */
