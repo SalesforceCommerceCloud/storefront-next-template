@@ -617,6 +617,10 @@ url: {
   category are required per site; content is optional. Category mode is
   `id-suffix` or `slug-path`.
 
+`seoRoutes` is omitted by default. Enable it only after the Commerce instance
+and every active site meet the prerequisites in the
+[SEO URL migration guide](./migrations/seo-url-rules/README.md#prerequisites).
+
 `prefix`, `excludeRoutes`, and `seoRoutes` are protected build-time values.
 They cannot be overridden through `PUBLIC__` environment variables. Update
 `config.server.ts`, rebuild, and redeploy. Keep one `seoRoutes` entry for every

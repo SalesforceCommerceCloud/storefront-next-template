@@ -15,9 +15,9 @@
  */
 
 /**
- * Replaces the shared product and category SEO route defaults before a test build.
+ * Adds an explicit site SEO route configuration before a test build.
  *
- * Usage: tsx apply-seo-route-config.ts <product-prefix> <category-prefix> <category-mode>
+ * Usage: tsx apply-seo-route-config.ts <site-id> <product-prefix> <category-prefix> <category-mode>
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -27,33 +27,48 @@ const TEMPLATE_APP_PATH = resolve(__dirname, '../../../');
 const BASE_CONFIG_PATH = resolve(TEMPLATE_APP_PATH, 'config.server.base.ts');
 const CONFIG_PATH = existsSync(BASE_CONFIG_PATH) ? BASE_CONFIG_PATH : resolve(TEMPLATE_APP_PATH, 'config.server.ts');
 const CONFIG_FILE_NAME = basename(CONFIG_PATH);
-const SAFE_PREFIX = /^[A-Za-z0-9_-]+$/;
+const SAFE_CONFIG_VALUE = /^[A-Za-z0-9_-]+$/;
 
-const [productPrefix, categoryPrefix, categoryMode] = process.argv.slice(2);
+const [siteId, productPrefix, categoryPrefix, categoryMode] = process.argv.slice(2);
 
 if (
+    !siteId ||
     !productPrefix ||
     !categoryPrefix ||
-    !SAFE_PREFIX.test(productPrefix) ||
-    !SAFE_PREFIX.test(categoryPrefix) ||
+    !SAFE_CONFIG_VALUE.test(siteId) ||
+    !SAFE_CONFIG_VALUE.test(productPrefix) ||
+    !SAFE_CONFIG_VALUE.test(categoryPrefix) ||
     !['id-suffix', 'slug-path'].includes(categoryMode)
 ) {
-    console.error('Usage: tsx apply-seo-route-config.ts <product-prefix> <category-prefix> <id-suffix|slug-path>');
+    console.error(
+        'Usage: tsx apply-seo-route-config.ts <site-id> <product-prefix> <category-prefix> <id-suffix|slug-path>'
+    );
     process.exit(1);
 }
 
 const originalConfig = readFileSync(CONFIG_PATH, 'utf8');
-const productPattern = /product:\s*\{\s*prefix:\s*['"][^'"]+['"]\s*\}/;
-const categoryPattern = /category:\s*\{\s*prefix:\s*['"][^'"]+['"],\s*mode:\s*['"](?:id-suffix|slug-path)['"]\s*\}/;
+const excludeRoutesPattern = /^(\s*)excludeRoutes:\s*\[[^\n]*\],$/m;
+const excludeRoutesMatch = originalConfig.match(excludeRoutesPattern);
 
-if (!productPattern.test(originalConfig) || !categoryPattern.test(originalConfig)) {
-    console.error(`Could not find the shared SEO route defaults in ${CONFIG_FILE_NAME}`);
+if (!excludeRoutesMatch || /^\s*seoRoutes:/m.test(originalConfig)) {
+    console.error(`Could not add app.url.seoRoutes to ${CONFIG_FILE_NAME}`);
     process.exit(1);
 }
 
-const config = originalConfig
-    .replace(productPattern, `product: { prefix: '${productPrefix}' }`)
-    .replace(categoryPattern, `category: { prefix: '${categoryPrefix}', mode: '${categoryMode}' }`);
+const indentation = excludeRoutesMatch[1];
+const routeIndentation = `${indentation}    `;
+const fieldIndentation = `${routeIndentation}    `;
+const seoRoutes = [
+    `${indentation}seoRoutes: {`,
+    `${routeIndentation}${JSON.stringify(siteId)}: {`,
+    `${fieldIndentation}product: { prefix: '${productPrefix}' },`,
+    `${fieldIndentation}category: { prefix: '${categoryPrefix}', mode: '${categoryMode}' },`,
+    `${routeIndentation}},`,
+    `${indentation}},`,
+].join('\n');
+const config = originalConfig.replace(excludeRoutesPattern, (excludeRoutes) => `${excludeRoutes}\n${seoRoutes}`);
 
 writeFileSync(CONFIG_PATH, config, 'utf8');
-console.log(`Updated ${CONFIG_FILE_NAME}: product=${productPrefix}, category=${categoryPrefix}, mode=${categoryMode}`);
+console.log(
+    `Updated ${CONFIG_FILE_NAME}: site=${siteId}, product=${productPrefix}, category=${categoryPrefix}, mode=${categoryMode}`
+);

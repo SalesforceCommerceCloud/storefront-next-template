@@ -33,6 +33,8 @@ storefront rebuilt and redeployed—the two do not sync automatically (see
 
 Do not enable `seoRoutes` until **all** of these hold:
 
+- Your B2C Commerce instance is on version 26.10 or later. Earlier versions
+  reject the slug expansions required by configured product and category URLs.
 - Your project's `@salesforce/storefront-next-runtime` and
   `@salesforce/storefront-next-dev` packages are on the SDK release that ships
   the route-registration layer (`SeoRoutesConfig`, `apply-seo-url-config`) or
@@ -45,10 +47,9 @@ Do not enable `seoRoutes` until **all** of these hold:
   require Shopper Products 1.13, Shopper Search 1.15, and authoritative slug
   data at every category-link surface (see [Category Modes](#category-modes)).
 
-These are the same two gates stated in
-[README-MULTI-SITE.md, URL Config](../../README-MULTI-SITE.md#url-config). They
-are prerequisites, not warnings—a storefront that ships `seoRoutes` before they
-hold will either fail the build or fail to generate URLs for an omitted site.
+These gates are prerequisites, not warnings—a storefront that ships `seoRoutes`
+before they hold can fail API requests, fail the build, or fail to generate URLs
+for an omitted site.
 
 ## Update Route Modules from Older Templates
 

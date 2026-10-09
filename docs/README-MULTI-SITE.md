@@ -13,7 +13,7 @@ import { createProductUrl } from '@/route-paths';
 
 const seoUrlContext = useSeoUrlContext();
 
-// Renders as /global/en-GB/p/123 with the shipped reference configuration.
+// Renders as /global/en-GB/p/123 with the default product route.
 <Link to={createProductUrl({productId: '123'}, seoUrlContext)}>View Product</Link>
 
 // Renders as /global/en-GB/ (prefixed with current site context)
@@ -91,9 +91,10 @@ url: {
 - **`excludeRoutes`** — Glob patterns for routes that should NOT be wrapped with the prefix (e.g., API resource routes, server actions).
 - **`seoRoutes`** — Business Manager-mirrored product, category, and optional standalone-content prefixes keyed directly by Commerce site ID. Prefixes are static segments without slashes. Category mode is `id-suffix` or `slug-path`.
 
-All properties are optional at the type level. The reference config ships `p`,
-`c` (`id-suffix`), and `cms` prefixes for both reference sites. Replace those
-site-keyed values with the Business Manager grammar for your sites.
+All properties are optional. The reference config leaves `seoRoutes` unset so
+generated storefronts remain compatible with Commerce versions before 26.10.
+Add it only after every active site meets the prerequisites in the
+[SEO URL migration guide](./migrations/seo-url-rules/README.md#prerequisites).
 
 > **Important: `url.prefix`, `url.excludeRoutes`, and `url.seoRoutes` require a rebuild.**
 > These values are protected by `protectedPaths` and cannot be overridden with `PUBLIC__` environment variables. React Router compiles them during development startup, type generation, and production build. Update `config.server.ts`, then rebuild and redeploy.
@@ -156,9 +157,9 @@ Business Manager is the source of truth for a site's SEO URL grammar; `seoRoutes
 
 Prefixes are static segments without slashes. The mapping is manual and one-directional: a change in Business Manager reaches a deployed storefront only after you update `config.server.ts` and rebuild (`seoRoutes` is a `protectedPaths` value—see the rebuild note above). Product builders remove the terminal `.html` extension supplied by Business Manager while preserving a product ID that itself ends in `.html`. Redirects for paths outside the active Storefront Next grammar remain the responsibility of the CDN / Business Manager redirect layer—see [Adopting SEO URL Rules: Preventing broken indexed URLs](./migrations/seo-url-rules/README.md#preventing-broken-indexed-urls-and-redirect-loops).
 
-#### Market Street Reference Configuration
+#### Optional Market Street Configuration
 
-Market Street is the reference storefront for the retail vertical. Its `seoRoutes` entry uses short prefixes and deterministic `id-suffix` category routing:
+Market Street is the reference storefront for the retail vertical. To enable SEO routes for it, add short prefixes and deterministic `id-suffix` category routing:
 
 ```typescript
 url: {
@@ -176,7 +177,7 @@ url: {
 
 With this entry a Business Manager product path such as `men/knitwear/product-id.html` resolves at `/{siteId}/{localeId}/p/men/knitwear/product-id`, and a category resolves at `/{siteId}/{localeId}/c/{slug}/{id}`. Both loaders read the resource ID from the final path segment with no SEO-mapping request.
 
-The shipped reference configuration includes Market Street alongside the RefArch demo sites. Keep an entry for every active site and remove inactive entries when tailoring a generated project. URL generation for an omitted site fails fast, and a build can surface that failure when it renders or validates links for that site.
+No `seoRoutes` entries ship by default. When opting in, add every active site and remove inactive entries when tailoring a generated project. URL generation for an omitted site fails fast, and a build can surface that failure when it renders or validates links for that site.
 
 #### Non-Blocking Follow-Ups
 
@@ -487,7 +488,7 @@ import { createProductUrl } from '@/route-paths';
 
 const productUrl = createProductUrl({productId: '123'}, useSeoUrlContext());
 
-// Both produce /global/en-GB/p/123 with the shipped reference configuration.
+// Both produce /global/en-GB/p/123 with the default product route.
 <Link to={productUrl}>Product</Link>
 <NavLink to={productUrl}>Product</NavLink>
 

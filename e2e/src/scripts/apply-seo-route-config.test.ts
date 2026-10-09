@@ -30,36 +30,46 @@ afterEach(() => {
 });
 
 describe('apply-seo-route-config', () => {
-    test('updates the shared SEO route defaults in a flattened vertical', () => {
+    test('adds a parseable SEO route configuration for a hyphenated site ID', () => {
         const templatePath = mkdtempSync(resolve(tmpdir(), 'apply-seo-route-config-'));
         temporaryDirectories.push(templatePath);
 
         const scriptPath = resolve(templatePath, 'e2e/src/scripts/apply-seo-route-config.ts');
         mkdirSync(dirname(scriptPath), { recursive: true });
         copyFileSync(SCRIPT_PATH, scriptPath);
-        writeFileSync(resolve(templatePath, 'config.server.ts'), "export {default} from './config.server.base';\n");
+        const configPath = resolve(templatePath, 'config.server.ts');
         writeFileSync(
-            resolve(templatePath, 'config.server.base.ts'),
-            `export const defaultSeoRoute = {
-    product: { prefix: 'p' },
-    category: { prefix: 'c', mode: 'id-suffix' },
-    content: { prefix: 'cms' },
+            configPath,
+            `export default {
+    app: {
+        url: {
+            prefix: '/:siteId/:localeId',
+            excludeRoutes: ['/resource/**', '/action/**'],
+        },
+    },
 };
 `
         );
 
-        const result = spawnSync(process.execPath, ['--import=tsx', scriptPath, 'products', 'catalog', 'slug-path'], {
-            encoding: 'utf8',
-        });
+        const result = spawnSync(
+            process.execPath,
+            ['--import=tsx', scriptPath, 'RefArch-Global', 'products', 'catalog', 'slug-path'],
+            {
+                encoding: 'utf8',
+            }
+        );
 
         expect(result.stderr).toBe('');
         expect(result.status).toBe(0);
-        expect(readFileSync(resolve(templatePath, 'config.server.base.ts'), 'utf8')).toContain(
-            "product: { prefix: 'products' }"
-        );
-        expect(readFileSync(resolve(templatePath, 'config.server.base.ts'), 'utf8')).toContain(
-            "category: { prefix: 'catalog', mode: 'slug-path' }"
-        );
+        const config = readFileSync(configPath, 'utf8');
+        expect(config).toContain('seoRoutes: {');
+        expect(config).toContain('"RefArch-Global": {');
+        expect(config).toContain("product: { prefix: 'products' }");
+        expect(config).toContain("category: { prefix: 'catalog', mode: 'slug-path' }");
+
+        const parseResult = spawnSync(process.execPath, ['--import=tsx', configPath], { encoding: 'utf8' });
+        expect(parseResult.stderr).toBe('');
+        expect(parseResult.status).toBe(0);
     });
 
     test('rejects unsafe prefixes without modifying config', () => {
@@ -75,7 +85,7 @@ describe('apply-seo-route-config', () => {
 
         const result = spawnSync(
             process.execPath,
-            ['--import=tsx', scriptPath, '../products', 'catalog', 'slug-path'],
+            ['--import=tsx', scriptPath, 'RefArchGlobal', '../products', 'catalog', 'slug-path'],
             {
                 encoding: 'utf8',
             }

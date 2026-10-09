@@ -62,8 +62,9 @@ describe('fetchProductRecommendations', () => {
 
         const { fetchProductRecommendations } = await import('./recommendations.server');
         const request = new Request('http://localhost/');
+        const context = createSeoContext();
         const result = await fetchProductRecommendations(
-            { context: createSeoContext(), request },
+            { context, request },
             { name: 'home-top-revenue-for-category', products: undefined, currency: 'USD', args: { limit: 8 } }
         );
 
@@ -76,7 +77,7 @@ describe('fetchProductRecommendations', () => {
             signal: request.signal,
         });
         expect(fetchProductsByIds).toHaveBeenCalledWith(
-            {},
+            context,
             ['p-1'],
             expect.objectContaining({
                 currency: 'USD',
@@ -169,17 +170,18 @@ describe('fetchProductRecommendations', () => {
         ]);
 
         const { fetchProductRecommendations } = await import('./recommendations.server');
+        const context = createTestContext();
         const result = await fetchProductRecommendations(
-            { context: createTestContext(), request: new Request('http://localhost/') },
+            { context, request: new Request('http://localhost/') },
             { name: 'x' }
         );
 
         expect(fetchProductsByIds).toHaveBeenCalledWith(
-            {},
+            context,
             ['p-1', 'p-2'],
             expect.objectContaining({
                 allImages: true,
-                expand: ['availability', 'images', 'prices', 'variations', 'slug'],
+                expand: ['availability', 'images', 'prices', 'variations'],
             })
         );
         expect(result.recs).toHaveLength(2);
