@@ -102,12 +102,21 @@ export function getCardTypeDisplay(
         const normalizedType = cardType.toLowerCase().replace(/[_\s-]+/g, '');
 
         if (normalizedType.includes('visa')) return 'Visa';
-        if (normalizedType.includes('mastercard') || normalizedType === 'master') return 'Mastercard';
+        // Adyen wire `mc` / `maestro` plus BM MasterCard variants
+        if (
+            normalizedType.includes('mastercard') ||
+            normalizedType === 'master' ||
+            normalizedType === 'mc' ||
+            normalizedType === 'maestro'
+        ) {
+            return normalizedType === 'maestro' ? 'Maestro' : 'Mastercard';
+        }
         if (normalizedType.includes('amex') || normalizedType.includes('american')) return 'American Express';
         if (normalizedType.includes('discover')) return 'Discover';
         if (normalizedType.includes('diners')) return 'Diners Club';
         if (normalizedType.includes('jcb')) return 'JCB';
-        if (normalizedType.includes('unionpay')) return 'UnionPay';
+        // Adyen wire `cup` → UnionPay
+        if (normalizedType.includes('unionpay') || normalizedType === 'cup') return 'UnionPay';
 
         // Return the original if no normalization applied
         return cardType;

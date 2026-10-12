@@ -21,10 +21,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { accountDestructiveButtonClasses } from '@/lib/account-action-styles';
-import { getCardIcon } from '@/lib/payment/card-icon-utils';
 import { getCardTypeDisplay } from '@/lib/payment/payment-utils';
 import type { ShopperBasketsV2 } from '@/scapi';
-import type { PaymentMethod } from './payment-method-card';
+import { PaymentMethodBrandIcon, type PaymentMethod } from './payment-method-card';
 
 export interface RemovePaymentMethodDialogProps {
     open: boolean;
@@ -83,8 +82,6 @@ export function RemovePaymentMethodDialog({
         : getCardTypeDisplay({
               paymentCard: { cardType: paymentMethod.type },
           } as ShopperBasketsV2.schemas['OrderPaymentInstrument']);
-    // Pass wire type for SEPA so getCardIcon resolves SepaDebitIcon (not GenericCardIcon).
-    const CardIcon = getCardIcon(isSepa ? paymentMethod.type : displayName);
     const details = buildDetailsLine(paymentMethod, isSepa);
     const title = paymentMethod.last4.length > 0 ? `${displayName} **** ${paymentMethod.last4}` : displayName;
 
@@ -105,7 +102,7 @@ export function RemovePaymentMethodDialog({
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-medium">{t('paymentMethods.paymentMethod')}</span>
                                 <div className="flex items-center" aria-hidden="true">
-                                    <CardIcon width={40} height={32} className="max-w-[40px] max-h-[32px]" />
+                                    <PaymentMethodBrandIcon paymentMethod={paymentMethod} />
                                 </div>
                             </div>
                             <p className="text-base font-semibold mb-1">{title}</p>

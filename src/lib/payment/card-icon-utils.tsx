@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { ComponentType } from 'react';
-import { VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon, SepaDebitIcon, GenericCardIcon } from '@/components/icons';
+import { VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon, GenericCardIcon } from '@/components/icons';
 
 interface CardIconProps {
     className?: string;
@@ -23,9 +23,10 @@ interface CardIconProps {
 }
 
 /**
- * Map a Commerce/BM cardType (or display label) to an icon.
+ * Map a Commerce/BM cardType (or display label) to a host React icon (CAP-off / no iconUrl).
  * Matching is case/spacing-insensitive so MasterCard, Mastercard, and Master Card
- * all resolve — without rewriting the wire value. SEPA uses the same wordmark as sfp.js.
+ * all resolve — without rewriting the wire value.
+ * CAP-on SEPA/card brands use SDK metadata via PaymentMethod.iconUrl instead.
  */
 export const getCardIcon = (cardType: string): ComponentType<CardIconProps> => {
     const key = cardType.toLowerCase().replace(/[_\s-]+/g, '');
@@ -34,19 +35,24 @@ export const getCardIcon = (cardType: string): ComponentType<CardIconProps> => {
             return VisaIcon;
         case 'mastercard':
         case 'master':
+        case 'mc':
+        case 'maestro':
             return MastercardIcon;
         case 'americanexpress':
         case 'amex':
             return AmexIcon;
         case 'discover':
             return DiscoverIcon;
-        case 'sepadebit':
-        case 'sepa':
-            return SepaDebitIcon;
         case 'dinersclub':
         case 'diners':
         case 'jcb':
+        case 'unionpay':
+        case 'cup':
+        case 'sepadebit':
+        case 'sepa':
         default:
+            // Unknown / SEPA / Diners/JCB/UnionPay: GenericCardIcon on host.
+            // CAP-on supplies iconUrl from SDK metadata instead.
             return GenericCardIcon;
     }
 };

@@ -111,6 +111,7 @@ describe('PaymentMethodCard', () => {
             expiryYear: '',
             cardholderName: 'Jane Doe',
             isDefault: false,
+            iconUrl: 'https://cdn.example/icons/sepa_debit.svg',
         };
         render(<PaymentMethodCard paymentMethod={sepaMethod} onRemove={vi.fn()} />);
 
@@ -118,7 +119,26 @@ describe('PaymentMethodCard', () => {
         expect(screen.getByText('Jane Doe')).toBeInTheDocument();
         expect(screen.queryByText(/Expires/i)).not.toBeInTheDocument();
         expect(screen.queryByText(t('account:paymentMethods.setDefault'))).not.toBeInTheDocument();
-        // SEPA wordmark (not GenericCardIcon's 40×24 card silhouette).
-        expect(document.querySelector('svg[viewBox="0 0 36 13"]')).toBeInTheDocument();
+        // CAP supplies SDK iconUrl — no host SEPA React SVG.
+        expect(screen.getByTestId('payment-method-brand-icon')).toHaveAttribute(
+            'src',
+            'https://cdn.example/icons/sepa_debit.svg'
+        );
+    });
+
+    test('prefers CAP-supplied iconUrl over host React brand SVGs', () => {
+        render(
+            <PaymentMethodCard
+                paymentMethod={{
+                    ...mockPaymentMethod,
+                    type: 'diners',
+                    iconUrl: 'https://example.com/icons/diners.svg',
+                }}
+            />
+        );
+
+        const img = screen.getByTestId('payment-method-brand-icon');
+        expect(img).toHaveAttribute('src', 'https://example.com/icons/diners.svg');
+        expect(document.querySelector('svg')).not.toBeInTheDocument();
     });
 });

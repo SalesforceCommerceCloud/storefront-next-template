@@ -32,6 +32,30 @@ export interface PaymentMethod {
     expiryYear: string;
     cardholderName: string;
     isDefault: boolean;
+    /**
+     * Absolute brand/SEPA icon URL from SFP metadata (CAP-on).
+     * When set, list/remove prefer this over host `getCardIcon` React SVGs.
+     */
+    iconUrl?: string;
+}
+
+/** Brand mark for list/remove — SDK URL when CAP supplies it, else host React icons. */
+export function PaymentMethodBrandIcon({ paymentMethod }: { paymentMethod: PaymentMethod }): ReactElement {
+    if (paymentMethod.iconUrl) {
+        return (
+            <img
+                src={paymentMethod.iconUrl}
+                alt=""
+                width={40}
+                height={32}
+                className="max-w-[40px] max-h-[32px] object-contain"
+                data-testid="payment-method-brand-icon"
+            />
+        );
+    }
+
+    const CardIcon = getCardIcon(paymentMethod.type);
+    return <CardIcon width={40} height={32} className="max-w-[40px] max-h-[32px]" />;
 }
 
 export interface PaymentMethodCardProps {
@@ -89,8 +113,6 @@ export function PaymentMethodCard({ paymentMethod, onRemove, onSetDefault }: Pay
         t('paymentMethods.sepaDebit', { defaultValue: 'SEPA Debit' }),
         t('paymentMethods.creditCard')
     );
-    // Pass wire type for SEPA so getCardIcon resolves SepaDebitIcon (not GenericCardIcon).
-    const CardIcon = getCardIcon(isSepa ? paymentMethod.type : displayName);
     const title = paymentMethod.last4.length > 0 ? `${displayName} **** ${paymentMethod.last4}` : displayName;
     const details = buildDetailsLine(paymentMethod, isSepa, t('paymentMethods.expires'));
     const removeLabel = t('paymentMethods.remove');
@@ -135,7 +157,7 @@ export function PaymentMethodCard({ paymentMethod, onRemove, onSetDefault }: Pay
                 </div>
 
                 <div className="flex-shrink-0 flex items-center" aria-hidden="true">
-                    <CardIcon width={40} height={32} className="max-w-[40px] max-h-[32px]" />
+                    <PaymentMethodBrandIcon paymentMethod={paymentMethod} />
                 </div>
             </div>
         </Card>

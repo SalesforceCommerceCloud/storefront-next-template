@@ -66,14 +66,16 @@ describe('getCardIcon', () => {
         expect(getCardIcon('amex')).not.toBe(GenericIcon);
     });
 
-    test('returns SepaDebitIcon for sepa_debit wire type and display label', () => {
-        const GenericIcon = getCardIcon('Unknown');
-        const fromWire = getCardIcon('sepa_debit');
-        const fromLabel = getCardIcon('SEPA Debit');
-        const fromShort = getCardIcon('sepa');
+    test('maps Adyen wire aliases mc and maestro to MastercardIcon', () => {
+        const Mastercard = getCardIcon('Mastercard');
+        expect(getCardIcon('mc')).toBe(Mastercard);
+        expect(getCardIcon('maestro')).toBe(Mastercard);
+    });
 
-        expect(fromWire).toBe(fromLabel);
-        expect(fromWire).toBe(fromShort);
-        expect(fromWire).not.toBe(GenericIcon);
+    test('falls back to GenericCardIcon for sepa_debit without CAP iconUrl', () => {
+        const GenericIcon = getCardIcon('Unknown');
+        expect(getCardIcon('sepa_debit')).toBe(GenericIcon);
+        expect(getCardIcon('SEPA Debit')).toBe(GenericIcon);
+        expect(getCardIcon('sepa')).toBe(GenericIcon);
     });
 });
