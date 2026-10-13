@@ -241,6 +241,10 @@ export default defineConfig<Config>(
                 // the DAL entry is missing, unavailable, or yields no usable sites.
                 // Override via PUBLIC__app__commerce__sitesFromDal=false.
                 sitesFromDal: true,
+                // Enable pickup/BOPIS detection for currency-suffixed shipping method IDs
+                // (e.g., `005-usd`, `005-gbp`). Off by default for backward compatibility.
+                // Override via PUBLIC__app__commerce__perCurrencyShippingMethodIds=true.
+                perCurrencyShippingMethodIds: false,
                 // Shopper Agent (Commerce Client messaging widget) — preferred config path.
                 // Empty-value block is REQUIRED (not just an aesthetic default): the SDK's
                 // mergeEnvConfig only merges PUBLIC__ env-var overrides whose config path

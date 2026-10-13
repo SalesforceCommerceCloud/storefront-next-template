@@ -21,6 +21,12 @@ import { getFallbackDeliveryDescription, getShippingEstimates } from './shipping
 
 const logger = vi.hoisted(() => ({ warn: vi.fn() }));
 
+vi.mock('@salesforce/storefront-next-runtime/config', async () => {
+    const actual = await vi.importActual<typeof import('@salesforce/storefront-next-runtime/config')>(
+        '@salesforce/storefront-next-runtime/config'
+    );
+    return { ...actual, getConfig: vi.fn() };
+});
 vi.mock('@/lib/api-clients.server', () => ({
     createApiClients: vi.fn(),
 }));
@@ -31,6 +37,8 @@ vi.mock('@/lib/logger.server', () => ({ getLogger: () => logger }));
 vi.mock('@salesforce/storefront-next-runtime/i18n', () => ({
     getTranslation: vi.fn(),
 }));
+
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
 
 const getDeliveryEstimates = vi.fn();
 
@@ -505,6 +513,7 @@ describe('getShippingEstimates', () => {
 describe('getFallbackDeliveryDescription', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(getConfig).mockReturnValue({ commerce: { perCurrencyShippingMethodIds: false } } as never);
     });
 
     it('returns the first merchant-authored delivery-method description', async () => {
@@ -535,5 +544,22 @@ describe('getFallbackDeliveryDescription', () => {
         vi.mocked(fetchProductById).mockRejectedValue(new Error('Catalog unavailable'));
 
         await expect(getFallbackDeliveryDescription(createContext(), 'product-1')).resolves.toBeUndefined();
+    });
+
+    it('excludes currency-suffixed pickup methods when flag is ON', async () => {
+        vi.mocked(getConfig).mockReturnValue({ commerce: { perCurrencyShippingMethodIds: true } } as never);
+        const mockContext = {
+            get: vi.fn().mockReturnValue({ site: { supportedCurrencies: ['USD', 'GBP'] } }),
+        } as never;
+        vi.mocked(fetchProductById).mockResolvedValue({
+            shippingMethods: [
+                { id: '005-gbp', description: 'Store Pickup GBP' },
+                { id: 'standard', description: 'Standard delivery in 3-5 business days' },
+            ],
+        } as never);
+
+        await expect(getFallbackDeliveryDescription(mockContext, 'product-1')).resolves.toBe(
+            'Standard delivery in 3-5 business days'
+        );
     });
 });

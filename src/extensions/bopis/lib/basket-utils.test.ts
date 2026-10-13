@@ -1882,6 +1882,38 @@ describe('filterDeliveryShippingMethods', () => {
         expect(result['shipment-1'].applicableShippingMethods).toHaveLength(2);
         expect(result['shipment-1'].applicableShippingMethods?.map((m) => m.id)).toEqual(['001', '002']);
     });
+
+    it('should filter out currency-suffixed pickup methods when pickupCurrencies provided', () => {
+        const shippingMethodsMap = {
+            'shipment-1': {
+                applicableShippingMethods: [
+                    { id: '001', name: 'Standard' },
+                    { id: '005-gbp', name: 'Store Pickup GBP' },
+                ],
+            },
+        } as Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>;
+
+        const result = filterDeliveryShippingMethods(shippingMethodsMap, ['USD', 'GBP']);
+
+        expect(result['shipment-1'].applicableShippingMethods).toHaveLength(1);
+        expect(result['shipment-1'].applicableShippingMethods?.[0].id).toBe('001');
+    });
+
+    it('should keep currency-suffixed pickup methods when pickupCurrencies not provided (default)', () => {
+        const shippingMethodsMap = {
+            'shipment-1': {
+                applicableShippingMethods: [
+                    { id: '001', name: 'Standard' },
+                    { id: '005-gbp', name: 'Store Pickup GBP' },
+                ],
+            },
+        } as Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>;
+
+        const result = filterDeliveryShippingMethods(shippingMethodsMap);
+
+        expect(result['shipment-1'].applicableShippingMethods).toHaveLength(2);
+        expect(result['shipment-1'].applicableShippingMethods?.map((m) => m.id)).toEqual(['001', '005-gbp']);
+    });
 });
 
 describe('isStorePickup', () => {

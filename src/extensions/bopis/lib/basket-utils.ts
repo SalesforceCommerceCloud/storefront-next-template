@@ -396,6 +396,7 @@ export function filterPickupProductItems(
  * Removes methods identified as pickup (c_storePickupEnabled === true, or id '005' as fallback),
  *
  * @param shippingMethodsMap - A map of shipment ID to shipping method results
+ * @param pickupCurrencies - Site's supported currencies; when provided, recognize currency-suffixed pickup method IDs (e.g., `005-usd`)
  * @returns A shipping methods map with pickup methods filtered out from each shipment
  *
  * @example
@@ -404,7 +405,8 @@ export function filterPickupProductItems(
  * ```
  */
 export function filterDeliveryShippingMethods(
-    shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>
+    shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>,
+    pickupCurrencies?: string[]
 ): Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> {
     const filteredMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> = {};
 
@@ -417,7 +419,7 @@ export function filterDeliveryShippingMethods(
         filteredMap[shipmentId] = {
             ...shippingMethods,
             applicableShippingMethods: shippingMethods.applicableShippingMethods.filter(
-                (method) => !isPickupShippingMethod(method)
+                (method) => !isPickupShippingMethod(method, { pickupCurrencies })
             ),
         };
     }

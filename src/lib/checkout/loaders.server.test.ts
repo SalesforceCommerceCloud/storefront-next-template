@@ -15,6 +15,15 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+const mockGetConfig = vi.hoisted(() => vi.fn());
+
+vi.mock('@salesforce/storefront-next-runtime/config', async () => {
+    const actual = await vi.importActual<typeof import('@salesforce/storefront-next-runtime/config')>(
+        '@salesforce/storefront-next-runtime/config'
+    );
+    return { ...actual, getConfig: mockGetConfig };
+});
+
 // Mock the middleware and API functions
 vi.mock('@/middlewares/auth.server', () => ({
     getAuth: vi.fn(),
@@ -72,10 +81,20 @@ import {
     applyDefaultShippingMethod,
 } from './loaders.server';
 import type { CustomerProfile } from '@/components/checkout/utils/checkout-context-types';
+import baseConfig from '@/config/server';
+import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
 
 describe('Checkout Loaders', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // Set up default getConfig mock - returns full baseConfig for tests that don't override it
+        mockGetConfig.mockImplementation((context: any) => {
+            // getConfig returns the AppConfig (the `.app` of the full Config). Some tests set the
+            // full Config on appConfigContext manually; otherwise fall back to baseConfig's app.
+            const contextConfig = context?.get?.(appConfigContext);
+            const appCfg = contextConfig?.app ?? contextConfig ?? baseConfig.app;
+            return { ...appCfg, commerce: { ...appCfg.commerce, perCurrencyShippingMethodIds: false } };
+        });
     });
 
     afterEach(() => {
@@ -314,7 +333,6 @@ describe('Checkout Loaders', () => {
             const { getAuth } = await import('@/middlewares/auth.server');
             const { createApiClients } = await import('@/lib/api-clients.server');
             const { siteContext } = await import('@salesforce/storefront-next-runtime/site-context');
-            const { appConfigContext } = await import('@salesforce/storefront-next-runtime/config');
             const { default: config } = await import('@/config/server');
 
             const mockGetProducts = vi.fn(({ params }: any) =>
@@ -1096,6 +1114,45 @@ describe('Checkout Loaders', () => {
 
             expect(result).toBe(basket);
             expect(mockShopperBasketsClient.updateShippingMethodForShipment).not.toHaveBeenCalled();
+        });
+
+        it('excludes currency-suffixed pickup method IDs when flag is ON', async () => {
+            mockGetConfig.mockReturnValue({ commerce: { perCurrencyShippingMethodIds: true } } as never);
+            const { updateBasketResource } = await import('@/middlewares/basket.server');
+            vi.mocked(updateBasketResource).mockImplementation(() => {});
+
+            const mockContext = {
+                get: vi.fn().mockReturnValue({ site: { supportedCurrencies: ['USD', 'GBP'] } }),
+            } as any;
+
+            const basket = {
+                basketId: 'b1',
+                shipments: [
+                    {
+                        shipmentId: 'me',
+                        shippingAddress: { address1: '123 Main St' },
+                        shippingMethod: { id: '005-usd' }, // stale pickup with currency suffix
+                    },
+                ],
+            } as any;
+            const updatedBasket = {
+                ...basket,
+                shipments: [{ ...basket.shipments[0], shippingMethod: { id: 'standard' } }],
+            };
+            mockShopperBasketsClient.updateShippingMethodForShipment.mockResolvedValue({ data: updatedBasket });
+
+            const result = await applyDefaultShippingMethod(mockContext, basket, [
+                { id: '005-usd', name: 'Pickup USD', price: 0 },
+                { id: 'standard', name: 'Standard', price: 5.99 },
+            ] as any);
+
+            expect(mockShopperBasketsClient.updateShippingMethodForShipment).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    params: { path: { basketId: 'b1', shipmentId: 'me' } },
+                    body: { id: 'standard' },
+                })
+            );
+            expect(result).toBe(updatedBasket);
         });
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
 

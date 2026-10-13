@@ -383,6 +383,9 @@ vi.mock('@salesforce/storefront-next-runtime/config', () => ({
                 einstein: { enabled: true },
             },
         },
+        commerce: {
+            perCurrencyShippingMethodIds: false,
+        },
     })),
 }));
 

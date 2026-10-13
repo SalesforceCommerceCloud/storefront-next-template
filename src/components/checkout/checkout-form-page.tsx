@@ -264,7 +264,7 @@ export default function CheckoutFormPage({
     const { t, i18n } = useTranslation('checkout');
     const { t: tErrors } = useTranslation('errors');
     const tAny = t as (key: string) => string;
-    const { currency } = useSite();
+    const { currency, site } = useSite();
     const config = useConfig();
     const { siteRef, localeRef } = useCurrentSiteAndLocaleRef();
 
@@ -398,8 +398,10 @@ export default function CheckoutFormPage({
     // @sfdc-extension-block-end SFDC_EXT_MULTISHIP
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    const flag = config.commerce.perCurrencyShippingMethodIds ?? false;
+    const pickupCurrencies = flag ? site.supportedCurrencies : undefined;
     shippingMethodsState.value = shippingMethodsState.value
-        ? filterDeliveryShippingMethods(shippingMethodsState.value)
+        ? filterDeliveryShippingMethods(shippingMethodsState.value, pickupCurrencies)
         : undefined;
     const hasPickupItems = shipmentDistribution.hasPickupItems;
     // @sfdc-extension-block-end SFDC_EXT_BOPIS

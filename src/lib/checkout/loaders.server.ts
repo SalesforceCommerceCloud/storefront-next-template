@@ -424,10 +424,15 @@ export async function applyDefaultShippingMethod(
             (await getShippingMethodsForShipment(context, basketId, shipmentId))?.applicableShippingMethods ??
             [];
 
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        const config = getConfig(context);
+        const flag = config.commerce.perCurrencyShippingMethodIds ?? false;
+        const pickupCurrencies = flag ? context.get(siteContext)?.site.supportedCurrencies : undefined;
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
         const candidateMethods = methods
             // @sfdc-extension-block-start SFDC_EXT_BOPIS
             // Don't use pickup methods as the auto-default.
-            .filter((method) => !isPickupShippingMethod(method));
+            .filter((method) => !isPickupShippingMethod(method, { pickupCurrencies }));
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
         if (candidateMethods.length === 0) {

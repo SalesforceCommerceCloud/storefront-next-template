@@ -597,6 +597,14 @@ On by default. When on, live site data synced through the MRT Data Store replace
 
 The MRT Data Store includes the site named by `defaultSiteId`. If it doesn't, or the data store entry is unavailable or yields no usable sites, the storefront keeps serving the static `commerce.sites` and logs a warning rather than failing the request. See the "MRT Data Store Sites" section in [README-MULTI-SITE.md](./README-MULTI-SITE.md#mrt-data-store-sites) for the fallback rules and why the alias maps stay static.
 
+### Per-Currency Shipping Method IDs
+
+Off by default. When on, pickup/BOPIS shipping-method detection recognizes **currency-suffixed** method IDs (e.g. `005-usd`, `005-gbp`) that match the site's **supported currencies** in addition to the base ID (`005`). Enable it for a vertical whose dataset ships one shipping method per currency with distinct IDs — the only representation SFCC's site import accepts for per-currency price tables (a repeated `method-id` clobbers on import). Leave it off for single-currency datasets, which keep the legacy exact-ID (`005`) behavior. When on, pickup detection checks if the method ID matches `005-{currency}` for any currency in the site's `supportedCurrencies` array.
+
+```bash
+# PUBLIC__app__commerce__perCurrencyShippingMethodIds=true
+```
+
 ### Hybrid Proxy (local development only)
 
 Silent HTTP proxying with cookie rewriting for a unified storefront experience. Local-dev only — production routing should use Cloudflare eCDN. Requires `SFCC_ORIGIN` and `PUBLIC__app__defaultSiteId`.

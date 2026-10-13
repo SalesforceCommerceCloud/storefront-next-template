@@ -19,6 +19,6 @@ export { FULFILLMENT_OPTION_IDS as DELIVERY_OPTIONS } from '@/components/fulfill
 
 export type { FulfillmentOptionId as DeliveryOption } from '@/components/fulfillment/types';
 
-export const PICKUP_SHIPPING_METHOD_ID = '005';
+export { PICKUP_SHIPPING_METHOD_ID } from '@/lib/shipping/pickup-method';
 
 export const PICKUP_SHIPMENT_ID = 'pickup';

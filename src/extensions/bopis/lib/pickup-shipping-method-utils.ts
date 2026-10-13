@@ -14,36 +14,11 @@
  * limitations under the License.
  */
 
-import type { ShopperBasketsV2 } from '@/scapi';
-import { PICKUP_SHIPPING_METHOD_ID } from '@/extensions/bopis/constants';
-
-type ShippingMethodWithPickup = ShopperBasketsV2.schemas['ShippingMethod'] & {
-    c_storePickupEnabled?: boolean;
-};
-
-/**
- * Returns true if the shipping method is a pickup method.
- * Uses c_storePickupEnabled === true when set; falls back to id PICKUP_SHIPPING_METHOD_ID ('005').
- */
-export function isPickupShippingMethod(method: ShopperBasketsV2.schemas['ShippingMethod']): boolean {
-    return (
-        (method as ShippingMethodWithPickup).c_storePickupEnabled === true || method.id === PICKUP_SHIPPING_METHOD_ID
-    );
-}
-
-/**
- * Resolves the pickup shipping method ID from the API response.
- * Returns the id of the first applicable method that is a pickup method (c_storePickupEnabled or id '005').
- *
- * @param shippingMethodResult
- * @returns The pickup method id, or null if no pickup method found
- */
-export function getPickupShippingMethodId(
-    shippingMethodResult: ShopperBasketsV2.schemas['ShippingMethodResult'] | null | undefined
-): string | null {
-    const methods = shippingMethodResult?.applicableShippingMethods;
-    if (!methods?.length) return null;
-
-    const pickupMethod = methods.find(isPickupShippingMethod);
-    return pickupMethod?.id ?? null;
-}
+// Re-export shared pickup-method utilities. The canonical implementations live in
+// `@/lib/shipping/pickup-method` so the bopis and shipping-delivery extensions share one source
+// of truth; this barrel preserves the historical import path for bopis consumers.
+export {
+    PICKUP_SHIPPING_METHOD_ID,
+    isPickupShippingMethod,
+    getPickupShippingMethodId,
+} from '@/lib/shipping/pickup-method';

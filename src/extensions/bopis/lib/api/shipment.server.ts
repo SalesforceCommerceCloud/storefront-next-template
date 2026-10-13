@@ -22,6 +22,8 @@ import { getShippingMethodsForShipment } from '@/lib/api/shipping-methods.server
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { getPickupShippingMethodId } from '@/extensions/bopis/lib/pickup-shipping-method-utils';
 import { orderAddressFromStoreAddress } from '@/extensions/bopis/lib/store-utils';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 
 export { getPickupShippingMethodId } from '@/extensions/bopis/lib/pickup-shipping-method-utils';
 
@@ -105,7 +107,11 @@ export async function setAddressAndMethodForPickup(
 
     // Get applicable shipping methods and resolve pickup method ID
     const shippingMethodResult = await getShippingMethodsForShipment(context, basketId, shipmentId);
-    const pickupMethodId = getPickupShippingMethodId(shippingMethodResult) ?? PICKUP_SHIPPING_METHOD_ID;
+    const config = getConfig(context);
+    const flag = config.commerce.perCurrencyShippingMethodIds ?? false;
+    const pickupCurrencies = flag ? context.get(siteContext)?.site.supportedCurrencies : undefined;
+    const pickupMethodId =
+        getPickupShippingMethodId(shippingMethodResult, { pickupCurrencies }) ?? PICKUP_SHIPPING_METHOD_ID;
 
     // Set the shipping method for pickup shipment
     const { data: updatedBasket } = await clients.shopperBasketsV2.updateShippingMethodForShipment({

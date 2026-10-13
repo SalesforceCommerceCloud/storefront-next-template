@@ -20,21 +20,18 @@ import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { createApiClients } from '@/lib/api-clients.server';
 import { fetchProductById } from '@/lib/api/products.server';
 import { getLogger } from '@/lib/logger.server';
-import type { ShopperDeliveryEstimates, ShopperProducts } from '@/scapi';
+import type { ShopperDeliveryEstimates } from '@/scapi';
 import { getCommerceCountryCode } from '@/lib/shipping-estimate/postal-code-formats';
 import type { ShippingEstimate, ShippingEstimateOption } from '@/lib/shipping-estimate/types';
 import { compareRfc3339Timestamps } from '@/lib/rfc3339';
-
-const PICKUP_SHIPPING_METHOD_ID = '005';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { isPickupShippingMethod } from '@/lib/shipping/pickup-method';
 
 export type { ShippingEstimate };
 
 type DeliveryWindow = ShopperDeliveryEstimates.schemas['DeliveryWindow'];
 type ScapiShippingOption = ShopperDeliveryEstimates.schemas['ShippingOption'];
 type DeliveryEstimatesResult = ShopperDeliveryEstimates.schemas['DeliveryEstimatesResult'];
-type ProductShippingMethod = NonNullable<ShopperProducts.schemas['Product']['shippingMethods']>[number] & {
-    c_storePickupEnabled?: boolean;
-};
 
 /**
  * Returns the first merchant-authored delivery-method description available for a product.
@@ -47,18 +44,17 @@ export async function getFallbackDeliveryDescription(
     productId: string
 ): Promise<string | undefined> {
     try {
+        const config = getConfig(context);
+        const flag = config.commerce.perCurrencyShippingMethodIds ?? false;
+        const pickupCurrencies = flag ? context.get(siteContext)?.site.supportedCurrencies : undefined;
         const product = await fetchProductById(context, productId, { expand: ['shipping_methods'] });
         return product?.shippingMethods
-            ?.find((method) => !isPickupShippingMethod(method) && method.description?.trim())
+            ?.find((method) => !isPickupShippingMethod(method, { pickupCurrencies }) && method.description?.trim())
             ?.description?.trim();
     } catch {
         // The delivery-estimate response remains an unavailable result when catalog fallback lookup fails.
         return undefined;
     }
-}
-
-function isPickupShippingMethod(method: ProductShippingMethod): boolean {
-    return method.c_storePickupEnabled === true || method.id === PICKUP_SHIPPING_METHOD_ID;
 }
 
 function toShippingEstimateOption(

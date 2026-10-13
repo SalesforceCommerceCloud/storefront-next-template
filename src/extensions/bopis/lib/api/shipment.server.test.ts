@@ -29,6 +29,14 @@ import { getShippingMethodsForShipment } from '@/lib/api/shipping-methods.server
 import { PICKUP_SHIPMENT_ID, PICKUP_SHIPPING_METHOD_ID } from '@/extensions/bopis/constants';
 import { createMockBasketWithPickupItems, createMockStore } from '@/extensions/bopis/tests/__mocks__/basket';
 
+// Mock getConfig
+vi.mock('@salesforce/storefront-next-runtime/config', async () => {
+    const actual = await vi.importActual<typeof import('@salesforce/storefront-next-runtime/config')>(
+        '@salesforce/storefront-next-runtime/config'
+    );
+    return { ...actual, getConfig: vi.fn() };
+});
+
 // Mock createApiClients
 vi.mock('@/lib/api-clients.server', () => ({
     createApiClients: vi.fn(),
@@ -39,14 +47,18 @@ vi.mock('@/lib/api/shipping-methods.server', () => ({
     getShippingMethodsForShipment: vi.fn(),
 }));
 
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+
 describe('Shipment API utilities', () => {
+    const mockGet = vi.fn();
     const mockContext = {
-        get: vi.fn(),
+        get: mockGet,
         set: vi.fn(),
     } as unknown as RouterContextProvider;
 
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(getConfig).mockReturnValue({ commerce: { perCurrencyShippingMethodIds: false } } as never);
     });
 
     // Helper function to setup mock API clients with updateShipmentForBasket
@@ -333,6 +345,28 @@ describe('Shipment API utilities', () => {
             await expect(setAddressAndMethodForPickup(mockContext, 'test-basket', mockStore, 'me')).rejects.toThrow(
                 'API Error'
             );
+        });
+
+        test('should recognize currency-suffixed pickup method ID when flag is ON', async () => {
+            vi.mocked(getConfig).mockReturnValue({ commerce: { perCurrencyShippingMethodIds: true } } as never);
+            mockGet.mockReturnValue({ site: { supportedCurrencies: ['USD', 'GBP'] } });
+            const mockBasket = createMockBasketWithPickupItems([], { basketId: 'test-basket' });
+            const mockUpdateShippingAddress = vi.fn();
+            const mockUpdateShippingMethod = vi.fn().mockResolvedValue({ data: mockBasket });
+            setupMocksForSetAddressAndMethod(
+                mockUpdateShippingAddress,
+                mockUpdateShippingMethod,
+                mockBasket,
+                '005-usd'
+            );
+
+            const result = await setAddressAndMethodForPickup(mockContext, 'test-basket', mockStore, 'me');
+
+            expect(mockUpdateShippingMethod).toHaveBeenCalledWith({
+                params: { path: { basketId: 'test-basket', shipmentId: 'me' } },
+                body: { id: '005-usd' },
+            });
+            expect(result).toEqual(mockBasket);
         });
     });
 

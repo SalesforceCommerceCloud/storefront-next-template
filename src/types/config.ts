@@ -151,6 +151,12 @@ export type AppConfig = {
          */
         sitesFromDal?: boolean;
         /**
+         * When on, pickup/BOPIS shipping method detection recognizes currency-suffixed
+         * method IDs (e.g., `005-usd`, `005-gbp`) in addition to the base ID (`005`).
+         * Off (default) keeps legacy exact-ID behavior for backward compatibility.
+         */
+        perCurrencyShippingMethodIds?: boolean;
+        /**
          * Shopper Agent widget configuration. Preferred config path.
          * Override via `PUBLIC__app__commerce__shopperAgent` (single JSON string).
          * When both this and the legacy top-level `cimulateAgent` are set,
