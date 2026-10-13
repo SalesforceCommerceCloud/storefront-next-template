@@ -586,7 +586,7 @@ See [README-MULTI-SITE.md](./README-MULTI-SITE.md) for site-context routing deta
 
 ### Live Sites from the MRT Data Store
 
-On by default. When on, live site data synced through the MRT Data Store replaces the static `commerce.sites` above for site, locale, and currency resolution, per request. The MRT Data Store keeps the storefront in sync with the sites, locales, and currencies an administrator configures in Business Manager, so adding a site or enabling a currency goes live without editing `config.server.ts` and redeploying. This setting doesn't change routing: `defaultSiteId` and the `siteAliasMap` and `localeAliasMap` stay static. Set `commerce.sitesFromDal` to `false` to keep the static `commerce.sites` authoritative.
+On by default. When on, live site data synced through the MRT Data Store replaces the static `commerce.sites` above for site, locale, and currency resolution, per request. The MRT Data Store keeps the storefront in sync with the sites, locales, and currencies an administrator configures in Business Manager, so adding a site or enabling a currency goes live without editing `config.server.ts` and redeploying. If `url.seoRoutes` is set, a new site also needs its own entry, or a `'*'` entry that matches its Business Manager URL settings; see [URL Config](./README-MULTI-SITE.md#url-config). This setting doesn't change routing: `defaultSiteId` and the `siteAliasMap` and `localeAliasMap` stay static. Set `commerce.sitesFromDal` to `false` to keep the static `commerce.sites` authoritative.
 
 ```bash
 # PUBLIC__app__commerce__sitesFromDal=false

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { SeoRoutesConfig } from '@salesforce/storefront-next-runtime/config';
-import { stripHtmlSuffix } from '@/route-paths';
+import { findSiteSeoRoutes, stripHtmlSuffix } from '@/route-paths';
 import { getBasePath } from '@/lib/utils';
 
 type RouteResolutionOptions = {
@@ -123,7 +123,7 @@ export function resolveProductRoute(options: RouteResolutionOptions): { productI
         return { productId: decodeFinalRawSegment(options.url, options.params) };
     }
 
-    const siteConfig = options.seoRoutes[options.siteId];
+    const siteConfig = findSiteSeoRoutes(options);
     if (!siteConfig) return null;
     const pathSegments = getSeoPathSegments(options.url, options.urlPrefix);
     if (!pathSegments) return null;
@@ -138,7 +138,7 @@ export function resolveProductRoute(options: RouteResolutionOptions): { productI
 /** Resolve the active site's deterministic standalone content grammar from the raw request path. */
 export function resolveContentRoute(options: RouteResolutionOptions): ContentRouteResolution | null {
     if (!options.seoRoutes) return null;
-    const contentConfig = options.seoRoutes[options.siteId]?.content;
+    const contentConfig = findSiteSeoRoutes(options)?.content;
     if (!contentConfig) return null;
 
     const pathSegments = getSeoPathSegments(options.url, options.urlPrefix);
@@ -175,7 +175,7 @@ export function resolveCategoryRoute(options: RouteResolutionOptions): CategoryR
         return { categoryLookup: categoryId, routeRefinement: `cgid=${categoryId}` };
     }
 
-    const siteConfig = options.seoRoutes[options.siteId];
+    const siteConfig = findSiteSeoRoutes(options);
     if (!siteConfig) return null;
     const pathSegments = getSeoPathSegments(options.url, options.urlPrefix);
     if (!pathSegments) return null;

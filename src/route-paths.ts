@@ -296,12 +296,20 @@ function getProductPathSegments(productId: string, slug?: string, slugSegments?:
     return segments;
 }
 
+/** The site's own `seoRoutes` entry, else the `'*'` entry shared by every site without one. */
+export function findSiteSeoRoutes({ seoRoutes, siteId }: Pick<SeoUrlContext, 'seoRoutes' | 'siteId'>) {
+    return seoRoutes?.[siteId] ?? seoRoutes?.['*'];
+}
+
 export function getSiteSeoRoutes(context?: SeoUrlContext) {
     if (!context?.seoRoutes) return undefined;
 
-    const siteRoutes = context.seoRoutes[context.siteId];
+    const siteRoutes = findSiteSeoRoutes(context);
     if (!siteRoutes) {
-        throw new Error(`SEO routes are configured, but site "${context.siteId}" has no SEO route configuration`);
+        throw new Error(
+            `SEO routes are configured, but site "${context.siteId}" has no SEO route configuration. ` +
+                `Add an entry for the site or a '*' entry.`
+        );
     }
     return siteRoutes;
 }

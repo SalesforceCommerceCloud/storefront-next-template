@@ -619,8 +619,9 @@ url: {
 
 `prefix`, `excludeRoutes`, and `seoRoutes` are protected build-time values.
 They cannot be overridden through `PUBLIC__` environment variables. Update
-`config.server.ts`, rebuild, and redeploy. Keep one `seoRoutes` entry for every
-active Commerce site.
+`config.server.ts`, rebuild, and redeploy. Give every active Commerce site its
+own `seoRoutes` entry, or cover it with a `'*'` entry that matches its Business
+Manager URL settings.
 
 ---
 

@@ -55,13 +55,27 @@ describe('SEO URL builders', () => {
 
     test('rejects an active site omitted from configured SEO routes', () => {
         const context = { siteId: 'Unconfigured', seoRoutes };
+        const message =
+            'SEO routes are configured, but site "Unconfigured" has no SEO route configuration. ' +
+            "Add an entry for the site or a '*' entry.";
 
-        expect(() => createProductUrl({ productId: 'product-1' }, context)).toThrow(
-            'SEO routes are configured, but site "Unconfigured" has no SEO route configuration'
-        );
-        expect(() => createCategoryUrl({ categoryId: 'category-1', slugSegments: [] }, context)).toThrow(
-            'SEO routes are configured, but site "Unconfigured" has no SEO route configuration'
-        );
+        expect(() => createProductUrl({ productId: 'product-1' }, context)).toThrow(message);
+        expect(() => createCategoryUrl({ categoryId: 'category-1', slugSegments: [] }, context)).toThrow(message);
+    });
+
+    test("builds URLs from the '*' entry for a site without its own entry", () => {
+        const context = { siteId: 'Unconfigured', seoRoutes: { ...seoRoutes, '*': seoRoutes.SlugStore } };
+
+        expect(createProductUrl({ productId: 'product-1' }, context)).toBe('/products/product-1');
+        expect(createCategoryUrl({ categoryId: 'womens', slugSegments: ['womens'] }, context)).toBe('/catalog/womens');
+        expect(createContentUrl({ type: 'content', resourceId: 'about' }, context)).toBe('/stories/content/about');
+    });
+
+    test("prefers a site's own entry over the '*' entry", () => {
+        const context = { siteId: 'RefArch', seoRoutes: { ...seoRoutes, '*': seoRoutes.SlugStore } };
+
+        expect(createProductUrl({ productId: 'product-1' }, context)).toBe('/p/product-1');
+        expect(createCategoryUrl({ categoryId: 'womens', slugSegments: [] }, context)).toBe('/c/womens');
     });
 
     test('builds an ID-suffix product URL from explicit slug segments', () => {

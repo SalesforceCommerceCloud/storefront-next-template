@@ -92,7 +92,7 @@ url: {
 - **`prefix`** — Path segments prepended to every subpage URL. Uses `:param` placeholders that are replaced with values from `params` at build time.
 - **`search`** — Query parameters appended to every subpage URL. Uses the same `:param` placeholder syntax. The **keys are literal query param names** — you choose them (see [Search Params](#search-params-urlsearch) below).
 - **`excludeRoutes`** — Glob patterns for routes that should NOT be wrapped with the prefix (e.g., API resource routes, server actions).
-- **`seoRoutes`** — Business Manager-mirrored product, category, and optional standalone-content prefixes keyed directly by Commerce site ID. Prefixes are static segments without slashes. Category mode is `id-suffix` or `slug-path`.
+- **`seoRoutes`** — Business Manager-mirrored product, category, and optional standalone-content prefixes keyed directly by Commerce site ID, or by `'*'` for every site without its own entry. Prefixes are static segments without slashes. Category mode is `id-suffix` or `slug-path`.
 
 All properties are optional at the type level. The reference config ships `p`,
 `c` (`id-suffix`), and `cms` prefixes for both reference sites. Replace those
@@ -129,7 +129,7 @@ The template uses the complete hierarchy from `Category.slug` and `PathRecord.sl
 
 When `seoRoutes` is enabled, existing Shopper Products requests that feed product links, plus product search and suggestions, include `expand=slug`. PDPs, tiles, recommendations, carts, wishlists, Page Designer, typeahead, and structured data therefore use the configured slug without another request. Storefronts without SEO routes keep the compatible request shape for older B2C Commerce versions. Category suggestions do not expose an authoritative category slug; in `slug-path` mode they link to search with their category ID instead of inventing a category path. For merchant-authored internal links stored as legacy `/category/...` strings, use `createCategoryUrlFromLegacyPath()`; external and non-category destinations pass through unchanged.
 
-When `seoRoutes` is present, every active site must have an entry. URL generation fails fast for an omitted site because the compiled manifest no longer contains the legacy product and category routes.
+When `seoRoutes` is present, every active site needs an entry: its own, or a `'*'` entry that applies to every site without one. A site's own entry replaces `'*'` completely; their fields aren't merged. Use `'*'` for sites that share one URL grammar. It lets a site added in Business Manager through `commerce.sitesFromDal` go live without a config change, as long as the site's Business Manager URL settings match the `'*'` prefixes and category mode. A site with different settings needs its own entry and a rebuild, because route prefixes are compiled at build time. URL generation fails fast for a site with neither, because the compiled manifest no longer contains the legacy product and category routes.
 
 Do not enable `seoRoutes` until every active site's PDP/PLP grammar is decided. `slug-path` requires Shopper Products 1.13 and Shopper Search 1.15.
 

@@ -37,10 +37,11 @@ Do not enable `seoRoutes` until **all** of these hold:
   `@salesforce/storefront-next-dev` packages are on the SDK release that ships
   the route-registration layer (`SeoRoutesConfig`, `apply-seo-url-config`) or
   newer.
-- **Every active site has an entry.** `seoRoutes` is keyed by Commerce site ID,
-  and URL generation throws for a site with no entry, because the compiled
-  manifest no longer contains the built-in product and category routes. A
-  partial map is a build-or-runtime failure, not a gradual rollout.
+- **Every active site has an entry.** `seoRoutes` is keyed by Commerce site ID.
+  A `'*'` entry covers every site without its own. URL generation throws for a
+  site with neither, because the compiled manifest no longer contains the
+  built-in product and category routes. A partial map without `'*'` is a
+  build-or-runtime failure, not a gradual rollout.
 - **Every active site's PDP/PLP grammar is decided.** Slug-path categories
   require Shopper Products 1.13, Shopper Search 1.15, and authoritative slug
   data at every category-link surface (see [Category Modes](#category-modes)).
@@ -259,8 +260,9 @@ per site.
       active site.
 - [ ] The build reports no "must be a leaf route", invalid-prefix,
       shared-prefix, or collision error.
-- [ ] Every active site in `commerce.sites` has a `seoRoutes` entry—no site is
-      omitted.
+- [ ] Every active site in `commerce.sites` has its own `seoRoutes` entry or is
+      covered by a `'*'` entry that matches its Business Manager URL settings.
+      No site is omitted.
 - [ ] **Deterministic routing:** a product URL and a category URL under the new
       prefixes resolve the correct PDP/PLP with no Shopper-SEO / URL-mapping
       request in the network trace.
