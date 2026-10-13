@@ -69,7 +69,7 @@ vi.mock('@/components/info-modal', async (importOriginal) => {
 });
 
 const deliveryEstimate: ShippingEstimate = {
-    deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-05T00:00:00Z' },
+    deliveryWindow: { startAt: '2027-01-02T00:00:00Z', endAt: '2027-01-05T00:00:00Z' },
     shippingOptions: [
         {
             shippingMethodId: 'ground',
@@ -108,7 +108,14 @@ describe('EstimatedDelivery', () => {
         render(<EstimatedDelivery productId="product-1" />, { wrapper: AllProvidersWrapper });
 
         expect(screen.getByRole('heading', { name: 'Estimated Delivery Date' })).toBeInTheDocument();
-        expect(screen.getByRole('textbox')).toHaveAttribute('autocomplete', 'postal-code');
+        const input = screen.getByRole('textbox');
+        const instructions = screen.getByText('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.');
+        expect(input).toHaveAttribute('autocomplete', 'postal-code');
+        expect(input).toHaveAttribute('placeholder', 'Enter a postal code...');
+        expect(input).toHaveAccessibleDescription('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.');
+        expect(input.compareDocumentPosition(instructions) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+            Node.DOCUMENT_POSITION_FOLLOWING
+        );
         expect(screen.getByRole('button', { name: 'Calculate delivery estimate' })).toBeInTheDocument();
     });
 
@@ -139,7 +146,7 @@ describe('EstimatedDelivery', () => {
             isLoading: false,
             estimate: null,
             hasError: true,
-            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            fallbackDeliveryDescription: 'Arrives in 7–10 business days',
             matchedZipcode: null,
             autoFetchInFlight: false,
             load: vi.fn(),
@@ -291,7 +298,7 @@ describe('EstimatedDelivery', () => {
     });
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
-    test('shows the primary shipping method date window and lets shoppers edit the displayed postal code', async () => {
+    test('shows the slowest shipping date window and lets shoppers edit the displayed postal code', async () => {
         const user = userEvent.setup();
         render(
             <EstimatedDelivery
@@ -304,7 +311,10 @@ describe('EstimatedDelivery', () => {
             }
         );
 
-        expect(screen.getByText(/Sat 2 Jan.*Tue 5 Jan/)).toBeInTheDocument();
+        const arrival = screen.getByRole('status');
+        expect(arrival).toHaveTextContent('Arrives');
+        expect(arrival).not.toHaveTextContent('Ground');
+        expect(arrival).toHaveTextContent(/Sat 2 Jan.*Tue 5 Jan/);
         const postalCode = screen.getByRole('button', { name: 'Change destination: 94105' });
         expect(postalCode).toHaveClass('underline');
         expect(postalCode).toHaveClass('focus-visible:ring-2');
@@ -322,8 +332,7 @@ describe('EstimatedDelivery', () => {
             isLoading: false,
             estimate: null,
             hasError: matchAgainst === 'SW1A 1AA',
-            fallbackDeliveryDescription:
-                matchAgainst === 'SW1A 1AA' ? 'Order received within 7-10 business days' : null,
+            fallbackDeliveryDescription: matchAgainst === 'SW1A 1AA' ? 'Arrives in 7–10 business days' : null,
             matchedZipcode: null,
             autoFetchInFlight: false,
             requestSequence: 0,
@@ -343,7 +352,7 @@ describe('EstimatedDelivery', () => {
 
         const changeDestination = screen.getByRole('button', { name: 'Change destination: SW1A 1AA' });
         const fallbackGuidance = screen.getByRole('status');
-        expect(fallbackGuidance).toHaveTextContent('Order received within 7-10 business days');
+        expect(fallbackGuidance).toHaveTextContent('Arrives in 7–10 business days');
         expect(changeDestination.compareDocumentPosition(fallbackGuidance) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
             Node.DOCUMENT_POSITION_FOLLOWING
         );
@@ -355,8 +364,10 @@ describe('EstimatedDelivery', () => {
 
         const input = screen.getByLabelText('postcode');
         expect(input).toHaveValue('SW1A 1AA');
-        expect(input.getAttribute('aria-describedby')).toMatch(/^estimated-delivery-.*-message$/);
-        expect(screen.getByRole('status')).toHaveTextContent('Order received within 7-10 business days');
+        expect(input).toHaveAccessibleDescription(
+            'Enter your postcode (e.g. SW1A 1AA) to see delivery estimates. Arrives in 7–10 business days'
+        );
+        expect(screen.getByRole('status')).toHaveTextContent('Arrives in 7–10 business days');
         expect(screen.getByRole('button', { name: 'Calculate delivery estimate' })).toBeEnabled();
         await waitFor(() => expect(input).toHaveFocus());
 
@@ -391,9 +402,20 @@ describe('EstimatedDelivery', () => {
         await user.type(input, 'SW1A2AA');
 
         expect(screen.queryByRole('status')).not.toBeInTheDocument();
-        expect(
-            screen.queryByText('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.')
-        ).not.toBeInTheDocument();
+        expect(screen.getByText('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.')).toBeInTheDocument();
+    });
+
+    test('keeps standalone postal-code instructions associated with invalid input', async () => {
+        const user = userEvent.setup();
+        render(<EstimatedDelivery productId="product-1" />, { wrapper: AllProvidersWrapper });
+
+        const input = screen.getByRole('textbox');
+        await user.type(input, 'invalid');
+        await user.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
+
+        expect(input).toHaveAccessibleDescription(
+            'Enter your postcode (e.g. SW1A 1AA) to see delivery estimates. Enter a valid postcode (e.g. SW1A 1AA).'
+        );
     });
 
     test('clears a previous estimate when a subsequent lookup fails', () => {
@@ -639,7 +661,7 @@ describe('EstimatedDelivery', () => {
             name: 'merchant fallback guidance',
             estimate: null,
             hasError: true,
-            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            fallbackDeliveryDescription: 'Arrives in 7–10 business days',
             matchedZipcode: null,
         },
     ])('moves focus to Delivery when a composed request settles with $name', async (result) => {
@@ -839,7 +861,7 @@ describe('EstimatedDelivery', () => {
             isLoading: false,
             estimate: null,
             hasError: true,
-            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            fallbackDeliveryDescription: 'Arrives in 7–10 business days',
             matchedZipcode: null,
             autoFetchInFlight: false,
             requestSequence: 1,
@@ -862,7 +884,7 @@ describe('EstimatedDelivery', () => {
             isLoading: false,
             estimate: null,
             hasError: true,
-            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            fallbackDeliveryDescription: 'Arrives in 7–10 business days',
             matchedZipcode: null,
             autoFetchInFlight: false,
             requestSequence: 2,
@@ -878,7 +900,7 @@ describe('EstimatedDelivery', () => {
 
         const fallbackStatus = screen.getByRole('status');
         await waitFor(() => expect(fallbackStatus).toHaveFocus());
-        expect(fallbackStatus).toHaveTextContent('Order received within 7-10 business days');
+        expect(fallbackStatus).toHaveTextContent('Arrives in 7–10 business days');
         expect(document.activeElement).not.toBe(document.body);
     });
 
@@ -929,9 +951,12 @@ describe('EstimatedDelivery', () => {
         expect(screen.queryByText('Calculating...')).not.toBeInTheDocument();
         const dialog = await screen.findByRole('dialog', { name: 'Estimated Delivery Date' });
         expect(infoModalProps).toHaveBeenLastCalledWith(expect.objectContaining({ open: true }));
-        expect(within(dialog).getByRole('heading', { name: 'Shipping Options', level: 3 })).toBeInTheDocument();
-        expect(within(dialog).getByText('Ground')).toBeInTheDocument();
-        expect(within(dialog).getByText('Express')).toBeInTheDocument();
+        expect(within(dialog).getByRole('heading', { name: 'Shipping options', level: 3 })).toBeInTheDocument();
+        const ground = within(dialog).getByText('Ground');
+        const express = within(dialog).getByText('Express');
+        expect(ground.compareDocumentPosition(express) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+            Node.DOCUMENT_POSITION_FOLLOWING
+        );
 
         await user.keyboard('{Escape}');
         await waitFor(() => expect(trigger).toHaveFocus());
@@ -1034,6 +1059,7 @@ describe('EstimatedDelivery', () => {
         expect(delivery).not.toBeChecked();
         expect(delivery.parentElement).toContainElement(unresolvedSelectionDestination);
         expect(delivery.parentElement).toHaveTextContent(/Deliver to\s*94105/);
+        expect(delivery.parentElement).not.toHaveTextContent('Ground');
         expect(delivery.parentElement).toHaveTextContent(/Sat 2 Jan.*Tue 5 Jan/);
         expect(delivery.parentElement).not.toHaveTextContent('Arrives');
 
@@ -1045,14 +1071,16 @@ describe('EstimatedDelivery', () => {
         expect(delivery.parentElement).toContainElement(changeDestination);
         expect(delivery.parentElement).toContainElement(allOptions);
         expect(delivery.parentElement).toHaveTextContent(/Deliver to\s*94105/);
+        expect(delivery.parentElement).not.toHaveTextContent('Ground');
         expect(delivery.parentElement).toHaveTextContent(/Sat 2 Jan.*Tue 5 Jan/);
         expect(delivery.parentElement).not.toHaveTextContent('Arrives');
         expect(screen.getAllByRole('button', { name: 'Change destination: 94105' })).toHaveLength(1);
         expect(screen.getAllByRole('button', { name: 'View All Shipping Options' })).toHaveLength(1);
 
         await user.click(allOptions);
-        const dialog = await screen.findByRole('dialog', { name: 'Shipping Options' });
-        const modalHeading = within(dialog).getByRole('heading', { name: 'Shipping Options' });
+        const dialog = await screen.findByRole('dialog', { name: 'Shipping options' });
+        const modalHeading = within(dialog).getByRole('heading', { name: 'Shipping options' });
+        expect(dialog.querySelector('[data-slot="dialog-close"]')).toHaveAttribute('aria-label', 'Close');
         expect(within(dialog).getAllByRole('heading')).toHaveLength(1);
         expect(modalHeading).toHaveFocus();
         expect(within(dialog).queryByRole('heading', { name: 'Estimated Delivery Date' })).not.toBeInTheDocument();
@@ -1138,7 +1166,7 @@ describe('EstimatedDelivery', () => {
             'mt-4'
         );
         expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
-            'Enter postal code to see delivery estimate'
+            'Enter a postal code to get a delivery estimate'
         );
     });
 
@@ -1162,7 +1190,7 @@ describe('EstimatedDelivery', () => {
 
         expect(screen.getByRole('button', { name: 'Change destination: 94105' })).toBeInTheDocument();
         expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
-            'Enter postal code to see delivery estimate'
+            'Enter a postal code to get a delivery estimate'
         );
     });
 
@@ -1236,7 +1264,7 @@ describe('EstimatedDelivery', () => {
 
         await waitFor(() =>
             expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
-                'Enter postal code to see delivery estimate'
+                'Enter a postal code to get a delivery estimate'
             )
         );
         expect(screen.queryByRole('button', { name: 'Change destination: 94105' })).not.toBeInTheDocument();
@@ -1318,7 +1346,7 @@ describe('EstimatedDelivery', () => {
 
         expect(new Set(ids).size).toBe(ids.length);
         for (const input of screen.getAllByRole('textbox')) {
-            expect(input).not.toHaveAttribute('aria-describedby');
+            expect(input).toHaveAccessibleDescription('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.');
         }
     });
 
@@ -1353,7 +1381,7 @@ describe('EstimatedDelivery', () => {
         expect(screen.getByTestId('standalone-target')).toContainElement(screen.getByRole('textbox'));
         expect(screen.getByTestId('standalone-target')).toContainElement(screen.getByRole('status'));
         expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
-            'Enter postal code to see delivery estimate'
+            'Enter a postal code to get a delivery estimate'
         );
     });
 
@@ -1430,7 +1458,7 @@ describe('EstimatedDelivery', () => {
                 expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
             )
         );
-        expect(secondaryDelivery).toHaveAccessibleDescription('Enter postal code to see delivery estimate');
+        expect(secondaryDelivery).toHaveAccessibleDescription('Enter a postal code to get a delivery estimate');
 
         await user.click(primaryDelivery);
         expect(primaryDelivery.parentElement).toContainElement(
@@ -1488,7 +1516,12 @@ describe('EstimatedDelivery', () => {
         await user.click(screen.getByRole('button', { name: 'Change destination: 94105' }));
 
         expect(screen.getByRole('textbox')).toBeInTheDocument();
-        expect(screen.getByRole('radio', { name: /^Delivery/ })).not.toHaveAccessibleDescription();
+        expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+            'Enter a postal code to get a delivery estimate'
+        );
+        expect(
+            screen.queryByText('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.')
+        ).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'More Delivery Options' })).not.toBeInTheDocument();
     });
 
@@ -1567,7 +1600,7 @@ describe('EstimatedDelivery', () => {
             isLoading: false,
             estimate: null,
             hasError: true,
-            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            fallbackDeliveryDescription: 'Arrives in 7–10 business days',
             matchedZipcode: null,
             autoFetchInFlight: false,
             load,
@@ -1597,9 +1630,9 @@ describe('EstimatedDelivery', () => {
         expect(delivery).not.toBeChecked();
         const changeDestination = screen.getByRole('button', { name: 'Change destination: SW1A 1AA' });
         expect(delivery.parentElement).toContainElement(changeDestination);
-        expect(delivery).toHaveAccessibleDescription('Order received within 7-10 business days');
+        expect(delivery).toHaveAccessibleDescription('Arrives in 7–10 business days');
         expect(
-            screen.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+            screen.queryByRole('button', { name: 'Enter a postal code to get a delivery estimate' })
         ).not.toBeInTheDocument();
         expect(screen.getByTestId('standalone-target')).not.toContainElement(changeDestination);
         expect(screen.queryByRole('heading', { name: 'Estimated Delivery Date' })).not.toBeInTheDocument();
@@ -1611,7 +1644,7 @@ describe('EstimatedDelivery', () => {
         await user.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
         expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
         expect(screen.getByRole('radio', { name: 'Delivery, Deliver to SW1A 1AA' })).toHaveAccessibleDescription(
-            'Order received within 7-10 business days'
+            'Arrives in 7–10 business days'
         );
         expect(screen.getByRole('status')).toHaveTextContent('Calculating...');
     });
@@ -1654,7 +1687,7 @@ describe('EstimatedDelivery', () => {
             isLoading: false,
             estimate: null,
             hasError: true,
-            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            fallbackDeliveryDescription: 'Arrives in 7–10 business days',
             matchedZipcode: null,
             autoFetchInFlight: false,
             load: vi.fn(),
@@ -1713,7 +1746,7 @@ describe('EstimatedDelivery', () => {
         );
 
         expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
-            'Enter postal code to see delivery estimate'
+            'Enter a postal code to get a delivery estimate'
         );
     });
 

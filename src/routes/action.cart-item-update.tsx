@@ -102,7 +102,7 @@ export const action = createBasketAction(
         const existingItem = basket.productItems?.find((item) => item.itemId === itemId);
         const targetProductId = productId || existingItem?.productId;
         const isVariantSwap = !!productId && productId !== existingItem?.productId;
-        const isQuantityIncrease = quantity > (existingItem?.quantity ?? 0);
+        const isQuantityIncrease = quantity > (existingItem?.quantity ?? 1);
         if (existingItem && targetProductId && (isQuantityIncrease || isVariantSwap)) {
             const isPickupItem = { value: false };
             // @sfdc-extension-block-start SFDC_EXT_BOPIS

@@ -23,6 +23,8 @@ interface ZipCodeEstimatorProps {
     idPrefix: string;
     inputValue: string;
     isLoading: boolean;
+    /** Shows the postal-code format guidance when the estimator is rendered outside a fulfillment picker. */
+    showInstructions?: boolean;
     hasLookupFailure?: boolean;
     fallbackDeliveryDescription?: string | null;
     hasValidationError: boolean;
@@ -35,6 +37,7 @@ export default function ZipCodeEstimator({
     idPrefix,
     inputValue,
     isLoading,
+    showInstructions = false,
     hasLookupFailure = false,
     fallbackDeliveryDescription,
     hasValidationError,
@@ -48,9 +51,7 @@ export default function ZipCodeEstimator({
         onInputChange(format.normalize(e.target.value));
     };
 
-    const placeholder = format.example
-        ? t('postalCodePlaceholderExample', { term: termLabel, example: format.example })
-        : t('postalCodePlaceholder', { term: termLabel });
+    const placeholder = t('postalCodePlaceholder', { term: termLabel });
 
     const invalidMessage = format.example
         ? t('postalCodeInvalid', { term: termLabel, example: format.example })
@@ -58,6 +59,15 @@ export default function ZipCodeEstimator({
     const inputId = `${idPrefix}-input`;
     const messageId = `${idPrefix}-message`;
     const errorId = `${idPrefix}-error`;
+    const instructionsId = `${idPrefix}-instructions`;
+    const instructions = format.example
+        ? t('postalCodeInstructions', { term: termLabel, example: format.example })
+        : t('postalCodeInstructionsNoExample', { term: termLabel });
+    const describedBy = [
+        showInstructions ? instructionsId : undefined,
+        hasValidationError ? errorId : undefined,
+        !hasValidationError && hasLookupFailure ? messageId : undefined,
+    ].filter(Boolean);
 
     return (
         <form
@@ -78,7 +88,7 @@ export default function ZipCodeEstimator({
                         placeholder={placeholder}
                         aria-invalid={hasValidationError}
                         autoComplete="postal-code"
-                        aria-describedby={hasValidationError ? errorId : hasLookupFailure ? messageId : undefined}
+                        aria-describedby={describedBy.length > 0 ? describedBy.join(' ') : undefined}
                         className={cn(
                             'w-full px-3 py-2 text-sm border rounded-ui transition-colors focus:outline-none focus:ring-2 bg-background',
                             hasValidationError
@@ -98,6 +108,12 @@ export default function ZipCodeEstimator({
                     {isLoading ? t('calculating') : t('calculateButton')}
                 </button>
             </div>
+
+            {showInstructions && (
+                <p id={instructionsId} className="text-xs text-muted-foreground">
+                    {instructions}
+                </p>
+            )}
 
             {!isLoading && !hasValidationError && hasLookupFailure && (
                 <p id={messageId} role="status" className="text-xs text-muted-foreground">

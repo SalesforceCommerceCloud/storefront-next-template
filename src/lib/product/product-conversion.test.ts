@@ -39,6 +39,15 @@ describe('convertProductToProductSearchHit', () => {
         expect(result.promotions).toEqual([]);
     });
 
+    it('preserves the authoritative product slug', () => {
+        const product = {
+            id: 'test-product-123',
+            slug: 'test-product',
+        } as ShopperProducts.schemas['Product'];
+
+        expect(convertProductToProductSearchHit(product).slug).toBe('test-product');
+    });
+
     it('should handle product with image groups', () => {
         const product: ShopperProducts.schemas['Product'] = {
             id: 'test-product-456',

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { ComponentType } from 'react';
-import { VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon, GenericCardIcon } from '@/components/icons';
+import { VisaIcon, MastercardIcon, AmexIcon, DiscoverIcon, SepaDebitIcon, GenericCardIcon } from '@/components/icons';
 
 interface CardIconProps {
     className?: string;
@@ -22,19 +22,30 @@ interface CardIconProps {
     height?: number | string;
 }
 
-// Mapping function to get the right icon component
+/**
+ * Map a Commerce/BM cardType (or display label) to an icon.
+ * Matching is case/spacing-insensitive so MasterCard, Mastercard, and Master Card
+ * all resolve — without rewriting the wire value. SEPA uses the same wordmark as sfp.js.
+ */
 export const getCardIcon = (cardType: string): ComponentType<CardIconProps> => {
-    switch (cardType) {
-        case 'Visa':
+    const key = cardType.toLowerCase().replace(/[_\s-]+/g, '');
+    switch (key) {
+        case 'visa':
             return VisaIcon;
-        case 'Mastercard':
+        case 'mastercard':
+        case 'master':
             return MastercardIcon;
-        case 'American Express':
+        case 'americanexpress':
+        case 'amex':
             return AmexIcon;
-        case 'Discover':
+        case 'discover':
             return DiscoverIcon;
-        case 'Diners Club':
-        case 'JCB':
+        case 'sepadebit':
+        case 'sepa':
+            return SepaDebitIcon;
+        case 'dinersclub':
+        case 'diners':
+        case 'jcb':
         default:
             return GenericCardIcon;
     }

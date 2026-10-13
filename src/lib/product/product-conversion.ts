@@ -34,6 +34,7 @@ export function convertProductToProductSearchHit(
     const converted: ShopperSearch.schemas['ProductSearchHit'] = {
         productId,
         productName,
+        slug: product.slug,
         price: productPrice,
         currency: product.currency,
         image: firstImage

@@ -18,14 +18,14 @@ import type { HealingRecipe } from './types';
 
 /**
  * Product Tiles - Product cards in listings
- * Primary: .bg-card (AI-discovered), a[href*="/product/"]
+ * Primary: .bg-card (AI-discovered), a[href*="/p/"]
  */
 export const productTilesRecipe: HealingRecipe = {
     name: 'productTiles',
     description: 'Product tile/card in product listings',
     selectors: [
         '.bg-card', // AI-discovered primary selector
-        'a[href*="/product/"]', // Link to product pages
+        'a[href*="/p/"]', // Link to product pages
         '[data-testid*="product-tile"]', // Explicit test ID if added
         '[data-testid*="product-card"]', // Card variant
         '[data-product-id]', // SFCC product ID attribute
@@ -38,18 +38,18 @@ export const productTilesRecipe: HealingRecipe = {
     context:
         'Product tiles on homepage (in carousel), category pages, and search results. Often wrapped in .bg-card containers',
     fallbackStrategy:
-        'Look for .bg-card elements or links to /product/ or repeating elements containing product information (image, title, price)',
+        'Look for .bg-card elements or links to /p/ or repeating elements containing product information (image, title, price)',
 };
 
 /**
  * Product Images - Images within product tiles
- * Primary: a[href*="/product/"] img
+ * Primary: a[href*="/p/"] img
  */
 export const productImagesRecipe: HealingRecipe = {
     name: 'productImages',
     description: 'Product images in product tiles',
     selectors: [
-        'a[href*="/product/"] img', // Primary selector (image in product link)
+        'a[href*="/p/"] img', // Primary selector (image in product link)
         '[data-testid*="product-tile"] img', // Explicit test ID if added
         '[data-product-id] img', // Image in product container
         'img[alt*="product" i]', // Alt text contains product
@@ -62,19 +62,19 @@ export const productImagesRecipe: HealingRecipe = {
 
 /**
  * Product Titles - Product names/titles
- * Primary: a[href*="/product/"] h3, a[href*="/product/"] h2
+ * Primary: a[href*="/p/"] h3, a[href*="/p/"] h2
  */
 export const productTitlesRecipe: HealingRecipe = {
     name: 'productTitles',
     description: 'Product titles/names in product tiles',
     selectors: [
-        'a[href*="/product/"] h3', // Primary selector (h3 in product link)
-        'a[href*="/product/"] h2', // Alternative heading level
+        'a[href*="/p/"] h3', // Primary selector (h3 in product link)
+        'a[href*="/p/"] h2', // Alternative heading level
         '[data-testid*="product-tile"] h3', // Explicit test ID if added (h3)
         '[data-testid*="product-tile"] h2', // Explicit test ID if added (h2)
         '[data-testid*="product-title"]', // Title test ID
         '[data-testid*="product-name"]', // Name test ID
-        'a[href*="/product/"] [class*="title"]', // Title in product link
+        'a[href*="/p/"] [class*="title"]', // Title in product link
         '[itemprop="name"]', // Schema.org name
     ],
     context: 'Product names/titles displayed in product tiles',

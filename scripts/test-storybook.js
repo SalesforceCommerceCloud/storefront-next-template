@@ -128,14 +128,25 @@ if (
     process.exit(1);
 }
 
-// Serve the static build with the LOCAL `serve` binary (a devDependency) via
-// `pnpm exec`, NOT `npx serve`. `npx serve` resolved `serve` from the network on
-// every run (it wasn't a dependency), which intermittently blew past the
-// readiness window under CI load and surfaced only as a blind
-// `wait-on ... Timed out` — the static-server-startup flake. `pnpm exec` uses
-// the installed binary, so there's no per-run fetch. Same for `wait-on` below.
+// Serve the static build with the LOCAL `serve` binary (a devDependency), NOT
+// `npx serve`. `npx serve` resolved `serve` from the network on every run,
+// which intermittently blew past the readiness window under CI load and surfaced only as a blind
+// `wait-on ... Timed out` — the static-server-startup flake. Pin the listen URI
+// because `serve -p` can fall back to an arbitrary port when 3000 is briefly
+// held after the prior test runner exits. Running the locally installed binary
+// directly preserves its arguments, which `pnpm exec` does not reliably do when
+// spawned from this runner. Same for `wait-on` below.
 const serverCmd = flags.static
-    ? { cmd: 'pnpm', args: ['exec', 'serve', '.storybook/storybook-static', '-p', String(port)] }
+    ? {
+          cmd: process.platform === 'win32' ? 'node_modules/.bin/serve.cmd' : './node_modules/.bin/serve',
+          args: [
+              '.storybook/storybook-static',
+              '--listen',
+              `tcp://127.0.0.1:${port}`,
+              '--no-clipboard',
+              '--no-port-switching',
+          ],
+      }
     : { cmd: 'pnpm', args: ['storybook'] };
 
 const server = spawn(serverCmd.cmd, serverCmd.args, {

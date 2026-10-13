@@ -418,6 +418,55 @@ describe('useMiniCartData', () => {
 
             expect(mockFetcher.load).not.toHaveBeenCalled();
         });
+
+        it('reloads on reopen when a quantity change flushed as the panel closed moved the cookie ahead of an equal reference and cache', () => {
+            // The flush-on-close gap. The shopper bumps a line quantity in the mini cart and closes the panel in the
+            // same beat. The close-flush PATCH persists server-side and the browser applies its Set-Cookie, so the
+            // cookie snapshot moves to the new totals — but the response never reaches React: the edit handler unmounts
+            // before it lands and basket-products revalidation is suppressed while the panel is closed. So BOTH the
+            // BasketProvider reference and the fetcher cache stay on the pre-change revision, sharing one lastModified,
+            // while the cookie reports the new quantity. A lastModified-only comparison sees equal revisions and would
+            // reuse the stale cache, showing the OLD quantity on reopen. The count-visible cookie divergence must win
+            // and force the reload.
+            mockSnapshot.totalItemCount = 5;
+            mockSnapshot.uniqueProductCount = 2;
+            const lastModified = '2026-06-23T10:00:00.000Z';
+            mockCurrentBasket = { ...mockBasket, lastModified };
+            mockFetcher.data = { basket: { ...mockBasket, lastModified }, productsById: mockProductsData };
+
+            renderHook(() => useMiniCartData());
+
+            expect(mockFetcher.load).toHaveBeenCalledWith(resourceRoutes.basketProducts);
+        });
+
+        it('converges after the reopen reload republishes the flushed revision (no reload loop)', () => {
+            // Loop guard for the close-flush reload above: once the reopen reload resolves, the fetcher holds the
+            // flushed revision (new totals, new lastModified) and publishes it back into BasketProvider, so the
+            // reference, the cache, and the cookie all agree. The next idle cycle must not re-dispatch.
+            mockSnapshot.totalItemCount = 5;
+            mockSnapshot.uniqueProductCount = 2;
+            const flushedBasket: ShopperBasketsV2.schemas['Basket'] = {
+                basketId: 'basket-123',
+                lastModified: '2026-06-23T10:00:01.000Z',
+                productItems: [
+                    { itemId: 'item-1', productId: 'product-1', productName: 'Test Product 1', quantity: 4, price: 50 },
+                    {
+                        itemId: 'item-2',
+                        productId: 'product-2',
+                        productName: 'Test Product 2',
+                        quantity: 1,
+                        price: 100,
+                    },
+                ],
+            };
+            mockCurrentBasket = flushedBasket;
+            mockFetcher.data = { basket: flushedBasket, productsById: mockProductsData };
+
+            const { rerender } = renderHook(() => useMiniCartData());
+            rerender();
+
+            expect(mockFetcher.load).not.toHaveBeenCalled();
+        });
     });
 
     describe('staleness when only a cookie snapshot is the reference', () => {
@@ -745,6 +794,26 @@ describe('useMiniCartDataLoader', () => {
         });
 
         expect(mockFetcher.load).not.toHaveBeenCalled();
+    });
+
+    it('dispatches when a close-flush moved the cookie ahead of an equal reference and cache', () => {
+        // Prefetch-path parity with the panel's close-flush reload: a hover after the shopper changed a quantity and
+        // closed the panel must re-warm the cache. The reference and the cache share the pre-change revision (one
+        // lastModified); the cookie moved to the new totals. The count divergence forces the re-warm even though the
+        // revisions match, so the panel opens on fresh data rather than the stale pre-close quantity.
+        mockSnapshot.totalItemCount = 5;
+        mockSnapshot.uniqueProductCount = 1;
+        const lastModified = '2026-06-23T10:00:00.000Z';
+        mockCurrentBasket = { ...cachedBasket, lastModified };
+        mockFetcher.data = { basket: { ...cachedBasket, lastModified }, productsById: {} };
+
+        const { result } = renderHook(() => useMiniCartDataLoader());
+
+        act(() => {
+            result.current();
+        });
+
+        expect(mockFetcher.load).toHaveBeenCalledWith(resourceRoutes.basketProducts);
     });
 
     it('returns a reference-stable callback across renders', () => {

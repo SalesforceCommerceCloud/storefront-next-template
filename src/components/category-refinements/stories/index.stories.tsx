@@ -19,8 +19,9 @@ import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 import type { ShopperSearch } from '@/scapi';
+import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
-import { mockLocale, mockSiteObject } from '@/test-utils/config';
+import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
 
 const mockSite = mockSiteObject;
 import CategoryRefinements from '../index';
@@ -82,13 +83,15 @@ const meta: Meta<typeof CategoryRefinements> = {
     tags: ['autodocs', 'interaction'],
     decorators: [
         (Story: ComponentType) => (
-            <SiteProvider
-                site={mockSite}
-                locale={mockLocale}
-                language={mockSiteObject.defaultLocale}
-                currency={mockSiteObject.defaultCurrency}>
-                <Story />
-            </SiteProvider>
+            <ConfigProvider config={mockConfig}>
+                <SiteProvider
+                    site={mockSite}
+                    locale={mockLocale}
+                    language={mockSiteObject.defaultLocale}
+                    currency={mockSiteObject.defaultCurrency}>
+                    <Story />
+                </SiteProvider>
+            </ConfigProvider>
         ),
     ],
 };

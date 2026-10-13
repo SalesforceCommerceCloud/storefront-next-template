@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 import { useEffect } from 'react';
-import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
-import { useBlocker } from 'react-router';
+import { usePageDesignerMode, usePreviewContext } from '@salesforce/storefront-next-runtime/design/react/core';
+import { useBlocker, useLocation } from 'react-router';
 
 /**
- * Imports the Page Designer styles when in design mode.
+ * Imports the Page Designer styles when in design mode. When in preview
+ * mode, emits `ClientRouteChanged` on client-side navs so the BM preview
+ * URL bar tracks shopper navigation. Emits nothing in design or shopper
+ * mode.
  */
 export function PageDesignerInit() {
-    const { isDesignMode } = usePageDesignerMode();
+    const { isDesignMode, isPreviewMode } = usePageDesignerMode();
+    const { notifyClientRouteChanged } = usePreviewContext();
+    const { pathname, search, hash } = useLocation();
 
     // Prevent navigation in React Router when in Page Designer design mode
     // so that clicks on links don't cause route changes during editing.
@@ -33,6 +38,13 @@ export function PageDesignerInit() {
             void import('@salesforce/storefront-next-runtime/design/styles.css');
         }
     }, [isDesignMode]);
+
+    // Emit ClientRouteChanged on every client-side navigation while in preview mode.
+    useEffect(() => {
+        if (!isPreviewMode) return;
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        notifyClientRouteChanged(`${origin}${pathname}${search ?? ''}${hash ?? ''}`);
+    }, [isPreviewMode, notifyClientRouteChanged, pathname, search, hash]);
 
     return <></>;
 }

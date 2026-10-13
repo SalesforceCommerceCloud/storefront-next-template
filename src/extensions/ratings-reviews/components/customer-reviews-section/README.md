@@ -5,7 +5,7 @@ How the reviews feature is wired and what it does.
 ## How components connect
 
 ```
-PDP (_app.product.$productId)
+PDP (_app.p.$)
   └── ProductReviewsProvider          ← wraps PDP content; owns reviews state & adapter calls
         ├── ProductInfo
         │     └── ProductRatingSummary   ← stars + count; below product description, beside image, above price; "See reviews" link takes the user to expanded accordion

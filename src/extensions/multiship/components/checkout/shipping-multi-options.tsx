@@ -394,6 +394,8 @@ export default function ShippingMultiOptions({
                             const selectedAvailableMethod = data.availableShippingMethods.find(
                                 (method) => method.id === selectedMethod?.id
                             );
+                            // Calculated applicable-method price, not the catalog list price on shipment.shippingMethod.
+                            const summaryPrice = selectedAvailableMethod?.price ?? selectedMethod?.price;
                             const summaryArrivalLabel = getShippingArrivalLabel(
                                 {
                                     deliveryWindow:
@@ -436,10 +438,11 @@ export default function ShippingMultiOptions({
                                             <Typography variant="small" className="text-muted-foreground">
                                                 {t('shippingOptions.priceAndMethod', {
                                                     price:
-                                                        selectedMethod.price === 0
+                                                        summaryPrice === 0
                                                             ? t('shippingOptions.free')
-                                                            : `$${(selectedMethod.price ?? 0).toFixed(2)}`,
-                                                    methodName: selectedMethod.name || '',
+                                                            : `$${(summaryPrice ?? 0).toFixed(2)}`,
+                                                    methodName:
+                                                        selectedAvailableMethod?.name || selectedMethod.name || '',
                                                 })}
                                             </Typography>
                                         </div>

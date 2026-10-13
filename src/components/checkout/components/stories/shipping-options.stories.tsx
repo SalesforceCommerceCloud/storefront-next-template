@@ -125,19 +125,19 @@ export const EditView: Story = {
                 {
                     id: 'ground',
                     name: 'Ground',
-                    description: 'Order received within 7-10 business days',
+                    description: 'Arrives in 7–10 business days',
                     price: 15.99,
                 },
                 {
                     id: 'express',
                     name: '2-Day Express',
-                    description: 'Order received in 2 business days',
+                    description: 'Arrives in 2 business days',
                     price: 9.99,
                 },
                 {
                     id: 'overnight',
                     name: 'Overnight',
-                    description: 'Order received the next business day',
+                    description: 'Arrives the next business day',
                     price: 15.99,
                 },
             ],
@@ -239,21 +239,21 @@ export const EditViewWithDiscountedShipping: Story = {
                 {
                     id: 'ground',
                     name: 'Ground',
-                    description: 'Order received within 7-10 business days',
+                    description: 'Arrives in 7–10 business days',
                     price: 15.99,
                     shippingPromotions: [{ promotionId: 'promo-50off', promotionName: '50% off shipping' }],
                 },
                 {
                     id: 'express',
                     name: '2-Day Express',
-                    description: 'Order received in 2 business days',
+                    description: 'Arrives in 2 business days',
                     price: 9.99,
                     shippingPromotions: [{ promotionId: 'promo-50off', promotionName: '50% off shipping' }],
                 },
                 {
                     id: 'overnight',
                     name: 'Overnight',
-                    description: 'Order received the next business day',
+                    description: 'Arrives the next business day',
                     price: 15.99,
                     shippingPromotions: [{ promotionId: 'promo-50off', promotionName: '50% off shipping' }],
                 },
@@ -290,19 +290,19 @@ export const SavingState: Story = {
                 {
                     id: 'ground',
                     name: 'Ground',
-                    description: 'Order received within 7-10 business days',
+                    description: 'Arrives in 7–10 business days',
                     price: 15.99,
                 },
                 {
                     id: 'express',
                     name: '2-Day Express',
-                    description: 'Order received in 2 business days',
+                    description: 'Arrives in 2 business days',
                     price: 9.99,
                 },
                 {
                     id: 'overnight',
                     name: 'Overnight',
-                    description: 'Order received the next business day',
+                    description: 'Arrives the next business day',
                     price: 15.99,
                 },
             ],
@@ -338,7 +338,7 @@ const mockBasketWithSelectedShipping = {
             shippingMethod: {
                 id: 'ground',
                 name: 'Ground',
-                description: 'Order received within 7-10 business days',
+                description: 'Arrives in 7–10 business days',
                 price: 15.99,
             },
         },
@@ -361,7 +361,7 @@ export const SummaryView: Story = {
                 {
                     id: 'ground',
                     name: 'Ground',
-                    description: 'Order received within 7-10 business days',
+                    description: 'Arrives in 7–10 business days',
                     price: 15.99,
                 },
             ],
@@ -383,7 +383,7 @@ export const SummaryView: Story = {
         const radios = canvas.queryAllByRole('radio');
         await expect(radios.length).toBe(0);
 
-        await expect(canvas.getByText('Order received within 7-10 business days')).toBeInTheDocument();
+        await expect(canvas.getByText('Arrives in 7–10 business days')).toBeInTheDocument();
         await expect(canvas.getByText(/Ground/)).toBeInTheDocument();
     },
 };
@@ -394,7 +394,7 @@ const mockBasketWithFreeShipping = {
             shippingMethod: {
                 id: 'free-ground',
                 name: 'Ground',
-                description: 'Order received within 7-10 business days',
+                description: 'Arrives in 7–10 business days',
                 price: 0,
             },
         },
@@ -407,7 +407,7 @@ const mockBasketWithDiscountedSelectedShipping = {
             shippingMethod: {
                 id: 'ground',
                 name: 'Ground',
-                description: 'Order received within 7-10 business days',
+                description: 'Arrives in 7–10 business days',
                 price: 15.99,
                 shippingPromotions: [{ promotionId: 'promo-50off', promotionName: '50% off shipping' }],
             },
@@ -446,7 +446,7 @@ export const SummaryViewWithFreeShipping: Story = {
                 {
                     id: 'free-ground',
                     name: 'Ground',
-                    description: 'Order received within 7-10 business days',
+                    description: 'Arrives in 7–10 business days',
                     price: 0,
                 },
             ],
@@ -482,7 +482,7 @@ export const SummaryViewWithDiscountedShipping: Story = {
                 {
                     id: 'ground',
                     name: 'Ground',
-                    description: 'Order received within 7-10 business days',
+                    description: 'Arrives in 7–10 business days',
                     price: 15.99,
                     shippingPromotions: [{ promotionId: 'promo-50off', promotionName: '50% off shipping' }],
                 },
@@ -542,14 +542,14 @@ export const EditViewWithDeliveryWindow: Story = {
                 {
                     id: 'ground',
                     name: 'Ground',
-                    description: 'Order received within 7-10 business days',
+                    description: 'Arrives in 7–10 business days',
                     price: 15.99,
                     deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
                 },
                 {
                     id: 'express',
                     name: '2-Day Express',
-                    description: 'Order received in 2 business days',
+                    description: 'Arrives in 2 business days',
                     price: 29.99,
                     deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-04-30T12:00:00Z' },
                 },
@@ -584,7 +584,7 @@ const mockBasketWithDeliveryWindow = {
             shippingMethod: {
                 id: 'ground',
                 name: 'Ground',
-                description: 'Order received within 7-10 business days',
+                description: 'Arrives in 7–10 business days',
                 price: 15.99,
             },
         },
@@ -607,7 +607,7 @@ export const SummaryViewWithDeliveryWindow: Story = {
                 {
                     id: 'ground',
                     name: 'Ground',
-                    description: 'Order received within 7-10 business days',
+                    description: 'Arrives in 7–10 business days',
                     price: 15.99,
                     deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
                 },

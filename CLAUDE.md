@@ -6,6 +6,16 @@ This file is the single source of truth for AI coding agents (Claude Code, Curso
 
 > **Changesets**: any change in this package needs a changeset. Run `pnpm changeset` from the repo root, pick `@salesforce/template` (and `@salesforce/storefront-next-{dev,runtime}` if applicable), and commit the generated `.changeset/<id>.md`. See [`../../CONTRIBUTING.md#changesets`](../../CONTRIBUTING.md#changesets).
 
+## B2C Commerce Tooling
+
+The [B2C MCP server](https://salesforcecommercecloud.github.io/b2c-developer-tooling/llms.txt) (`@salesforce/b2c-dx-mcp`) is recommended. When it's connected:
+
+- Discover its tools before using shell commands or direct HTTP requests.
+- Use `skills_read` for Storefront Next skills (start with `sfnext-overview`) and the `docs_*` tools for Commerce documentation.
+- For SCAPI data, use code mode: `scapi_search` to find APIs and schemas, then `scapi_execute` to call them.
+- For anything the MCP doesn't cover, use the bundled B2C CLI (`pnpm b2c --help`).
+- Always deploy to Managed Runtime with `pnpm push`, not the MCP or CLI. Confirm destructive operations with the user first.
+
 ## Project Structure
 
 - `./src/` — Application source code
@@ -328,6 +338,7 @@ The docs below are where architectural detail lives — consult them for tasks i
 
 **Migrations:**
 - [docs/migrations/react-router-7.18/README.md](./docs/migrations/react-router-7.18/README.md) — Upgrading your project from React Router 7.12 to 7.18.0 (security fixes, API renames, behavioral quirks)
+- [docs/migrations/seo-url-rules/README.md](./docs/migrations/seo-url-rules/README.md) — Adopting configurable SEO product and category URLs (`seoRoutes`): prerequisites, category modes, redirects, verification checklist
 
 **Development:**
 - [docs/README-HYBRID-PROXY.md](./docs/README-HYBRID-PROXY.md) — Hybrid proxy for local development

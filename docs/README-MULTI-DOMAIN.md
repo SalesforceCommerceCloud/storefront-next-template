@@ -193,7 +193,7 @@ export default {
         defaultSiteId: 'RefArch',
 
         // 2. Site comes from the domain (X-Site-Id header), not the URL path.
-        //    Keep locale in the path so URLs stay shareable: /en-US/product/123
+        //    Keep locale in the path so URLs stay shareable: /en-US/p/123
         url: { prefix: '/:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
 
         // 3. Read the site from the header; drop 'path' so the locale segment isn't
@@ -204,8 +204,8 @@ export default {
 };
 ```
 
-Now `https://siteb.shop.com/en-GB/product/123` renders `RefArchGlobal` in `en-GB`, and
-`https://site-a.shop.com/en-US/product/123` renders `RefArch` in `en-US` — from one deployment.
+Now `https://siteb.shop.com/en-GB/p/123` renders `RefArchGlobal` in `en-GB`, and
+`https://site-a.shop.com/en-US/p/123` renders `RefArch` in `en-US` — from one deployment.
 
 > **Changing `url.prefix` requires a rebuild.** The prefix is baked into the route structure and
 > can't be changed at runtime via `PUBLIC__` environment variables. Update `config.server.ts` and
@@ -214,7 +214,7 @@ Now `https://siteb.shop.com/en-GB/product/123` renders `RefArchGlobal` in `en-GB
 ### Request flow
 
 ```
-1. Browser → GET https://siteb.shop.com/en-GB/product/123
+1. Browser → GET https://siteb.shop.com/en-GB/p/123
         |
 2. Managed Runtime CDN → forwards to the environment
      - X-Forwarded-Host: siteb.shop.com   (drives the public origin)

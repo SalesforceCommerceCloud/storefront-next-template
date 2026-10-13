@@ -120,7 +120,7 @@ export default function CartContent({
     const { t } = useTranslation('cart');
 
     // Calculate total item count for page heading
-    const totalItems = basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 0), 0) || 0;
+    const totalItems = (basket?.productItems || []).reduce((acc, item) => acc + (item.quantity ?? 1), 0);
     const pageHeading = t('itemCount', { count: totalItems });
 
     // TEMPORARY: State to facilitate bonus product modal development
@@ -137,6 +137,13 @@ export default function CartContent({
     const pickup = usePickup();
     const store = getFirstPickupStore(basket, pickup?.pickupStores);
     const pickupItems = filterPickupProductItems(basket);
+    // Scope the "Change Store" picker to the item being collected so an inventory-aware picker can pre-disable
+    // boutiques that don't stock it. Only a single-item pickup group gives an accurate signal — for a mixed group
+    // one product's stock can't stand in for the others, so leave the picker unscoped.
+    const pickupContext =
+        pickupItems.length === 1 && pickupItems[0]?.productId
+            ? { productId: pickupItems[0].productId, quantity: pickupItems[0].quantity ?? 1 }
+            : undefined;
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     // Validate cart-wide inventory for checkout button state
@@ -284,12 +291,12 @@ export default function CartContent({
         };
     }, []);
 
-    // Check if cart is empty using the basket prop from loader data
-    if (!basket?.productItems?.length) {
+    // Check if cart is empty
+    if (!basket || !basket.productItems || basket.productItems.length === 0) {
         return <CartEmpty />;
     }
 
-    const deliveryItemsState = { value: basket.productItems || [] };
+    const deliveryItemsState = { value: basket.productItems };
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     // Only filter pickup items from delivery if we have a store to render them in the pickup section
@@ -456,8 +463,11 @@ export default function CartContent({
                             <div key={store.id} className="md:p-8 p-3 rounded-ui border border-border mb-3">
                                 <CartPickup
                                     store={store}
-                                    pickupCount={pickupItems.length}
-                                    totalCount={basket?.productItems?.length ?? 0}
+                                    pickupCount={pickupItems.reduce((acc, item) => acc + (item.quantity ?? 1), 0)}
+                                    totalCount={
+                                        basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 1), 0) ?? 0
+                                    }
+                                    pickupContext={pickupContext}
                                 />
                                 <div className="mt-4">
                                     <ProductItemsList
@@ -479,7 +489,10 @@ export default function CartContent({
                             <div
                                 data-slot="cart-delivery-group"
                                 className="md:p-8 p-3 rounded-ui border border-muted-foreground/10 mb-3">
-                                <CartTitle basket={basket} deliveryCount={deliveryItems.length} />
+                                <CartTitle
+                                    basket={basket}
+                                    deliveryCount={deliveryItems.reduce((acc, item) => acc + (item.quantity ?? 1), 0)}
+                                />
                                 <ProductItemsList
                                     promotions={promotions}
                                     productItems={deliveryItems}

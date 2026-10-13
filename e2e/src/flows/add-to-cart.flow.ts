@@ -103,7 +103,7 @@ class AddToCartFlow {
     /**
      * Execute the add-to-cart flow on a category page.
      *
-     * @param categoryUrl - Direct URL to category page (e.g., 'category/womens-clothing-tops')
+     * @param categoryUrl - Direct URL to category page (e.g., 'c/womens-clothing-tops')
      * @param options - preferPromotedProduct: try a product with Sale badge first;
      *                  sitePrefix: bypass buildSitePath for multi-currency/locale tests
      */
@@ -155,7 +155,9 @@ class AddToCartFlow {
                 }
 
                 const productTitle = await productDetailPage.getProductTitle();
-                const quantity = await productDetailPage.getQuantity();
+                // Inline PDP quantity mode begins at one and only renders its stepper after
+                // the first add. Pre-select mode still exposes the numeric input.
+                const quantity = await productDetailPage.getInitialAddQuantity();
 
                 const outcome = await productDetailPage.addToCartAndWaitForOutcome(15);
                 if (outcome === 'error') {

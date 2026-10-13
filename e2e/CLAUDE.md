@@ -118,7 +118,7 @@ Scenario('Interactive test development', async () => {
 
 ```typescript
 Scenario('Generate page object', async () => {
-    I.amOnPage('/product/123');
+    I.amOnPage('/p/123');
     pause();
     // In console: I.askForPageObject("productDetail")
     // AI reads runtime DOM and generates complete page object
@@ -419,7 +419,7 @@ const productCount = await storefrontPage.getProductCount();
 expect(productCount, 'Should have product tiles on homepage').to.be.greaterThan(0);
 
 const currentUrl = await I.grabCurrentUrl();
-expect(currentUrl, 'Should navigate to PDP page').to.include('/product/');
+expect(currentUrl, 'Should navigate to PDP page').to.include('/p/');
 
 const isVisible = await productPage.isProductTitleVisible();
 expect(isVisible, 'Product title should be visible').to.be.true;

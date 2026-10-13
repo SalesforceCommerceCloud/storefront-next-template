@@ -105,7 +105,7 @@ vi.mock('@/hooks/use-current-site-and-locale-ref', () => ({
 }));
 
 vi.mock('@salesforce/storefront-next-runtime/site-context', () => ({
-    useSite: () => null,
+    useSite: () => ({ site: mockSiteObject }),
     buildUrl: ({ to }: { to: string }) => to,
     SiteProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));

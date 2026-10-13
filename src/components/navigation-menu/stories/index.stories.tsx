@@ -35,7 +35,7 @@ const meta: Meta<typeof CategoryNavigationMenu> = {
                     '',
                     'The header mega menu (`<CategoryNavigationMenuMega>`) is the primary consumer — production code uses the mega menu, not this directly.',
                     '',
-                    'The package also exports `WithCategoryNavigationMenu`, a loader-bridging HOC that consumes a `resolve` Promise (root + first-level subcategories, suspends via `Await`) and a `defer` Promise (deeper subcategories, drained into the `SubCategoryContext` store after mount so deeper levels hydrate without suspending). Filtering (default `c_showInMenu`) is applied before children render. Behavior is covered by `index.test.tsx`; not exercised here as it has no visible Storybook output.',
+                    'The package also exports `WithCategoryNavigationMenu`, a loader-bridging HOC that consumes a `resolve` Promise (root + first-level subcategories, suspends via `Await`) and a `defer` Promise (deeper subcategories, drained into the `SubCategoryContext` store after mount so deeper levels hydrate without suspending). Optional field- or callback-based filtering is applied before children render. Behavior is covered by `index.test.tsx`; not exercised here as it has no visible Storybook output.',
                 ].join('\n'),
             },
         },

@@ -16,41 +16,78 @@
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, test, expect, vi } from 'vitest';
+import { beforeEach, describe, test, expect, vi } from 'vitest';
 import type { ShopperCustomers } from '@/scapi';
 import { PaymentMethods } from './payment-methods';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();
 
-// Mock child components
+const { addToast, revalidate } = vi.hoisted(() => ({
+    addToast: vi.fn(),
+    revalidate: vi.fn(),
+}));
+
 vi.mock('./payment-method-card', () => ({
-    PaymentMethodCard: ({ paymentMethod }: { paymentMethod: { last4: string } }) => (
-        <div data-testid="payment-method-card">Card ending in {paymentMethod.last4}</div>
+    PaymentMethodCard: ({ paymentMethod, onRemove }: { paymentMethod: { last4: string }; onRemove?: () => void }) => (
+        <div data-testid="payment-method-card">
+            <span>Card ending in {paymentMethod.last4}</span>
+            <button type="button" onClick={onRemove}>
+                Remove
+            </button>
+        </div>
     ),
 }));
 
-vi.mock('./add-payment-method-dialog', () => ({
-    AddPaymentMethodDialog: () => <div data-testid="add-dialog">Add Dialog</div>,
-}));
+vi.mock('./add-payment-method-dialog', () => {
+    return {
+        AddPaymentMethodDialog: ({
+            open,
+            onComplete,
+            onError,
+        }: {
+            open?: boolean;
+            onComplete: () => void;
+            onError: (error?: unknown) => void;
+        }) =>
+            open ? (
+                <div data-testid="add-dialog">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            onComplete();
+                            onComplete();
+                        }}>
+                        Complete extension add
+                    </button>
+                    <button type="button" onClick={() => onError(new Error('setup failed'))}>
+                        Fail extension add
+                    </button>
+                </div>
+            ) : null,
+    };
+});
 
 vi.mock('./remove-payment-method-dialog', () => ({
-    RemovePaymentMethodDialog: () => <div data-testid="remove-dialog">Remove Dialog</div>,
+    RemovePaymentMethodDialog: ({ open }: { open?: boolean }) =>
+        open ? <div data-testid="remove-dialog">Remove Dialog</div> : null,
 }));
 
 vi.mock('react-router', async () => {
     const actual = await vi.importActual('react-router');
     return {
         ...actual,
-        useRevalidator: () => ({ revalidate: vi.fn(), state: 'idle' }),
+        useRevalidator: () => ({ revalidate, state: 'idle' }),
         useFetcher: () => ({ state: 'idle', data: null, submit: vi.fn() }),
     };
 });
 
 vi.mock('@/components/toast', () => ({
-    useToast: () => ({ addToast: vi.fn() }),
+    useToast: () => ({ addToast }),
 }));
 
+// Passthrough only — unused when transformTargets replaces the UITarget, but kept for
+// targets that have no extension registration (e.g. gift-cards).
 vi.mock('@/targets/ui-target', () => ({
     UITarget: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
@@ -59,13 +96,32 @@ describe('PaymentMethods', () => {
     const mockCustomer: ShopperCustomers.schemas['Customer'] = {
         customerId: 'customer-1',
         addresses: [],
+        paymentInstruments: [
+            {
+                paymentInstrumentId: 'pi-1',
+                default: false,
+                paymentCard: {
+                    cardType: 'Visa',
+                    maskedNumber: '************1111',
+                    numberLastDigits: '1111',
+                    expirationMonth: 12,
+                    expirationYear: 2030,
+                    holder: 'Test User',
+                },
+            },
+        ],
     };
+
+    beforeEach(() => {
+        addToast.mockClear();
+        revalidate.mockClear();
+    });
 
     test('renders payment methods page with header', () => {
         render(<PaymentMethods customer={mockCustomer} />);
 
         expect(screen.getAllByText(t('account:navigation.paymentMethods'))[0]).toBeInTheDocument();
-        expect(screen.getByText(t('account:paymentMethods.pageSubtitle'))).toBeInTheDocument();
+        expect(screen.getByText(t('account:paymentMethods.subtitle'))).toBeInTheDocument();
     });
 
     test('renders add payment method button', () => {
@@ -78,9 +134,48 @@ describe('PaymentMethods', () => {
         const user = userEvent.setup();
         render(<PaymentMethods customer={mockCustomer} />);
 
-        const addButton = screen.getByText(t('account:paymentMethods.addPaymentMethod'));
-        await user.click(addButton);
+        expect(screen.queryByTestId('add-dialog')).not.toBeInTheDocument();
+
+        await user.click(screen.getByText(t('account:paymentMethods.addPaymentMethod')));
 
         expect(screen.getByTestId('add-dialog')).toBeInTheDocument();
+    });
+
+    test('opens remove dialog when remove is clicked', async () => {
+        const user = userEvent.setup();
+        render(<PaymentMethods customer={mockCustomer} />);
+
+        expect(screen.queryByTestId('remove-dialog')).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: 'Remove' }));
+
+        expect(screen.getByTestId('remove-dialog')).toBeInTheDocument();
+    });
+
+    test('handles extension add completion through the dialog context', async () => {
+        const user = userEvent.setup();
+        render(<PaymentMethods customer={mockCustomer} />);
+
+        await user.click(screen.getByText(t('account:paymentMethods.addPaymentMethod')));
+        await user.click(screen.getByRole('button', { name: 'Complete extension add' }));
+
+        expect(screen.queryByTestId('add-dialog')).not.toBeInTheDocument();
+        expect(addToast).toHaveBeenCalledOnce();
+        expect(addToast).toHaveBeenCalledWith(t('account:paymentMethods.addSuccess'), 'success');
+        // CAP owns SFP list refresh — host must not revalidate on add complete.
+        expect(revalidate).not.toHaveBeenCalled();
+    });
+
+    test('keeps the dialog open when an extension add fails', async () => {
+        const user = userEvent.setup();
+        render(<PaymentMethods customer={mockCustomer} />);
+
+        await user.click(screen.getByText(t('account:paymentMethods.addPaymentMethod')));
+        await user.click(screen.getByRole('button', { name: 'Fail extension add' }));
+
+        expect(screen.getByTestId('add-dialog')).toBeInTheDocument();
+        expect(addToast).toHaveBeenCalledOnce();
+        expect(addToast).toHaveBeenCalledWith(t('account:paymentMethods.addError'), 'error');
+        expect(revalidate).not.toHaveBeenCalled();
     });
 });

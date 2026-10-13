@@ -16,6 +16,7 @@
 import { type ReactElement, useId } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { FilterValue, RefinementProps } from '../types';
+import { cn } from '@/lib/utils';
 
 /**
  * Flatten a (possibly hierarchical) category refinement to the leaf values rendered in the facet.
@@ -47,7 +48,8 @@ export default function RefineCategory({
     isFilterSelected,
     toggleFilter,
     label,
-}: RefinementProps & { label?: string }): ReactElement {
+    isValueDisabled,
+}: RefinementProps & { label?: string; isValueDisabled?: (value: string) => boolean }): ReactElement {
     const leafValues = toLeafValues(values);
     const groupId = useId();
     const selectedValue = leafValues.find((v) => isFilterSelected(attributeId, v.value))?.value ?? '';
@@ -63,12 +65,16 @@ export default function RefineCategory({
             onValueChange={(value) => toggleFilter(attributeId, value)}>
             {leafValues.map((value: FilterValue, idx) => {
                 const id = `${groupId}-${idx}`;
+                const disabled = isValueDisabled?.(value.value) ?? false;
                 return (
                     <label
                         key={`${attributeId}:${value.value}`}
                         htmlFor={id}
-                        className="flex items-center p-2 hover:bg-muted/30 cursor-pointer">
-                        <RadioGroupItem id={id} value={value.value} className="size-4" />
+                        className={cn(
+                            'flex items-center p-2',
+                            disabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-muted/30 cursor-pointer'
+                        )}>
+                        <RadioGroupItem id={id} value={value.value} disabled={disabled} className="size-4" />
                         <span className="ml-3 text-sm font-medium">{value.label || value.value}</span>
                         {value.hitCount !== undefined && (
                             <span className="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full">{value.hitCount}</span>

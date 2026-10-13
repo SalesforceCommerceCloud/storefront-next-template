@@ -1,0 +1,2093 @@
+/**
+ * Copyright 2026 Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import 'reflect-metadata';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { MemoryRouter } from 'react-router';
+import { ApiError, type ShopperExperience, type ShopperProducts, type ShopperSearch } from '@/scapi';
+import { NormalizedApiError } from '@/lib/api/normalized-api-error';
+import CategoryPage, { loader, ProductListingPageMetadata, shouldRevalidate } from './_app.c.$';
+import { shouldRevalidate as sharedShouldRevalidate } from '@/lib/revalidation/routes/category';
+import { createTestContext } from '@/lib/test-utils';
+import { fetchCategory } from '@/lib/api/categories.server';
+import { fetchSearchProducts } from '@/lib/api/search.server';
+import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import type { AppConfig } from '@/types/config';
+import { getRegionDefinition } from '@/lib/decorators/region-definition';
+import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { generateCategorySchema } from '@/utils/category-schema';
+import { useAnalytics } from '@/hooks/use-analytics';
+import type { Route } from './+types/_app.c.$';
+
+const mockAttemptRouteSeoFallback = vi.hoisted(() => vi.fn());
+
+vi.mock('@/lib/seo/route-fallback.server', () => ({
+    attemptRouteSeoFallback: mockAttemptRouteSeoFallback,
+}));
+
+vi.mock('react-router', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('react-router')>();
+    return {
+        ...actual,
+        useNavigation: () => ({ state: 'idle', location: undefined }),
+        // CategoryJsonLd reads `nonce` from the root loader. Tests render the page
+        // outside a real data router, so stub the lookup with a deterministic value.
+        useRouteLoaderData: (id: string) => (id === 'root' ? { nonce: undefined } : undefined),
+    };
+});
+
+vi.mock('@/lib/logger.server', () => ({
+    getLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() })),
+}));
+
+type CategoryPageData = Awaited<ReturnType<typeof loader>>;
+
+// Mock data
+const mockCategory: ShopperProducts.schemas['Category'] = {
+    id: 'electronics',
+    name: 'Electronics',
+    pageDescription: 'Shop the latest electronics',
+    parentCategoryTree: [
+        { id: 'root', name: 'Home' },
+        { id: 'tech', name: 'Technology' },
+    ],
+};
+
+const mockSearchResult: ShopperSearch.schemas['ProductSearchResult'] = {
+    hits: [
+        {
+            productId: 'product-1',
+            productName: 'Product 1',
+            image: { alt: 'Product 1', link: '/product1.jpg' },
+            price: 29.99,
+            currency: 'USD',
+            inventory: { ats: 10 },
+            representedProduct: {
+                id: 'product-1',
+                imageGroups: [],
+                variants: [],
+                type: { master: true },
+            } as any,
+        },
+        {
+            productId: 'product-2',
+            productName: 'Product 2',
+            image: { alt: 'Product 2', link: '/product2.jpg' },
+            price: 49.99,
+            currency: 'USD',
+            inventory: { ats: 5 },
+            representedProduct: {
+                id: 'product-2',
+                imageGroups: [],
+                variants: [],
+                type: { master: true },
+            } as any,
+        },
+    ],
+    total: 25,
+    refinements: [],
+    searchPhraseSuggestions: { suggestedTerms: [] },
+    sortingOptions: [
+        { id: 'best-matches', label: 'Best Matches' },
+        { id: 'price-low-to-high', label: 'Price: Low to High' },
+    ],
+    selectedSortingOption: 'best-matches',
+    selectedRefinements: {},
+    offset: 0,
+    limit: 10,
+    query: '',
+};
+
+// Helper function to create mock Page objects
+const createMockPage = (regions: any[] = []): ShopperExperience.schemas['Page'] =>
+    ({
+        id: 'plp',
+        typeId: 'plp',
+        designMetadata: {
+            regionDefinitions: regions.map((region) => ({ id: region.id })),
+        } as never,
+        regions,
+    }) as ShopperExperience.schemas['Page'];
+
+const mockRegion = vi.hoisted(() => vi.fn((_props: Record<string, unknown>) => null));
+
+// Mock the Region component while retaining its props for route-level integration assertions.
+vi.mock('@/components/region', () => ({
+    Region: mockRegion,
+}));
+
+// Mock DeferredProductGrid component
+vi.mock('@/components/product-grid', () => ({
+    default: function DeferredProductGridMock({ critical, nonCriticalCount, handleProductClick }: any) {
+        return (
+            <div data-testid="product-grid">
+                <div data-testid="critical-count" style={{ display: 'none' }}>
+                    {critical?.length ?? 0}
+                </div>
+                <div data-testid="non-critical-skeleton-count" style={{ display: 'none' }}>
+                    {nonCriticalCount ?? 0}
+                </div>
+                {critical?.map((product: any) => (
+                    <div
+                        key={product.productId}
+                        data-testid="product-item"
+                        onClick={() => handleProductClick?.(product)}>
+                        {product.productName}
+                    </div>
+                ))}
+            </div>
+        );
+    },
+}));
+
+// Mock other components
+vi.mock('@/components/category-breadcrumbs', () => ({
+    default: ({ category }: any) => <div data-testid="category-breadcrumbs">{category.name}</div>,
+}));
+
+// Mock the "Load more" hook: no fetcher (which needs a data router), just derive hasMore from the
+// initial page vs total so behavior-driven tests still exercise the show/hide logic.
+const mockUseLoadMoreProducts = vi.hoisted(() =>
+    vi.fn(({ initialCount, total }: any) => ({
+        appended: [],
+        loadedCount: initialCount,
+        total,
+        hasMore: initialCount < total,
+        capReached: false,
+        isLoading: false,
+        hasError: false,
+        firstNewIndex: null,
+        loadMore: vi.fn(),
+    }))
+);
+
+vi.mock('@/hooks/use-load-more-products', () => ({
+    useLoadMoreProducts: mockUseLoadMoreProducts,
+}));
+
+// Mock the "Load more" control: mirror the real component's terminal-state logic — it renders whenever
+// there are products (button, end-of-catalog message, or cap prompt) and nothing only when total is 0.
+vi.mock('@/components/product-grid/load-more', () => ({
+    default: ({ loadedCount, total }: any) =>
+        total > 0 ? (
+            <div data-testid="load-more">
+                Showing {loadedCount} of {total}
+            </div>
+        ) : null,
+}));
+
+vi.mock('@/components/category-refinements', () => ({
+    default: () => <div data-testid="category-refinements" />,
+}));
+
+vi.mock('@/components/category-refinements/active-filters', () => ({
+    default: () => <div data-testid="active-filters" />,
+}));
+
+vi.mock('@/components/category-refinements/filters-button', () => ({
+    default: ({ onClick }: any) => (
+        <button data-testid="filters-button" onClick={onClick}>
+            Filters
+        </button>
+    ),
+}));
+
+vi.mock('@/components/category-sorting', () => ({
+    default: () => <div data-testid="category-sorting" />,
+}));
+
+vi.mock('@/components/quick-filters', () => ({
+    default: () => <div data-testid="quick-filters" />,
+}));
+
+vi.mock('@/components/json-ld', () => ({
+    JsonLd: ({ id }: any) => <script data-testid={id} type="application/ld+json" />,
+}));
+
+// Mock API functions
+vi.mock('@/lib/api/categories.server', () => ({
+    fetchCategory: vi.fn(),
+}));
+
+vi.mock('@/lib/api/search.server', () => ({
+    fetchSearchProducts: vi.fn(),
+}));
+
+vi.mock('@/lib/page-designer/page-loader.server', () => ({
+    fetchPageWithComponentData: vi.fn(),
+}));
+
+vi.mock('@/utils/category-schema', () => ({
+    generateCategorySchema: vi.fn(),
+}));
+
+vi.mock('@/middlewares/auth.server', () => ({
+    getAuth: vi.fn(() => ({ customerId: null })),
+}));
+
+// Mock analytics with controllable mock functions
+const mockTrackViewCategory = vi.fn();
+const mockTrackClickProductInCategory = vi.fn();
+
+vi.mock('@/hooks/use-analytics', () => ({
+    useAnalytics: vi.fn(() => ({
+        trackViewCategory: mockTrackViewCategory,
+        trackClickProductInCategory: mockTrackClickProductInCategory,
+    })),
+}));
+
+// Mock config
+vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => {
+    const actual = await importOriginal<object>();
+    const mockConfigValue = {
+        commerce: {
+            sites: [
+                {
+                    id: 'test-site',
+                    defaultLocale: 'en-US',
+                },
+            ],
+        },
+        search: {
+            products: {
+                hits: {
+                    limit: 10,
+                    critical: 2,
+                },
+            },
+        },
+    } as AppConfig;
+    return {
+        ...actual,
+        getConfig: vi.fn(() => mockConfigValue),
+        useConfig: vi.fn(() => mockConfigValue),
+    };
+});
+
+describe('CategoryPage', () => {
+    const mockContext = createTestContext();
+    const mockConfig: AppConfig = {
+        commerce: {
+            sites: [
+                {
+                    id: 'test-site',
+                    defaultLocale: 'en-US',
+                },
+            ],
+        },
+        search: {
+            products: {
+                hits: {
+                    limit: 10,
+                    critical: 2,
+                },
+            },
+        },
+    } as AppConfig;
+    const mockSlugConfig = {
+        ...mockConfig,
+        url: {
+            seoRoutes: {
+                RefArchGlobal: {
+                    product: { prefix: 'p' },
+                    category: { prefix: 'catalog', mode: 'slug-path' as const },
+                },
+            },
+        },
+    } as AppConfig;
+    const mockIdSuffixConfig = {
+        ...mockConfig,
+        url: {
+            seoRoutes: {
+                RefArchGlobal: {
+                    product: { prefix: 'p' },
+                    category: { prefix: 'c', mode: 'id-suffix' as const },
+                },
+            },
+        },
+    } as AppConfig;
+
+    const createLoaderArgs = (url: string, overrides?: { params?: Record<string, string> }): Route.LoaderArgs => ({
+        request: new Request(url),
+        url: new URL(url),
+        context: mockContext,
+        params: { siteId: 'test-site', localeId: 'en-US', '*': 'electronics', ...overrides?.params },
+        pattern: '/c/*',
+    });
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.mocked(useAnalytics).mockReturnValue({
+            trackViewCategory: mockTrackViewCategory,
+            trackClickProductInCategory: mockTrackClickProductInCategory,
+        } as never);
+        (getConfig as any).mockReturnValue(mockConfig);
+        (fetchCategory as any).mockResolvedValue(mockCategory);
+        (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
+        (fetchPageWithComponentData as any).mockResolvedValue({
+            ...createMockPage(),
+            componentData: {},
+        });
+        (generateCategorySchema as any).mockReturnValue({
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Electronics',
+        });
+        mockAttemptRouteSeoFallback.mockResolvedValue(undefined);
+    });
+
+    describe('Decorators', () => {
+        test('should have PageType decorator', () => {
+            const metadata = Reflect.getMetadata('page:type', ProductListingPageMetadata);
+            expect(metadata).toBeDefined();
+            expect(metadata.name).toBe('Product Listing Page');
+            expect(metadata.description).toBe('Product listing page with product listings and personalized content');
+            expect(metadata.supportedAspectTypes).toEqual(['plp']);
+        });
+
+        test('should have RegionDefinition decorator with three regions', () => {
+            const topFullWidthRegion = getRegionDefinition(ProductListingPageMetadata, 'plpTopFullWidth');
+            expect(topFullWidthRegion).toBeDefined();
+            expect(topFullWidthRegion?.id).toBe('plpTopFullWidth');
+            expect(topFullWidthRegion?.name).toBe('Top Full Width Region');
+            expect(topFullWidthRegion?.maxComponents).toBe(5);
+
+            const topContentRegion = getRegionDefinition(ProductListingPageMetadata, 'plpTopContent');
+            expect(topContentRegion).toBeDefined();
+            expect(topContentRegion?.id).toBe('plpTopContent');
+            expect(topContentRegion?.name).toBe('Top Content Region');
+
+            const bottomRegion = getRegionDefinition(ProductListingPageMetadata, 'plpBottom');
+            expect(bottomRegion).toBeDefined();
+            expect(bottomRegion?.id).toBe('plpBottom');
+            expect(bottomRegion?.name).toBe('Bottom Region');
+        });
+    });
+
+    describe('loader', () => {
+        test('should fetch category data and search results with correct parameters', async () => {
+            const args = createLoaderArgs('https://example.com/c/electronics');
+
+            const result = await loader(args);
+
+            expect(fetchCategory).toHaveBeenCalledWith(mockContext, 'electronics', 1);
+            expect(fetchSearchProducts).toHaveBeenCalledWith(mockContext, {
+                limit: 2,
+                offset: 0,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+            expect(fetchSearchProducts).toHaveBeenCalledWith(mockContext, {
+                limit: 8,
+                offset: 2,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+            expect(fetchPageWithComponentData).toHaveBeenCalledWith(args, {
+                aspectType: 'plp',
+                categoryId: 'electronics',
+            });
+            expect(result.categoryId).toBe('electronics');
+            expect(result.category).toEqual(mockCategory);
+            expect(result.searchResultCritical).toEqual(mockSearchResult);
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('passes an .html category ID unchanged to the authoritative lookup', async () => {
+            vi.mocked(fetchCategory).mockResolvedValue({ ...mockCategory, id: 'legacy.html' });
+
+            await loader(createLoaderArgs('https://example.com/c/legacy.html'));
+
+            expect(fetchCategory).toHaveBeenCalledWith(mockContext, 'legacy.html', 1);
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('resolves the category ID from the final raw path segment before canonicalizing', async () => {
+            // Under the SEO route alias the id-suffix URL routes through a pathless parent whose
+            // `{prefix}/*` alias child owns the splat, so the authoritative category ID is the final
+            // raw path segment, not the `:categoryId` route param (stale/undefined on aliased URLs).
+            // The `createLoaderArgs` default leaves a stale `electronics` param to prove it's ignored.
+            const args = createLoaderArgs('https://example.com/c/womens/shoes/mens-clothing');
+            vi.mocked(fetchCategory).mockResolvedValue({ ...mockCategory, id: 'mens-clothing' });
+
+            const response = await loader(args).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
+
+            expect(fetchCategory).toHaveBeenCalledWith(mockContext, 'mens-clothing', 1);
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe('/c/mens-clothing');
+        });
+
+        test('301-redirects extra default-route segments to the category ID path', async () => {
+            const response = await loader(
+                createLoaderArgs('https://example.com/c/anything/electronics?refine=color%3Dblue', {
+                    params: { '*': 'anything/electronics' },
+                })
+            ).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
+
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe('/c/electronics?refine=color%3Dblue');
+        });
+
+        test('301-redirects a stale ID-suffix hierarchy without URL Mapping', async () => {
+            (getConfig as any).mockReturnValue(mockIdSuffixConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'day-moisturiser',
+                slug: 'skincare/moisturisers/day-moisturiser',
+            });
+
+            const response = await loader(
+                createLoaderArgs('https://example.com/c/old/day/day-moisturiser?refine=color%3Dblue', {
+                    params: { '*': 'day-moisturiser' },
+                })
+            ).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
+
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe(
+                '/c/skincare/moisturisers/day-moisturiser/day-moisturiser?refine=color%3Dblue'
+            );
+            expect(fetchCategory).toHaveBeenCalledOnce();
+            expect(fetchSearchProducts).toHaveBeenCalledOnce();
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('redirects a stale ID-suffix hierarchy to the slugless canonical path when the slug is missing', async () => {
+            (getConfig as any).mockReturnValue(mockIdSuffixConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({ ...mockCategory, id: 'electronics', slug: undefined });
+
+            const response = await loader(createLoaderArgs('https://example.com/c/old/electronics')).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
+
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe('/c/electronics');
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('keeps slug-path mismatch handling on the existing fallback path', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({ ...mockCategory, id: 'sale', slug: 'clearance/sale' });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(
+                new Response(null, { status: 302, headers: { Location: '/catalog/sale-category' } })
+            );
+
+            const response = (await loader(
+                createLoaderArgs('https://example.com/catalog/sale')
+            )) as unknown as Response;
+
+            expect(response.headers.get('Location')).toBe('/catalog/sale-category');
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
+        });
+
+        test('resolves a complete slug path without adding a second product search', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'day-moisturiser',
+                slug: 'skincare/moisturisers/day-moisturiser',
+            });
+
+            const args = createLoaderArgs(
+                'https://example.com/catalog/skincare/moisturisers/day-moisturiser?refine=cgid%3Dstale&refine=cgslug%3Dstale%2Fpath&refine=color%3Dblue'
+            );
+            const result = await loader(args);
+
+            expect(fetchCategory).toHaveBeenCalledWith(mockContext, 'skincare/moisturisers/day-moisturiser', 1);
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(2);
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(
+                1,
+                mockContext,
+                expect.objectContaining({
+                    refine: ['color=blue', 'cgslug=skincare/moisturisers/day-moisturiser'],
+                })
+            );
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(
+                2,
+                mockContext,
+                expect.objectContaining({
+                    refine: ['color=blue', 'cgslug=skincare/moisturisers/day-moisturiser'],
+                })
+            );
+            expect(fetchPageWithComponentData).toHaveBeenCalledWith(args, {
+                aspectType: 'plp',
+                categoryId: 'day-moisturiser',
+            });
+            expect(result.categoryId).toBe('day-moisturiser');
+            expect(result.refine).toEqual(['color=blue', 'cgslug=skincare/moisturisers/day-moisturiser']);
+            expect(result.seoPagination?.nextUrl).toBe(
+                'http://localhost:3000/catalog/skincare/moisturisers/day-moisturiser?refine=color%3Dblue&page=2'
+            );
+        });
+
+        test('does not resolve an alias configured for a different site', async () => {
+            (getConfig as any).mockReturnValue({
+                ...mockConfig,
+                url: {
+                    seoRoutes: {
+                        RefArchGlobal: {
+                            product: { prefix: 'p' },
+                            category: { prefix: 'c', mode: 'id-suffix' },
+                        },
+                        OtherSite: {
+                            product: { prefix: 'product' },
+                            category: { prefix: 'catalog', mode: 'slug-path' },
+                        },
+                    },
+                },
+            } as AppConfig);
+            const redirect = new Response(null, { status: 302, headers: { Location: '/current-category' } });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
+
+            const result = await loader(createLoaderArgs('https://example.com/catalog/womens/shoes'));
+
+            expect(result).toBe(redirect);
+            expect(fetchCategory).not.toHaveBeenCalled();
+            expect(fetchSearchProducts).not.toHaveBeenCalled();
+            expect(fetchPageWithComponentData).not.toHaveBeenCalled();
+        });
+
+        test('rejects an ID-precedence collision instead of rendering the wrong slug category', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'sale',
+                slug: 'clearance/sale',
+            });
+            const redirect = new Response(null, { status: 302, headers: { Location: '/catalog/sale-category' } });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
+
+            const result = await loader(createLoaderArgs('https://example.com/catalog/sale'));
+
+            expect(result).toBe(redirect);
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
+            expect(fetchPageWithComponentData).not.toHaveBeenCalled();
+        });
+
+        test('starts slug category lookup and product search together, then uses the resolved ID for Page Designer', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            let resolveCategory!: (category: ShopperProducts.schemas['Category']) => void;
+            vi.mocked(fetchCategory).mockReturnValue(
+                new Promise((resolve) => {
+                    resolveCategory = resolve;
+                })
+            );
+
+            const args = createLoaderArgs('https://example.com/catalog/womens/shoes');
+            const resultPromise = loader(args);
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(1);
+            expect(fetchPageWithComponentData).not.toHaveBeenCalled();
+
+            resolveCategory({ ...mockCategory, id: 'womens-shoes', slug: 'womens/shoes' });
+            await resultPromise;
+
+            expect(fetchPageWithComponentData).toHaveBeenCalledWith(args, {
+                aspectType: 'plp',
+                categoryId: 'womens-shoes',
+            });
+        });
+
+        test('uses SEO fallback for a classified Shopper Search cgslug resolution miss', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'womens-shoes',
+                slug: 'womens/shoes',
+            });
+            const resolutionMiss = new ApiError({
+                status: 400,
+                statusText: 'Bad Request',
+                headers: new Headers(),
+                body: {
+                    type: 'https://api.commercecloud.salesforce.com/documentation/error/v1/errors/invalid-category-slug-refinement',
+                    title: 'Category slug cannot be resolved',
+                    detail: 'The cgslug refinement does not resolve to a category',
+                },
+                rawBody: '{}',
+                url: 'https://api.example.com/product-search',
+                method: 'GET',
+            });
+            vi.mocked(fetchSearchProducts).mockRejectedValue(new NormalizedApiError(resolutionMiss));
+            const redirect = new Response(null, { status: 302, headers: { Location: '/catalog/current-shoes' } });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
+
+            const result = await loader(createLoaderArgs('https://example.com/catalog/womens/shoes'));
+
+            expect(result).toBe(redirect);
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
+        });
+
+        test('does not remap an unrelated Shopper Search 400', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'womens-shoes',
+                slug: 'womens/shoes',
+            });
+            const invalidSort = new ApiError({
+                status: 400,
+                statusText: 'Bad Request',
+                headers: new Headers(),
+                body: {
+                    type: 'InvalidParameter',
+                    title: 'Invalid request parameter',
+                    detail: 'The requested sorting option does not exist',
+                },
+                rawBody: '{}',
+                url: 'https://api.example.com/product-search',
+                method: 'GET',
+            });
+            const error = new NormalizedApiError(invalidSort);
+            vi.mocked(fetchSearchProducts).mockRejectedValue(error);
+
+            await expect(loader(createLoaderArgs('https://example.com/catalog/womens/shoes'))).rejects.toBe(error);
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('does not remap an operational Shopper Search failure', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'womens-shoes',
+                slug: 'womens/shoes',
+            });
+            const operationalError = Object.assign(Object.create(NormalizedApiError.prototype), {
+                status: 503,
+                message: 'Shopper Search unavailable',
+            });
+            vi.mocked(fetchSearchProducts).mockRejectedValue(operationalError);
+
+            await expect(loader(createLoaderArgs('https://example.com/catalog/womens/shoes'))).rejects.toBe(
+                operationalError
+            );
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('starts independent loader requests before the category resolves', async () => {
+            let resolveCategory!: (category: ShopperProducts.schemas['Category']) => void;
+            vi.mocked(fetchCategory).mockReturnValue(
+                new Promise((resolve) => {
+                    resolveCategory = resolve;
+                })
+            );
+
+            const resultPromise = loader(createLoaderArgs('https://example.com/c/electronics'));
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(1);
+            expect(fetchPageWithComponentData).toHaveBeenCalledTimes(1);
+
+            resolveCategory(mockCategory);
+            await resultPromise;
+        });
+
+        test('starts the non-critical search only after the critical result resolves', async () => {
+            let resolveCriticalSearch!: (result: ShopperSearch.schemas['ProductSearchResult']) => void;
+            vi.mocked(fetchSearchProducts)
+                .mockReturnValueOnce(
+                    new Promise((resolve) => {
+                        resolveCriticalSearch = resolve;
+                    })
+                )
+                .mockResolvedValueOnce(mockSearchResult);
+
+            const resultPromise = loader(createLoaderArgs('https://example.com/c/electronics'));
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(1);
+
+            resolveCriticalSearch(mockSearchResult);
+            await resultPromise;
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(2);
+        });
+
+        test('waits for Page Designer data before resolving the loader', async () => {
+            const page = { ...createMockPage(), componentData: {} };
+            let resolvePage!: (resolvedPage: typeof page) => void;
+            vi.mocked(fetchPageWithComponentData).mockReturnValue(
+                new Promise((resolve) => {
+                    resolvePage = resolve;
+                })
+            );
+            let loaderResolved = false;
+
+            const resultPromise = loader(createLoaderArgs('https://example.com/c/electronics')).then((result) => {
+                loaderResolved = true;
+                return result;
+            });
+
+            await vi.waitFor(() => expect(fetchSearchProducts).toHaveBeenCalledTimes(2));
+            expect(loaderResolved).toBe(false);
+
+            resolvePage(page);
+            await expect(resultPromise).resolves.toEqual(expect.objectContaining({ page }));
+        });
+
+        test('maps a category failure when concurrent loader requests also reject', async () => {
+            vi.mocked(fetchCategory).mockRejectedValue(new Error('Category request failed'));
+            vi.mocked(fetchSearchProducts).mockRejectedValue(new Error('Search request failed'));
+            vi.mocked(fetchPageWithComponentData).mockRejectedValue(new Error('Page request failed'));
+
+            const response = await loader(createLoaderArgs('https://example.com/c/electronics')).catch(
+                (error: unknown) => error
+            );
+
+            expect(response).toBeInstanceOf(Response);
+            expect((response as Response).status).toBe(500);
+            await expect((response as Response).text()).resolves.toBe('Internal Server Error');
+        });
+
+        test('should handle query parameters correctly', async () => {
+            await loader(
+                createLoaderArgs(
+                    'https://example.com/c/electronics?offset=20&sort=price-low-to-high&refine=color:red&refine=size:large'
+                )
+            );
+
+            expect(fetchSearchProducts).toHaveBeenCalledWith(
+                mockContext,
+                expect.objectContaining({
+                    offset: 20,
+                    sort: 'price-low-to-high',
+                    refine: ['color:red', 'size:large', 'cgid=electronics'],
+                })
+            );
+        });
+
+        test('preserves the legacy cgid selection when SEO routes are not configured', async () => {
+            const result = await loader(
+                createLoaderArgs(
+                    'https://example.com/c/electronics?refine=cgid%3Dwomens&refine=cgslug%3Dwomens%2Fshoes&refine=color%3Dblue'
+                )
+            );
+
+            expect(fetchSearchProducts).toHaveBeenCalledWith(
+                mockContext,
+                expect.objectContaining({
+                    refine: ['color=blue', 'cgid=womens'],
+                })
+            );
+            expect(result.refine).toEqual(['color=blue', 'cgid=womens']);
+            expect(result.seoPagination?.nextUrl).toBe(
+                'http://localhost:3000/c/electronics?refine=cgid%3Dwomens&refine=color%3Dblue&page=2'
+            );
+        });
+
+        test('replaces inbound category refinements for a configured deterministic route', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'electronics',
+                slug: 'electronics',
+            });
+
+            const result = await loader(
+                createLoaderArgs(
+                    'https://example.com/catalog/electronics?refine=cgid%3Dwomens&refine=cgslug%3Dwomens%2Fshoes&refine=color%3Dblue'
+                )
+            );
+
+            expect(result.refine).toEqual(['color=blue', 'cgslug=electronics']);
+        });
+
+        test('should return effectiveRefine as refine in loader result', async () => {
+            const result = await loader(createLoaderArgs('https://example.com/c/electronics'));
+
+            expect(result.refine).toEqual(['cgid=electronics']);
+        });
+
+        test('should parse filters query param into initialFiltersOpen', async () => {
+            const openResult = await loader(createLoaderArgs('https://example.com/c/electronics?filters=open'));
+            const closedResult = await loader(createLoaderArgs('https://example.com/c/electronics?filters=closed'));
+
+            expect(openResult.initialFiltersOpen).toBe(true);
+            expect(closedResult.initialFiltersOpen).toBe(false);
+        });
+
+        test('should throw 404 when category fetch fails with NormalizedApiError 404', async () => {
+            const mockApiError = new ApiError({
+                status: 404,
+                statusText: 'Not Found',
+                headers: new Headers({ 'content-type': 'application/json' }),
+                body: {
+                    type: 'https://api.example.com/errors/not-found',
+                    title: 'Category Not Found',
+                    detail: 'The requested category does not exist',
+                },
+                rawBody: JSON.stringify({
+                    type: 'https://api.example.com/errors/not-found',
+                    title: 'Category Not Found',
+                    detail: 'The requested category does not exist',
+                }),
+                url: 'https://api.example.com/categories/invalid',
+                method: 'GET',
+            });
+
+            (fetchCategory as any).mockRejectedValue(new NormalizedApiError(mockApiError));
+
+            try {
+                await loader(
+                    createLoaderArgs('https://example.com/c/invalid', {
+                        params: { '*': 'invalid' },
+                    })
+                );
+                expect.fail('Expected loader to throw');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(Response);
+                expect(error.status).toBe(404);
+                expect(await error.text()).toBe('The requested category does not exist');
+                expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
+            }
+        });
+
+        test('returns the fallback redirect for an authoritative category lookup 404', async () => {
+            const mockApiError = new ApiError({
+                status: 404,
+                statusText: 'Not Found',
+                headers: new Headers(),
+                body: { type: 'Not Found', title: 'Not Found', detail: 'missing' },
+                rawBody: '{}',
+                url: 'https://api.example.com/categories/missing',
+                method: 'GET',
+            });
+            vi.mocked(fetchCategory).mockRejectedValue(new NormalizedApiError(mockApiError));
+            const redirect = new Response(null, { status: 302, headers: { Location: '/category/current' } });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
+
+            const result = await loader(createLoaderArgs('https://example.com/c/legacy'));
+
+            expect(result).toBe(redirect);
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
+        });
+
+        test('should throw 500 when category fetch fails with NormalizedApiError 500', async () => {
+            const mockApiError = new ApiError({
+                status: 500,
+                statusText: 'Internal Server Error',
+                headers: new Headers({ 'content-type': 'application/json' }),
+                body: {
+                    type: 'https://api.example.com/errors/server-error',
+                    title: 'Internal Server Error',
+                    detail: 'An unexpected error occurred while processing the request',
+                },
+                rawBody: JSON.stringify({
+                    type: 'https://api.example.com/errors/server-error',
+                    title: 'Internal Server Error',
+                    detail: 'An unexpected error occurred while processing the request',
+                }),
+                url: 'https://api.example.com/categories/electronics',
+                method: 'GET',
+            });
+
+            (fetchCategory as any).mockRejectedValue(new NormalizedApiError(mockApiError));
+
+            try {
+                await loader(createLoaderArgs('https://example.com/c/electronics'));
+                expect.fail('Expected loader to throw');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(Response);
+                expect(error.status).toBe(500);
+                expect(await error.text()).toBe('An unexpected error occurred while processing the request');
+                expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+            }
+        });
+
+        test('should throw 403 when category fetch fails with NormalizedApiError 403', async () => {
+            const mockApiError = new ApiError({
+                status: 403,
+                statusText: 'Forbidden',
+                headers: new Headers({ 'content-type': 'application/json' }),
+                body: {
+                    type: 'https://api.example.com/errors/forbidden',
+                    title: 'Access Denied',
+                    detail: 'You do not have permission to access this category',
+                },
+                rawBody: JSON.stringify({
+                    type: 'https://api.example.com/errors/forbidden',
+                    title: 'Access Denied',
+                    detail: 'You do not have permission to access this category',
+                }),
+                url: 'https://api.example.com/categories/restricted',
+                method: 'GET',
+            });
+
+            (fetchCategory as any).mockRejectedValue(new NormalizedApiError(mockApiError));
+
+            try {
+                await loader(
+                    createLoaderArgs('https://example.com/c/restricted', {
+                        params: { '*': 'restricted' },
+                    })
+                );
+                expect.fail('Expected loader to throw');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(Response);
+                expect(error.status).toBe(403);
+                expect(await error.text()).toBe('You do not have permission to access this category');
+                expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+            }
+        });
+
+        test('should use body.detail as message when NormalizedApiError body.title is missing', async () => {
+            const mockApiError = new ApiError({
+                status: 404,
+                statusText: 'Not Found',
+                headers: new Headers({ 'content-type': 'application/json' }),
+                body: {
+                    type: 'https://api.example.com/errors/not-found',
+                    title: '',
+                    detail: 'Category not available',
+                },
+                rawBody: '{}',
+                url: 'https://api.example.com/categories/invalid',
+                method: 'GET',
+            });
+
+            (fetchCategory as any).mockRejectedValue(new NormalizedApiError(mockApiError));
+
+            try {
+                await loader(
+                    createLoaderArgs('https://example.com/c/invalid', {
+                        params: { '*': 'invalid' },
+                    })
+                );
+                expect.fail('Expected loader to throw');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(Response);
+                expect(error.status).toBe(404);
+                expect(await error.text()).toBe('Category not available');
+            }
+        });
+
+        test('should use statusText as fallback when NormalizedApiError body.detail is missing', async () => {
+            const mockApiError = new ApiError({
+                status: 404,
+                statusText: 'Not Found',
+                headers: new Headers({ 'content-type': 'application/json' }),
+                body: {
+                    type: 'https://api.example.com/errors/not-found',
+                    title: 'Category Not Found',
+                    detail: '',
+                },
+                rawBody: '{}',
+                url: 'https://api.example.com/categories/invalid',
+                method: 'GET',
+            });
+
+            (fetchCategory as any).mockRejectedValue(new NormalizedApiError(mockApiError));
+
+            try {
+                await loader(
+                    createLoaderArgs('https://example.com/c/invalid', {
+                        params: { '*': 'invalid' },
+                    })
+                );
+                expect.fail('Expected loader to throw');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(Response);
+                expect(error.status).toBe(404);
+                expect(await error.text()).toBe('Not Found');
+            }
+        });
+
+        test('should throw 500 when category fetch fails with non-ApiError error', async () => {
+            (fetchCategory as any).mockRejectedValue(new Error('Unexpected error'));
+
+            try {
+                await loader(
+                    createLoaderArgs('https://example.com/c/invalid', {
+                        params: { '*': 'invalid' },
+                    })
+                );
+                expect.fail('Expected loader to throw');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(Response);
+                expect(error.status).toBe(500);
+                expect(await error.text()).toBe('Internal Server Error');
+                expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+            }
+        });
+
+        test('should throw 500 when category fetch fails with network error', async () => {
+            (fetchCategory as any).mockRejectedValue(new TypeError('Network request failed'));
+
+            try {
+                await loader(createLoaderArgs('https://example.com/c/electronics'));
+                expect.fail('Expected loader to throw');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(Response);
+                expect(error.status).toBe(500);
+                expect(await error.text()).toBe('Internal Server Error');
+                expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+            }
+        });
+
+        test('should split search results into critical and non-critical', async () => {
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(2);
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(1, mockContext, {
+                limit: 2,
+                offset: 0,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(2, mockContext, {
+                limit: 8,
+                offset: 2,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+        });
+
+        test('should generate category schema promise', async () => {
+            const result = await loader(createLoaderArgs('https://example.com/c/electronics'));
+            const categorySchema = await result.categorySchema;
+
+            expect(categorySchema).toBeDefined();
+            expect(generateCategorySchema).toHaveBeenCalledWith({
+                category: mockCategory,
+                searchResult: expect.objectContaining({
+                    ...mockSearchResult,
+                    hits: [...(mockSearchResult.hits || []), ...(mockSearchResult.hits || [])],
+                }),
+                config: mockConfig,
+                seoUrlContext: {
+                    siteId: 'RefArchGlobal',
+                    urlPrefix: undefined,
+                    seoRoutes: undefined,
+                },
+                pageUrl: 'http://localhost:3000/c/electronics',
+                defaultCurrency: 'GBP',
+            });
+        });
+
+        test('converges the schema URL onto the canonical page URL, dropping the request origin and tracking params', async () => {
+            // The request arrives on example.com carrying a tracking param; structured data must
+            // point at the public app origin with the tracking param stripped, matching the
+            // canonical <link> and og:url rather than echoing the raw request URL.
+            await loader(createLoaderArgs('https://example.com/c/electronics?utm_source=news&sort=price'));
+
+            expect(generateCategorySchema).toHaveBeenCalledWith(
+                expect.objectContaining({ pageUrl: 'http://localhost:3000/c/electronics?sort=price' })
+            );
+        });
+
+        test('301-redirects a trailing-slash category path to the canonical path, preserving the query', async () => {
+            try {
+                await loader(createLoaderArgs('https://example.com/c/electronics/?sort=price'));
+                expect.fail('Expected loader to throw a redirect');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(Response);
+                expect(error.status).toBe(301);
+                expect(error.headers.get('Location')).toBe('/c/electronics?sort=price');
+            }
+        });
+
+        test('should handle category schema generation errors gracefully', async () => {
+            (generateCategorySchema as any).mockImplementation(() => {
+                throw new Error('Schema generation failed');
+            });
+
+            const result = await loader(createLoaderArgs('https://example.com/c/electronics'));
+            const categorySchema = await result.categorySchema;
+
+            expect(categorySchema).toBeNull();
+        });
+
+        test('should prevent negative non-critical limit when API returns fewer items than requested', async () => {
+            // Setup: Config requests 4 critical, but API only returns 2
+            const mockConfigWithCritical = {
+                ...mockConfig,
+                search: { products: { hits: { limit: 24, critical: 4 } } },
+            } as AppConfig;
+            (getConfig as any).mockReturnValue(mockConfigWithCritical);
+
+            // Mock API returning only 2 items instead of 4
+            const partialResult = { ...mockSearchResult, hits: mockSearchResult.hits?.slice(0, 2) };
+            (fetchSearchProducts as any).mockResolvedValue(partialResult);
+
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
+
+            // Verify: Critical request asks for 4
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(1, mockContext, {
+                limit: 4,
+                offset: 0,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+
+            // Verify: Non-critical request uses actual returned count (2), not config (4)
+            // This prevents gaps: offset should be 2 (actual), not 4 (config)
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(2, mockContext, {
+                limit: 22, // 24 - 2 (actual) = 22
+                offset: 2, // Starts at 2, not 4 - prevents gap!
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+        });
+
+        test('should cap critical limit when config.critical > config.limit', async () => {
+            // Setup: Config has critical=30 but limit=24
+            const mockConfigHighCritical = {
+                ...mockConfig,
+                search: { products: { hits: { limit: 24, critical: 30 } } },
+            } as AppConfig;
+            (getConfig as any).mockReturnValue(mockConfigHighCritical);
+            (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
+
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
+
+            // Verify: Critical request is capped at limit (24), not using config.critical (30)
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(1, mockContext, {
+                limit: 24, // Capped at limit, not 30
+                offset: 0,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+
+            // Verify: Non-critical request limit should not be negative
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(2, mockContext, {
+                limit: 22, // 24 - 2 (actual hits) = 22 (not negative!)
+                offset: 2,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+        });
+
+        test('should handle API returning zero items', async () => {
+            // Setup: API returns empty result
+            const emptyResult = { ...mockSearchResult, hits: [], total: 0 };
+            (fetchSearchProducts as any).mockResolvedValue(emptyResult);
+
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
+
+            // Verify: Critical request
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(1, mockContext, {
+                limit: 2,
+                offset: 0,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+
+            // Verify: Non-critical request uses full limit since no critical items returned
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(2, mockContext, {
+                limit: 10, // 10 - 0 = 10 (full limit)
+                offset: 0, // Starts at 0 since no critical items
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+        });
+
+        test('should handle small limits correctly', async () => {
+            // Setup: Small limit config
+            const mockConfigSmallLimit = {
+                ...mockConfig,
+                search: { products: { hits: { limit: 4, critical: 2 } } },
+            } as AppConfig;
+            (getConfig as any).mockReturnValue(mockConfigSmallLimit);
+            (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
+
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
+
+            // Verify: Critical request
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(1, mockContext, {
+                limit: 2,
+                offset: 0,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+
+            // Verify: Non-critical request with small remaining limit
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(2, mockContext, {
+                limit: 2, // 4 - 2 = 2
+                offset: 2,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+        });
+
+        test('should never request negative limits', async () => {
+            // Setup: Config where critical equals limit
+            const mockConfigCriticalEqualsLimit = {
+                ...mockConfig,
+                search: { products: { hits: { limit: 10, critical: 10 } } },
+            } as AppConfig;
+            (getConfig as any).mockReturnValue(mockConfigCriticalEqualsLimit);
+            (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
+
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
+
+            // Verify: Non-critical limit should be 0 or positive, never negative
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(2, mockContext, {
+                limit: 8, // 10 - 2 (actual returned) = 8 (not negative)
+                offset: 2,
+                sort: '',
+                refine: ['cgid=electronics'],
+                currency: 'GBP',
+            });
+        });
+    });
+
+    describe('CategoryPage Component', () => {
+        test('should apply initialFiltersOpen from loader data', async () => {
+            const openLoaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                initialFiltersOpen: true,
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            const closedLoaderData: CategoryPageData = {
+                ...openLoaderData,
+                initialFiltersOpen: false,
+            };
+
+            const { unmount } = render(
+                <MemoryRouter initialEntries={['/c/electronics?filters=open']}>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={openLoaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('category-refinements')).toBeInTheDocument();
+            });
+
+            unmount();
+
+            render(
+                <MemoryRouter initialEntries={['/c/electronics?filters=closed']}>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={closedLoaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.queryByTestId('category-refinements')).not.toBeInTheDocument();
+            });
+        });
+
+        test('should render category page with all elements', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve({
+                    '@context': 'https://schema.org',
+                    '@type': 'CollectionPage',
+                    name: 'Electronics',
+                }),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('active-filters')).toBeInTheDocument();
+                expect(screen.getByTestId('category-breadcrumbs')).toBeInTheDocument();
+                expect(screen.getByText('Electronics (25)')).toBeInTheDocument();
+                expect(screen.getByTestId('category-sorting')).toBeInTheDocument();
+                const filterButtons = screen.getAllByTestId('filters-button');
+                // Both mobile and desktop toggle buttons render in JSDOM; responsive visibility is controlled by CSS classes.
+                expect(filterButtons).toHaveLength(2);
+                expect(filterButtons[0].closest('div')).toHaveClass('lg:hidden');
+                expect(filterButtons[1].closest('div')).toHaveClass(
+                    'mb-4',
+                    'hidden',
+                    'lg:flex',
+                    'lg:items-center',
+                    'lg:gap-4'
+                );
+                expect(screen.getByTestId('product-grid')).toBeInTheDocument();
+                expect(screen.getByTestId('load-more')).toBeInTheDocument();
+            });
+        });
+
+        test('marks only the above-the-fold Page Designer region as critical', async () => {
+            const page = { ...createMockPage(), componentData: {} };
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page,
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => expect(mockRegion).toHaveBeenCalledTimes(3));
+            const regionProps = mockRegion.mock.calls.map(([props]) => props);
+
+            expect(regionProps).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({ page, regionId: 'plpTopFullWidth', critical: true }),
+                    expect.objectContaining({ page, regionId: 'plpTopContent' }),
+                    expect.objectContaining({ page, regionId: 'plpBottom' }),
+                ])
+            );
+            expect(regionProps.filter(({ critical }) => critical)).toHaveLength(1);
+        });
+
+        test('should display category name or id as fallback', async () => {
+            const categoryWithoutName = { ...mockCategory, name: undefined };
+            const loaderData: CategoryPageData = {
+                category: categoryWithoutName,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText('electronics (25)')).toBeInTheDocument();
+            });
+        });
+
+        test('should not render sorting when no sorting options available', async () => {
+            const searchResultWithoutSorting = { ...mockSearchResult, sortingOptions: [] };
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: searchResultWithoutSorting,
+                searchResultNonCritical: Promise.resolve(searchResultWithoutSorting),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.queryByTestId('category-sorting')).not.toBeInTheDocument();
+            });
+        });
+
+        test('renders the load-more control (end-of-catalog state) when all products fit on the first page', async () => {
+            const searchResultWithOneItem = { ...mockSearchResult, total: 1 };
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: searchResultWithOneItem,
+                searchResultNonCritical: Promise.resolve(searchResultWithOneItem),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 1,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            // Control still renders (it now carries the "Showing X of Y" / end-of-catalog state);
+            // the LoadMore component itself decides whether to show a button vs. an end message.
+            await waitFor(() => {
+                expect(screen.getByTestId('load-more')).toHaveTextContent('Showing 1 of 1');
+            });
+        });
+
+        test('should remount when currency changes', async () => {
+            const loaderData1: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            const { rerender } = render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData1} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            const loaderData2: CategoryPageData = {
+                ...loaderData1,
+                currency: 'EUR',
+            };
+
+            rerender(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData2} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText('Electronics (25)')).toBeInTheDocument();
+            });
+        });
+
+        test('should handle empty hits array', async () => {
+            const searchResultWithoutHits = { ...mockSearchResult, hits: [], total: 0 };
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: searchResultWithoutHits,
+                searchResultNonCritical: Promise.resolve(searchResultWithoutHits),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText('Electronics (0)')).toBeInTheDocument();
+                expect(screen.getByTestId('product-grid')).toBeInTheDocument();
+            });
+        });
+
+        test('should show 0 skeletons when total is 0 (empty results)', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: { ...mockSearchResult, hits: [], total: 0, offset: 0 },
+                searchResultNonCritical: Promise.resolve({ ...mockSearchResult, hits: [], total: 0 }),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('non-critical-skeleton-count')).toHaveTextContent('0');
+            });
+        });
+
+        test('should show 0 skeletons when criticalCount >= 8', async () => {
+            // Create 8 critical hits
+            const manyHits = Array.from({ length: 8 }, (_, i) => ({
+                productId: `product-${i}`,
+                productName: `Product ${i}`,
+                price: 29.99,
+                currency: 'USD',
+            }));
+
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: { ...mockSearchResult, hits: manyHits as any, total: 100, offset: 0 },
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('critical-count')).toHaveTextContent('8');
+                expect(screen.getByTestId('non-critical-skeleton-count')).toHaveTextContent('0');
+            });
+        });
+
+        test('should cap at 8 total tiles when many products remain', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: {
+                    ...mockSearchResult,
+                    hits: mockSearchResult.hits?.slice(0, 2),
+                    total: 100,
+                    offset: 0,
+                },
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('critical-count')).toHaveTextContent('2');
+                // Math.max(0, Math.min(8, 10, 100) - 2) = 6
+                expect(screen.getByTestId('non-critical-skeleton-count')).toHaveTextContent('6');
+            });
+        });
+
+        test('should respect remaining products when fewer than 8 available', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: {
+                    ...mockSearchResult,
+                    hits: mockSearchResult.hits?.slice(0, 2),
+                    total: 6,
+                    offset: 0,
+                },
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('critical-count')).toHaveTextContent('2');
+                // Math.max(0, Math.min(8, 10, 6) - 2) = 4
+                expect(screen.getByTestId('non-critical-skeleton-count')).toHaveTextContent('4');
+            });
+        });
+
+        test('should handle pagination offset correctly', async () => {
+            const fourHits = Array.from({ length: 4 }, (_, i) => ({
+                productId: `product-${i}`,
+                productName: `Product ${i}`,
+                price: 29.99,
+                currency: 'USD',
+            }));
+
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: { ...mockSearchResult, hits: fourHits as any, total: 30, offset: 20 },
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('critical-count')).toHaveTextContent('4');
+                // Math.max(0, Math.min(8, 10, 30-20) - 4) = Math.max(0, 8-4) = 4
+                expect(screen.getByTestId('non-critical-skeleton-count')).toHaveTextContent('4');
+            });
+        });
+
+        test('should show 0 skeletons when offset >= total', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: {
+                    ...mockSearchResult,
+                    hits: mockSearchResult.hits?.slice(0, 2),
+                    total: 24,
+                    offset: 24,
+                },
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('critical-count')).toHaveTextContent('2');
+                // Math.max(0, Math.min(8, 10, 24-24) - 2) = Math.max(0, 0-2) = 0
+                expect(screen.getByTestId('non-critical-skeleton-count')).toHaveTextContent('0');
+            });
+        });
+
+        test('should never show negative skeleton count', async () => {
+            const tenHits = Array.from({ length: 10 }, (_, i) => ({
+                productId: `product-${i}`,
+                productName: `Product ${i}`,
+                price: 29.99,
+                currency: 'USD',
+            }));
+
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: { ...mockSearchResult, hits: tenHits as any, total: 5, offset: 0 },
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('critical-count')).toHaveTextContent('10');
+                // Math.max(0, Math.min(8, 10, 5) - 10) = Math.max(0, 5-10) = 0
+                expect(screen.getByTestId('non-critical-skeleton-count')).toHaveTextContent('0');
+            });
+        });
+    });
+
+    describe('CategoryJsonLd Component', () => {
+        test('should render JSON-LD schema when schema is provided', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve({
+                    '@context': 'https://schema.org',
+                    '@type': 'CollectionPage',
+                    name: 'Electronics',
+                }),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            await act(async () => {
+                render(
+                    <MemoryRouter>
+                        <AllProvidersWrapper>
+                            <CategoryPage loaderData={loaderData} />
+                        </AllProvidersWrapper>
+                    </MemoryRouter>
+                );
+                await loaderData.categorySchema;
+            });
+
+            await waitFor(() => {
+                expect(screen.getByTestId('category-schema')).toBeInTheDocument();
+            });
+
+            const productGrid = screen.getByTestId('product-grid');
+            const categorySchema = screen.getByTestId('category-schema');
+            expect(
+                Boolean(productGrid.compareDocumentPosition(categorySchema) & Node.DOCUMENT_POSITION_FOLLOWING)
+            ).toBe(true);
+        });
+
+        test('should not render JSON-LD schema when schema is null', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.queryByTestId('category-schema')).not.toBeInTheDocument();
+            });
+        });
+    });
+
+    describe('Analytics Integration', () => {
+        beforeEach(() => {
+            mockTrackViewCategory.mockClear();
+            mockTrackClickProductInCategory.mockClear();
+        });
+
+        test('should call trackClickProductInCategory when product is clicked', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('product-grid')).toBeInTheDocument();
+            });
+
+            // Click on a product
+            const productItems = screen.getAllByTestId('product-item');
+            productItems[0].click();
+
+            expect(mockTrackClickProductInCategory).toHaveBeenCalledWith({
+                category: mockCategory,
+                product: expect.objectContaining({ productId: 'product-1' }),
+            });
+        });
+
+        test('should track product impressions after loading more products', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+            const loadedProduct = { productId: 'product-25', productName: 'Product 25' };
+
+            await act(async () => {
+                render(
+                    <MemoryRouter>
+                        <AllProvidersWrapper>
+                            <CategoryPage loaderData={loaderData} />
+                        </AllProvidersWrapper>
+                    </MemoryRouter>
+                );
+                await Promise.resolve();
+            });
+            await waitFor(() => expect(mockTrackViewCategory).toHaveBeenCalled());
+            mockTrackViewCategory.mockClear();
+            mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad({
+                hits: [loadedProduct],
+                total: 25,
+                offset: 24,
+                limit: 1,
+            });
+
+            await waitFor(() =>
+                expect(mockTrackViewCategory).toHaveBeenCalledWith({
+                    category: mockCategory,
+                    isNavigation: false,
+                    searchResults: [loadedProduct],
+                    sort: 'best-matches',
+                    refinements: {},
+                    offset: 24,
+                    limit: 1,
+                    total: 25,
+                })
+            );
+        });
+
+        test('should track initial impressions before loaded products', async () => {
+            let resolveNonCritical: (value: ShopperSearch.schemas['ProductSearchResult']) => void;
+            const searchResultNonCritical = new Promise<ShopperSearch.schemas['ProductSearchResult']>((resolve) => {
+                resolveNonCritical = resolve;
+            });
+            let resolveInitialTracking: () => void;
+            const initialTracking = new Promise<void>((resolve) => {
+                resolveInitialTracking = resolve;
+            });
+            mockTrackViewCategory.mockReturnValueOnce(initialTracking);
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical,
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+            const loadedProduct = { productId: 'product-25', productName: 'Product 25' };
+
+            await act(async () => {
+                render(
+                    <MemoryRouter>
+                        <AllProvidersWrapper>
+                            <CategoryPage loaderData={loaderData} />
+                        </AllProvidersWrapper>
+                    </MemoryRouter>
+                );
+                await Promise.resolve();
+            });
+            mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad({
+                hits: [loadedProduct],
+                total: 25,
+                offset: 24,
+                limit: 1,
+            });
+            expect(mockTrackViewCategory).not.toHaveBeenCalled();
+
+            await act(async () => {
+                resolveNonCritical(mockSearchResult);
+                await searchResultNonCritical;
+            });
+
+            await waitFor(() => expect(mockTrackViewCategory).toHaveBeenCalledTimes(1));
+            expect(mockTrackViewCategory.mock.calls[0][0].offset).toBe(0);
+
+            await act(async () => {
+                resolveInitialTracking();
+                await initialTracking;
+            });
+
+            await waitFor(() => expect(mockTrackViewCategory).toHaveBeenCalledTimes(2));
+            expect(mockTrackViewCategory.mock.calls[1][0]).toEqual(
+                expect.objectContaining({ searchResults: [loadedProduct], offset: 24 })
+            );
+        });
+
+        test('should render without errors when analytics is not available', async () => {
+            // Temporarily mock useAnalytics to return null
+            vi.mocked(useAnalytics).mockReturnValueOnce(null as any);
+
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            // Should render without errors even when analytics is null
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText('Electronics (25)')).toBeInTheDocument();
+            });
+        });
+    });
+});
+
+describe('CategoryPage shouldRevalidate', () => {
+    // The revalidation policy itself is covered by src/lib/revalidation/routes/category.test.ts. Here we
+    // only assert the route wires up that exact function, so the behavior isn't re-tested per route.
+    test('re-exports the shared listing revalidation policy', () => {
+        expect(shouldRevalidate).toBe(sharedShouldRevalidate);
+    });
+});

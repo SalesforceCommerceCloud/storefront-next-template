@@ -22,5 +22,6 @@ export { default as MastercardIcon } from './mastercard-icon';
 export { default as AmexIcon } from './amex-icon';
 export { default as DiscoverIcon } from './discover-icon';
 export { default as GenericCardIcon } from './generic-card-icon';
+export { default as SepaDebitIcon } from './sepa-debit-icon';
 export { default as CreditCardOptionIcon } from './credit-card-option-icon';
 export { default as GoogleIcon } from './google-icon';

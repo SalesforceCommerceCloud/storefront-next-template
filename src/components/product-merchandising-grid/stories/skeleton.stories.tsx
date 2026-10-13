@@ -63,7 +63,7 @@ export const Default: Story = {
         columns: 3,
         rows: 2,
         title: 'Featured pieces',
-        shopAllUrl: '/category/root',
+        shopAllUrl: '/c/root',
         shopAllText: 'Shop all furniture',
     },
 };

@@ -17,7 +17,7 @@ import { type ReactElement, useCallback, useId, useMemo, useState } from 'react'
 import { useLocation, useNavigation } from 'react-router';
 import { useNavigate } from '@/hooks/use-navigate';
 
-import type { ShopperSearch } from '@/scapi';
+import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Plus, Minus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -30,21 +30,24 @@ import RefineColor from './refine-color';
 import RefineSize from './refine-size';
 import RefinePrice from './refine-price';
 import RefineCategory from './refine-cgid';
+import { useCategoryNavigation } from './use-category-navigation';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import RefineInventory from '@/extensions/bopis/components/refine-inventory';
 
-export default function CategoryRefinements({
-    result,
-    refine = [],
-}: {
+type CategoryRefinementsProps = {
     result: ShopperSearch.schemas['ProductSearchResult'];
     refine: string[];
-}): ReactElement {
+    /** Category hierarchy used to resolve authoritative slugs for category navigation. */
+    category?: ShopperProducts.schemas['Category'];
+};
+
+export default function CategoryRefinements({ result, refine = [], category }: CategoryRefinementsProps): ReactElement {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const navigation = useNavigation();
     const isPending = navigation.state !== 'idle';
+    const resolveCategoryNavigation = useCategoryNavigation(category);
 
     /**
      * Optimistic refinements derived from the in-flight navigation target.
@@ -86,6 +89,10 @@ export default function CategoryRefinements({
     const toggleFilter = useCallback(
         (attributeId: string, value: string) => {
             const params = new URLSearchParams(location.search);
+            if (attributeId === 'cgid') {
+                resolveCategoryNavigation(value, params)?.();
+                return;
+            }
             const refines = params.getAll('refine');
             const refinePair = `${attributeId}=${value}`;
 
@@ -94,13 +101,8 @@ export default function CategoryRefinements({
                 // Remove this refinement
                 nextRefines = refines.filter((r) => r !== refinePair);
             } else {
-                // Exclusive refinements - only one value can be selected at a time.
-                // `cgid` is single-valued per SCAPI (the productSearch `refine` param documents
-                // "refinement per single category ID; multiple category IDs are not supported"), so a
-                // promoted category facet is single-select — picking an activity replaces the prior one.
                 const exclusiveRefinements = [
                     'price',
-                    'cgid',
                     // @sfdc-extension-line SFDC_EXT_BOPIS
                     'ilids',
                 ];
@@ -124,7 +126,7 @@ export default function CategoryRefinements({
                 search: nextSearch,
             });
         },
-        [location, navigate]
+        [location.pathname, location.search, navigate, resolveCategoryNavigation]
     );
 
     // Check if a filter value is selected (uses optimistic state)
@@ -156,7 +158,15 @@ export default function CategoryRefinements({
                 return <RefinePrice {...refinementProps} result={result} />;
             case 'cgid':
                 // Pass the refinement label so RefineCategory can name its radiogroup for AT.
-                return <RefineCategory {...refinementProps} label={refinement.label} />;
+                return (
+                    <RefineCategory
+                        {...refinementProps}
+                        label={refinement.label}
+                        isValueDisabled={(value) =>
+                            !resolveCategoryNavigation(value, new URLSearchParams(location.search))
+                        }
+                    />
+                );
             default:
                 return <RefineDefault {...refinementProps} />;
         }

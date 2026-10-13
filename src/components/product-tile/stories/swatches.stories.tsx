@@ -24,31 +24,31 @@ const mockColorValues: DecoratedVariationAttributeValue[] = [
     {
         value: 'navy',
         name: 'Navy',
-        href: '/product/test?color=navy',
+        href: '/p/test?color=navy',
         swatch: { link: 'https://example.com/navy.jpg', disBaseLink: 'https://example.com/navy.jpg' },
     },
     {
         value: 'red',
         name: 'Red',
-        href: '/product/test?color=red',
+        href: '/p/test?color=red',
         swatch: { link: 'https://example.com/red.jpg', disBaseLink: 'https://example.com/red.jpg' },
     },
     {
         value: 'blue',
         name: 'Blue',
-        href: '/product/test?color=blue',
+        href: '/p/test?color=blue',
         swatch: { link: 'https://example.com/blue.jpg', disBaseLink: 'https://example.com/blue.jpg' },
     },
     {
         value: 'black',
         name: 'Black',
-        href: '/product/test?color=black',
+        href: '/p/test?color=black',
         swatch: { link: 'https://example.com/black.jpg', disBaseLink: 'https://example.com/black.jpg' },
     },
     {
         value: 'green',
         name: 'Green',
-        href: '/product/test?color=green',
+        href: '/p/test?color=green',
         swatch: { link: 'https://example.com/green.jpg', disBaseLink: 'https://example.com/green.jpg' },
     },
 ];
@@ -122,7 +122,7 @@ export const Playground: Story = {
         productName: 'Test Product',
         totalColorCount: 5,
         maxSwatches: 5,
-        productHref: '/product/test',
+        productHref: '/p/test',
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
@@ -141,7 +141,7 @@ export const ColorSwatches: Story = {
         productName: 'Test Product',
         totalColorCount: 5,
         maxSwatches: 5,
-        productHref: '/product/test',
+        productHref: '/p/test',
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
@@ -161,7 +161,7 @@ export const ColorSwatchesWithOverflow: Story = {
         productName: 'Test Product',
         totalColorCount: 5,
         maxSwatches: 3,
-        productHref: '/product/test',
+        productHref: '/p/test',
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
@@ -180,7 +180,7 @@ export const NoSelection: Story = {
         productName: 'Test Product',
         totalColorCount: 5,
         maxSwatches: 5,
-        productHref: '/product/test',
+        productHref: '/p/test',
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
@@ -199,7 +199,7 @@ export const NoSwatches: Story = {
         productName: 'Test Product',
         totalColorCount: 0,
         maxSwatches: 5,
-        productHref: '/product/test',
+        productHref: '/p/test',
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);

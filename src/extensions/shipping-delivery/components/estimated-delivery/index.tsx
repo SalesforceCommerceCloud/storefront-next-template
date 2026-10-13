@@ -477,6 +477,7 @@ export default function EstimatedDelivery({
             idPrefix={idPrefix}
             inputValue={postalCode}
             isLoading={isLoading}
+            showInstructions={!isCoordinatedWithPicker}
             hasLookupFailure={hasError}
             fallbackDeliveryDescription={fallbackDeliveryDescription}
             hasValidationError={validationError}

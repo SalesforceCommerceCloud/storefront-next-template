@@ -381,4 +381,83 @@ describe('useProductImages', () => {
             expect(result.current.galleryImages).toEqual([]);
         });
     });
+
+    // Per-combination media declared on `c_variationMedia`. useProductImages prefers these images over
+    // standard imageGroups for the matched viewType, resolving their catalog-relative paths to versioned
+    // URLs by borrowing the version prefix from a sibling standard raw-static link.
+    describe('c_variationMedia integration', () => {
+        const STANDARD_LINK =
+            'https://example.com/on/demandware.static/-/Sites-cat/default/dw520c5db8/images/products/watch.png';
+
+        const createMediaProduct = (variationMedia?: unknown): ShopperProducts.schemas['Product'] => {
+            const product = createMockProduct([createMockImageGroup('large', [createMockImage(STANDARD_LINK)])]);
+            if (variationMedia !== undefined) {
+                (product as unknown as { c_variationMedia?: unknown }).c_variationMedia = variationMedia;
+            }
+            return product;
+        };
+
+        it('prefers variation-media images over standard imageGroups when a combo matches', () => {
+            const product = createMediaProduct(
+                JSON.stringify({
+                    large: [
+                        {
+                            match: { dialColor: 'white', bandType: 'leather_black' },
+                            images: [{ path: 'images/products/white-leather-black.webp', alt: 'White' }],
+                        },
+                    ],
+                })
+            );
+
+            const { result } = renderHook(
+                () =>
+                    useProductImages({
+                        product,
+                        selectedAttributes: { dialColor: 'white', bandType: 'leather_black' },
+                    }),
+                { wrapper }
+            );
+
+            expect(result.current.galleryImages).toHaveLength(1);
+            expect(result.current.galleryImages[0].src).toContain('white-leather-black.webp');
+            expect(result.current.galleryImages[0].alt).toBe('White');
+        });
+
+        it('falls back to standard imageGroups when no variation-media combo matches', () => {
+            const product = createMediaProduct(
+                JSON.stringify({
+                    large: [
+                        {
+                            match: { dialColor: 'white' },
+                            images: [{ path: 'images/products/white.webp' }],
+                        },
+                    ],
+                })
+            );
+
+            const { result } = renderHook(
+                () =>
+                    useProductImages({
+                        product,
+                        selectedAttributes: { dialColor: 'black' },
+                    }),
+                { wrapper }
+            );
+
+            expect(result.current.galleryImages).toHaveLength(1);
+            expect(result.current.galleryImages[0].src).toContain('watch.png');
+        });
+
+        it('is a no-op when the product has no c_variationMedia', () => {
+            const product = createMediaProduct();
+
+            const { result } = renderHook(
+                () => useProductImages({ product, selectedAttributes: { dialColor: 'white' } }),
+                { wrapper }
+            );
+
+            expect(result.current.galleryImages).toHaveLength(1);
+            expect(result.current.galleryImages[0].src).toContain('watch.png');
+        });
+    });
 });

@@ -48,7 +48,7 @@ class AddToWishlistFlow {
      * @returns Promise<string> - Title of the product that was added to wishlist
      */
     async execute(options: AddToWishlistOptions = {}): Promise<string> {
-        const { categoryUrl = '/category/mens-clothing-jackets', skipLogin = false } = options;
+        const { categoryUrl = '/c/mens-clothing-jackets', skipLogin = false } = options;
         try {
             if (!skipLogin) {
                 await loginFlow.execute();

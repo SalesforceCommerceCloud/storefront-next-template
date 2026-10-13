@@ -39,7 +39,7 @@ vi.mock('@/extensions/store-locator/components/header/store-locator-sheet', () =
     ),
 }));
 
-import StoreLocatorBadge from '@/extensions/store-locator/components/header/store-locator-badge';
+import StoreLocatorBadge from './store-locator-badge';
 
 describe('StoreLocatorBadge', () => {
     test('renders initial trigger button', () => {

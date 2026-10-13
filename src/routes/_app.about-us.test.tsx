@@ -18,12 +18,46 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { ShopperExperience } from '@/scapi';
 import type { Route } from './+types/_app.about-us';
-import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import AboutUs, { type AboutUsPageData, loader } from './_app.about-us';
 import { createTestContext } from '@/lib/test-utils';
 import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
 
-const { t } = getTranslation();
+// Shared translation stub used by BOTH the component (via the react-i18next mock below) and the
+// assertions, so expected values always match what the component renders — independent of which
+// vertical's i18n resources are active (verticals override the aboutUs namespace, which would
+// otherwise make live getTranslation() expectations diverge from the mocked component render).
+const { mockTranslate } = vi.hoisted(() => {
+    const translations: Record<string, string> = {
+        title: 'About Us',
+        'meta.description': 'Learn more about our story, mission, and the team behind the store.',
+        'breadcrumb.home': 'Home',
+        'breadcrumb.aboutUs': 'About Us',
+        'section.ourGoal.title': 'Built for movement. Designed for everyday life.',
+        'section.ourGoal.content': 'Inspired by urban culture and the energy of movement.',
+        'section.ourVision.title': 'Our Vision',
+        'section.ourVision.content': 'To redefine modern retail through technology, design, and customer experience.',
+        'section.ourVision.imageAlt': 'Our vision',
+        'section.ourValue.title': 'Why We Exist',
+        'section.ourValue.content': 'We exist to remove friction between people and what they love.',
+        'section.ourValue.imageAlt': 'Our values',
+        'section.ourMission.title': 'What We Stand For',
+        'section.ourMission.content':
+            'Design with purpose—every product, every interaction, every detail is intentional.',
+        'section.ourMission.cta': 'Explore',
+        'section.ourTeam.title': 'A Global Brand, A Street-Level Soul',
+        'section.ourTeam.content': "Market Street was born from the idea that great style shouldn't feel unreachable.",
+        'section.ourTeam.imageAlt': 'Our team',
+        'section.ourTeam.cta': 'Explore',
+    };
+    return {
+        mockTranslate: (key: string): string => {
+            const normalizedKey = key.startsWith('aboutUs:') ? key.substring(8) : key;
+            return translations[normalizedKey] || key;
+        },
+    };
+});
+
+const t = mockTranslate;
 
 // Helper function to create mock Page objects
 const createMockPage = (regions: any[] = []): ShopperExperience.schemas['Page'] =>
@@ -100,35 +134,7 @@ vi.mock('react-i18next', async () => {
     return {
         ...actual,
         useTranslation: () => ({
-            t: (key: string) => {
-                // Simple translation mock that returns the translation key used in tests
-                const normalizedKey = key.startsWith('aboutUs:') ? key.substring(8) : key;
-                const translations: Record<string, string> = {
-                    title: 'About Us',
-                    'meta.description': 'Learn more about our story, mission, and the team behind the store.',
-                    'breadcrumb.home': 'Home',
-                    'breadcrumb.aboutUs': 'About Us',
-                    'section.ourGoal.title': 'Built for movement. Designed for everyday life.',
-                    'section.ourGoal.content': 'Inspired by urban culture and the energy of movement.',
-                    'section.ourVision.title': 'Our Vision',
-                    'section.ourVision.content':
-                        'To redefine modern retail through technology, design, and customer experience.',
-                    'section.ourVision.imageAlt': 'Our vision',
-                    'section.ourValue.title': 'Why We Exist',
-                    'section.ourValue.content': 'We exist to remove friction between people and what they love.',
-                    'section.ourValue.imageAlt': 'Our values',
-                    'section.ourMission.title': 'What We Stand For',
-                    'section.ourMission.content':
-                        'Design with purpose—every product, every interaction, every detail is intentional.',
-                    'section.ourMission.cta': 'Explore',
-                    'section.ourTeam.title': 'A Global Brand, A Street-Level Soul',
-                    'section.ourTeam.content':
-                        "Market Street was born from the idea that great style shouldn't feel unreachable.",
-                    'section.ourTeam.imageAlt': 'Our team',
-                    'section.ourTeam.cta': 'Explore',
-                };
-                return translations[normalizedKey] || key;
-            },
+            t: mockTranslate,
             i18n: {
                 language: 'en-US',
                 changeLanguage: vi.fn(),

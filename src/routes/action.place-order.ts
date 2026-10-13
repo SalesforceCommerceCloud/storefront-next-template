@@ -19,7 +19,7 @@ import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { getAuth } from '@/middlewares/auth.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { addPaymentInstrumentToBasket, updateBillingAddressForBasket } from '@/lib/api/basket.server';
-import { getCustomerProfileForCheckout } from '@/lib/api/customer.server';
+import { getCustomerProfileForCheckout, updateCustomerCustomAttributes } from '@/lib/api/customer.server';
 import type { CustomerProfile } from '@/components/checkout/utils/checkout-context-types';
 import { getPaymentMethodsFromCustomer } from '@/lib/customer/profile-utils';
 import { createActionError } from '@/lib/action-error-helpers.server';
@@ -36,6 +36,7 @@ import {
     saveCheckoutDataToProfile,
     finalizeOrderSuccess,
 } from '@/lib/checkout/place-order-orchestration.server';
+import { uiConfig } from '@/lib/config.ui';
 
 /**
  * Detects whether a caught error is an SCAPI inventory/stock rejection. createOrder fails with a
@@ -52,6 +53,28 @@ function isInventoryError(error: unknown): error is ApiError {
     return ['inventory', 'stock', 'not-available', 'availability', 'out-of-stock'].some((keyword) =>
         type.includes(keyword)
     );
+}
+
+/**
+ * True only when a calculated basket's total is a concrete number ≤ 0. A missing/non-numeric
+ * `orderTotal` returns false so callers FAIL CLOSED — the payment, billing, and fraud gates are
+ * never skipped on an unknown amount. Pair with `uiConfig.checkout.allowZeroTotalOrders` at the
+ * call site so the total is only consulted for verticals that opted into zero-total checkout.
+ */
+function hasZeroCalculatedTotal(basket: { orderTotal?: number | null }): boolean {
+    return typeof basket.orderTotal === 'number' && basket.orderTotal <= 0;
+}
+
+/**
+ * Product-id prefix for furniture free fabric-swatch SKUs. Centralized here because the shared
+ * place-order route uses it twice: to enforce the one-set-per-shopper claim limit before createOrder
+ * (a generic PDP/cart add bypasses the dedicated swatch action), and to stamp the claim afterwards.
+ */
+const SWATCH_PRODUCT_ID_PREFIX = 'fabric-swatch-';
+
+/** True when any line is a free fabric-swatch SKU. */
+function hasSwatchItem(items: { productId?: string }[] | undefined): boolean {
+    return items?.some((item) => item.productId?.startsWith(SWATCH_PRODUCT_ID_PREFIX)) ?? false;
 }
 
 /**
@@ -80,7 +103,20 @@ export async function action({ request, context }: Route.ActionArgs) {
         if (!precheck.ok) return precheck.response;
         const basket = precheck.basket;
 
-        if (!basket.paymentInstruments?.[0]) {
+        // Zero-total checkout (e.g. furniture free swatches): a fully-$0 basket is placed
+        // without a payment instrument, billing address, or fraud/payment hooks. Calculate up
+        // front to decide whether to require payment. This early read is PROVISIONAL — the basket
+        // can still change before createOrder (a concurrent add-to-cart, or a shipping cost applied
+        // by resolveEmptyShipments), so the decision is re-asserted against the authoritative
+        // post-shipment total below (`isZeroTotal`) before payment is actually skipped. The `&&`
+        // short-circuits the calculate entirely for every vertical where the flag is off.
+        // Note: two calculateBasketForOrder calls are intentional — this early one gates the payment
+        // requirement; the later one runs after resolveEmptyShipments and is the authoritative total.
+        const isZeroTotalProvisional =
+            uiConfig.checkout.allowZeroTotalOrders &&
+            hasZeroCalculatedTotal(await calculateBasketForOrder(context, basket));
+
+        if (!isZeroTotalProvisional && !basket.paymentInstruments?.[0]) {
             // Check if this is a returning customer with saved payment methods
             const auth = getAuth(context);
             const customerId = auth.customerId;
@@ -189,7 +225,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
         const updatedBasket = (await getBasket(context)).current;
 
-        if (!updatedBasket?.billingAddress) {
+        if (!isZeroTotalProvisional && !updatedBasket?.billingAddress) {
             return Response.json(
                 {
                     success: false,
@@ -203,8 +239,11 @@ export async function action({ request, context }: Route.ActionArgs) {
             );
         }
 
-        // @sfdc-extension-line SFDC_EXT_MULTISHIP
-        await resolveEmptyShipments(context, updatedBasket);
+        // @sfdc-extension-block-start SFDC_EXT_MULTISHIP
+        if (updatedBasket) {
+            await resolveEmptyShipments(context, updatedBasket);
+        }
+        // @sfdc-extension-block-end SFDC_EXT_MULTISHIP
 
         if (!updatedBasket?.basketId) {
             return Response.json(
@@ -219,35 +258,126 @@ export async function action({ request, context }: Route.ActionArgs) {
 
         const calculatedBasket = await calculateBasketForOrder(context, updatedBasket);
 
-        // Bring the payment instrument's amount in lockstep with orderTotal before
-        // createOrder.
-        const syncedBasket = await syncPaymentInstrumentAmount(context, calculatedBasket);
+        // Authoritative zero-total decision: re-assert against the final, post-shipment total that
+        // createOrder will use — not the provisional read above. Fails closed on a missing total.
+        const isZeroTotal = uiConfig.checkout.allowZeroTotalOrders && hasZeroCalculatedTotal(calculatedBasket);
 
-        // Extension hook: fraud check before placing the order (blocking — unexpected errors fail the action)
-        const fraudHookResult = await runHookSafe({
-            hookId: ACTION_HOOK_IDS.CHECKOUT_FRAUD_BEFORE_PLACE,
-            context: { data: { basket: syncedBasket }, actionContext: context },
-            logger,
-            fallbackStep: 'placeOrder',
-            blocking: true,
-        });
-        if (fraudHookResult.errorResponse) return fraudHookResult.errorResponse;
+        // Fail closed: if we skipped the payment/billing gates as zero-total but the basket is no
+        // longer $0 (a concurrent add-to-cart, or a shipping cost applied by resolveEmptyShipments,
+        // landed between the two calculates — or the total is now missing), reject instead of placing
+        // a now-priced order with payment, billing, and fraud all bypassed.
+        if (isZeroTotalProvisional && !isZeroTotal) {
+            logger.warn('[Checkout] place-order: basket no longer zero-total after recalculation, rejecting', {
+                basketId: calculatedBasket.basketId,
+                orderTotal: calculatedBasket.orderTotal,
+            });
+            return Response.json(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.CONFLICT,
+                        message: 'Your cart total changed. Please review your cart and try again.',
+                    }),
+                    step: 'placeOrder',
+                },
+                { status: 409 }
+            );
+        }
 
-        // Extension hook: payment processing before order creation (blocking — e.g. authorization)
-        const paymentHookResult = await runHookSafe({
-            hookId: ACTION_HOOK_IDS.CHECKOUT_PAYMENTS_BEFORE_PLACE_ORDER,
-            context: { data: { basket: syncedBasket }, actionContext: context },
-            logger,
-            fallbackStep: 'placeOrder',
-            blocking: true,
-        });
-        if (paymentHookResult.errorResponse) return paymentHookResult.errorResponse;
+        // Free-swatch one-set limit — generic-path guard. The dedicated swatch action enforces this
+        // when adding, but $0 swatch SKUs are ordinary orderable products, so a shopper could add
+        // them via the regular PDP/cart and place repeat free orders that never touch that action.
+        // Re-check the claim here, on the shared place-order path, before createOrder: if the basket
+        // holds swatch lines and this customer already claimed their set, reject. Only registered
+        // shoppers can carry the claim stamp, so this is a no-op for guests; the post-order block
+        // below stamps the claim on the first successful order.
+        if (hasSwatchItem(calculatedBasket.productItems)) {
+            const swatchAuth = getAuth(context);
+            if (swatchAuth.customerId) {
+                const profile = await getCustomerProfileForCheckout(context, swatchAuth.customerId);
+                // Fail closed: c_swatchSetClaimedAt on the profile is the sole record of the one-set
+                // limit, so if the profile can't be loaded we cannot prove the shopper hasn't already
+                // claimed. getCustomerProfileForCheckout returns null on a SCAPI failure — treat that as
+                // a retryable checkout error rather than defaulting to "not claimed" and granting a
+                // possible second free set.
+                if (!profile) {
+                    logger.error(
+                        '[Checkout] place-order: could not load profile to verify swatch claim, failing closed',
+                        { basketId: calculatedBasket.basketId, customerId: swatchAuth.customerId }
+                    );
+                    return Response.json(
+                        {
+                            success: false,
+                            error: createActionError({
+                                code: ErrorCode.OPERATION_FAILED,
+                                message: 'Swatches are temporarily unavailable. Please try again.',
+                            }),
+                            step: 'placeOrder',
+                        },
+                        { status: 503 }
+                    );
+                }
+                const alreadyClaimed = Boolean(
+                    (profile.customer as { c_swatchSetClaimedAt?: string } | undefined)?.c_swatchSetClaimedAt
+                );
+                if (alreadyClaimed) {
+                    logger.warn(
+                        '[Checkout] place-order: swatch order blocked — customer already claimed their free set',
+                        { basketId: calculatedBasket.basketId, customerId: swatchAuth.customerId }
+                    );
+                    return Response.json(
+                        {
+                            success: false,
+                            error: createActionError({
+                                code: ErrorCode.OPERATION_FAILED,
+                                message: 'You have already ordered your free swatches',
+                            }),
+                            step: 'placeOrder',
+                        },
+                        { status: 403 }
+                    );
+                }
+            }
+        }
+
+        // For non-zero orders: sync payment amount and run fraud/payment hooks
+        // For zero-total orders: skip payment processing and go straight to createOrder
+        let syncedBasket = calculatedBasket;
+        if (!isZeroTotal) {
+            // Bring the payment instrument's amount in lockstep with orderTotal before
+            // createOrder.
+            syncedBasket = await syncPaymentInstrumentAmount(context, calculatedBasket);
+
+            // Extension hook: fraud check before placing the order (blocking — unexpected errors fail the action)
+            const fraudHookResult = await runHookSafe({
+                hookId: ACTION_HOOK_IDS.CHECKOUT_FRAUD_BEFORE_PLACE,
+                context: { data: { basket: syncedBasket }, actionContext: context },
+                logger,
+                fallbackStep: 'placeOrder',
+                blocking: true,
+            });
+            if (fraudHookResult.errorResponse) return fraudHookResult.errorResponse;
+
+            // Extension hook: payment processing before order creation (blocking — e.g. authorization)
+            const paymentHookResult = await runHookSafe({
+                hookId: ACTION_HOOK_IDS.CHECKOUT_PAYMENTS_BEFORE_PLACE_ORDER,
+                context: { data: { basket: syncedBasket }, actionContext: context },
+                logger,
+                fallbackStep: 'placeOrder',
+                blocking: true,
+            });
+            if (paymentHookResult.errorResponse) return paymentHookResult.errorResponse;
+        } else {
+            logger.debug('[Checkout] place-order: zero-total order, skipping payment hooks', {
+                basketId: calculatedBasket.basketId,
+            });
+        }
 
         const clients = createApiClients(context);
 
         const { data: order } = await clients.shopperOrders.createOrder({
             params: {},
-            body: { basketId: calculatedBasket.basketId },
+            body: { basketId: syncedBasket.basketId },
         });
 
         if (!order || !order.orderNo) {
@@ -361,6 +491,31 @@ export async function action({ request, context }: Route.ActionArgs) {
                     orderNo: order.orderNo,
                     error,
                 });
+            }
+
+            // Post-order: stamp c_swatchSetClaimedAt if this is a swatch order (best-effort)
+            if (hasSwatchItem(order.productItems)) {
+                logger.debug('[Checkout] place-order: stamping c_swatchSetClaimedAt', {
+                    orderNo: order.orderNo,
+                    customerId,
+                });
+                const stampSuccess = await updateCustomerCustomAttributes(context, customerId, {
+                    c_swatchSetClaimedAt: new Date().toISOString(),
+                });
+                if (!stampSuccess) {
+                    // Best-effort claim stamp: the order is already placed, so a failed write must not
+                    // strand the shopper on a 500. But c_swatchSetClaimedAt is the sole record enforcing
+                    // the one-free-set-per-shopper limit, so a failure here leaves the shopper able to
+                    // order another set. Log at error with full context so monitoring can catch it and
+                    // reconcile the claim manually.
+                    logger.error(
+                        '[Checkout] place-order: failed to stamp c_swatchSetClaimedAt — free-swatch claim limit may be bypassable for this customer, requires manual review',
+                        {
+                            orderNo: order.orderNo,
+                            customerId,
+                        }
+                    );
+                }
             }
         }
 

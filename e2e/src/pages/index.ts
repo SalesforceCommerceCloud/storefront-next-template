@@ -43,6 +43,7 @@ export const pageObjects = {
     wishlistPage: './src/pages/wishlist.page.ts',
     passwordlessLoginPage: './src/pages/passwordless-login.page.ts',
     securityHeadersPage: './src/pages/security-headers.page.ts',
+    seoUrlPage: './src/pages/seo-url.page.ts',
     previewComponentPage: './src/pages/preview-component.page.ts',
     orderLookupPage: './src/pages/order-lookup.page.ts',
     passkeyRegistrationPage: './src/pages/passkey-registration.page.ts',

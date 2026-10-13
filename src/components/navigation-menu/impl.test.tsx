@@ -20,15 +20,33 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import CategoryNavigationMenu from './impl';
 import { testData } from './__tests__/data';
+import { mockConfig, mockSiteObject } from '@/test-utils/config';
+import type { AppConfig } from '@/types/config';
+
+const slugPathConfig: AppConfig = {
+    ...mockConfig,
+    url: {
+        ...mockConfig.url,
+        seoRoutes: {
+            [mockSiteObject.id]: {
+                product: { prefix: 'p' },
+                category: { prefix: 'catalog', mode: 'slug-path' },
+            },
+        },
+    },
+};
 
 describe('CategoryNavigationMenu Component', () => {
-    const renderComponent = (props: ComponentPropsWithoutRef<typeof CategoryNavigationMenu>) => {
+    const renderComponent = (
+        props: ComponentPropsWithoutRef<typeof CategoryNavigationMenu>,
+        config: AppConfig = mockConfig
+    ) => {
         const router = createMemoryRouter(
             [
                 {
                     path: '*',
                     element: (
-                        <AllProvidersWrapper>
+                        <AllProvidersWrapper config={config}>
                             <CategoryNavigationMenu {...props} />
                         </AllProvidersWrapper>
                     ),
@@ -60,7 +78,34 @@ describe('CategoryNavigationMenu Component', () => {
             expect(element1).toBeInTheDocument();
             expect(element2).toBeInTheDocument();
             expect(element3).toBeInTheDocument();
-            expect(element3.getAttribute('href')).toBe('/global/en-GB/category/cat-3');
+            expect(element3.getAttribute('href')).toBe('/global/en-GB/c/cat-3');
+        });
+
+        it('uses the complete authoritative slug for a leaf category', () => {
+            const categories = [
+                {
+                    id: 'internal-id',
+                    name: 'Dresses',
+                    slug: 'women/clothing/dresses',
+                    onlineSubCategoriesCount: 0,
+                },
+            ];
+
+            const { getByRole } = renderComponent({ categories }, slugPathConfig);
+
+            expect(getByRole('link', { name: 'Dresses' })).toHaveAttribute(
+                'href',
+                '/global/en-GB/catalog/women/clothing/dresses'
+            );
+        });
+
+        it('does not expose a missing-slug leaf as an enabled link', () => {
+            const categories = [{ id: 'internal-id', name: 'Dresses', onlineSubCategoriesCount: 0 }];
+
+            const { getByText, queryByRole } = renderComponent({ categories }, slugPathConfig);
+
+            expect(getByText('Dresses')).toBeInTheDocument();
+            expect(queryByRole('link', { name: 'Dresses' })).not.toBeInTheDocument();
         });
 
         it('should add data-has-submenu attribute to triggers with submenus', () => {

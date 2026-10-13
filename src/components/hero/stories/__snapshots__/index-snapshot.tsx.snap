@@ -45,7 +45,7 @@ exports[`Hero stories snapshot > Default story renders and matches snapshot 1`] 
             data-size="default"
             data-slot="button"
             data-variant="default"
-            href="/category/all"
+            href="/c/all"
           >
             Shop Now
           </a>
@@ -101,7 +101,7 @@ exports[`Hero stories snapshot > LongCopy story renders and matches snapshot 1`]
             data-size="default"
             data-slot="button"
             data-variant="default"
-            href="/category/editorial"
+            href="/c/editorial"
           >
             Browse the Editorial Collection
           </a>
@@ -159,7 +159,7 @@ exports[`Hero stories snapshot > PageDesignerStyling story renders and matches s
             data-size="default"
             data-slot="button"
             data-variant="outline"
-            href="/category/all"
+            href="/c/all"
           >
             Shop
           </a>
@@ -215,7 +215,7 @@ exports[`Hero stories snapshot > Playground story renders and matches snapshot 1
             data-size="default"
             data-slot="button"
             data-variant="default"
-            href="/category/all"
+            href="/c/all"
           >
             Shop Now
           </a>
@@ -271,7 +271,7 @@ exports[`Hero stories snapshot > RightBlockCenteredText story renders and matche
             data-size="default"
             data-slot="button"
             data-variant="default"
-            href="/category/all"
+            href="/c/all"
           >
             Shop Now
           </a>
@@ -348,7 +348,7 @@ exports[`Hero stories snapshot > WithoutImage story renders and matches snapshot
             data-size="default"
             data-slot="button"
             data-variant="default"
-            href="/category/all"
+            href="/c/all"
           >
             Shop Now
           </a>

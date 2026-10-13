@@ -85,8 +85,7 @@ vi.mock('@/extensions/shipping-delivery/components/estimated-delivery', () => ({
                 sourceId: fulfillmentPresentationSourceId,
                 productId: shippingDelivery?.productId ?? productId,
                 title: `Deliver to ${initialDestination.postalCode}`,
-                text:
-                    productId === 'fallback-product' ? 'Order received within 7-10 business days' : 'Arrives tomorrow',
+                text: productId === 'fallback-product' ? 'Arrives in 7–10 business days' : 'Arrives tomorrow',
             });
         }, [
             fulfillmentPresentationSourceId,
@@ -214,7 +213,7 @@ describe('DeliveryEstimateCalculatorTarget', () => {
         expect(calculator).not.toHaveAttribute('data-zip');
         expect(calculator).toHaveAttribute('data-focus-postal-code', 'true');
         expect(screen.getByRole('radio', { name: 'Delivery' }).parentElement).toHaveTextContent(
-            'Enter postal code to see delivery estimate'
+            'Enter a postal code to get a delivery estimate'
         );
     });
 
@@ -320,7 +319,7 @@ describe('DeliveryEstimateCalculatorTarget', () => {
             </AllProvidersWrapper>
         );
 
-        expect(await screen.findAllByText('Enter postal code to see delivery estimate')).toHaveLength(2);
+        expect(await screen.findAllByText('Enter a postal code to get a delivery estimate')).toHaveLength(2);
     });
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -375,7 +374,7 @@ describe('DeliveryEstimateCalculatorTarget', () => {
 
         expect(load).not.toHaveBeenCalled();
         expect(
-            screen.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+            screen.queryByRole('button', { name: 'Enter a postal code to get a delivery estimate' })
         ).not.toBeInTheDocument();
         expect(screen.queryByRole('status')).not.toBeInTheDocument();
 
@@ -403,7 +402,7 @@ describe('DeliveryEstimateCalculatorTarget', () => {
 
         expect(load).not.toHaveBeenCalled();
         expect(
-            screen.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+            screen.queryByRole('button', { name: 'Enter a postal code to get a delivery estimate' })
         ).not.toBeInTheDocument();
 
         await user.click(screen.getByRole('radio', { name: 'Delivery' }));
@@ -453,7 +452,7 @@ describe('DeliveryEstimateCalculatorTarget', () => {
         renderTargetWithEligibleHost();
 
         const delivery = screen.getByRole('radio', { name: 'Delivery' });
-        expect(delivery).toHaveAccessibleDescription('Enter postal code to see delivery estimate');
+        expect(delivery).toHaveAccessibleDescription('Enter a postal code to get a delivery estimate');
         expect(screen.queryByTestId('delivery-estimate-calculator')).not.toBeInTheDocument();
 
         act(() => {

@@ -31,7 +31,16 @@ Feature('Checkout Registered Shopper Payment & Step Navigation Tests').tag('@cor
 const { checkoutPage, apiCartSetupFlow, registeredShopperSetupFlow, storefrontPage, accountPaymentMethodsPage } =
     inject();
 import { expect } from 'chai';
-import { TEST_PRODUCT_CATEGORIES } from '../../test-data/checkout.data';
+import {
+    TEST_PRODUCT_CATEGORIES,
+    TEST_PAYMENT_MASTERCARD,
+    TEST_SHIPPING_ADDRESS,
+    generateTestEmail,
+} from '../../test-data/checkout.data';
+import { installLoginPrefsStubHooks } from '../../utils/login-prefs-stub';
+
+// Guest-style contact step stubs — registered skipPayment flow may still hit email blur prefs.
+installLoginPrefsStubHooks();
 
 After(async (test: unknown) => {
     const tags = (test as { tags?: string[] }).tags ?? [];
@@ -67,6 +76,32 @@ Scenario('Registered shopper can place order with saved payment method', async (
     .tag('@registered-shopper')
     .tag('@saved-payment')
     .tag('@place-order');
+
+Scenario('Registered shopper can enter a new MasterCard and place order', async () => {
+    // skipPayment: this realm blocks BASIC_CREDIT customer-PI create via SCAPI when SFP is on.
+    // New-card checkout still exercises catalog-resolved cardType (Master Card / MasterCard).
+    await registeredShopperSetupFlow.execute({ skipPayment: true });
+
+    const productInfo = await apiCartSetupFlow.executeAndNavigateToCheckout(TEST_PRODUCT_CATEGORIES.MENS_JACKETS);
+    expect(productInfo, 'Product should be added to cart').to.not.be.undefined;
+
+    checkoutPage.validatePageLoaded();
+
+    // No saved payment — fill shipping if needed then payment with MasterCard BIN
+    const email = generateTestEmail('reg-mc');
+    const orderNumber = await checkoutPage.completeCheckout({
+        email,
+        shippingAddress: TEST_SHIPPING_ADDRESS,
+        payment: TEST_PAYMENT_MASTERCARD,
+    });
+
+    expect(orderNumber, 'Order number should be returned').to.not.be.empty;
+    expect(orderNumber, 'Order number should be numeric').to.match(/^\d+$/);
+})
+    .tag('@registered-shopper')
+    .tag('@add-new-card')
+    .tag('@place-order')
+    .tag('@mastercard');
 
 Scenario('Registered shopper can edit payment, verify default at top, and place order without changes', async () => {
     await registeredShopperSetupFlow.execute();

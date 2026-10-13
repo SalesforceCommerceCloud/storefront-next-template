@@ -17,6 +17,8 @@ import type { LoaderFunctionArgs } from 'react-router';
 import type { ShopperBasketsV2, ShopperProducts } from '@/scapi';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { fetchProductsByIds } from '@/lib/api/products.server';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { getInventoryIdsFromPickupShipments } from '@/extensions/bopis/lib/basket-utils';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
@@ -69,6 +71,7 @@ export async function fetchProductsInBasket(
     }
 
     const currency = (context.get(siteContext) as SiteContext).currency;
+    const config = getConfig(context);
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const inventoryIds = getInventoryIdsFromPickupShipments(basket);
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
@@ -80,7 +83,15 @@ export async function fetchProductsInBasket(
         // Scope expansions to only what cart UI consumes. Without an explicit expand, the SCAPI default
         // returns extra blocks (set_products, recommendations, links, options, custom_properties, validation)
         // that the cart never reads.
-        expand: ['availability', 'bundled_products', 'images', 'prices', 'promotions', 'variations'],
+        expand: [
+            'availability',
+            'bundled_products',
+            'images',
+            'prices',
+            'promotions',
+            ...getSeoSlugExpansion(config.url?.seoRoutes),
+            'variations',
+        ],
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
         ...(inventoryIds.length > 0 ? { inventoryIds } : {}),
         // @sfdc-extension-block-end SFDC_EXT_BOPIS

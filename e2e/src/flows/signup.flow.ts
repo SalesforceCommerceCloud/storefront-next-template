@@ -78,7 +78,7 @@ class SignupFlow {
             customData,
             acceptTracking = true,
             createBasket = false,
-            categoryUrl = 'category/mens-clothing-jackets',
+            categoryUrl = 'c/mens-clothing-jackets',
         } = options;
 
         try {

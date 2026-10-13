@@ -62,13 +62,14 @@ class RegisteredShopperSetupFlow {
     /**
      * Execute the complete registered shopper setup flow.
      * Tries API-based setup first, falls back to UI when unavailable.
+     * @param options.skipPayment - omit default Visa so the caller can add a specific cardType
      */
-    async execute(): Promise<RegisteredShopperSetupResult> {
+    async execute(options?: { skipPayment?: boolean }): Promise<RegisteredShopperSetupResult> {
         const config = getScapiConfig();
 
         if (config) {
             try {
-                return await this.executeViaApi(config);
+                return await this.executeViaApi(config, options);
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
                 // oxlint-disable-next-line no-console
@@ -76,13 +77,14 @@ class RegisteredShopperSetupFlow {
             }
         }
 
-        return this.executeViaUi();
+        return this.executeViaUi(options);
     }
 
     private async executeViaApi(
-        config: NonNullable<ReturnType<typeof getScapiConfig>>
+        config: NonNullable<ReturnType<typeof getScapiConfig>>,
+        options?: { skipPayment?: boolean }
     ): Promise<RegisteredShopperSetupResult> {
-        const result = await createRegisteredShopperViaApi(config);
+        const result = await createRegisteredShopperViaApi(config, { skipPayment: options?.skipPayment });
 
         await injectAndActivateRegisteredSession(config.siteId, result.tokens);
 
@@ -111,7 +113,7 @@ class RegisteredShopperSetupFlow {
         };
     }
 
-    private async executeViaUi(): Promise<RegisteredShopperSetupResult> {
+    private async executeViaUi(options?: { skipPayment?: boolean }): Promise<RegisteredShopperSetupResult> {
         try {
             const { signupData } = await signupFlow.execute();
             accountAddressesPage.navigate();
@@ -126,11 +128,13 @@ class RegisteredShopperSetupFlow {
             accountDetailsPage.clickSaveProfile();
             accountDetailsPage.validateSuccessToast();
 
-            accountPaymentMethodsPage.navigate();
-            accountPaymentMethodsPage.validatePageLoaded();
-            const billingAddressOptionText = this.getBillingAddressOptionText(addressData);
-            accountPaymentMethodsPage.addPaymentMethod(TEST_PAYMENT, billingAddressOptionText);
-            accountPaymentMethodsPage.validateSuccessToast();
+            if (!options?.skipPayment) {
+                accountPaymentMethodsPage.navigate();
+                accountPaymentMethodsPage.validatePageLoaded();
+                const billingAddressOptionText = this.getBillingAddressOptionText(addressData);
+                accountPaymentMethodsPage.addPaymentMethod(TEST_PAYMENT, billingAddressOptionText);
+                accountPaymentMethodsPage.validateSuccessToast();
+            }
 
             return {
                 signupData,

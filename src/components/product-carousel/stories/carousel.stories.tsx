@@ -243,7 +243,7 @@ export const WithShopAllLink: Story = {
         products,
         title: 'New Arrivals',
         shopAllText: 'Shop All',
-        shopAllUrl: '/category/new-arrivals',
+        shopAllUrl: '/c/new-arrivals',
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);

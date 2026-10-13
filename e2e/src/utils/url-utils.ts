@@ -48,3 +48,15 @@ export function buildSitePath(path: string): string {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     return `/${prefix}${normalizedPath}`;
 }
+
+/**
+ * Determine whether a URL is within a route path, including when site and locale
+ * segments precede the route.
+ *
+ * @param url - URL to inspect
+ * @param route - Route path without leading or trailing slashes
+ */
+export function isRoutePath(url: URL, route: string): boolean {
+    const normalizedRoute = route.replace(/^\/+|\/+$/g, '');
+    return url.pathname.includes(`/${normalizedRoute}/`);
+}

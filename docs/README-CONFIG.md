@@ -58,7 +58,8 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | Variable | Default | Notes |
 |---|---|---|
 | `MRT_PROJECT` | falls back to `package.json#name` | MRT project slug. Owned by the MRT/Fast Setup team. |
-| `MRT_TARGET` | — | MRT deploy target (e.g. `development`, `production`). |
+| `MRT_ENVIRONMENT` | — | MRT environment to deploy to (e.g. `development`, `production`). `MRT_TARGET` is still accepted. |
+| `MRT_BACKEND` | `legacy` | Optional. `legacy` (MRT API key), `scapi` (Account Manager OAuth via `SFCC_CLIENT_ID`, `SFCC_CLIENT_SECRET`, `SFCC_SHORTCODE`, `SFCC_TENANT_ID`), or `auto`. See [Deployment](../README.md#deployment). |
 
 ### Server-only secrets (never prefix with `PUBLIC__`)
 
@@ -92,9 +93,10 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | `PUBLIC__app__commerce__api__guestRefreshTokenExpirySeconds` | from API response | Override guest refresh-token TTL |
 | `PUBLIC__app__commerce__api__registeredRefreshTokenExpirySeconds` | from API response | Override registered refresh-token TTL |
 | `PUBLIC__app__features__googleCloudAPI__apiKey` | — | Google Address Autocomplete |
-| `PUBLIC__security__turnstile__enabled` | `false` | Turnstile bot protection |
-| `PUBLIC__security__turnstile__sites` | — | Turnstile per-site configuration |
-| `PUBLIC__app__cimulateAgent` | disabled | Commerce Client (Cimulate) messaging widget config (JSON string) |
+| `PUBLIC__app__security__turnstile__enabled` | `false` | Turnstile bot protection |
+| `PUBLIC__app__security__turnstile__sites` | — | Turnstile per-site configuration |
+| `PUBLIC__app__commerce__shopperAgent` | disabled | Shopper Agent (Commerce Client messaging widget) config (JSON string). Preferred over the legacy `PUBLIC__app__cimulateAgent`; when both are set, `commerce.shopperAgent` wins and `cimulateAgent` is ignored. |
+| `PUBLIC__app__cimulateAgent` | disabled | **Deprecated.** Legacy alias for the Shopper Agent widget config. Kept for backward compatibility — new deployments should use `PUBLIC__app__commerce__shopperAgent`. |
 
 ### Optional non-`PUBLIC__` runtime/deploy variables
 
@@ -345,7 +347,7 @@ export function loader({ context }: LoaderFunctionArgs) {
 }
 ```
 
-### 4. Add a new config value during app creation
+### 5. Add a new config value during app creation
 **In config-meta.json:**
 - Add the name and key value to the config array
 - This will cause the create-storefront script to ask for user input, using the value in `.env.default` as default value
@@ -632,13 +634,18 @@ Cloudflare Turnstile is disabled by default. The test site key below always pass
 
 See [README-TURNSTILE.md](./README-TURNSTILE.md) and `e2e/feature-specs/checkout/turnstile-protection.spec.md`.
 
-### Commerce Client (Cimulate)
+### Shopper Agent (Commerce Client messaging widget)
 
 ```bash
+# Preferred (new)
+# PUBLIC__app__commerce__shopperAgent='{"enabled":true,"provider":"commerce-client","commerceClientScriptSourceUrl":"https://...","scrt2Url":"https://...","salesforceOrgId":"...","esDeveloperName":"..."}'
+
+# Legacy (deprecated) — still supported for backward compatibility.
+# When both are set, PUBLIC__app__commerce__shopperAgent wins and PUBLIC__app__cimulateAgent is ignored.
 # PUBLIC__app__cimulateAgent='{"enabled":true,"provider":"commerce-client","commerceClientScriptSourceUrl":"https://...","scrt2Url":"https://...","salesforceOrgId":"...","esDeveloperName":"..."}'
 ```
 
-Set as a single JSON string. Required fields: `enabled`, `commerceClientScriptSourceUrl`, `scrt2Url`, `salesforceOrgId`, `esDeveloperName`. See `src/components/cimulate/README.md` for setup.
+Set as a single JSON string. Required fields: `enabled`, `commerceClientScriptSourceUrl`, `scrt2Url`, `salesforceOrgId`, `esDeveloperName`. Today the widget is provided by Cimulate (`provider: 'commerce-client'`); the top-level naming leaves room for other agent implementations in the future. Optional `cc_`-prefixed keys (e.g. `cc_widgetPosition`, `cc_isOpen`, `cc_capabilitiesVersion`, `cc_enableDownloadTranscript`, `cc_progressStepsLimit`) tune the widget; some have defaults and the rest fall back to the widget's own default. See `src/components/cimulate/README.md` for the full list and setup.
 
 ### Cookie domain
 
@@ -682,7 +689,7 @@ Already in `.env.default` — listed here for completeness.
 
 ```bash
 MRT_PROJECT=my-project-slug
-MRT_TARGET=development
+MRT_ENVIRONMENT=development
 ```
 
 ### Server-only SLAS secret (never prefix with `PUBLIC__`)

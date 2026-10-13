@@ -87,7 +87,7 @@ A flexible card component for displaying authored content with optional image, t
         imageUrl: SAMPLE_IMAGE,
         imageAlt: 'Featured Product',
         buttonText: 'Shop Now',
-        buttonLink: '/category/featured',
+        buttonLink: '/c/featured',
         showBackground: true,
         showBorder: true,
         loading: 'lazy',
@@ -265,7 +265,7 @@ export const LongCopy: Story = {
             'Every piece in this collection has been selected by our editorial team for its provenance, craftsmanship, and material story. From hand-loomed textiles to single-origin ceramics, our partners share a commitment to fair-wage manufacturing, low-impact materials, and durable design that outlasts trend cycles. Browse the full assortment to find pieces that match your aesthetic and your values.',
         imageAlt: 'Long-copy editorial card',
         buttonText: 'Browse the Full Editorial Collection',
-        buttonLink: '/category/editorial',
+        buttonLink: '/c/editorial',
     },
     parameters: {
         docs: {

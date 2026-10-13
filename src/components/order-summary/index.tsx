@@ -115,7 +115,7 @@ function CartItemsSummary({
     onSelectBonusProducts?: () => void;
 }): ReactElement {
     const { t } = useTranslation('cart');
-    const totalItems = basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 0), 0) || 0;
+    const totalItems = basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 1), 0) || 0;
 
     const getItemCountText = (count: number): string => t('items.itemsInCart', { count });
 

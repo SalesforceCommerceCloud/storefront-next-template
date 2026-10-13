@@ -15,6 +15,7 @@
  */
 
 export interface ShippingEstimate {
+    /** Slowest-first display options; deliveryWindow repeats the first option's window. */
     shippingOptions: ShippingEstimateOption[];
     deliveryWindow: ShippingEstimateOption['deliveryWindow'];
 }
@@ -40,6 +41,7 @@ export interface ShippingEstimateOption {
 
 export type ShippingEstimateResult =
     | { success: true; productId: string; zipcode: string; countryCode: string; estimate: ShippingEstimate }
+    /** SCAPI found no eligible option and the catalog has no fallback delivery guidance. */
     | { success: false; empty: true; productId: string; zipcode: string; countryCode: string }
     | {
           success: false;

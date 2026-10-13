@@ -132,6 +132,12 @@ If you customize the product tile to read a different viewType (e.g. switch the 
 
 The hardcoded strings in those consumers are tracked for a follow-up cleanup that will derive them from these same role-named declarations, eliminating drift.
 
+## Non-native swatch axes (swatch products)
+
+SFCC decorates native `viewType=swatch` imagery for only **one** variation axis (e.g. `color`, or `fabric`). Other axes (`size`, `legStyle`, …) can still show DIS-served swatch tiles by pointing each value at a dedicated **swatch product** whose primary image is the tile, via the optional master attribute `c_swatchProductIds` (`{ axisId: { value: swatchProductId } }`).
+
+[`resolveSwatchProductImages`](../src/lib/product/swatch-products.server.ts) runs in the PDP loader: it's a **no-op unless `c_swatchProductIds` is present**, otherwise it batch-fetches the swatch products and merges their DIS image URLs into `c_swatchImages`, which [`useVariationAttributes`](../src/hooks/product/use-variation-attributes.ts) already reads. To adopt it, provision one hidden, non-searchable product per swatch value (its primary image being the tile) and set the `c_swatchProductIds` map on the master — no storefront code changes are needed.
+
 ## `<DynamicImage>` Component
 
 `<DynamicImage>` is a responsive image component that generates an optimized `<picture>` element with DIS-powered `<source>` elements and responsive preloading via React 19's [`preload()`](https://react.dev/reference/react-dom/preload) API.

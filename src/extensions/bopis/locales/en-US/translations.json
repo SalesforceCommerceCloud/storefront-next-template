@@ -14,7 +14,7 @@
             "deliverToZip": "Deliver to {{zipCode}}",
             "deliveryInDays": "Deliver in {{days}} business days",
             "estimatedDeliveryInDays": "Estimated delivery: {{days}} business days",
-            "enterZipPrompt": "Enter postal code to see delivery estimate",
+            "enterZipPrompt": "Enter a postal code to get a delivery estimate",
             "pickupUnavailable": "Pickup unavailable",
             "tryAnotherStore": "Try another store",
             "calculatorTitle": "Calculate Shipping",

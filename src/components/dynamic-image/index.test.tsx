@@ -408,8 +408,15 @@ describe('Dynamic Image Component', () => {
             expect(img.getAttribute('src')).toBeTruthy();
         });
 
-        test('resolves src from link property as last resort', () => {
+        test('resolves src from link property when disBaseLink is absent', () => {
             render(<DynamicImage src={{ link: src } as unknown as string} alt="Test image" />);
+            const img = screen.getByRole('img');
+            expect(img).toBeInTheDocument();
+            expect(img.getAttribute('src')).toBeTruthy();
+        });
+
+        test('resolves src from path property as last resort', () => {
+            render(<DynamicImage src={{ path: src } as unknown as string} alt="Test image" />);
             const img = screen.getByRole('img');
             expect(img).toBeInTheDocument();
             expect(img.getAttribute('src')).toBeTruthy();

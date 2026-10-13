@@ -1451,9 +1451,9 @@ Can drag/drop components and see changes in real-time
 
 // Content page
 {
-  "route": "/content/:contentId"
+  "route": "/cms/page/:contentId"
 }
-// Business Manager loads: /content/about-us
+// Business Manager loads: /cms/page/about-us
 
 // Homepage (no parameters)
 {

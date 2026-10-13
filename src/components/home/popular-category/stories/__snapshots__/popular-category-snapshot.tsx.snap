@@ -11,7 +11,7 @@ exports[`PopularCategory stories snapshot > Default story renders and matches sn
       <div
         data-testid="content-card"
       >
-        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.jpg","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/category/mens","showBackground":true,"showBorder":true,"loading":"eager"}
+        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.jpg","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/c/mens","showBackground":true,"showBorder":true,"loading":"eager"}
       </div>
     </div>
   </div>
@@ -29,7 +29,7 @@ exports[`PopularCategory stories snapshot > DesktopLayout story renders and matc
       <div
         data-testid="content-card"
       >
-        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.jpg","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/category/mens","showBackground":true,"showBorder":true,"loading":"eager"}
+        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.jpg","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/c/mens","showBackground":true,"showBorder":true,"loading":"eager"}
       </div>
     </div>
   </div>
@@ -47,7 +47,7 @@ exports[`PopularCategory stories snapshot > Fallback story renders and matches s
       <div
         data-testid="content-card"
       >
-        {"title":"","description":"","imageUrl":"/images/hero-cube.webp","imageAlt":"","buttonText":"Shop Now","buttonLink":"/category/root","showBackground":true,"showBorder":true,"loading":"eager"}
+        {"title":"","description":"","imageUrl":"/images/hero-cube.webp","imageAlt":"","buttonText":"Shop Now","buttonLink":"/c/root","showBackground":true,"showBorder":true,"loading":"eager"}
       </div>
     </div>
   </div>
@@ -65,7 +65,7 @@ exports[`PopularCategory stories snapshot > MobileLayout story renders and match
       <div
         data-testid="content-card"
       >
-        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.jpg","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/category/mens","showBackground":true,"showBorder":true,"loading":"eager"}
+        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.jpg","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/c/mens","showBackground":true,"showBorder":true,"loading":"eager"}
       </div>
     </div>
   </div>
@@ -83,7 +83,7 @@ exports[`PopularCategory stories snapshot > WithCategoryProp story renders and m
       <div
         data-testid="content-card"
       >
-        {"title":"Ties","description":"Shop Mens's Ties for all occasions including business or casual at Commerce Cloud","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dwd2ff3ec8/images/slot/sub_banners/cat-banner-mens-ties.jpg","imageAlt":"Ties","buttonText":"Shop Now","buttonLink":"/category/mens-accessories-ties","showBackground":true,"showBorder":true,"loading":"eager"}
+        {"title":"Ties","description":"Shop Mens's Ties for all occasions including business or casual at Commerce Cloud","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dwd2ff3ec8/images/slot/sub_banners/cat-banner-mens-ties.jpg","imageAlt":"Ties","buttonText":"Shop Now","buttonLink":"/c/mens-accessories-ties","showBackground":true,"showBorder":true,"loading":"eager"}
       </div>
     </div>
   </div>
@@ -101,7 +101,7 @@ exports[`PopularCategory stories snapshot > WithoutImage story renders and match
       <div
         data-testid="content-card"
       >
-        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"/images/hero-cube.webp","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/category/mens","showBackground":true,"showBorder":true,"loading":"eager"}
+        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"/images/hero-cube.webp","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/c/mens","showBackground":true,"showBorder":true,"loading":"eager"}
       </div>
     </div>
   </div>

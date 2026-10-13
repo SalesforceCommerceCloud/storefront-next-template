@@ -2335,7 +2335,7 @@ export const basketWithProductBundle = {
             shipmentId: 'me',
             shipmentTotal: 89.39,
             shippingMethod: {
-                description: 'Order received within 7-10 business days',
+                description: 'Arrives in 7–10 business days',
                 id: 'GBP001',
                 name: 'Ground',
                 price: 15.99,

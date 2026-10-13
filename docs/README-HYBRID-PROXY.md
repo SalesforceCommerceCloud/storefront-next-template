@@ -25,7 +25,7 @@ A dedicated `HYBRID_PROXY_ENABLED` flag controls the proxy. It defaults to `fals
 
 1. Every request to the Vite dev server passes through the hybrid proxy middleware first.
 2. The middleware checks the request path against your `HYBRID_ROUTING_RULES`.
-3. **Matching paths** (e.g., `/`, `/product/*`, `/account/*`) are passed to React Router — Storefront Next handles them.
+3. **Matching paths** (e.g., `/`, `/p/*`, `/account/*`) are passed to React Router — Storefront Next handles them.
 4. **Non-matching paths** (e.g., `/cart`, `/checkout`) are silently proxied to your SFCC sandbox (`SFCC_ORIGIN`).
 5. The proxy rewrites the path to SFRA format: `/cart` → `/s/{siteId}/{locale}/cart`.
 6. Set-Cookie headers from SFCC are rewritten (`Domain=localhost`) so session cookies work across both apps on localhost.
@@ -79,6 +79,14 @@ Supports three pattern forms:
 ```bash
 PUBLIC__app__hybrid__legacyRoutes='["/cart", "/checkout", "/product/:id", "/categoryLv1/*"]'
 ```
+
+To keep a configured standalone-content prefix on the legacy storefront, include both its bare path and subtree:
+
+```bash
+PUBLIC__app__hybrid__legacyRoutes='["/cms", "/cms/*"]'
+```
+
+The content prefix in `url.seoRoutes` is build-time because it defines the route grammar. Ownership remains runtime-configurable here. A legacy match hands off before the content loader or Shopper SEO fallback runs, so changing ownership does not require rebuilding the route manifest. Keep the production eCDN rule and local `HYBRID_ROUTING_RULES` aligned with this setting.
 
 Use `:name` when you need a single-segment placeholder (no `/` allowed). Use `*` when the legacy backend owns an entire subtree and you'd otherwise have to enumerate every URL underneath. The two can be combined — e.g. `/category/:cat/*` matches `/category/shoes/details/blue`. `*` may also appear in the middle of a pattern (e.g. `/files/*-thumb`); React Router itself only allows splats at the end, but this matcher does not enforce that.
 

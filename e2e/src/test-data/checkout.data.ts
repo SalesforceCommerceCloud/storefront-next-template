@@ -16,10 +16,20 @@
 
 const TEST_CARDS = {
     VISA: '4242424242424242',
+    /** MasterCard BIN; BM id must stay MasterCard (no space), not Master Card. */
+    MASTERCARD: '5555555555554444',
 } as const;
 
 export const TEST_PAYMENT = {
     cardNumber: TEST_CARDS.VISA,
+    cardholderName: 'Test Shopper',
+    expiryDate: '01/30',
+    cvv: '123',
+} as const;
+
+/** Guest / new-card MasterCard payment — exercises BIN detect → wire cardType MasterCard. */
+export const TEST_PAYMENT_MASTERCARD = {
+    cardNumber: TEST_CARDS.MASTERCARD,
     cardholderName: 'Test Shopper',
     expiryDate: '01/30',
     cvv: '123',
@@ -62,10 +72,10 @@ export const INVALID_TEST_DATA = {
 } as const;
 
 export const TEST_PRODUCT_CATEGORIES = {
-    MENS_JACKETS: 'category/mens-clothing-jackets',
-    WOMENS_DRESSES: 'category/womens-clothing-dresses',
-    WOMENS_TOPS: 'category/womens-clothing-tops',
-    MENS_CLOTHING: 'category/mens',
+    MENS_JACKETS: 'c/mens-clothing-jackets',
+    WOMENS_DRESSES: 'c/womens-clothing-dresses',
+    WOMENS_TOPS: 'c/womens-clothing-tops',
+    MENS_CLOTHING: 'c/mens',
 } as const;
 
 /** RefArch variant IDs used by apiCartSetupFlow for direct SCAPI basket creation. */

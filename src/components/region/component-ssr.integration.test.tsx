@@ -24,6 +24,14 @@ import { registry } from '@/lib/page-designer/registry';
 import { registerServerRenderedComponentTypes } from '@/lib/page-designer/registry-components';
 import HeroCarousel from '@/components/hero-carousel';
 
+// `Region` reads `config.features.livePreview` at the top level, so an SSR render without a
+// `ConfigProvider` in the tree throws. Force a stable config while leaving the module's other
+// exports intact for anything rendered through the registry.
+vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@salesforce/storefront-next-runtime/config')>()),
+    useConfig: () => ({ features: { livePreview: true } }),
+}));
+
 interface StreamedRender {
     shellReady: Promise<void>;
     completed: Promise<string>;

@@ -27,6 +27,7 @@ export const InventoryStatus = {
     PRE_ORDER: 'pre-order',
     BACK_ORDER: 'back-order',
     OUT_OF_STOCK: 'out-of-stock',
+    ALLOCATED: 'allocated',
     UNKNOWN: 'unknown',
 } as const;
 
@@ -140,6 +141,11 @@ function getInventoryMessage(
             return {
                 message: t('outOfStockLabel'),
                 className: 'text-status-critical',
+            };
+        case InventoryStatus.ALLOCATED:
+            return {
+                message: t('inventory.allocated'),
+                className: 'text-status-warning',
             };
         case InventoryStatus.UNKNOWN:
         default:

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { formatCurrency, getCurrencySymbol } from './currency';
+import { formatCurrency, getCurrencyFractionDigits, getCurrencySymbol } from './currency';
 
 describe('formatCurrency', () => {
     describe('en-GB with GBP', () => {
@@ -145,6 +145,13 @@ describe('formatCurrency', () => {
 
         it('should return CHF for Swiss francs', () => {
             expect(getCurrencySymbol('de-CH', 'CHF')).toMatch(/CHF/);
+        });
+    });
+
+    describe('getCurrencyFractionDigits', () => {
+        it('returns the display precision for zero- and two-decimal currencies', () => {
+            expect(getCurrencyFractionDigits('JPY')).toBe(0);
+            expect(getCurrencyFractionDigits('USD')).toBe(2);
         });
     });
 

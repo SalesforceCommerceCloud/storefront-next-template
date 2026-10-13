@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, useCallback, useMemo } from 'react';
+import { type ReactElement, useMemo } from 'react';
 import { useLocation, useNavigation } from 'react-router';
-import { useNavigate } from '@/hooks/use-navigate';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { ShopperProducts } from '@/scapi';
 import { useTranslation } from 'react-i18next';
+import { useCategoryNavigation } from '@/components/category-refinements/use-category-navigation';
 
 interface QuickFiltersProps {
     category?: ShopperProducts.schemas['Category'];
@@ -28,10 +28,8 @@ interface QuickFiltersProps {
      * When provided, a "Shop by {label}" header with a leading sparkles icon is
      * rendered before the chips. When omitted, no header is shown.
      *
-     * The component stays presentational: the caller decides whether to supply a
-     * label (e.g. a vertical gating on `uiConfig.pages.category.showCategoryLabel`
-     * computes it from loader data and passes it). Keeps this component free of
-     * config/loader coupling so it renders the same way given the same props.
+     * The caller decides whether to supply a label (e.g. a vertical gating on
+     * `uiConfig.pages.category.showCategoryLabel` computes it from loader data).
      */
     categoryLabel?: string;
 }
@@ -55,9 +53,9 @@ interface QuickFiltersProps {
  */
 export default function QuickFilters({ category, categoryLabel }: QuickFiltersProps): ReactElement | null {
     const { t } = useTranslation('common');
-    const navigate = useNavigate();
     const location = useLocation();
     const navigation = useNavigation();
+    const resolveCategoryNavigation = useCategoryNavigation(category);
     const isPending = navigation.state !== 'idle';
 
     // Get subcategories to display from category.categories
@@ -78,38 +76,6 @@ export default function QuickFilters({ category, categoryLabel }: QuickFiltersPr
         const params = new URLSearchParams(searchParams);
         return params.getAll('refine');
     }, [navigation.location, location.search]);
-
-    // Handle category chip click
-    const handleCategoryClick = useCallback(
-        (categoryValue: string) => {
-            const params = new URLSearchParams(location.search);
-            const refines = params.getAll('refine');
-            const cgidRefinement = `cgid=${categoryValue}`;
-
-            // Check if this refinement is already selected
-            const isSelected = refines.includes(cgidRefinement);
-
-            let nextRefines: string[];
-            if (isSelected) {
-                // Remove this refinement (unfilter)
-                nextRefines = refines.filter((r) => r !== cgidRefinement);
-            } else {
-                // Remove any existing cgid refinements and add the new one
-                nextRefines = [...refines.filter((r) => !r.startsWith('cgid=')), cgidRefinement];
-            }
-
-            // Rebuild search params with the new refines
-            params.delete('refine');
-            nextRefines.forEach((r) => params.append('refine', r));
-            params.set('offset', '0');
-
-            void navigate({
-                pathname: location.pathname,
-                search: `?${params.toString()}`,
-            });
-        },
-        [location.search, location.pathname, navigate]
-    );
 
     // Don't render if no categories available
     if (categories.length === 0) {
@@ -158,12 +124,14 @@ export default function QuickFilters({ category, categoryLabel }: QuickFiltersPr
             {categories.map((cat) => {
                 const cgidRefinement = `cgid=${cat.value}`;
                 const isActive = activeRefinements.includes(cgidRefinement);
+                const categoryNavigation = resolveCategoryNavigation(cat.value, new URLSearchParams(location.search));
                 return (
                     <Button
                         key={cat.value}
                         variant={isActive ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => handleCategoryClick(cat.value)}
+                        disabled={!categoryNavigation}
+                        onClick={categoryNavigation}
                         className={cn(
                             'whitespace-nowrap cursor-pointer text-sm font-normal leading-5 tracking-[-0.15px]',
                             isActive ? 'text-primary-foreground' : 'text-foreground'

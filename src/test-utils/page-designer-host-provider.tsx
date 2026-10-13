@@ -16,13 +16,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { createLogger } from '@/lib/logger';
-import {
-    createHostApi,
-    type ClientAcknowledgedEvent,
-    type EventPayload,
-} from '@salesforce/storefront-next-runtime/design/messaging';
-import { useDesignContext } from '@salesforce/storefront-next-runtime/design/react';
-import type { ShopperExperience } from '@/scapi';
+import { createHostApi, type HostToClientConfiguration } from '@salesforce/storefront-next-runtime/design/messaging';
 
 const logger = createLogger();
 
@@ -42,11 +36,12 @@ const logger = createLogger();
 export function PageDesignerHostProvider({
     expose = false,
     logEvents = true,
+    configuration,
 }: {
     expose?: boolean;
     logEvents?: boolean;
-} = {}) {
-    const { clientPage } = useDesignContext();
+    configuration: HostToClientConfiguration;
+}) {
     const host = useMemo(
         () =>
             createHostApi({
@@ -67,13 +62,7 @@ export function PageDesignerHostProvider({
 
     useEffect(() => {
         host.connect({
-            configFactory: () =>
-                Promise.resolve({
-                    components: {},
-                    componentTypes: {},
-                    labels: {},
-                    regions: {},
-                }),
+            configFactory: () => Promise.resolve(configuration),
             onClientConnected: (clientId) => {
                 logger.debug(`PageDesignerHost connected to client ${clientId}`);
             },
@@ -88,11 +77,7 @@ export function PageDesignerHostProvider({
         return () => {
             host.disconnect();
         };
-    }, [host, logEvents]);
-
-    useEffect(() => {
-        host.setClientConfiguration(getHostConfigFromPage(clientPage));
-    }, [clientPage, host]);
+    }, [host, logEvents, configuration]);
 
     // Window won't exist during SSR.
     if (expose && typeof window !== 'undefined') {
@@ -101,44 +86,4 @@ export function PageDesignerHostProvider({
     }
 
     return <></>;
-}
-
-function* forEachComponent(
-    regions: ShopperExperience.schemas['Region'][]
-): IterableIterator<ShopperExperience.schemas['Component']> {
-    for (const region of regions) {
-        for (const component of region.components ?? []) {
-            yield component;
-
-            if (component.regions) {
-                yield* forEachComponent(component.regions);
-            }
-        }
-    }
-}
-
-function getHostConfigFromPage(page: ShopperExperience.schemas['Page'] | null): EventPayload<ClientAcknowledgedEvent> {
-    const config: EventPayload<ClientAcknowledgedEvent> = {
-        components: {},
-        componentTypes: {},
-        labels: {},
-        regions: {},
-    };
-
-    for (const component of forEachComponent(page?.regions ?? [])) {
-        config.componentTypes[component.typeId] = {
-            id: component.typeId,
-            // We don't have this information just from the page.
-            name: `${component.typeId}-${component.id}`,
-            image: '',
-            label: '',
-        };
-
-        config.components[component.id] = {
-            id: component.id,
-            type: component.typeId,
-        };
-    }
-
-    return config;
 }

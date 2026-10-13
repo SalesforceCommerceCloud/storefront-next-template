@@ -1,0 +1,306 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`InlineAddToCart stories snapshot > AtStockLimit story renders and matches snapshot 1`] = `
+<div
+  class="flex flex-col gap-2"
+  data-slot="inline-add-to-cart"
+>
+  <div
+    aria-label="Quantity for Harbor Crossbody Bag"
+    class="bg-primary text-primary-foreground rounded-ui flex h-10 w-full items-center"
+    data-slot="add-to-cart-button"
+    data-testid="inline-add-to-cart"
+    role="group"
+  >
+    <button
+      aria-label="Decrement Quantity for Harbor Crossbody Bag"
+      class="text-primary-foreground hover:bg-primary-foreground/10 focus-visible:ring-ring min-w-11 inline-flex h-full items-center justify-center px-4 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      data-testid="inline-add-to-cart-decrement"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-minus size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M5 12h14"
+        />
+      </svg>
+    </button>
+    <span
+      class="min-w-0 flex-1 truncate px-1 text-center text-base font-semibold leading-6"
+      data-testid="inline-add-to-cart-quantity"
+      title="2 in basket"
+    >
+      2 in basket
+    </span>
+    <button
+      aria-describedby="_r_1_"
+      aria-label="Increment Quantity for Harbor Crossbody Bag"
+      class="text-primary-foreground hover:bg-primary-foreground/10 focus-visible:ring-ring min-w-11 inline-flex h-full items-center justify-center px-4 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      data-testid="inline-add-to-cart-increment"
+      disabled=""
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-plus size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M5 12h14"
+        />
+        <path
+          d="M12 5v14"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    id="_r_1_"
+    role="status"
+  >
+    <p
+      class="text-sm leading-none text-left text-destructive font-medium"
+    >
+      Maximum stock reached
+    </p>
+  </div>
+</div>
+`;
+
+exports[`InlineAddToCart stories snapshot > Default story renders and matches snapshot 1`] = `
+<div
+  class="flex flex-col gap-2"
+  data-slot="inline-add-to-cart"
+>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-ui px-6 has-[>svg]:px-4 w-full text-base font-semibold leading-6"
+    data-size="lg"
+    data-slot="add-to-cart-button"
+    data-testid="add-to-cart"
+    data-variant="default"
+  >
+    Add to Cart
+  </button>
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    role="status"
+  />
+</div>
+`;
+
+exports[`InlineAddToCart stories snapshot > Disabled story renders and matches snapshot 1`] = `
+<div
+  class="flex flex-col gap-2"
+  data-slot="inline-add-to-cart"
+>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-ui px-6 has-[>svg]:px-4 w-full text-base font-semibold leading-6"
+    data-size="lg"
+    data-slot="add-to-cart-button"
+    data-testid="add-to-cart"
+    data-variant="default"
+    disabled=""
+  >
+    Add to Cart
+  </button>
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    role="status"
+  />
+</div>
+`;
+
+exports[`InlineAddToCart stories snapshot > InCart story renders and matches snapshot 1`] = `
+<div
+  class="flex flex-col gap-2"
+  data-slot="inline-add-to-cart"
+>
+  <div
+    aria-label="Quantity for Harbor Crossbody Bag"
+    class="bg-primary text-primary-foreground rounded-ui flex h-10 w-full items-center"
+    data-slot="add-to-cart-button"
+    data-testid="inline-add-to-cart"
+    role="group"
+  >
+    <button
+      aria-label="Decrement Quantity for Harbor Crossbody Bag"
+      class="text-primary-foreground hover:bg-primary-foreground/10 focus-visible:ring-ring min-w-11 inline-flex h-full items-center justify-center px-4 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      data-testid="inline-add-to-cart-decrement"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-minus size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M5 12h14"
+        />
+      </svg>
+    </button>
+    <span
+      class="min-w-0 flex-1 truncate px-1 text-center text-base font-semibold leading-6"
+      data-testid="inline-add-to-cart-quantity"
+      title="2 in basket"
+    >
+      2 in basket
+    </span>
+    <button
+      aria-label="Increment Quantity for Harbor Crossbody Bag"
+      class="text-primary-foreground hover:bg-primary-foreground/10 focus-visible:ring-ring min-w-11 inline-flex h-full items-center justify-center px-4 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      data-testid="inline-add-to-cart-increment"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-plus size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M5 12h14"
+        />
+        <path
+          d="M12 5v14"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    id="_r_0_"
+    role="status"
+  >
+    <p
+      class="text-sm font-medium leading-none text-left sr-only"
+    >
+      2 in basket
+    </p>
+  </div>
+</div>
+`;
+
+exports[`InlineAddToCart stories snapshot > KeyboardControls story renders and matches snapshot 1`] = `
+<div
+  class="flex flex-col gap-2"
+  data-slot="inline-add-to-cart"
+>
+  <div
+    aria-label="Quantity for Harbor Crossbody Bag"
+    class="bg-primary text-primary-foreground rounded-ui flex h-10 w-full items-center"
+    data-slot="add-to-cart-button"
+    data-testid="inline-add-to-cart"
+    role="group"
+  >
+    <button
+      aria-label="Decrement Quantity for Harbor Crossbody Bag"
+      class="text-primary-foreground hover:bg-primary-foreground/10 focus-visible:ring-ring min-w-11 inline-flex h-full items-center justify-center px-4 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      data-testid="inline-add-to-cart-decrement"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-minus size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M5 12h14"
+        />
+      </svg>
+    </button>
+    <span
+      class="min-w-0 flex-1 truncate px-1 text-center text-base font-semibold leading-6"
+      data-testid="inline-add-to-cart-quantity"
+      title="2 in basket"
+    >
+      2 in basket
+    </span>
+    <button
+      aria-label="Increment Quantity for Harbor Crossbody Bag"
+      class="text-primary-foreground hover:bg-primary-foreground/10 focus-visible:ring-ring min-w-11 inline-flex h-full items-center justify-center px-4 transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      data-testid="inline-add-to-cart-increment"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-plus size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M5 12h14"
+        />
+        <path
+          d="M12 5v14"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    id="_r_2_"
+    role="status"
+  >
+    <p
+      class="text-sm font-medium leading-none text-left sr-only"
+    >
+      2 in basket
+    </p>
+  </div>
+</div>
+`;

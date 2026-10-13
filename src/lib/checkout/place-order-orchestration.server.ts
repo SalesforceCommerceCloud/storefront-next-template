@@ -133,29 +133,47 @@ export async function calculateBasketForOrder(context: ActionContext, basket: Ba
 }
 
 /**
- * Write the basket's `orderTotal` onto its payment instrument's `amount` field.
- * Call between `calculateBasketForOrder` and `createOrder` so the instrument
- * matches the final basket total even if the basket was recalculated (promo,
- * shipping, items) after the instrument was attached.
+ * Reconcile payment instruments to `orderTotal` before `createOrder`.
+ * Call between `calculateBasketForOrder` and `createOrder` so a recalculation
+ * (promo, shipping, items) after instruments were attached still sums to the basket.
+ *
+ * Only an instrument with a `paymentCard` is updated. Its amount becomes
+ * `orderTotal` minus the other instruments. An instrument without a `paymentCard`
+ * is not updated.
  */
 export async function syncPaymentInstrumentAmount(context: ActionContext, basket: Basket): Promise<Basket> {
     if (!basket.basketId) {
         throw new Error('syncPaymentInstrumentAmount: basket has no basketId');
     }
-    const instrument = basket.paymentInstruments?.[0];
-    if (!instrument?.paymentInstrumentId) return basket;
+    const instruments = basket.paymentInstruments ?? [];
     if (basket.orderTotal == null) return basket;
 
+    // Last card instrument. A reverse scan keeps the ES2022 lib target (`findLast` is ES2023).
+    let card: (typeof instruments)[number] | undefined;
+    for (let i = instruments.length - 1; i >= 0; i -= 1) {
+        const instrument = instruments[i];
+        if (instrument.paymentCard && instrument.paymentInstrumentId) {
+            card = instrument;
+            break;
+        }
+    }
+    if (!card?.paymentInstrumentId) return basket;
+
+    const otherSum = instruments.reduce(
+        (sum, instrument) => (instrument === card ? sum : sum + (instrument.amount ?? 0)),
+        0
+    );
+    const newAmount = basket.orderTotal - otherSum;
     const logger = getLogger(context);
     logger.info('[Checkout] payment-instrument amount sync', {
         basketId: basket.basketId,
-        paymentInstrumentId: instrument.paymentInstrumentId,
-        previousAmount: instrument.amount,
-        newAmount: basket.orderTotal,
+        paymentInstrumentId: card.paymentInstrumentId,
+        previousAmount: card.amount,
+        newAmount,
     });
 
-    const updated = await updatePaymentInstrumentInBasket(context, basket.basketId, instrument.paymentInstrumentId, {
-        amount: basket.orderTotal,
+    const updated = await updatePaymentInstrumentInBasket(context, basket.basketId, card.paymentInstrumentId, {
+        amount: newAmount,
     });
     updateBasketResource(context, updated);
     return updated;

@@ -81,7 +81,7 @@ export function useBopisFulfillmentOption({ product, quantity, basketPickupStore
             pickupStore ? (
                 <button
                     type="button"
-                    onClick={openStoreLocator}
+                    onClick={() => openStoreLocator()}
                     className="mt-0.5 text-left text-xs text-muted-foreground hover:underline">
                     {t('storeInventoryFilter.changeStore')}
                 </button>

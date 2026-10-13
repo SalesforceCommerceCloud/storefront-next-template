@@ -53,6 +53,7 @@ vi.mock('@/hooks/use-item-fetcher', () => ({
         state: 'idle',
         submit: vi.fn(),
     }),
+    getItemFetcherKey: (itemId: string, componentName: string) => (itemId ? `${itemId}-${componentName}` : ''),
 }));
 
 vi.mock('@/hooks/use-cart-quantity-update', () => ({
@@ -64,6 +65,14 @@ vi.mock('@/hooks/use-cart-quantity-update', () => ({
 
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({
     useConfig: () => ({
+        url: {
+            seoRoutes: {
+                RefArchGlobal: {
+                    product: { prefix: 'p' },
+                    category: { prefix: 'c', mode: 'id-suffix' },
+                },
+            },
+        },
         pages: {
             cart: {
                 quantityUpdateDebounce: 500,
@@ -76,6 +85,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', () => ({
 const mockProduct = {
     itemId: '1',
     productId: 'prod-1',
+    slug: 'test-product',
     productName: 'Test Product',
     quantity: 1,
     basePrice: 20.0,
@@ -187,6 +197,7 @@ describe('MiniCartItem', () => {
         const img = screen.getByAltText('Product image');
         expect(img).toBeInTheDocument();
         expect(img).toHaveAttribute('src', expect.stringContaining('placeholder.com'));
+        expect(img.closest('a')).toHaveAttribute('href', '/p/test-product/prod-1');
     });
 
     it('renders placeholder when no image', () => {

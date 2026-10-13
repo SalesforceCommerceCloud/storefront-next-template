@@ -23,5 +23,5 @@
         }
     ],
     "supported_aspect_types": ["plp"],
-    "route": "/:siteId/:localeId/category/:categoryId"
+    "route": "/:siteId/:localeId/c/*"
 }

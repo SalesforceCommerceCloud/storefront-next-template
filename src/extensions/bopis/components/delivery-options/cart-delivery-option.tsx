@@ -51,6 +51,10 @@ export default function CartDeliveryOption({ product, isDeliveryOutOfStock }: Ca
     const fetcher = useItemFetcher({ itemId: product.itemId, componentName: 'cart-delivery-option' });
     const { addToast } = useToast();
     const { t: tExtBopis } = useTranslation('extBopis');
+    const isStoreLocatorOpen = useStoreLocator((s) => s.isOpen);
+    // Set when THIS line item opens the store locator to choose a pickup store; consumed when the sheet closes
+    // so a store selection auto-applies pickup to this item (rather than requiring a second dropdown pick).
+    const pendingPickupRef = useRef(false);
 
     // Calculate current fulfillment based on shipment
     const currentShipment = basketContext?.shipments?.find((s) => s.shipmentId === product?.shipmentId);
@@ -79,8 +83,11 @@ export default function CartDeliveryOption({ product, isDeliveryOutOfStock }: Ca
         if (!product.storeId) {
             setSelectedStoreInfoRaw(null);
         }
-        openStoreLocator();
-    }, [product.storeId, setSelectedStoreInfoRaw, openStoreLocator]);
+        // Remember this item is waiting for a pickup store, and scope the store search to it so the picker can
+        // augment/sort stores by whether they stock it. Consumers that ignore pickupContext are unaffected.
+        pendingPickupRef.current = true;
+        openStoreLocator(productId ? { productId, quantity: product.quantity ?? 1 } : undefined);
+    }, [product.storeId, product.quantity, productId, setSelectedStoreInfoRaw, openStoreLocator]);
 
     // Handle show error toast on delivery-option switch (pickup - cart & vice versa) failure
     const lastHandledErrorRef = useRef<unknown>(null);
@@ -107,33 +114,51 @@ export default function CartDeliveryOption({ product, isDeliveryOutOfStock }: Ca
         addToast(errorMessage, 'error');
     }, [fetcher.data, fetcher.state, addToast, tExtBopis, product]);
 
+    // When this item opened the store locator and the shopper picks a boutique, apply pickup automatically once
+    // the sheet closes — so selecting a store completes the switch instead of leaving the item on Delivery. Only
+    // the item that opened the locator holds `pendingPickupRef`, so a shared selection applies to just that item.
+    useEffect(() => {
+        if (isStoreLocatorOpen || !pendingPickupRef.current) return;
+        pendingPickupRef.current = false; // consume the pending intent when the sheet closes
+        const storeId = selectedStoreInfo?.id;
+        const inventoryId = selectedStoreInfo?.inventoryId;
+        if (!storeId || !inventoryId) return; // closed without choosing a boutique
+        // Already collecting this item at the chosen boutique — nothing to submit.
+        if (currentFulfillment === DELIVERY_OPTIONS.PICKUP && currentStoreId === storeId) return;
+        const formData = new FormData();
+        formData.append('itemId', product.itemId || '');
+        formData.append('quantity', String(product.quantity ?? 1));
+        formData.append('deliveryOption', DELIVERY_OPTIONS.PICKUP);
+        formData.append('storeId', storeId);
+        formData.append('inventoryId', inventoryId);
+        void fetcher.submit(formData, { method: 'PATCH', action: resourceRoutes.cartItemUpdate });
+    }, [
+        isStoreLocatorOpen,
+        selectedStoreInfo,
+        currentFulfillment,
+        currentStoreId,
+        product.itemId,
+        product.quantity,
+        fetcher,
+    ]);
+
     const handleSubmitDeliveryOption = (option: string) => {
-        if (option === DELIVERY_OPTIONS.PICKUP && !pickupStore?.id) {
+        if (option === DELIVERY_OPTIONS.PICKUP) {
+            // Boutique stock is per-item, so a store selected for another item may not carry this one. Always
+            // open the picker — it shows per-boutique availability, blocks out-of-stock choices, and lets the
+            // shopper (re)choose the boutique for THIS item. Selecting a boutique auto-applies pickup (effect above).
             handleOpenStoreLocator();
             return;
         }
 
-        if (
-            (option === DELIVERY_OPTIONS.PICKUP && isPickupOutOfStock) ||
-            (option === DELIVERY_OPTIONS.DELIVERY && isDeliveryOutOfStock)
-        ) {
+        if (isDeliveryOutOfStock) {
             addToast(tExtBopis('deliveryOptions.pickupOrDelivery.outOfStockAtStore'), 'error');
             return;
         }
         const formData = new FormData();
         formData.append('itemId', product.itemId || '');
         formData.append('quantity', String(product.quantity ?? 1));
-        formData.append('deliveryOption', option);
-        if (option === 'pickup') {
-            const storeId = pickupStore?.id || '';
-            const inventoryId = pickupStore?.inventoryId || '';
-            if (!storeId || !inventoryId) {
-                addToast(tExtBopis('cart.pickupStoreInfo.missingStoreIdOrInventoryIdError'), 'error');
-                return;
-            }
-            formData.append('storeId', storeId);
-            formData.append('inventoryId', inventoryId);
-        }
+        formData.append('deliveryOption', DELIVERY_OPTIONS.DELIVERY);
         void fetcher.submit(formData, {
             method: 'PATCH',
             action: resourceRoutes.cartItemUpdate,

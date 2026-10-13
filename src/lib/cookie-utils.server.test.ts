@@ -17,11 +17,24 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
     getCookieNameWithSiteId,
     getCookieConfig,
+    resolveCookieDomain,
     COOKIE_NAMESPACE_EXCLUSIONS,
     parseAllCookies,
     createCookie,
 } from './cookie-utils.server';
 import { mockBuildConfig, mockAltSiteObject } from '@/test-utils/config';
+
+const mockLogger = vi.hoisted(() => ({
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+}));
+
+// resolveCookieDomain logs (once per bad value) when it rejects an invalid cookie domain.
+vi.mock('@/lib/logger.server', () => ({
+    getLogger: vi.fn(() => mockLogger),
+}));
 
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({
     getConfig: vi.fn(),
@@ -330,6 +343,59 @@ describe('cookie-utils', () => {
                 const config = getCookieConfig({}, contextEmptyPerSite);
 
                 expect(config.domain).toBe('.global.com');
+            });
+        });
+
+        describe('invalid cookie domain validation', () => {
+            // A misconfigured `cookies.domain` must never reach Set-Cookie: a wildcard/malformed
+            // value is silently dropped by the browser (so every cookie becomes host-only anyway,
+            // but inconsistently), and a value with a separator/`=` could inject a second cookie
+            // attribute. resolveCookieDomain is the single choke point every cookie's Domain
+            // resolves through, so validating here fixes it for all cookies uniformly.
+            // Mirrors PWA Kit's INVALID_COOKIE_DOMAIN_PATTERN. Each test uses a distinct bad value
+            // so the process-lifetime "warn once" Set does not dedup across tests.
+            const noSiteContext = () => ({ get: vi.fn(() => undefined) }) as any;
+
+            it('drops a wildcard domain to host-only scoping and warns', () => {
+                vi.mocked(getConfig).mockReturnValue({ cookies: { domain: '*.evil.com' } } as AppConfig);
+
+                const config = getCookieConfig({}, noSiteContext());
+
+                // No Domain attribute at all — the whole config is the host-only default shape.
+                expect(config).toEqual({ path: '/', sameSite: 'lax', secure: true });
+                expect(config.domain).toBeUndefined();
+                expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+            });
+
+            it('drops a domain carrying an injected attribute (separator/space) to host-only and warns', () => {
+                vi.mocked(getConfig).mockReturnValue({
+                    cookies: { domain: '.example.com; Path=/; Domain=evil.com' },
+                } as AppConfig);
+
+                const config = getCookieConfig({}, noSiteContext());
+
+                expect(config.domain).toBeUndefined();
+                expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+            });
+
+            it('keeps a valid leading-dot domain and does not warn', () => {
+                vi.mocked(getConfig).mockReturnValue({ cookies: { domain: '.valid-keep.com' } } as AppConfig);
+
+                const config = getCookieConfig({}, noSiteContext());
+
+                expect(config.domain).toBe('.valid-keep.com');
+                expect(mockLogger.warn).not.toHaveBeenCalled();
+            });
+
+            it('warns at most once per distinct invalid domain across repeated resolutions', () => {
+                vi.mocked(getConfig).mockReturnValue({ cookies: { domain: 'bad,domain.com' } } as AppConfig);
+                const context = noSiteContext();
+
+                expect(resolveCookieDomain(context)).toBeUndefined();
+                expect(resolveCookieDomain(context)).toBeUndefined();
+                expect(resolveCookieDomain(context)).toBeUndefined();
+
+                expect(mockLogger.warn).toHaveBeenCalledTimes(1);
             });
         });
 
@@ -684,6 +750,17 @@ describe('cookie-utils', () => {
             const cookie = createCookie<string>('token', { path: '/' }, mockContext);
             const header = await cookie.serialize('');
             expect(header).toContain(`token_${mockAltSiteObject.id}=`);
+        });
+
+        it('should emit Max-Age=0 when serializing a deletion with maxAge:0', async () => {
+            // Cookie deletions rely on this: maxAge:0 must produce `Max-Age=0` (a deletion).
+            // serialize emits Max-Age for any `maxAge !== undefined`, so 0 is NOT treated as
+            // falsy/unset here — unlike PWA Kit's cookieAsString, which drops maxAge:0 and must use
+            // `expires` instead. This test pins that SFN-specific difference.
+            const cookie = createCookie<string>('token', { path: '/' }, mockContext);
+            const header = await cookie.serialize('', { maxAge: 0 });
+            expect(header).toContain(`token_${mockAltSiteObject.id}=`);
+            expect(header).toContain('Max-Age=0');
         });
 
         it('should store values as-is without encoding', async () => {

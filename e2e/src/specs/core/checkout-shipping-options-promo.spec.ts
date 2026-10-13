@@ -44,7 +44,7 @@ Scenario('Guest sees shipping options form after entering address - should not s
     // productDetailPage.navigate() applies buildSitePath, which would double-prefix the
     // hardcoded /global/en-GB segment. Use I.amOnPage with the literal path instead
     // (same pattern as performance.spec.ts).
-    I.amOnPage('/global/en-GB/product/womens-jewelry-bundleM');
+    I.amOnPage('/global/en-GB/p/womens-jewelry-bundleM');
     await productDetailPage.waitForPageReady();
 
     // The bundle has no variants to select; add directly to cart

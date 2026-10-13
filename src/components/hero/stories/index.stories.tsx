@@ -100,7 +100,7 @@ A Page Designer hero banner with background image, title, subtitle, and call-to-
         imageAlt: 'Hero background',
         imageTitle: '',
         ctaText: 'Shop Now',
-        ctaLink: '/category/all',
+        ctaLink: '/c/all',
         titleTypography: 'Default',
         titleColor: '',
         subtitleTypography: 'Default',
@@ -273,7 +273,7 @@ export const LongCopy: Story = {
         subtitle:
             'A multi-sentence subtitle of the kind merchants actually author for editorial homepage takeovers. Used for seasonal campaigns, brand stories, or category storytelling where the copy is the entire creative — no separate marketing image, no carousel, just one large hero with rich typography. Verifies that long copy reflows cleanly within the overlay container at the default Middle Center placement.',
         ctaText: 'Browse the Editorial Collection',
-        ctaLink: '/category/editorial',
+        ctaLink: '/c/editorial',
     },
     parameters: {
         docs: {
@@ -301,7 +301,7 @@ export const PageDesignerStyling: Story = {
         subtitleTypography: 'Paragraph',
         subtitleColor: '#E2E8F0',
         ctaText: 'Shop',
-        ctaLink: '/category/all',
+        ctaLink: '/c/all',
         buttonStyle: 'Tertiary',
     },
     parameters: {
@@ -329,7 +329,7 @@ export const StyleOverrideWithDesignTokens: Story = {
         titleColor: '#F8FAFC',
         subtitleColor: '#E2E8F0',
         ctaText: 'Shop Now',
-        ctaLink: '/category/all',
+        ctaLink: '/c/all',
         styleOverride:
             '& { outline: 3px solid var(--primary-foreground); outline-offset: -12px; }\n& [data-slot="button"] { background-color: transparent; color: var(--primary-foreground); border: 2px solid var(--primary-foreground); }\n& [data-slot="button"]:hover { background-color: var(--primary-foreground); color: var(--primary); transform: scale(1.03); }',
     },
@@ -358,7 +358,7 @@ export const RightBlockCenteredText: Story = {
         title: 'Right-aligned column',
         subtitle: 'Text stays centered inside the content block',
         ctaText: 'Shop Now',
-        ctaLink: '/category/all',
+        ctaLink: '/c/all',
         overlayPosition: 'Middle Right',
         overlayAlignment: 'center',
     },

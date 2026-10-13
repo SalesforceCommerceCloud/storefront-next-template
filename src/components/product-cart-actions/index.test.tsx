@@ -29,6 +29,7 @@ import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import { masterProduct } from '@/components/__mocks__/master-variant-product';
 import { standardProd } from '@/components/__mocks__/standard-product-2';
 import { bundleProd } from '@/components/__mocks__/bundle-product';
+import { setProduct } from '@/components/__mocks__/set-product';
 import { mockBuildConfig } from '@/test-utils/config';
 import type { AppConfig } from '@/types/config';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
@@ -93,15 +94,37 @@ Object.defineProperty(window, 'location', {
 
 // see https://vitest.dev/api/vi.html#mock-modules
 // Mock the useProductActions hook - use vi.hoisted to ensure proper hoisting
-const { mockHandleAddToCart, mockHandleUpdateCart, mockHandleAddToWishlist, mockHandleProductSetAddToCart } =
-    vi.hoisted(() => {
-        return {
-            mockHandleAddToCart: vi.fn(),
-            mockHandleUpdateCart: vi.fn(),
-            mockHandleAddToWishlist: vi.fn(),
-            mockHandleProductSetAddToCart: vi.fn(),
-        };
-    });
+const {
+    mockHandleAddToCart,
+    mockHandleUpdateCart,
+    mockHandleAddToWishlist,
+    mockHandleProductSetAddToCart,
+    mockConnectedInlineAddToCart,
+    inlineControllerShouldThrow,
+} = vi.hoisted(() => {
+    return {
+        mockHandleAddToCart: vi.fn(),
+        mockHandleUpdateCart: vi.fn(),
+        mockHandleAddToWishlist: vi.fn(),
+        mockHandleProductSetAddToCart: vi.fn(),
+        mockConnectedInlineAddToCart: vi.fn(),
+        inlineControllerShouldThrow: { current: false },
+    };
+});
+
+vi.mock('@/components/inline-add-to-cart/connected', () => ({
+    default: (props: { onAdd: () => void }) => {
+        if (inlineControllerShouldThrow.current) {
+            throw new Error('Inline cart controller failed to load');
+        }
+        mockConnectedInlineAddToCart(props);
+        return (
+            <button type="button" data-testid="async-inline-add-to-cart" onClick={props.onAdd}>
+                Async inline cart
+            </button>
+        );
+    },
+}));
 
 vi.mock('@/hooks/product/use-product-actions', async () => {
     const actual = await vi.importActual<typeof import('@/hooks/product/use-product-actions')>(
@@ -156,6 +179,7 @@ describe('ProductCartActions', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        inlineControllerShouldThrow.current = false;
         mockWriteText.mockResolvedValue(undefined);
         mockShare.mockResolvedValue(undefined);
         mockWindowOpen.mockClear();
@@ -466,6 +490,87 @@ describe('ProductCartActions', () => {
 
             expect(document.querySelector('[data-slot="qty-add-row"]')).not.toBeInTheDocument();
             expect(screen.getByTestId('add-to-cart')).toBeInTheDocument();
+        });
+    });
+
+    describe('showInlineCartQuantity prop', () => {
+        test('renders the async inline controller and keeps first-add orchestration in the parent', async () => {
+            const user = userEvent.setup();
+            renderProductCartActions({ product: standardProd, showInlineCartQuantity: true });
+
+            const fallback = screen.getByRole('button', { name: t('product:addToCart') });
+            const fallbackContainer = fallback.parentElement;
+            expect(fallback).toBeEnabled();
+            expect(fallback).toHaveAttribute('data-testid', 'add-to-cart');
+            expect(fallback).toHaveAttribute('data-slot', 'add-to-cart-button');
+            expect(fallback).toHaveAttribute('data-size', 'lg');
+            expect(fallback).toHaveClass('w-full', 'text-base', 'font-semibold', 'leading-6');
+            expect(fallbackContainer).toHaveAttribute('aria-busy', 'true');
+            expect(fallbackContainer).toHaveAttribute('data-slot', 'inline-add-to-cart');
+            expect(fallbackContainer).toHaveClass('flex', 'flex-col', 'gap-2');
+            expect(fallbackContainer?.querySelector('[role="status"]')).toBeEmptyDOMElement();
+            await user.click(fallback);
+
+            expect(mockHandleAddToCart).toHaveBeenCalledOnce();
+
+            const inlineController = await screen.findByTestId('async-inline-add-to-cart');
+            expect(screen.queryByRole('button', { name: t('product:addToCart') })).not.toBeInTheDocument();
+            expect(
+                document.querySelector('[data-slot="inline-add-to-cart"][aria-busy="true"]')
+            ).not.toBeInTheDocument();
+            expect(mockConnectedInlineAddToCart).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    productId: standardProd.productId ?? standardProd.id,
+                    stockLevel: standardProd.inventory?.ats,
+                    onAdd: expect.any(Function),
+                })
+            );
+            await user.click(inlineController);
+
+            expect(mockHandleAddToCart).toHaveBeenCalledTimes(2);
+        });
+
+        test('keeps the standard CTA functional when the asynchronous controller fails to render', async () => {
+            const user = userEvent.setup();
+            const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+            inlineControllerShouldThrow.current = true;
+
+            renderProductCartActions({ product: standardProd, showInlineCartQuantity: true });
+
+            const addToCartButton = await screen.findByTestId('add-to-cart');
+            expect(addToCartButton).toBeEnabled();
+            await user.click(addToCartButton);
+
+            expect(mockHandleAddToCart).toHaveBeenCalledOnce();
+            consoleError.mockRestore();
+        });
+
+        test('keeps the standard CTA for quick add, edit, bundles, and sets', () => {
+            const cases: Array<{
+                product: ComponentProps<typeof ProductCartActions>['product'];
+                mode?: 'add' | 'edit';
+                onBuyNow?: () => void;
+            }> = [
+                { product: standardProd, mode: 'edit' },
+                { product: standardProd, onBuyNow: vi.fn() },
+                { product: bundleProd },
+                { product: setProduct },
+            ];
+
+            for (const { product, mode, onBuyNow } of cases) {
+                const { unmount } = renderProductCartActions(
+                    { product, showInlineCartQuantity: true, ...(onBuyNow ? { onBuyNow } : {}) },
+                    mode
+                );
+
+                expect(screen.queryByTestId('async-inline-add-to-cart')).not.toBeInTheDocument();
+                if (product === standardProd) {
+                    expect(screen.getByRole('button', { name: /add to cart|update/i })).toBeInTheDocument();
+                }
+                unmount();
+            }
+
+            expect(mockConnectedInlineAddToCart).not.toHaveBeenCalled();
         });
     });
 });

@@ -196,8 +196,24 @@ describe('CartPickup', () => {
             // (normalization happens inside setSelectedStoreInfo)
             expect(mockSetSelectedStoreInfoRaw).toHaveBeenCalledWith(mockStore);
 
-            // Verify that openStoreLocator was called
+            // Verify that openStoreLocator was called (unscoped when no pickupContext is provided)
             expect(mockOpenStoreLocator).toHaveBeenCalledTimes(1);
+            expect(mockOpenStoreLocator).toHaveBeenCalledWith(undefined);
+        });
+
+        it('forwards the pickup context to the store locator so it can scope by inventory', async () => {
+            const user = userEvent.setup();
+            const pickupContext = { productId: 'ln-heritage-005', quantity: 2 };
+
+            render(
+                <AllProvidersWrapper>
+                    <CartPickup store={mockStore} pickupCount={1} totalCount={4} pickupContext={pickupContext} />
+                </AllProvidersWrapper>
+            );
+
+            await user.click(screen.getByText('Change Store'));
+
+            expect(mockOpenStoreLocator).toHaveBeenCalledWith(pickupContext);
         });
 
         it('uses store.id as fallback when store.name is undefined', async () => {
@@ -223,24 +239,31 @@ describe('CartPickup', () => {
     });
 
     describe('Store Selection Change Handling', () => {
-        it('calls changeStore when different store is selected and locator is open', async () => {
+        it('applies the store change when a different boutique is selected and the picker closes', async () => {
             const differentStore: SelectedStoreInfo = {
                 id: 'store-002',
                 name: 'Different Store',
                 inventoryId: 'inventory-002',
             };
+            const user = userEvent.setup();
 
-            // Set up initial state: locator is open, different store is selected
+            // Locator open, current store selected — click "Change Store" to mark a pending change for this group.
             mockIsStoreLocatorOpen.mockReturnValue(true);
-            mockSelectedStoreInfo.mockReturnValue(differentStore);
-
+            mockSelectedStoreInfo.mockReturnValue({
+                id: 'store-001',
+                name: 'Somerville Square',
+                inventoryId: 'inventory-001',
+            });
             const { rerender } = render(
                 <AllProvidersWrapper>
                     <CartPickup store={mockStore} pickupCount={1} totalCount={4} />
                 </AllProvidersWrapper>
             );
+            await user.click(screen.getByText('Change Store'));
 
-            // Trigger re-render to simulate store selection change
+            // Picker closes on select (luxury pattern): sheet closed + a different boutique chosen.
+            mockIsStoreLocatorOpen.mockReturnValue(false);
+            mockSelectedStoreInfo.mockReturnValue(differentStore);
             rerender(
                 <AllProvidersWrapper>
                     <CartPickup store={mockStore} pickupCount={1} totalCount={4} />

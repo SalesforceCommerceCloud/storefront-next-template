@@ -107,7 +107,7 @@ const checkoutWithMultipleItems = {
                     stateCode: 'UT',
                 },
                 shippingMethod: {
-                    description: 'Order received the next business day',
+                    description: 'Arrives the next business day',
                     id: 'GBP003',
                     name: 'Overnight',
                     price: 21.99,
@@ -193,7 +193,7 @@ const checkoutWithMultipleItems = {
     shippingMethods: {
         applicableShippingMethods: [
             {
-                description: 'Order received within 7-10 business days',
+                description: 'Arrives in 7–10 business days',
                 id: 'GBP001',
                 name: 'Ground',
                 price: 9.99,
@@ -207,7 +207,7 @@ const checkoutWithMultipleItems = {
                 c_estimatedArrivalTime: '7-10 Business Days',
             },
             {
-                description: 'Order received within 2 business days',
+                description: 'Arrives in 2 business days',
                 id: 'GBP002',
                 name: '2-Day Express',
                 price: 15.99,
@@ -226,7 +226,7 @@ const checkoutWithMultipleItems = {
                 c_estimatedArrivalTime: '2 Business Days',
             },
             {
-                description: 'Order received the next business day',
+                description: 'Arrives the next business day',
                 id: 'GBP003',
                 name: 'Overnight',
                 price: 21.99,
@@ -416,7 +416,7 @@ const checkoutWithOneItem = {
                     stateCode: 'UT',
                 },
                 shippingMethod: {
-                    description: 'Order received the next business day',
+                    description: 'Arrives the next business day',
                     id: 'GBP003',
                     name: 'Overnight',
                     price: 15.99,
@@ -458,7 +458,7 @@ const checkoutWithOneItem = {
     shippingMethods: {
         applicableShippingMethods: [
             {
-                description: 'Order received within 7-10 business days',
+                description: 'Arrives in 7–10 business days',
                 id: 'GBP001',
                 name: 'Ground',
                 price: 5.99,
@@ -472,7 +472,7 @@ const checkoutWithOneItem = {
                 c_estimatedArrivalTime: '7-10 Business Days',
             },
             {
-                description: 'Order received within 2 business days',
+                description: 'Arrives in 2 business days',
                 id: 'GBP002',
                 name: '2-Day Express',
                 price: 9.99,
@@ -491,7 +491,7 @@ const checkoutWithOneItem = {
                 c_estimatedArrivalTime: '2 Business Days',
             },
             {
-                description: 'Order received the next business day',
+                description: 'Arrives the next business day',
                 id: 'GBP003',
                 name: 'Overnight',
                 price: 15.99,

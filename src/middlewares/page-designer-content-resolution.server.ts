@@ -167,6 +167,7 @@ export const pageDesignerResolutionMiddleware: MiddlewareFunction<Response> = as
         registry.register('page-designer-content-resolution', {
             clients: ['shopperExperience'],
             factory: createContentResolutionMiddleware,
+            mayReturnResponse: true,
         });
     } else if (PAGE_RESOLUTION_DEBUG) {
         // Feature flag off but debug telemetry on: register a passthrough
@@ -188,29 +189,29 @@ export const pageDesignerResolutionMiddleware: MiddlewareFunction<Response> = as
  * feature flag is off and `SFCC_PD_PAGE_RESOLUTION_DEBUG=true` — keeps the
  * payload off the standard debug log unless explicitly opted in.
  *
- * Concurrent in-flight requests are kept separate via a WeakMap keyed by
- * the request object, so interleaved resolutions don't clobber each other's
- * start-time markers.
+ * Concurrent in-flight requests are kept separate by openapi-fetch request ID,
+ * so later middleware can replace the Request without losing timing state.
  */
 function createContentResolutionDebugMiddleware(
     context: RouterContextProvider | Readonly<RouterContextProvider>
 ): Middleware | null {
     const logger = getLogger(context);
-    const startTimes = new WeakMap<Request, number>();
+    const startTimes = new Map<string, number>();
 
     return {
-        onRequest: ({ request }) => {
+        onRequest: ({ request, id }) => {
             if (matchContentRequest(request) != null) {
-                startTimes.set(request, performance.now());
+                startTimes.set(id, performance.now());
             }
         },
-        onResponse: async ({ request, response }) => {
+        onResponse: async ({ request, response, id }) => {
             const match = matchContentRequest(request);
             if (match == null) {
                 return response;
             }
 
-            const startTime = startTimes.get(request);
+            const startTime = startTimes.get(id);
+            startTimes.delete(id);
             const duration = startTime != null ? performance.now() - startTime : undefined;
             // Clone before reading — the consumer downstream still needs
             // the original response body.
@@ -231,6 +232,9 @@ function createContentResolutionDebugMiddleware(
             });
 
             return response;
+        },
+        onError: ({ id }) => {
+            startTimes.delete(id);
         },
     };
 }

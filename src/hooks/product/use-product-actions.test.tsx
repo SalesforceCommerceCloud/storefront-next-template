@@ -1233,6 +1233,18 @@ describe('useProductActions', () => {
 
                 expect(result.current.isAddingToOrUpdatingCart).toBe(false);
             });
+
+            test('keeps the add control pending while a cart mutation response is loading', () => {
+                cartItemFetcher.state = 'loading';
+                const { result } = renderHook(
+                    () => useProductActions({ product: standardProd, currentVariant: null }),
+                    {
+                        wrapper: ({ children }) => wrapper({ children, basket: mockBasket }),
+                    }
+                );
+
+                expect(result.current.isAddingToOrUpdatingCart).toBe(true);
+            });
         });
 
         describe('basket item lookup', () => {

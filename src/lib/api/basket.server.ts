@@ -69,6 +69,22 @@ export async function addPaymentInstrumentToBasket(
 }
 
 /**
+ * Load applicable payment methods (including BM card type ids) for a basket.
+ */
+export async function getPaymentMethodsForBasket(
+    context: Readonly<RouterContextProvider>,
+    basketId: string
+): Promise<ShopperBasketsV2.schemas['PaymentMethodResult']> {
+    const clients = createApiClients(context);
+    const { data } = await clients.shopperBasketsV2.getPaymentMethodsForBasket({
+        params: {
+            path: { basketId },
+        },
+    });
+    return data;
+}
+
+/**
  * Update an existing payment instrument on the basket using the Commerce API.
  */
 export async function updatePaymentInstrumentInBasket(

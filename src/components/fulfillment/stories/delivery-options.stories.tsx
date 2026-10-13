@@ -93,13 +93,13 @@ export const DeliveryCalculatorDisclosure: Story = {
         const delivery = canvas.getByRole('radio', { name: 'Delivery' });
         const pickup = canvas.getByRole('radio', { name: /pickup in/i });
 
-        await expect(delivery).toHaveAccessibleDescription('Enter postal code to see delivery estimate');
+        await expect(delivery).toHaveAccessibleDescription('Enter a postal code to get a delivery estimate');
         await expect(
-            canvas.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+            canvas.queryByRole('button', { name: 'Enter a postal code to get a delivery estimate' })
         ).not.toBeInTheDocument();
         await userEvent.click(delivery);
         await waitFor(() => expect(delivery).toBeChecked());
-        await expect(delivery.parentElement).toHaveTextContent('Enter postal code to see delivery estimate');
+        await expect(delivery.parentElement).toHaveTextContent('Enter a postal code to get a delivery estimate');
 
         const postalCode = await canvas.findByRole('textbox');
         await expect(postalCode).toHaveFocus();

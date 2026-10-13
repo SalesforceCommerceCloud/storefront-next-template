@@ -113,7 +113,7 @@ export const WithOpenGraph: Story = {
         description: 'Premium leather jacket with a tailored fit.',
         openGraph: {
             type: 'product',
-            url: 'https://store.example.com/product/classic-leather-jacket',
+            url: 'https://store.example.com/p/classic-leather-jacket',
             image: 'https://via.placeholder.com/1200x630',
         },
     },

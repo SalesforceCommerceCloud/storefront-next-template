@@ -35,6 +35,17 @@ import generatedExtensionConfig from './src/extensions/config/index';
 // in a route handler.
 import generatedServerExtensionConfig from './src/extensions/config/server';
 
+export const protectedConfigPaths = [
+    'app__engagement__adapters__einstein',
+    'app__engagement__adapters__data360',
+    // intentionally lock these property at runtime override and allow the rest of config
+    'app__engagement__adapters__activeData__enabled',
+    'app__engagement__adapters__activeData__eventToggles',
+    'app__url__prefix',
+    'app__url__excludeRoutes',
+    'app__url__seoRoutes',
+];
+
 /**
  * Application Configuration
  *
@@ -76,7 +87,7 @@ export default defineConfig<Config>(
         // Runtime deployment settings for Managed Runtime (server-only)
         // See CONFIG-OPTIONS.md#runtime for detailed documentation
         runtime: {
-            // MRT deployment settings (server-only, set via MRT_PROJECT and MRT_TARGET env vars)
+            // MRT deployment settings (server-only, set via MRT_PROJECT and MRT_ENVIRONMENT env vars)
             defaultMrtProject: '',
             defaultMrtTarget: '',
             ssrOnly: [],
@@ -224,6 +235,22 @@ export default defineConfig<Config>(
                 // the DAL entry is missing, unavailable, or yields no usable sites.
                 // Override via PUBLIC__app__commerce__sitesFromDal=false.
                 sitesFromDal: true,
+                // Shopper Agent (Commerce Client messaging widget) — preferred config path.
+                // Empty-value block is REQUIRED (not just an aesthetic default): the SDK's
+                // mergeEnvConfig only merges PUBLIC__ env-var overrides whose config path
+                // already exists in baseConfig (via extractValidPaths). Without this block,
+                // PUBLIC__app__commerce__shopperAgent is silently dropped with a
+                // "Config path does not exist in config.server.ts" warning and merchants
+                // see the widget disabled. Override via PUBLIC__app__commerce__shopperAgent
+                // (single JSON string; see src/components/cimulate/README.md). When set, it
+                // takes precedence over the legacy top-level `cimulateAgent`.
+                shopperAgent: {
+                    enabled: '',
+                    commerceClientScriptSourceUrl: '',
+                    scrt2Url: '',
+                    salesforceOrgId: '',
+                    esDeveloperName: '',
+                },
             },
             // Global default cookie attributes applied to ALL storefront cookies
             // (auth/session + site-context: site_id, locale, currency). A per-site
@@ -240,6 +267,9 @@ export default defineConfig<Config>(
             siteAliasMap: {
                 RefArch: 'us',
                 RefArchGlobal: 'global',
+            },
+            seoFallback: {
+                sites: {},
             },
             // Hybrid mode configuration
             // See CONFIG-OPTIONS.md#hybrid for detailed documentation
@@ -292,6 +322,7 @@ export default defineConfig<Config>(
                     apiKey: '',
                 },
                 mrtBasedPageDesignerResolution: false,
+                livePreview: false,
             },
             // Guest Order Lookup configuration
             // Allows guests to look up past orders using order number + email + access-code verification.
@@ -636,7 +667,9 @@ export default defineConfig<Config>(
             // Development tools and features
             // See CONFIG-OPTIONS.md#development for detailed documentation
             development: { enableDevtools: true, hotReload: true, strictMode: true },
-            // Cimulate Agent (Commerce Client messaging widget)
+            // Legacy Shopper Agent config (kept for backward compatibility).
+            // Prefer `commerce.shopperAgent` (PUBLIC__app__commerce__shopperAgent); when both
+            // are set, `commerce.shopperAgent` wins and this value is ignored.
             // Override via PUBLIC__app__cimulateAgent (single JSON string; see src/components/cimulate/README.md).
             cimulateAgent: {
                 enabled: '',
@@ -716,14 +749,6 @@ export default defineConfig<Config>(
         },
     },
     {
-        protectedPaths: [
-            'app__engagement__adapters__einstein',
-            'app__engagement__adapters__data360',
-            // intentionally lock these property at runtime override and allow the rest of config
-            'app__engagement__adapters__activeData__enabled',
-            'app__engagement__adapters__activeData__eventToggles',
-            'app__url__prefix',
-            'app__url__excludeRoutes',
-        ],
+        protectedPaths: protectedConfigPaths,
     }
 );

@@ -116,7 +116,7 @@ function CategoryBanner({ title, image }: CategoryBannerProps) {
 
 When you want a purely decorative icon in front of (or after) an element whose component you shouldn't fork — a shared title, a label rendered deep in a shadcn primitive — add it with a `::before` / `::after` pseudo-element in theme CSS instead of editing the JSX. This keeps component-level styling out of components (see the rule above) and lets you hook a stable `data-slot` or structural selector rather than threading a prop through.
 
-The tokens, selectors, and icons below are **illustrative** — adapt them to your own storefront. The file paths (`src/theme/tokens/core.css`, `src/theme/base.css`) are where global tokens and base rules live.
+The tokens, selectors, and icons below are examples only. Adapt them to your own storefront. The file paths (`src/theme/tokens/core.css`, and `src/theme/base.css`) are where global tokens and base rules live.
 
 **Use a `mask` + `background-color`, not `content: url(...)`.** A masked SVG is **tintable**: `background-color: currentColor` paints the icon in the element's text color, so it tracks light/dark and theme changes automatically. A `content: url(...)` image renders at its baked-in colors and can't inherit `currentColor`. Define the SVG once as a token so it's reusable and themeable:
 

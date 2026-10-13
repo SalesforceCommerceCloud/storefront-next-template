@@ -68,6 +68,22 @@ describe('CartBadge', () => {
         expect(screen.getByTestId('shopping-cart-badge')).toHaveTextContent('2');
     });
 
+    it('shows the summed quantity, not the distinct line-item count, when they diverge', () => {
+        // Regression guard: 3 units of the same product is one line item (uniqueProductCount: 1)
+        // but should badge as 3 (totalItemCount), not 1.
+        mockUseBasketSnapshot.mockReturnValue({
+            basketId: 'basket-123',
+            totalItemCount: 3,
+            uniqueProductCount: 1,
+            lastModified: '',
+        });
+
+        render(<CartBadge />);
+
+        expect(screen.getByRole('button', { name: 'My Cart (3)' })).toBeInTheDocument();
+        expect(screen.getByTestId('shopping-cart-badge')).toHaveTextContent('3');
+    });
+
     it('defaults to zero when no snapshot is available', () => {
         mockUseBasketSnapshot.mockReturnValue(undefined);
 

@@ -1,0 +1,96 @@
+// Dev container for the SFCC Storefront retail template.
+// Used by GitHub Codespaces and any IDE that supports the dev container spec
+// (VS Code Dev Containers, JetBrains Gateway, etc.).
+{
+    "name": "SFCC Storefront Retail Template",
+
+    // Pinned Node 24 image. The package.json `engines` field requires Node >=24.
+    "image": "mcr.microsoft.com/devcontainers/typescript-node:24-bookworm",
+
+    // Floor for Codespaces machine size. The monorepo is large enough that
+    // 2-core/4gb instances make `pnpm install` and Vite cold starts painful.
+    "hostRequirements": {
+        "cpus": 4,
+        "memory": "8gb"
+    },
+
+    "features": {
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+
+    // Persist pnpm's content-addressable store across container rebuilds.
+    // The store is shared by all projects on the host, so subsequent installs
+    // hard-link from the cache instead of re-downloading from npm.
+    "mounts": ["source=storefront-next-pnpm-store,target=/home/node/.local/share/pnpm/store,type=volume"],
+
+    // One-time setup: activate the pinned pnpm version and ensure the mounted
+    // pnpm store volume is writable by the non-root `node` user. Corepack ships
+    // with Node, so no separate pnpm install step is needed.
+    "onCreateCommand": "sudo corepack enable && corepack prepare pnpm@10.28.0 --activate && sudo chown -R node:node /home/node/.local/share/pnpm",
+
+    // Install dependencies here (not in `onCreateCommand`) so Codespaces
+    // prebuilds cover it and re-run it when `package.json` / `pnpm-lock.yaml`
+    // change — prebuilt codespaces start with `node_modules` already populated.
+    //
+    // `--ignore-scripts` skips all postinstall scripts so pnpm 10's strict
+    // build-script gate doesn't fail in non-interactive mode (no TTY).
+    // If a missing postinstall surfaces later (e.g. a native binding error
+    // during `pnpm dev`/`pnpm test`), run `pnpm rebuild <pkg>` once
+    // interactively in the codespace terminal to compile that package.
+    "updateContentCommand": "pnpm install --ignore-scripts",
+
+    // Mark port 65535 public so AM can redirect to the codespace's
+    // app.github.dev URL during browser-based sign-in for Commerce Vibes.
+    "postAttachCommand": "gh codespace ports visibility 65535:public -c $CODESPACE_NAME 2>/dev/null",
+
+    // Export the public Codespaces URL the extension should use as redirect_uri.
+    // The extension reads SFCC_AM_REDIRECT_URI in place of the hardcoded
+    // http://127.0.0.1:65535/callback when running in a Codespace.
+    "postStartCommand": "echo \"export SFCC_AM_REDIRECT_URI=https://${CODESPACE_NAME}-65535.app.github.dev/callback\" > ~/.sfcc_env && grep -q 'source ~/.sfcc_env' ~/.bashrc || echo 'source ~/.sfcc_env 2>/dev/null' >> ~/.bashrc",
+
+    // Port 65535 is the AM OAuth loopback port the Commerce Vibes extension
+    // binds to. In Codespaces it must be forwarded + public so the browser-side
+    // AM redirect can reach the loopback server inside the container.
+    "forwardPorts": [5173, 6006, 65535],
+    "portsAttributes": {
+        "5173": {
+            "label": "Dev Server",
+            "onAutoForward": "openPreview"
+        },
+        "6006": {
+            "label": "Storybook",
+            "onAutoForward": "silent"
+        },
+        "65535": {
+            "label": "Commerce Vibes AM OAuth Callback",
+            "onAutoForward": "silent",
+            "visibility": "public"
+        }
+    },
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "bradlc.vscode-tailwindcss",
+                "ms-playwright.playwright",
+                "vitest.explorer",
+                "salesforce.salesforce-commerce-vibes",
+                "salesforce.b2c-vs-extension"
+            ],
+            "settings": {
+                "editor.formatOnSave": true,
+                "editor.defaultFormatter": "esbenp.prettier-vscode",
+                "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+                "[typescriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+                "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+                "[jsonc]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+                "eslint.useFlatConfig": true,
+                "typescript.tsdk": "node_modules/typescript/lib"
+            }
+        }
+    },
+
+    "remoteUser": "node"
+}

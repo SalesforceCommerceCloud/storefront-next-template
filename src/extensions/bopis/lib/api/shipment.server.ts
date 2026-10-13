@@ -180,8 +180,13 @@ export async function findOrCreatePickupShipment(
         throw new Error('Basket is missing a basketId');
     }
 
-    // Find any existing pickup shipment (identified by c_fromStoreId being truthy)
-    const existingPickupShipment = basket.shipments?.find((s) => s.c_fromStoreId);
+    // Find any existing pickup shipment. Normally identified by c_fromStoreId, but also match the well-known
+    // pickup shipment id: a prior attempt can leave a "pickup" shipment whose c_fromStoreId failed to persist
+    // (e.g. the Shipment.fromStoreId attribute wasn't defined yet). Matching by id too lets us reuse (and set
+    // the store on) that empty shipment instead of trying to create a duplicate, which SCAPI rejects with 400.
+    const existingPickupShipment = basket.shipments?.find(
+        (s) => s.c_fromStoreId || s.shipmentId === PICKUP_SHIPMENT_ID
+    );
 
     if (!existingPickupShipment) {
         // No pickup shipments exist, create a new one
@@ -196,11 +201,14 @@ export async function findOrCreatePickupShipment(
     // Check if the existing pickup shipment has product items assigned
     const hasProductItems = basket.productItems?.some((item) => item.shipmentId === existingPickupShipment.shipmentId);
 
-    if (hasProductItems) {
+    // Conflict only when the shipment is already committed to a DIFFERENT store and holds items — reassigning
+    // would silently move those items to another boutique. A store-less leftover shipment (c_fromStoreId never
+    // persisted) has no committed store, so it is safe to assign this store even if it already holds items.
+    if (existingPickupShipment.c_fromStoreId && hasProductItems) {
         throw new PickupShipmentStoreConflictError();
     }
 
-    // Existing pickup shipment has no product items, update its store ID
+    // Existing pickup shipment has no committed store (or no items) — update its store ID
     const updatedBasket = await updateShipmentForPickup(
         context,
         basket.basketId,

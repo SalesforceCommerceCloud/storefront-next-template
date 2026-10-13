@@ -1,0 +1,768 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProductZoomModal stories snapshot > ClickToMagnify story renders and matches snapshot 1`] = `
+<div
+  aria-describedby="radix-_r_5_"
+  aria-labelledby="radix-_r_4_"
+  class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] rounded-ui border shadow-ui duration-200 outline-none w-[90vw] max-w-[90vw] sm:max-w-[90vw] h-[90vh] max-h-[90vh] gap-0 p-0 overflow-hidden motion-reduce:animate-none"
+  data-slot="product-zoom-modal"
+  data-state="open"
+  id="radix-_r_3_"
+  role="dialog"
+  style="pointer-events: auto;"
+  tabindex="-1"
+>
+  <h2
+    class="text-lg leading-none font-semibold sr-only"
+    data-slot="dialog-title"
+    id="radix-_r_4_"
+  >
+    Product image
+  </h2>
+  <p
+    class="text-muted-foreground text-sm sr-only"
+    data-slot="dialog-description"
+    id="radix-_r_5_"
+  >
+    Zoomed product image. Click the image to magnify. When magnified, use the arrow keys to pan. Otherwise, use left and right arrow keys to change image.
+  </p>
+  <div
+    class="relative flex h-full w-full items-center justify-center bg-muted"
+  >
+    <div
+      class="relative flex h-full w-full items-center justify-center overflow-hidden select-none"
+    >
+      <div
+        class="relative max-h-[90vh] max-w-full"
+      >
+        <div
+          class="max-h-full max-w-full"
+        >
+          <picture>
+            <source
+              media="(min-width: 768px)"
+              sizes="1200px"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1200&q=70&sfrm=jpg 1200w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=2400&q=70&sfrm=jpg 2400w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 640px)"
+              sizes="100vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=768&q=70&sfrm=jpg 768w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1536&q=70&sfrm=jpg 1536w"
+              type="image/webp"
+            />
+            <source
+              sizes="100vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=640&q=70&sfrm=jpg 640w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1280&q=70&sfrm=jpg 1280w"
+              type="image/webp"
+            />
+            <img
+              alt="Laptop Briefcase with wheels (37L), , large (1)"
+              class="max-h-[90vh] w-auto object-contain transition-transform duration-200 ease-out motion-reduce:transition-none"
+              fetchpriority="high"
+              loading="eager"
+              src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.jpg"
+              style="transform: scale(1); transform-origin: 50% 50%;"
+            />
+          </picture>
+        </div>
+        <button
+          aria-label="Toggle image magnification"
+          aria-pressed="false"
+          class="absolute inset-0 touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset cursor-zoom-in"
+          data-slot="product-zoom-viewport"
+          type="button"
+        />
+      </div>
+    </div>
+    <button
+      aria-label="Previous image"
+      class="absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-ui bg-background/90 hover:bg-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 left-4 p-3 shadow-lg"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-chevron-left size-6"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m15 18-6-6 6-6"
+        />
+      </svg>
+    </button>
+    <button
+      aria-label="Next image"
+      class="absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-ui bg-background/90 hover:bg-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 right-4 p-3 shadow-lg"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-chevron-right size-6"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m9 18 6-6-6-6"
+        />
+      </svg>
+    </button>
+    <p
+      aria-live="polite"
+      class="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-ui bg-background/90 px-3 py-1 text-sm text-foreground shadow-md"
+      data-slot="product-zoom-counter"
+    >
+      1 of 4
+    </p>
+  </div>
+  <button
+    aria-label="Close"
+    class="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-ui opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+    data-slot="dialog-close"
+    type="button"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-x"
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M18 6 6 18"
+      />
+      <path
+        d="m6 6 12 12"
+      />
+    </svg>
+    <span
+      class="sr-only"
+    >
+      Close
+    </span>
+  </button>
+</div>
+`;
+
+exports[`ProductZoomModal stories snapshot > KeyboardNavigation story renders and matches snapshot 1`] = `
+<div
+  aria-describedby="radix-_r_e_"
+  aria-labelledby="radix-_r_d_"
+  class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] rounded-ui border shadow-ui duration-200 outline-none w-[90vw] max-w-[90vw] sm:max-w-[90vw] h-[90vh] max-h-[90vh] gap-0 p-0 overflow-hidden motion-reduce:animate-none"
+  data-slot="product-zoom-modal"
+  data-state="open"
+  id="radix-_r_c_"
+  role="dialog"
+  style="pointer-events: auto;"
+  tabindex="-1"
+>
+  <h2
+    class="text-lg leading-none font-semibold sr-only"
+    data-slot="dialog-title"
+    id="radix-_r_d_"
+  >
+    Product image
+  </h2>
+  <p
+    class="text-muted-foreground text-sm sr-only"
+    data-slot="dialog-description"
+    id="radix-_r_e_"
+  >
+    Zoomed product image. Click the image to magnify. When magnified, use the arrow keys to pan. Otherwise, use left and right arrow keys to change image.
+  </p>
+  <div
+    class="relative flex h-full w-full items-center justify-center bg-muted"
+  >
+    <div
+      class="relative flex h-full w-full items-center justify-center overflow-hidden select-none"
+    >
+      <div
+        class="relative max-h-[90vh] max-w-full"
+      >
+        <div
+          class="max-h-full max-w-full"
+        >
+          <picture>
+            <source
+              media="(min-width: 768px)"
+              sizes="1200px"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1200&q=70&sfrm=jpg 1200w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=2400&q=70&sfrm=jpg 2400w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 640px)"
+              sizes="100vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=768&q=70&sfrm=jpg 768w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1536&q=70&sfrm=jpg 1536w"
+              type="image/webp"
+            />
+            <source
+              sizes="100vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=640&q=70&sfrm=jpg 640w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1280&q=70&sfrm=jpg 1280w"
+              type="image/webp"
+            />
+            <img
+              alt="Laptop Briefcase with wheels (37L), , large (1)"
+              class="max-h-[90vh] w-auto object-contain transition-transform duration-200 ease-out motion-reduce:transition-none"
+              fetchpriority="high"
+              loading="eager"
+              src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.jpg"
+              style="transform: scale(1); transform-origin: 50% 50%;"
+            />
+          </picture>
+        </div>
+        <button
+          aria-label="Toggle image magnification"
+          aria-pressed="false"
+          class="absolute inset-0 touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset cursor-zoom-in"
+          data-slot="product-zoom-viewport"
+          type="button"
+        />
+      </div>
+    </div>
+    <button
+      aria-label="Previous image"
+      class="absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-ui bg-background/90 hover:bg-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 left-4 p-3 shadow-lg"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-chevron-left size-6"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m15 18-6-6 6-6"
+        />
+      </svg>
+    </button>
+    <button
+      aria-label="Next image"
+      class="absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-ui bg-background/90 hover:bg-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 right-4 p-3 shadow-lg"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-chevron-right size-6"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m9 18 6-6-6-6"
+        />
+      </svg>
+    </button>
+    <p
+      aria-live="polite"
+      class="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-ui bg-background/90 px-3 py-1 text-sm text-foreground shadow-md"
+      data-slot="product-zoom-counter"
+    >
+      1 of 4
+    </p>
+  </div>
+  <button
+    aria-label="Close"
+    class="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-ui opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+    data-slot="dialog-close"
+    type="button"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-x"
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M18 6 6 18"
+      />
+      <path
+        d="m6 6 12 12"
+      />
+    </svg>
+    <span
+      class="sr-only"
+    >
+      Close
+    </span>
+  </button>
+</div>
+`;
+
+exports[`ProductZoomModal stories snapshot > MultipleImages story renders and matches snapshot 1`] = `
+<div
+  aria-describedby="radix-_r_2_"
+  aria-labelledby="radix-_r_1_"
+  class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] rounded-ui border shadow-ui duration-200 outline-none w-[90vw] max-w-[90vw] sm:max-w-[90vw] h-[90vh] max-h-[90vh] gap-0 p-0 overflow-hidden motion-reduce:animate-none"
+  data-slot="product-zoom-modal"
+  data-state="open"
+  id="radix-_r_0_"
+  role="dialog"
+  style="pointer-events: auto;"
+  tabindex="-1"
+>
+  <h2
+    class="text-lg leading-none font-semibold sr-only"
+    data-slot="dialog-title"
+    id="radix-_r_1_"
+  >
+    Product image
+  </h2>
+  <p
+    class="text-muted-foreground text-sm sr-only"
+    data-slot="dialog-description"
+    id="radix-_r_2_"
+  >
+    Zoomed product image. Click the image to magnify. When magnified, use the arrow keys to pan. Otherwise, use left and right arrow keys to change image.
+  </p>
+  <div
+    class="relative flex h-full w-full items-center justify-center bg-muted"
+  >
+    <div
+      class="relative flex h-full w-full items-center justify-center overflow-hidden select-none"
+    >
+      <div
+        class="relative max-h-[90vh] max-w-full"
+      >
+        <div
+          class="max-h-full max-w-full"
+        >
+          <picture>
+            <source
+              media="(min-width: 768px)"
+              sizes="1200px"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1200&q=70&sfrm=jpg 1200w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=2400&q=70&sfrm=jpg 2400w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 640px)"
+              sizes="100vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=768&q=70&sfrm=jpg 768w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1536&q=70&sfrm=jpg 1536w"
+              type="image/webp"
+            />
+            <source
+              sizes="100vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=640&q=70&sfrm=jpg 640w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1280&q=70&sfrm=jpg 1280w"
+              type="image/webp"
+            />
+            <img
+              alt="Laptop Briefcase with wheels (37L), , large (1)"
+              class="max-h-[90vh] w-auto object-contain transition-transform duration-200 ease-out motion-reduce:transition-none"
+              fetchpriority="high"
+              loading="eager"
+              src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.jpg"
+              style="transform: scale(1); transform-origin: 50% 50%;"
+            />
+          </picture>
+        </div>
+        <button
+          aria-label="Toggle image magnification"
+          aria-pressed="false"
+          class="absolute inset-0 touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset cursor-zoom-in"
+          data-slot="product-zoom-viewport"
+          type="button"
+        />
+      </div>
+    </div>
+    <button
+      aria-label="Previous image"
+      class="absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-ui bg-background/90 hover:bg-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 left-4 p-3 shadow-lg"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-chevron-left size-6"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m15 18-6-6 6-6"
+        />
+      </svg>
+    </button>
+    <button
+      aria-label="Next image"
+      class="absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-ui bg-background/90 hover:bg-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 right-4 p-3 shadow-lg"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-chevron-right size-6"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m9 18 6-6-6-6"
+        />
+      </svg>
+    </button>
+    <p
+      aria-live="polite"
+      class="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-ui bg-background/90 px-3 py-1 text-sm text-foreground shadow-md"
+      data-slot="product-zoom-counter"
+    >
+      1 of 4
+    </p>
+  </div>
+  <button
+    aria-label="Close"
+    class="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-ui opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+    data-slot="dialog-close"
+    type="button"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-x"
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M18 6 6 18"
+      />
+      <path
+        d="m6 6 12 12"
+      />
+    </svg>
+    <span
+      class="sr-only"
+    >
+      Close
+    </span>
+  </button>
+</div>
+`;
+
+exports[`ProductZoomModal stories snapshot > OpenedOnLaterSlide story renders and matches snapshot 1`] = `
+<div
+  aria-describedby="radix-_r_b_"
+  aria-labelledby="radix-_r_a_"
+  class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] rounded-ui border shadow-ui duration-200 outline-none w-[90vw] max-w-[90vw] sm:max-w-[90vw] h-[90vh] max-h-[90vh] gap-0 p-0 overflow-hidden motion-reduce:animate-none"
+  data-slot="product-zoom-modal"
+  data-state="open"
+  id="radix-_r_9_"
+  role="dialog"
+  style="pointer-events: auto;"
+  tabindex="-1"
+>
+  <h2
+    class="text-lg leading-none font-semibold sr-only"
+    data-slot="dialog-title"
+    id="radix-_r_a_"
+  >
+    Product image
+  </h2>
+  <p
+    class="text-muted-foreground text-sm sr-only"
+    data-slot="dialog-description"
+    id="radix-_r_b_"
+  >
+    Zoomed product image. Click the image to magnify. When magnified, use the arrow keys to pan. Otherwise, use left and right arrow keys to change image.
+  </p>
+  <div
+    class="relative flex h-full w-full items-center justify-center bg-muted"
+  >
+    <div
+      class="relative flex h-full w-full items-center justify-center overflow-hidden select-none"
+    >
+      <div
+        class="relative max-h-[90vh] max-w-full"
+      >
+        <div
+          class="max-h-full max-w-full"
+        >
+          <picture>
+            <source
+              media="(min-width: 768px)"
+              sizes="1200px"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?v=3&sw=1200&q=70&sfrm=jpg 1200w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?v=3&sw=2400&q=70&sfrm=jpg 2400w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 640px)"
+              sizes="100vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?v=3&sw=768&q=70&sfrm=jpg 768w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?v=3&sw=1536&q=70&sfrm=jpg 1536w"
+              type="image/webp"
+            />
+            <source
+              sizes="100vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?v=3&sw=640&q=70&sfrm=jpg 640w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?v=3&sw=1280&q=70&sfrm=jpg 1280w"
+              type="image/webp"
+            />
+            <img
+              alt="Laptop Briefcase with wheels (37L), , large (3)"
+              class="max-h-[90vh] w-auto object-contain transition-transform duration-200 ease-out motion-reduce:transition-none"
+              fetchpriority="high"
+              loading="eager"
+              src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.jpg?v=3"
+              style="transform: scale(1); transform-origin: 50% 50%;"
+            />
+          </picture>
+        </div>
+        <button
+          aria-label="Toggle image magnification"
+          aria-pressed="false"
+          class="absolute inset-0 touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset cursor-zoom-in"
+          data-slot="product-zoom-viewport"
+          type="button"
+        />
+      </div>
+    </div>
+    <button
+      aria-label="Previous image"
+      class="absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-ui bg-background/90 hover:bg-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 left-4 p-3 shadow-lg"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-chevron-left size-6"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m15 18-6-6 6-6"
+        />
+      </svg>
+    </button>
+    <button
+      aria-label="Next image"
+      class="absolute top-1/2 -translate-y-1/2 cursor-pointer rounded-ui bg-background/90 hover:bg-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 right-4 p-3 shadow-lg"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-chevron-right size-6"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="m9 18 6-6-6-6"
+        />
+      </svg>
+    </button>
+    <p
+      aria-live="polite"
+      class="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-ui bg-background/90 px-3 py-1 text-sm text-foreground shadow-md"
+      data-slot="product-zoom-counter"
+    >
+      3 of 4
+    </p>
+  </div>
+  <button
+    aria-label="Close"
+    class="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-ui opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+    data-slot="dialog-close"
+    type="button"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-x"
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M18 6 6 18"
+      />
+      <path
+        d="m6 6 12 12"
+      />
+    </svg>
+    <span
+      class="sr-only"
+    >
+      Close
+    </span>
+  </button>
+</div>
+`;
+
+exports[`ProductZoomModal stories snapshot > SingleImage story renders and matches snapshot 1`] = `
+<div
+  aria-describedby="radix-_r_8_"
+  aria-labelledby="radix-_r_7_"
+  class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] rounded-ui border shadow-ui duration-200 outline-none w-[90vw] max-w-[90vw] sm:max-w-[90vw] h-[90vh] max-h-[90vh] gap-0 p-0 overflow-hidden motion-reduce:animate-none"
+  data-slot="product-zoom-modal"
+  data-state="open"
+  id="radix-_r_6_"
+  role="dialog"
+  style="pointer-events: auto;"
+  tabindex="-1"
+>
+  <h2
+    class="text-lg leading-none font-semibold sr-only"
+    data-slot="dialog-title"
+    id="radix-_r_7_"
+  >
+    Product image
+  </h2>
+  <p
+    class="text-muted-foreground text-sm sr-only"
+    data-slot="dialog-description"
+    id="radix-_r_8_"
+  >
+    Zoomed product image. Click the image to magnify. When magnified, use the arrow keys to pan. Otherwise, use left and right arrow keys to change image.
+  </p>
+  <div
+    class="relative flex h-full w-full items-center justify-center bg-muted"
+  >
+    <div
+      class="relative flex h-full w-full items-center justify-center overflow-hidden select-none"
+    >
+      <div
+        class="relative max-h-[90vh] max-w-full"
+      >
+        <div
+          class="max-h-full max-w-full"
+        >
+          <picture>
+            <source
+              media="(min-width: 768px)"
+              sizes="1200px"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1200&q=70&sfrm=jpg 1200w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=2400&q=70&sfrm=jpg 2400w"
+              type="image/webp"
+            />
+            <source
+              media="(min-width: 640px)"
+              sizes="100vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=768&q=70&sfrm=jpg 768w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1536&q=70&sfrm=jpg 1536w"
+              type="image/webp"
+            />
+            <source
+              sizes="100vw"
+              srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=640&q=70&sfrm=jpg 640w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.webp?sw=1280&q=70&sfrm=jpg 1280w"
+              type="image/webp"
+            />
+            <img
+              alt="Laptop Briefcase with wheels (37L), , large (1)"
+              class="max-h-[90vh] w-auto object-contain transition-transform duration-200 ease-out motion-reduce:transition-none"
+              fetchpriority="high"
+              loading="eager"
+              src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dwbeefee44/images/large/P0048_001.jpg"
+              style="transform: scale(1); transform-origin: 50% 50%;"
+            />
+          </picture>
+        </div>
+        <button
+          aria-label="Toggle image magnification"
+          aria-pressed="false"
+          class="absolute inset-0 touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset cursor-zoom-in"
+          data-slot="product-zoom-viewport"
+          type="button"
+        />
+      </div>
+    </div>
+  </div>
+  <button
+    aria-label="Close"
+    class="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-ui opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+    data-slot="dialog-close"
+    type="button"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-x"
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M18 6 6 18"
+      />
+      <path
+        d="m6 6 12 12"
+      />
+    </svg>
+    <span
+      class="sr-only"
+    >
+      Close
+    </span>
+  </button>
+</div>
+`;

@@ -15,18 +15,20 @@
  */
 
 // React
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, lazy, Suspense, useState } from 'react';
 
 // Types
 import type { ShopperBasketsV2, ShopperProducts } from '@/scapi';
 
 // Components
-import { CartItemModal } from '@/components/cart-item-modal';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+import { useDeferredUnmount } from '@/hooks/use-deferred-unmount';
 import { cn } from '@/lib/utils';
 
-// Constants
+const CartItemModal = lazy(() =>
+    import('@/components/cart-item-modal').then((module) => ({ default: module.CartItemModal }))
+);
 
 interface CartItemEditButtonProps {
     product: ShopperBasketsV2.schemas['ProductItem'] & Partial<ShopperProducts.schemas['Product']>;
@@ -50,6 +52,7 @@ export function CartItemEditButton({ product, className }: CartItemEditButtonPro
     // Modal state management
     const { t } = useTranslation('actionCard');
     const [isOpen, setIsOpen] = useState(false);
+    const mounted = useDeferredUnmount(isOpen);
 
     return (
         <>
@@ -63,14 +66,16 @@ export function CartItemEditButton({ product, className }: CartItemEditButtonPro
                 {t('edit')}
             </Button>
 
-            {product.itemId && (
-                <CartItemModal
-                    open={isOpen}
-                    onOpenChange={setIsOpen}
-                    product={product as ShopperProducts.schemas['Product']}
-                    initialQuantity={product.quantity || 1}
-                    itemId={product.itemId}
-                />
+            {product.itemId && mounted && (
+                <Suspense fallback={null}>
+                    <CartItemModal
+                        open={isOpen}
+                        onOpenChange={setIsOpen}
+                        product={product as ShopperProducts.schemas['Product']}
+                        initialQuantity={product.quantity || 1}
+                        itemId={product.itemId}
+                    />
+                </Suspense>
             )}
         </>
     );

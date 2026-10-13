@@ -67,6 +67,7 @@ vi.mock('jose', () => ({
 // Mock utility functions
 vi.mock('@/lib/utils', () => ({
     extractResponseError: vi.fn(),
+    getBasePath: vi.fn(() => ''),
 }));
 
 vi.mock('@/lib/origin', () => ({

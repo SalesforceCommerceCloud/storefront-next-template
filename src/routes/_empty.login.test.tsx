@@ -31,7 +31,7 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { updateBasketResource } from '@/middlewares/basket.server';
 import { isAbsoluteURL, extractResponseError } from '@/lib/utils';
 import { getAppOrigin } from '@/lib/origin';
-import { buildUrlFromContext } from '@/lib/url.server';
+import { buildUrlFromContext, stripMrtBasePathFromUrl } from '@/lib/url.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 
 vi.mock('@/middlewares/auth.server', () => ({
@@ -110,6 +110,7 @@ vi.mock('@/lib/logger.server', () => ({
 // place and producing site/locale-prefixed URLs.
 vi.mock('@/lib/url.server', () => ({
     buildUrlFromContext: vi.fn((to: string) => to),
+    stripMrtBasePathFromUrl: vi.fn((to: string) => (to.startsWith('/shop/') ? to.slice('/shop'.length) : to)),
 }));
 
 vi.mock('@/lib/utils', () => ({
@@ -212,6 +213,7 @@ const mockGetAppOrigin = vi.mocked(getAppOrigin);
 const mockIsAbsoluteURL = vi.mocked(isAbsoluteURL);
 const mockExtractResponseError = vi.mocked(extractResponseError);
 const mockBuildUrlFromContext = vi.mocked(buildUrlFromContext);
+const mockStripMrtBasePathFromUrl = vi.mocked(stripMrtBasePathFromUrl);
 const mockGetLoginPreferences = vi.mocked(getLoginPreferencesLazy);
 const mockGetConfig = vi.mocked(getConfig);
 
@@ -224,6 +226,9 @@ describe('Login Route', () => {
         mockExtractResponseError.mockResolvedValue({ responseMessage: 'error' } as any);
         // Default: pass-through. Tests that exercise the site/locale prefix override this.
         mockBuildUrlFromContext.mockImplementation((to: string) => to);
+        mockStripMrtBasePathFromUrl.mockImplementation((to: string) =>
+            to.startsWith('/shop/') ? to.slice('/shop'.length) : to
+        );
         // Default: passwordless disabled. Tests that need passwordless override this.
         mockGetLoginPreferences.mockResolvedValue({});
         // Default: no active basket (reconciliation is a no-op when no basket).
@@ -344,6 +349,28 @@ describe('Login Route', () => {
             expect(mockBuildUrlFromContext).toHaveBeenCalledWith('/wishlist', mockContext);
             if (result instanceof Response) {
                 expect(result.headers.get('Location')).toBe('/global/en-GB/wishlist');
+            }
+        });
+
+        it('removes the MRT base path from an externally supplied returnUrl before rebuilding it', async () => {
+            mockBuildUrlFromContext.mockImplementation((to: string) => `/shop${to}`);
+            mockGetAuth.mockReturnValue({
+                accessToken: 'valid-token',
+                accessTokenExpiry: Date.now() + 10000,
+                userType: 'registered',
+                customerId: 'customer-123',
+            });
+
+            const mockRequest = new Request('http://localhost:5173/shop/login?returnUrl=/shop/cart');
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await loader(
+                createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect(mockStripMrtBasePathFromUrl).toHaveBeenCalledWith('/shop/cart');
+            expect(mockBuildUrlFromContext).toHaveBeenCalledWith('/cart', mockContext);
+            if (result instanceof Response) {
+                expect(result.headers.get('Location')).toBe('/shop/cart');
             }
         });
 

@@ -42,7 +42,7 @@ exports[`RateRecentPurchasesCard stories snapshot > Default story renders and ma
                 <a
                   class="relative block"
                   data-discover="true"
-                  href="/RefArchGlobal/en-GB/product/701643108633M"
+                  href="/RefArchGlobal/en-GB/p/701643108633M"
                 >
                   <div
                     class="h-16 w-16 overflow-hidden border border-border bg-muted"
@@ -57,7 +57,7 @@ exports[`RateRecentPurchasesCard stories snapshot > Default story renders and ma
                 <a
                   class="relative block"
                   data-discover="true"
-                  href="/RefArchGlobal/en-GB/product/701643108634M"
+                  href="/RefArchGlobal/en-GB/p/701643108634M"
                 >
                   <div
                     class="h-16 w-16 overflow-hidden border border-border bg-muted"
@@ -149,7 +149,7 @@ exports[`RateRecentPurchasesCard stories snapshot > SingleLineNoImage story rend
                 <a
                   class="relative block"
                   data-discover="true"
-                  href="/RefArchGlobal/en-GB/product/SKU-1"
+                  href="/RefArchGlobal/en-GB/p/SKU-1"
                 >
                   <div
                     class="h-16 w-16 overflow-hidden border border-border bg-muted"
@@ -241,7 +241,7 @@ exports[`RateRecentPurchasesCard stories snapshot > WithReturnStatus story rende
                 <a
                   class="relative block"
                   data-discover="true"
-                  href="/RefArchGlobal/en-GB/product/701643108633M"
+                  href="/RefArchGlobal/en-GB/p/701643108633M"
                 >
                   <div
                     class="h-16 w-16 overflow-hidden border border-border bg-muted"
@@ -256,7 +256,7 @@ exports[`RateRecentPurchasesCard stories snapshot > WithReturnStatus story rende
                 <a
                   class="relative block"
                   data-discover="true"
-                  href="/RefArchGlobal/en-GB/product/701643108634M"
+                  href="/RefArchGlobal/en-GB/p/701643108634M"
                 >
                   <div
                     class="h-16 w-16 overflow-hidden border border-border bg-muted"

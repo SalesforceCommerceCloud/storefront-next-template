@@ -33,6 +33,7 @@ function ImageNavArrowsWrapper({ imageCount, size, className }: SyntheticArgs) {
                 Image {index + 1} of {imageCount}
             </span>
             <ImageNavArrows
+                currentIndex={index}
                 imageCount={imageCount}
                 onIndexChange={setIndex}
                 size={size}

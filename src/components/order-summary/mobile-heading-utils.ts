@@ -32,7 +32,7 @@ export function isOrderTotalEstimated(basket: OrderSummaryBasket): boolean {
 }
 
 export function getOrderSummaryItemCount(basket: OrderSummaryBasket): number {
-    return basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 0), 0) || 0;
+    return basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 1), 0) || 0;
 }
 
 export function getOrderSummaryMobileHeading(t: CartTranslate, basket: OrderSummaryBasket, isEstimate = true): string {

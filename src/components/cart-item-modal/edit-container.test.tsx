@@ -150,7 +150,7 @@ describe('CartItemModalEditContainer', () => {
             expect(mockLoad).not.toHaveBeenCalled();
         });
 
-        test('configures variant fetcher with expand params for availability, images, prices, promotions', () => {
+        test('configures variant fetcher with the data needed for the selected product URL and cart state', () => {
             renderEditContainer();
 
             const params = mockUseScapiFetcher.mock.calls[0][2].params as {

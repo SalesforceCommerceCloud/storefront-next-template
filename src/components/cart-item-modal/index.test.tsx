@@ -230,6 +230,16 @@ describe('CartItemModal — add mode', () => {
         expect(screen.getByText(variantProduct.name as string)).toBeInTheDocument();
     });
 
+    test('does not request slugs when SEO routes are disabled', () => {
+        renderCartItemModal({ open: true, onOpenChange: vi.fn(), productId: variantProduct.id ?? '' });
+
+        const productDetailRequests = mockUseScapiFetcher.mock.calls
+            .map((call) => (call[2] as { params: { query: { expand: string[] } } }).params.query.expand)
+            .filter((expand) => expand.includes('variations'));
+        expect(productDetailRequests.length).toBeGreaterThan(0);
+        expect(productDetailRequests.every((expand) => !expand.includes('slug'))).toBe(true);
+    });
+
     test('renders loading spinner while fetcher is loading', () => {
         mockUseScapiFetcher.mockReturnValue({
             load: mockLoad,

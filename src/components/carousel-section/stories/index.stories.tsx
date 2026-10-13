@@ -67,7 +67,7 @@ const meta: Meta<CarouselSectionArgs> = {
     args: {
         title: 'Featured',
         subtitle: 'Hand-picked for you',
-        shopAllUrl: '/category/root',
+        shopAllUrl: '/c/root',
         shopAllText: 'Shop all',
         titleAlign: 'left',
         ariaLabel: 'Featured carousel',
@@ -164,7 +164,7 @@ export const CenterTitleWithSubtitle: Story = {
         // them (carousel-section/index.tsx renders the shop-all block only in the 'left'
         // branch). Leaving them undefined would make the "no link" assertion below pass
         // for the wrong reason (no props) instead of exercising the ignore-in-center branch.
-        shopAllUrl: '/category/all',
+        shopAllUrl: '/c/all',
         shopAllText: 'Shop all',
         ariaLabel: 'Categories carousel',
     },

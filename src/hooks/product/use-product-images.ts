@@ -18,6 +18,7 @@ import type { ShopperProducts } from '@/scapi';
 import type { GalleryImage } from '@/components/image-gallery';
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
 import { isDynamicImageSource, toImageUrl } from '@/lib/images/dynamic-image';
+import { useVariationMedia } from '@/hooks/product/use-variation-media';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 
 interface UseProductImagesProps {
@@ -78,8 +79,24 @@ export function useProductImages({
 }: UseProductImagesProps): UseProductImagesReturn {
     const config = useConfig();
 
+    // Per-combination media declared on `c_variationMedia`. Covers multi-axis heroes SCAPI can't express
+    // through standard `imageGroups` (it decorates only one variation axis). Empty for any product without
+    // the attribute, so the standard path below is a no-op fallback for every existing catalog.
+    const { imagesByViewType } = useVariationMedia({ product, selectedAttributes });
+
     // Get images filtered by selected attributes
     const filteredImages = useMemo(() => {
+        // Prefer per-combination variation media when the product declares USABLE images for this view
+        // type. Filter to DIS-ingestible sources first: a `c_variationMedia` entry pointing at a
+        // non-image path (e.g. a video) must NOT shadow the standard gallery — drop it and fall through
+        // so a malformed entry degrades to `imageGroups` instead of yielding an empty hero.
+        const variationImages = imagesByViewType[viewType]?.filter((image) =>
+            isDynamicImageSource(image.disBaseLink ?? image.link)
+        );
+        if (variationImages && variationImages.length > 0) {
+            return variationImages;
+        }
+
         // Return default images if no attributes are selected
         if (!selectedAttributes || Object.keys(selectedAttributes).length === 0) {
             return getDefaultImages(product.imageGroups, viewType);
@@ -93,7 +110,7 @@ export function useProductImages({
 
         // Return images from the matching group, or fallback to default images
         return imageGroup?.images || getDefaultImages(product.imageGroups, viewType);
-    }, [product.imageGroups, selectedAttributes, viewType]);
+    }, [product.imageGroups, selectedAttributes, viewType, imagesByViewType]);
 
     // Transform Commerce SDK images to GalleryImage format. We restrict the gallery to assets DIS can actually
     // process as a source image — anything else (videos, 3D models, unknown blobs SFCC merchants sometimes attach

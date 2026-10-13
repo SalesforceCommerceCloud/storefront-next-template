@@ -31,15 +31,15 @@ survive restarts. Replace with real persistence before relying on it.
 
 | Target ID | Mounted in | Purpose |
 | --- | --- | --- |
-| `sfcc.pdp.reviews.section` | `_app.product.$productId` | Full reviews accordion (summary + list + write-review modal). |
+| `sfcc.pdp.reviews.section` | `_app.p.$` | Full reviews accordion (summary + list + write-review modal). |
 | `sfcc.pdp.reviews.summary` | `cart-item-modal/view` | Rating stars + count for compact product views (mounted on click — uses a resource route + `useFetcher`, not the loader). |
 | `sfcc.account.orderDetail.lineReview` | `order-items-list` | Per-line "Rate & Review" CTA on order detail. |
 
 ## Loader integration
 
-The PDP route (`src/routes/_app.product.$productId.tsx`) creates three deferred
+The PDP route (`src/routes/_app.p.$.tsx`) creates three deferred
 Promises (`reviewsSummaryPromise`, `reviewsListPromise`, `writeReviewFormPromise`)
-streamed to target wrappers via `useRouteLoaderData('routes/_app.product.$productId')`.
+streamed to target wrappers via `useRouteLoaderData('routes/_app.p.$')`.
 The account-order-detail route similarly defers `writeReviewFormPromise`.
 
 The cart-item modal does **not** participate in SSR streaming (it mounts on

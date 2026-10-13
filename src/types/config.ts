@@ -50,6 +50,76 @@ export type BadgeDetail = {
     priority?: number;
 };
 
+export type SeoFallbackSitePolicy = {
+    redirectOrigins: string[];
+    allowedQueryParameters: {
+        product: string[];
+        category: string[];
+        redirect: string[];
+    };
+    contentOwned: boolean;
+};
+
+/**
+ * Shopper Agent (Commerce Client messaging widget) configuration.
+ *
+ * Preferred config path is `commerce.shopperAgent`, populated from
+ * `PUBLIC__app__commerce__shopperAgent` (single JSON string).
+ * The legacy top-level `cimulateAgent` (populated from `PUBLIC__app__cimulateAgent`)
+ * still works for backward compatibility; when both are provided, the new
+ * `commerce.shopperAgent` wins. Use `resolveShopperAgentConfig` from
+ * `@/components/cimulate` to read the effective value from consumer code.
+ */
+export type ShopperAgentConfig = {
+    enabled: string | boolean;
+    commerceClientScriptSourceUrl: string;
+    scrt2Url: string;
+    salesforceOrgId: string;
+    esDeveloperName: string;
+    commerceClientDisplayMode?: 'panel' | 'dialog' | 'modal';
+    commerceClientElementId?: string;
+    commerceClientLogoUrl?: string;
+    commerceClientPanelWidth?: string;
+    commerceClientMode?: string;
+    headerText?: string;
+    disclaimerMarkdown?: string;
+    commerceClientSearchConfig?: {
+        placeholder?: string;
+        buttonLabel?: string;
+        buttonType?: string;
+        buttonIconUrl?: string;
+    };
+    commerceClientTheme?: Record<string, string>;
+    routingAttributes?: Record<string, unknown>;
+    isDevelopment?: string;
+    /** Optional widget options; keep in sync with `CimulateConfig` in `@/components/cimulate`. */
+    cc_dialogFullHeight?: string | boolean;
+    cc_widgetPosition?: string;
+    cc_isOpen?: string | boolean;
+    cc_enableDownloadTranscript?: string | boolean;
+    cc_enableEscalationToAgent?: string | boolean;
+    cc_capabilitiesVersion?: string;
+    cc_messageAlignment?: string;
+    cc_autoScroll?: string | boolean;
+    cc_openLinksInNewTab?: string | boolean;
+    cc_showProductDescription?: string | boolean;
+    cc_showProductCaptions?: string | boolean;
+    cc_headerConfig?: Record<string, unknown>;
+    cc_suggestionButtonConfig?: Record<string, unknown>;
+    cc_promptsConfig?: Record<string, unknown>;
+    cc_overridesUrl?: string;
+    cc_overrides?: Record<string, unknown>;
+    cc_progressStepsLimit?: string | number;
+    /** Optional provider identifier. Currently only `commerce-client` (Cimulate) is supported. */
+    provider?: string;
+    /**
+     * Optional regex patterns matched against the current pathname (including site/locale
+     * prefix, e.g. `/global/en-GB/category/gift-certificates`). When any pattern matches,
+     * the agent widget is hidden on that page. Compiled with `new RegExp(pattern)`.
+     */
+    disabledPathPatterns?: string[];
+};
+
 /**
  * Recursively strip `readonly` so an extension config authored with `as const` still merges
  * into the mutable `AppConfig`. The generated barrel is the source of both the value (in
@@ -80,6 +150,13 @@ export type AppConfig = {
          * template enables this by default in `config.server.ts`.
          */
         sitesFromDal?: boolean;
+        /**
+         * Shopper Agent widget configuration. Preferred config path.
+         * Override via `PUBLIC__app__commerce__shopperAgent` (single JSON string).
+         * When both this and the legacy top-level `cimulateAgent` are set,
+         * `commerce.shopperAgent` wins.
+         */
+        shopperAgent?: ShopperAgentConfig;
     };
     /**
      * Global default cookie attributes applied to ALL storefront cookies (auth/session and
@@ -91,29 +168,12 @@ export type AppConfig = {
         /** Cookie domain, e.g. `.example.com` to share across subdomains. */
         domain?: string;
     };
-    cimulateAgent?: {
-        enabled: string | boolean;
-        commerceClientScriptSourceUrl: string;
-        scrt2Url: string;
-        salesforceOrgId: string;
-        esDeveloperName: string;
-        commerceClientDisplayMode?: 'panel' | 'dialog' | 'modal';
-        commerceClientElementId?: string;
-        commerceClientLogoUrl?: string;
-        commerceClientPanelWidth?: string;
-        commerceClientMode?: string;
-        headerText?: string;
-        disclaimerMarkdown?: string;
-        commerceClientSearchConfig?: {
-            placeholder?: string;
-            buttonLabel?: string;
-            buttonType?: string;
-            buttonIconUrl?: string;
-        };
-        commerceClientTheme?: Record<string, string>;
-        routingAttributes?: Record<string, unknown>;
-        isDevelopment?: string;
-    };
+    /**
+     * @deprecated Use `commerce.shopperAgent` (populated from
+     * `PUBLIC__app__commerce__shopperAgent`). This top-level key remains supported
+     * for backward compatibility; it is ignored when `commerce.shopperAgent` is set.
+     */
+    cimulateAgent?: ShopperAgentConfig;
     defaultSiteId: string;
     development: {
         enableDevtools: boolean;
@@ -211,6 +271,7 @@ export type AppConfig = {
             apiKey: string;
         };
         mrtBasedPageDesignerResolution: boolean;
+        livePreview: boolean;
     };
     guestOrderLookup: {
         enabled: boolean;
@@ -411,6 +472,9 @@ export type AppConfig = {
         cookieOptions?: SiteConfig['cookieOptions'];
     };
     siteDetectionConfig?: DetectionConfig;
+    seoFallback?: {
+        sites: Record<string, SeoFallbackSitePolicy>;
+    };
     url?: Url;
     security?: {
         turnstile?: {

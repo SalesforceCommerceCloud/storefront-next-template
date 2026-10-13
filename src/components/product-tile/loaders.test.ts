@@ -22,6 +22,13 @@ import { convertProductToProductSearchHit } from '@/lib/product/product-conversi
 
 vi.mock('@/lib/api/products.server', () => ({
     fetchProductById: vi.fn(),
+    getDefaultProductExpansions: vi.fn((...additional: string[]) => [
+        'availability',
+        'images',
+        'prices',
+        'variations',
+        ...additional,
+    ]),
 }));
 
 vi.mock('@/lib/product/product-conversion', () => ({
@@ -77,6 +84,7 @@ describe('product-tile loader', () => {
             allImages: true,
             perPricebook: true,
             currency: 'USD',
+            expand: ['availability', 'images', 'prices', 'variations'],
         });
         expect(convertProductToProductSearchHit).toHaveBeenCalledWith({ id: 'sku-123', name: 'Test Product' });
         expect(result).toEqual({ productId: 'sku-123' });
@@ -97,6 +105,7 @@ describe('product-tile loader', () => {
         expect(fetchProductById).toHaveBeenCalledWith(mockContext, 'sku-321', {
             allImages: true,
             perPricebook: true,
+            expand: ['availability', 'images', 'prices', 'variations'],
         });
     });
 
@@ -163,6 +172,7 @@ describe('product-tile loader', () => {
             allImages: true,
             perPricebook: true,
             currency: 'USD',
+            expand: ['availability', 'images', 'prices', 'variations'],
         });
         expect(result).toEqual({ productId: 'sku-trimmed' });
     });

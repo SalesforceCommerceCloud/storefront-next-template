@@ -48,7 +48,7 @@ describe('OrderSummary mobile heading helpers', () => {
                 ...basket,
                 productItems: [{ itemId: 'item-3', productId: 'p3', quantity: undefined }],
             })
-        ).toBe(0);
+        ).toBe(1);
     });
 
     test('isOrderTotalEstimated returns true when shipping is unknown', () => {
