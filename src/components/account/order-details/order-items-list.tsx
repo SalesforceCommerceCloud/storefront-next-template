@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { Link } from '@/components/link';
 import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/typography';
@@ -48,6 +48,8 @@ export type OrderItemsListProps = {
     /** When set with `onOrderLineReviewSubmitted`, shows Rate & review per shippable line with product data. */
     submittedReviewLineKeys?: ReadonlySet<string>;
     onOrderLineReviewSubmitted?: (lineKey: string) => void;
+    /** Render slot for per-line trailing actions. When provided, replaces the default "Buy Again" link. */
+    lineActions?: (item: OrderItem, productData: ShopperProducts.schemas['Product'] | undefined) => ReactNode;
 };
 
 /**
@@ -60,6 +62,7 @@ export function OrderItemsList({
     orderNo,
     submittedReviewLineKeys,
     onOrderLineReviewSubmitted,
+    lineActions,
 }: OrderItemsListProps): ReactElement {
     const { t } = useTranslation('account');
     const { t: tProduct } = useTranslation('product');
@@ -133,17 +136,19 @@ export function OrderItemsList({
                                         labelForA11y={productName}
                                     />
                                 ) : null}
-                                {item.productId && (
-                                    <Button
-                                        asChild
-                                        variant="default"
-                                        size="sm"
-                                        className={`${accountPrimaryButtonClasses} text-xs`}>
-                                        <Link to={createProductUrl({ productId: item.productId }, seoUrlContext)}>
-                                            {t('orders.buyAgain')}
-                                        </Link>
-                                    </Button>
-                                )}
+                                {lineActions
+                                    ? lineActions(item, productData)
+                                    : item.productId && (
+                                          <Button
+                                              asChild
+                                              variant="default"
+                                              size="sm"
+                                              className={`${accountPrimaryButtonClasses} text-xs`}>
+                                              <Link to={createProductUrl({ productId: item.productId }, seoUrlContext)}>
+                                                  {t('orders.buyAgain')}
+                                              </Link>
+                                          </Button>
+                                      )}
                             </div>
                         </div>
                     </li>

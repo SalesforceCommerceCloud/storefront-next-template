@@ -62,6 +62,20 @@ vi.mock('@/lib/logger.server', () => ({
     })),
 }));
 
+vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@salesforce/storefront-next-runtime/config')>();
+    return {
+        ...actual,
+        getConfig: vi.fn(() => ({
+            pages: {
+                orderDetail: {
+                    allowReorders: false,
+                },
+            },
+        })),
+    };
+});
+
 import OrderDetailsPage, { loader, ErrorBoundary } from './_app.account.orders.$orderNo';
 import { fetchOrderWithProducts } from '@/lib/api/order.server';
 
@@ -185,7 +199,10 @@ describe('Order Details Route (_app.account.orders.$orderNo)', () => {
 
             loader({ context, params: { orderNo: 'ORD-123' } } as any);
 
-            expect(vi.mocked(fetchOrderWithProducts)).toHaveBeenCalledWith(context, 'ORD-123', { includeOms: true });
+            expect(vi.mocked(fetchOrderWithProducts)).toHaveBeenCalledWith(context, 'ORD-123', {
+                includeOms: true,
+                includeAvailability: false,
+            });
         });
 
         test('does not fetch OMS metadata itself — that is the parent section loader (org-level)', () => {

@@ -21,7 +21,7 @@ import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 
 type GetProductsQuery = ShopperProducts.operations['getProducts']['parameters']['query'];
 type GetProductQuery = ShopperProducts.operations['getProduct']['parameters']['query'];
-type ProductExpand = NonNullable<GetProductsQuery['expand']>[number];
+export type ProductExpand = NonNullable<GetProductsQuery['expand']>[number];
 
 export type FetchProductsByIdsOptions = Partial<Omit<GetProductsQuery, 'ids' | 'siteId'>>;
 export type FetchProductByIdOptions = Partial<Omit<GetProductQuery, 'siteId'>>;

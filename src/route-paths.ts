@@ -127,6 +127,7 @@ export const routes = {
  */
 export const resourceRoutes = {
     cartItemAdd: '/action/cart-item-add',
+    cartReorder: '/action/cart-reorder',
     cartItemRemove: '/action/cart-item-remove',
     cartItemUpdate: '/action/cart-item-update',
     cartBundleAdd: '/action/cart-bundle-add',

@@ -38,6 +38,7 @@ export enum BasketAction {
     PromoCodeRemove = 'PromoCodeRemove',
     BonusProductAdd = 'BonusProductAdd',
     SwatchOrder = 'SwatchOrder',
+    CartReorder = 'CartReorder',
 }
 
 /** Shared params available to every basket action handler. */

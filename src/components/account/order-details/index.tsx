@@ -24,6 +24,7 @@ import {
     useRef,
     useState,
 } from 'react';
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { Await } from 'react-router';
 import { ChevronDown, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -61,6 +62,8 @@ import {
 import ShipmentShippingStatusBadge from '@/components/account/order-details/shipment-shipping-status-badge';
 import OrderStatusHeader from '@/components/account/order-details/order-status-header';
 import PaymentMethodCard from '@/components/account/order-details/payment-method-card';
+import ReorderOrderButton from '@/components/account/order-details/reorder-order-button';
+import ReorderLineAction from '@/components/account/order-details/reorder-line-action';
 
 export type { ProductDataById };
 
@@ -395,6 +398,8 @@ type CancelFeedback = { status: 'success' | 'error'; title: string; description:
 
 export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsProps): ReactElement {
     const { t } = useTranslation('account');
+    const config = useConfig();
+    const allowReorders = config.pages.orderDetail?.allowReorders ?? false;
     const orderNo = order.orderNo ?? '';
     const [submittedReviewLineKeys, setSubmittedReviewLineKeys] = useState<Set<string>>(() => new Set());
     const [cancelFeedback, setCancelFeedback] = useState<CancelFeedback | null>(null);
@@ -676,6 +681,16 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
                                                         orderNo={order.orderNo}
                                                         submittedReviewLineKeys={submittedReviewLineKeys}
                                                         onOrderLineReviewSubmitted={handleOrderLineReviewSubmitted}
+                                                        lineActions={
+                                                            allowReorders
+                                                                ? (item, productData) => (
+                                                                      <ReorderLineAction
+                                                                          item={item}
+                                                                          productData={productData}
+                                                                      />
+                                                                  )
+                                                                : undefined
+                                                        }
                                                     />
                                                     <UITarget targetId="sfcc.myAccount.orderDetails.review" />
                                                 </div>
@@ -725,6 +740,7 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
                                 <OrderSummary basket={order} showCartItems={false} showHeading={false} />
                             </UITarget>
                             <PaymentMethodCard payments={paymentMethodDisplays} />
+                            {allowReorders && <ReorderOrderButton orderNo={orderNo} />}
                         </div>
                     </div>
                 </CardContent>

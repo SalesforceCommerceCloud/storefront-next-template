@@ -38,6 +38,7 @@ import type { ShopperOrders } from '@/scapi';
 import { fetchOrderWithProducts, type OmsMetaDataResult } from '@/lib/api/order.server';
 import { buildUrlFromContext } from '@/lib/url.server';
 import { getLogger } from '@/lib/logger.server';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
 import { getWriteReviewForm, type WriteReviewFormData } from '@/extensions/ratings-reviews/lib/api/reviews.server';
 import { WriteReviewFormProvider } from '@/extensions/ratings-reviews/context/write-review-form-context';
@@ -66,7 +67,13 @@ export function loader({ context, params }: Route.LoaderArgs): OrderDetailsPageL
         throw redirect(buildUrlFromContext(routes.accountOrders, context));
     }
 
-    const { orderDataPromise } = fetchOrderWithProducts(context, orderNo, { includeOms: true });
+    const config = getConfig(context);
+    const allowReorders = config.pages.orderDetail?.allowReorders ?? false;
+
+    const { orderDataPromise } = fetchOrderWithProducts(context, orderNo, {
+        includeOms: true,
+        includeAvailability: allowReorders,
+    });
 
     return {
         orderData: orderDataPromise,

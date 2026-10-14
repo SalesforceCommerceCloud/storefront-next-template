@@ -15,7 +15,7 @@
  */
 
 import type { ShopperBasketsV2 } from '@/scapi';
-import type { ActionError } from '@/lib/error-codes';
+import type { ActionError, ErrorCode } from '@/lib/error-codes';
 
 // Generic response types for actions
 export interface ActionResponse<T = unknown> {
@@ -27,6 +27,32 @@ export interface ActionResponse<T = unknown> {
 // Specific response types for common actions
 export interface BasketActionResponse extends ActionResponse {
     basket?: ShopperBasketsV2.schemas['Basket'];
+}
+
+/** Why a line item couldn't be added during a reorder. */
+export type SkippedReason =
+    | typeof ErrorCode.OUT_OF_STOCK
+    | typeof ErrorCode.INSUFFICIENT_QUANTITY
+    | typeof ErrorCode.NOT_ORDERABLE
+    | typeof ErrorCode.NOT_FOUND;
+
+export interface SkippedOrderItem {
+    productId: string;
+    productName?: string;
+    requestedQuantity: number;
+    reason: SkippedReason;
+}
+
+export interface AdjustedOrderItem {
+    productId: string;
+    productName?: string;
+    requestedQuantity: number;
+    addedQuantity: number;
+}
+
+export interface ReorderActionResponse extends BasketActionResponse {
+    skippedItems?: SkippedOrderItem[];
+    adjustedItems?: AdjustedOrderItem[];
 }
 
 // Utility functions for creating standardized responses

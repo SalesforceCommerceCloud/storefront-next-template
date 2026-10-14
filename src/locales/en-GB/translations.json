@@ -1123,7 +1123,16 @@
             "cancelErrorConflictTitle": "Unable to cancel order",
             "cancelErrorConflictDescription": "This order is already being processed and cannot be canceled. Please reach out to the merchant.",
             "cancelErrorGenericTitle": "Something went wrong",
-            "cancelErrorGenericDescription": "We couldn't process your cancellation right now. Please wait a moment and try again."
+            "cancelErrorGenericDescription": "We couldn't process your cancellation right now. Please wait a moment and try again.",
+            "reorderThisOrder": "Reorder this order",
+            "reorderingOrder": "Reordering…",
+            "outOfStock": "Out of stock",
+            "reorderPartialSkip_one": "Added available items. {{count}} unavailable.",
+            "reorderPartialSkip_other": "Added available items. {{count}} unavailable.",
+            "reorderAdjusted_one": "{{count}} item added at a reduced quantity.",
+            "reorderAdjusted_other": "{{count}} items added at a reduced quantity.",
+            "reorderAllSkipped": "None of the items were available to add.",
+            "reorderFailed": "Couldn't reorder this order. Please try again."
         },
         "addresses": {
             "subtitle": "Manage your shipping addresses",

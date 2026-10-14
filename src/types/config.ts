@@ -428,6 +428,9 @@ export type AppConfig = {
             cdnUrl: string;
             forwardedHost: string;
         };
+        orderDetail?: {
+            allowReorders?: boolean;
+        };
     };
     performance: {
         caching: {

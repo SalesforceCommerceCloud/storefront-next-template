@@ -22,6 +22,7 @@ import { getLogger } from '@/lib/logger.server';
 import { getOrderReturnStatus, resolveOrderStatus } from '@/lib/order/status';
 import { isOrderCancelled } from '@/lib/order-management/cancel';
 import type { Order } from '@/components/account/order-list';
+import type { ProductExpand } from '@/lib/api/products.server';
 
 export type OrderProductDataById = Record<string, ShopperProducts.schemas['Product'] | undefined>;
 
@@ -121,7 +122,8 @@ export async function fetchOmsMetaData(context: LoaderFunctionArgs['context']): 
  */
 async function fetchProductsById(
     context: LoaderFunctionArgs['context'],
-    productIds: string[]
+    productIds: string[],
+    options?: { includeAvailability?: boolean }
 ): Promise<OrderProductDataById> {
     if (!productIds.length) {
         return {};
@@ -129,13 +131,16 @@ async function fetchProductsById(
 
     const clients = createApiClients(context);
     const currency = (context.get(siteContext) as SiteContext).currency;
+    const expand: ProductExpand[] = options?.includeAvailability
+        ? ['images', 'variations', 'availability']
+        : ['images', 'variations'];
 
     try {
         const { data } = await clients.shopperProducts.getProducts({
             params: {
                 query: {
                     ids: productIds,
-                    expand: ['images', 'variations'],
+                    expand,
                     currency,
                 },
             },
@@ -178,10 +183,11 @@ function collectProductIds(productItems: { productId?: string }[] | undefined): 
 export function fetchOrderWithProducts(
     context: LoaderFunctionArgs['context'],
     orderNo: string,
-    options?: { includeOms?: boolean }
+    options?: { includeOms?: boolean; includeAvailability?: boolean }
 ): FetchOrderWithProductsResult {
     const clients = createApiClients(context);
     const includeOms = options?.includeOms ?? true;
+    const includeAvailability = options?.includeAvailability ?? false;
 
     const orderPromise = clients.shopperOrders
         .getOrder({
@@ -200,7 +206,7 @@ export function fetchOrderWithProducts(
         .then(({ data }) => data);
 
     const productsByIdPromise: Promise<OrderProductDataById> = orderPromise.then((order) =>
-        fetchProductsById(context, collectProductIds(order.productItems))
+        fetchProductsById(context, collectProductIds(order.productItems), { includeAvailability })
     );
 
     const orderDataPromise = Promise.all([orderPromise, productsByIdPromise]).then(([order, productsById]) => ({

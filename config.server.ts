@@ -136,6 +136,9 @@ export default defineConfig<Config>(
                     cdnUrl: 'https://prd.cmp.cdn.commercecloud.salesforce.com',
                     forwardedHost: '',
                 },
+                orderDetail: {
+                    allowReorders: false,
+                },
             },
             // Commerce Cloud API integration
             // See CONFIG-OPTIONS.md#commerce for detailed documentation

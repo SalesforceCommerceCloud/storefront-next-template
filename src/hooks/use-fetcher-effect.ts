@@ -28,6 +28,8 @@ export interface FetcherEffectConfig<TData = unknown> {
     onSuccess?: (data: TData | undefined) => void;
     /** Callback function called when the fetcher operation fails; receives error message(s) and optional response data */
     onError?: (error: string | string[], data?: TData) => void;
+    /** Override the default error extractor when the action returns a non-string error shape */
+    getError?: (data: TData) => string | string[] | undefined;
 }
 
 /**
@@ -143,7 +145,7 @@ export function useFetcherEffect<TData = unknown>(
     fetcher: FetcherWithComponents<TData>,
     config: FetcherEffectConfig<TData>
 ): void {
-    const { onSuccess, onError } = config;
+    const { onSuccess, onError, getError } = config;
 
     // Track the previous state to detect changes
     const previousStateRef = useRef<string | undefined>(undefined);
@@ -164,7 +166,7 @@ export function useFetcherEffect<TData = unknown>(
         if (stateChanged && hasCompletedOperation && hasUnprocessedData) {
             // Check if the operation was successful
             const success = defaultIsSuccess(currentData);
-            const error = defaultGetError(currentData);
+            const error = getError && currentData !== undefined ? getError(currentData) : defaultGetError(currentData);
 
             if (success && onSuccess) {
                 try {
@@ -187,5 +189,5 @@ export function useFetcherEffect<TData = unknown>(
 
         // Update ref with current state
         previousStateRef.current = currentState;
-    }, [fetcher, onSuccess, onError]);
+    }, [fetcher, onSuccess, onError, getError]);
 }
