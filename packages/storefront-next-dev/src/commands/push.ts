@@ -128,7 +128,8 @@ export default class Push extends MrtCommand<typeof Push> {
             default: false,
         }),
         'bundle-version': Flags.string({
-            description: 'MRT bundle format version for the legacy backend (the SCAPI backend always uses 2)',
+            description:
+                'MRT bundle version for the legacy backend that uses the MRT API key authorization. Use 1 for the legacy format and 2 for the new format. Default is 1. The SCAPI backend always uses version 2.',
             options: [...BUNDLE_VERSIONS],
             default: '1',
         }),

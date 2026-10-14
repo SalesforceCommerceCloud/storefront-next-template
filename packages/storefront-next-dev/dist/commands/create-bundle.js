@@ -119,7 +119,7 @@ var Bundle = class Bundle extends Command {
 			description: "Project slug - the unique identifier for your project on Managed Runtime (default: from .env MRT_PROJECT or package.json name)"
 		}),
 		"bundle-version": Flags.string({
-			description: "MRT bundle format version (2 writes the SSR config into the archive, as used by SCAPI)",
+			description: "MRT bundle version. Use 1 for the legacy format and 2 for the new format. Default is 1. The SCAPI backend always uses version 2.",
 			options: [...BUNDLE_VERSIONS],
 			default: "1"
 		})
