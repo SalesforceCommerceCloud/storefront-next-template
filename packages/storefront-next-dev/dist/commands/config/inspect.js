@@ -1,4 +1,4 @@
-import { i as withLegacyMrtShortFlags, r as commonFlags } from "../../flags.js";
+import { a as withLegacyMrtShortFlags, i as commonFlags } from "../../flags.js";
 import { ux } from "@oclif/core";
 import fs from "fs-extra";
 import chalk from "chalk";

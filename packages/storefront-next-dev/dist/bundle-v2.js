@@ -87,4 +87,16 @@ const createBundle = async (options) => {
 };
 
 //#endregion
-export { getBundleDependencies as n, createBundle as t };
+//#region src/bundle-v2.ts
+/** config.server.ts SSR parameter keys and their v2 bundle (PascalCase) equivalents. */
+const V2_SSR_PARAMETER_KEYS = {
+	ssrFunctionNodeVersion: "SSRFunctionNodeVersion",
+	envBasePath: "EnvBasePath"
+};
+/** Rename known camelCase SSR parameters to the PascalCase keys the v2 bundle config expects. */
+function toV2SsrParameters(params) {
+	return Object.fromEntries(Object.entries(params).map(([key, value]) => [V2_SSR_PARAMETER_KEYS[key] ?? key, value]));
+}
+
+//#endregion
+export { createBundle as n, getBundleDependencies as r, toV2SsrParameters as t };

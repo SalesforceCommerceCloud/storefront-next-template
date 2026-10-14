@@ -2,11 +2,12 @@ import { t as logger } from "../logger.js";
 import "../logger2.js";
 import { i as getMrtConfig, n as getDefaultBuildDir, r as getDefaultMessage } from "../utils.js";
 import { a as buildMrtConfig } from "../config.js";
-import { r as commonFlags } from "../flags.js";
-import { t as createBundle } from "../bundle.js";
+import { i as commonFlags, t as BUNDLE_VERSIONS } from "../flags.js";
+import { n as createBundle, r as getBundleDependencies, t as toV2SsrParameters } from "../bundle-v2.js";
 import { Command, Flags } from "@oclif/core";
 import path from "path";
 import fs from "fs-extra";
+import { createBundleV2 } from "@salesforce/b2c-tooling-sdk/operations/mrt";
 import zlib from "zlib";
 import { promisify } from "util";
 
@@ -26,37 +27,63 @@ async function createBundleCommand(options) {
 	await fs.ensureDir(outputDirectory);
 	const message = options.message ?? getDefaultMessage(options.projectDirectory);
 	const config = await buildMrtConfig(buildDirectory, options.projectDirectory);
-	logger.info(`Creating bundle for project: ${projectSlug}`);
+	logger.info(`Creating ${options.bundleVersion === "2" ? "v2 " : ""}bundle for project: ${projectSlug}`);
 	logger.info(`Build directory: ${buildDirectory}`);
 	logger.info(`Output directory: ${outputDirectory}`);
-	const bundle = await createBundle({
-		message,
-		ssr_parameters: config.ssrParameters,
-		ssr_only: config.ssrOnly,
-		ssr_shared: config.ssrShared,
-		buildDirectory,
-		projectDirectory: options.projectDirectory,
-		projectSlug
-	});
 	const bundleTgzPath = path.join(outputDirectory, "bundle.tgz");
 	const bundleJsonPath = path.join(outputDirectory, "bundle.json");
-	const bundleData = Buffer.from(bundle.data, "base64");
-	const compressedData = await gzip(bundleData);
+	let compressedData;
+	let uncompressedSize;
+	let bundleMetadata;
+	if (options.bundleVersion === "2") {
+		const bundle = await createBundleV2({
+			message,
+			ssrParameters: toV2SsrParameters(config.ssrParameters),
+			ssrOnly: config.ssrOnly,
+			ssrShared: config.ssrShared,
+			bundleMetadata: { dependencies: getBundleDependencies(options.projectDirectory) },
+			buildDirectory,
+			projectDirectory: path.resolve(options.projectDirectory),
+			matchMode: "ignore_missing"
+		});
+		compressedData = bundle.archive;
+		bundleMetadata = {
+			message: bundle.message,
+			root_dir: bundle.rootDir,
+			config_path: bundle.configPath,
+			match_mode: bundle.matchMode,
+			config: bundle.config,
+			data_size: compressedData.length
+		};
+	} else {
+		const bundle = await createBundle({
+			message,
+			ssr_parameters: config.ssrParameters,
+			ssr_only: config.ssrOnly,
+			ssr_shared: config.ssrShared,
+			buildDirectory,
+			projectDirectory: options.projectDirectory,
+			projectSlug
+		});
+		const bundleData = Buffer.from(bundle.data, "base64");
+		uncompressedSize = bundleData.length;
+		compressedData = await gzip(bundleData);
+		bundleMetadata = {
+			message: bundle.message,
+			encoding: bundle.encoding,
+			ssr_parameters: bundle.ssr_parameters,
+			ssr_only: bundle.ssr_only,
+			ssr_shared: bundle.ssr_shared,
+			bundle_metadata: bundle.bundle_metadata,
+			data_size: bundleData.length
+		};
+	}
 	await fs.writeFile(bundleTgzPath, compressedData);
-	const bundleMetadata = {
-		message: bundle.message,
-		encoding: bundle.encoding,
-		ssr_parameters: bundle.ssr_parameters,
-		ssr_only: bundle.ssr_only,
-		ssr_shared: bundle.ssr_shared,
-		bundle_metadata: bundle.bundle_metadata,
-		data_size: bundleData.length
-	};
 	await fs.writeJson(bundleJsonPath, bundleMetadata, { spaces: 2 });
 	logger.info(`Bundle created successfully!`);
 	logger.info(`Bundle tgz file: ${bundleTgzPath}`);
 	logger.info(`Bundle metadata: ${bundleJsonPath}`);
-	logger.info(`Uncompressed size: ${(bundleData.length / 1024 / 1024).toFixed(2)} MB`);
+	if (uncompressedSize !== void 0) logger.info(`Uncompressed size: ${(uncompressedSize / 1024 / 1024).toFixed(2)} MB`);
 	logger.info(`Compressed size: ${(compressedData.length / 1024 / 1024).toFixed(2)} MB`);
 }
 
@@ -70,7 +97,8 @@ var Bundle = class Bundle extends Command {
 	static examples = [
 		"<%= config.bin %> <%= command.id %>",
 		"<%= config.bin %> <%= command.id %> -d ./my-project",
-		"<%= config.bin %> <%= command.id %> -o ./my-bundle"
+		"<%= config.bin %> <%= command.id %> -o ./my-bundle",
+		"<%= config.bin %> <%= command.id %> --bundle-version 2"
 	];
 	static flags = {
 		...commonFlags,
@@ -89,6 +117,11 @@ var Bundle = class Bundle extends Command {
 		"project-slug": Flags.string({
 			char: "s",
 			description: "Project slug - the unique identifier for your project on Managed Runtime (default: from .env MRT_PROJECT or package.json name)"
+		}),
+		"bundle-version": Flags.string({
+			description: "MRT bundle format version (2 writes the SSR config into the archive, as used by SCAPI)",
+			options: [...BUNDLE_VERSIONS],
+			default: "1"
 		})
 	};
 	async run() {
@@ -98,7 +131,8 @@ var Bundle = class Bundle extends Command {
 			buildDirectory: flags["build-directory"],
 			outputDirectory: flags["output-directory"],
 			message: flags.message,
-			projectSlug: flags["project-slug"]
+			projectSlug: flags["project-slug"],
+			bundleVersion: flags["bundle-version"]
 		});
 		this.log("Bundle created successfully!");
 	}

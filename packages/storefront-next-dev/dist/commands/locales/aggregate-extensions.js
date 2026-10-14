@@ -1,6 +1,6 @@
 import { t as logger } from "../../logger.js";
 import "../../logger2.js";
-import { r as commonFlags } from "../../flags.js";
+import { i as commonFlags } from "../../flags.js";
 import { t as GENERATED_EXTENSION_DIRS } from "../../constants.js";
 import { Command, Flags } from "@oclif/core";
 import fs, { existsSync } from "node:fs";

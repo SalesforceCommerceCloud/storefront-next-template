@@ -16,7 +16,7 @@
 
 import { Command, Flags } from '@oclif/core';
 import { createBundleCommand } from '../lib/create-bundle';
-import { commonFlags } from '../flags';
+import { BUNDLE_VERSIONS, commonFlags, type BundleVersion } from '../flags';
 
 /**
  * Create bundle command - creates an MRT bundle without pushing.
@@ -28,6 +28,7 @@ export default class Bundle extends Command {
         '<%= config.bin %> <%= command.id %>',
         '<%= config.bin %> <%= command.id %> -d ./my-project',
         '<%= config.bin %> <%= command.id %> -o ./my-bundle',
+        '<%= config.bin %> <%= command.id %> --bundle-version 2',
     ];
 
     static flags = {
@@ -49,6 +50,11 @@ export default class Bundle extends Command {
             description:
                 'Project slug - the unique identifier for your project on Managed Runtime (default: from .env MRT_PROJECT or package.json name)',
         }),
+        'bundle-version': Flags.string({
+            description: 'MRT bundle format version (2 writes the SSR config into the archive, as used by SCAPI)',
+            options: [...BUNDLE_VERSIONS],
+            default: '1',
+        }),
     };
 
     async run(): Promise<void> {
@@ -60,6 +66,7 @@ export default class Bundle extends Command {
             outputDirectory: flags['output-directory'],
             message: flags.message,
             projectSlug: flags['project-slug'],
+            bundleVersion: flags['bundle-version'] as BundleVersion,
         });
 
         this.log('Bundle created successfully!');

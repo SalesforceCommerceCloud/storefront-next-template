@@ -1,4 +1,4 @@
-import { n as PROJECT_DIRECTORY_FLAG, t as PROJECT_DIRECTORY_CHAR } from "../flags.js";
+import { n as PROJECT_DIRECTORY_CHAR, r as PROJECT_DIRECTORY_FLAG } from "../flags.js";
 import { join, resolve } from "node:path";
 import { B2CPluginManager } from "@salesforce/b2c-tooling-sdk/plugins";
 import { getLogger } from "@salesforce/b2c-tooling-sdk/logging";

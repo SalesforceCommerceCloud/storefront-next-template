@@ -37,6 +37,7 @@ describe('create-bundle command', () => {
                 'output-directory': '/test/output',
                 message: 'Test bundle',
                 'project-slug': 'my-project',
+                'bundle-version': '2',
             },
             args: {},
             argv: [],
@@ -53,6 +54,7 @@ describe('create-bundle command', () => {
             outputDirectory: '/test/output',
             message: 'Test bundle',
             projectSlug: 'my-project',
+            bundleVersion: '2',
         });
     });
 
@@ -82,6 +84,7 @@ describe('create-bundle command', () => {
             outputDirectory: undefined,
             message: undefined,
             projectSlug: undefined,
+            bundleVersion: undefined,
         });
     });
 

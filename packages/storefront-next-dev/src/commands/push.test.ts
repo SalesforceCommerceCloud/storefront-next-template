@@ -34,6 +34,8 @@ const {
     mockUploadBundleScapi,
     mockCreateDeploymentScapi,
     mockWaitForDeploymentScapi,
+    mockUploadBundleV2,
+    mockCreateDeployment,
 } = vi.hoisted(() => ({
     mockCreateBundle: vi.fn(() => Promise.resolve({ data: 'test-bundle' })),
     mockUploadBundle: vi.fn(() =>
@@ -56,6 +58,12 @@ const {
     ),
     mockCreateDeploymentScapi: vi.fn(() => Promise.resolve({ deploymentId: 'dep-1', status: 'queued', raw: {} })),
     mockWaitForDeploymentScapi: vi.fn(() => Promise.resolve({ status: 'completed' })),
+    mockUploadBundleV2: vi.fn(() =>
+        Promise.resolve({ bundleId: 789, projectSlug: 'my-project', message: 'Test', warnings: [] as string[] })
+    ),
+    mockCreateDeployment: vi.fn(() =>
+        Promise.resolve({ bundleId: 789, targetSlug: 'staging', status: 'queued', warnings: [] as string[] })
+    ),
 }));
 
 const scapiConnection = { shortCode: 'kv7kzm78', tenantId: 'zzxy_prd', auth: {} };
@@ -77,6 +85,8 @@ vi.mock('@salesforce/b2c-tooling-sdk/operations/mrt', () => ({
     uploadBundle: mockUploadBundle,
     waitForEnv: mockWaitForEnv,
     createBundleV2: mockCreateBundleV2,
+    uploadBundleV2: mockUploadBundleV2,
+    createDeployment: mockCreateDeployment,
     uploadBundleScapi: mockUploadBundleScapi,
     createDeploymentScapi: mockCreateDeploymentScapi,
     waitForDeploymentScapi: mockWaitForDeploymentScapi,
@@ -439,6 +449,69 @@ describe('push command', () => {
             }),
             expect.anything()
         );
+    });
+
+    describe('--bundle-version 2 on the legacy backend', () => {
+        const v2Flags = {
+            'project-directory': '/test/project',
+            'build-directory': '/test/build',
+            project: 'my-project',
+            environment: 'staging',
+            message: 'Test push',
+            wait: false,
+            'bundle-version': '2',
+        };
+
+        const runWith = async (flags: Record<string, unknown>) => {
+            const cmd = new Push([], {} as never);
+            vi.spyOn(cmd as any, 'parse').mockResolvedValue({ flags, args: {}, argv: [], raw: [], metadata: {} });
+            vi.spyOn(cmd as any, 'log').mockImplementation(() => {});
+            const warnSpy = vi.spyOn(cmd as any, 'warn').mockImplementation(() => {});
+            await (cmd as unknown as { run: () => Promise<void> }).run();
+            return { warnSpy };
+        };
+
+        it('uploads a v2 bundle via the legacy API and deploys it to the target', async () => {
+            await runWith(v2Flags);
+
+            expect(mockCreateBundleV2).toHaveBeenCalledWith(
+                expect.objectContaining({ message: 'Test push', matchMode: 'ignore_missing' })
+            );
+            expect(mockUploadBundleV2).toHaveBeenCalledWith(expect.anything(), 'my-project', expect.anything());
+            expect(mockCreateDeployment).toHaveBeenCalledWith(
+                expect.objectContaining({ projectSlug: 'my-project', targetSlug: 'staging', bundleId: 789 }),
+                expect.anything()
+            );
+            expect(mockCreateBundle).not.toHaveBeenCalled();
+            expect(mockUploadBundle).not.toHaveBeenCalled();
+            expect(mockUploadBundleScapi).not.toHaveBeenCalled();
+        });
+
+        it('only uploads when no target is given', async () => {
+            await runWith({ ...v2Flags, environment: undefined });
+
+            expect(mockUploadBundleV2).toHaveBeenCalled();
+            expect(mockCreateDeployment).not.toHaveBeenCalled();
+        });
+
+        it('surfaces warnings from the upload and the deployment', async () => {
+            mockUploadBundleV2.mockResolvedValueOnce({
+                bundleId: 789,
+                projectSlug: 'my-project',
+                message: 'Test',
+                warnings: ['upload warning'],
+            });
+            mockCreateDeployment.mockResolvedValueOnce({
+                bundleId: 789,
+                targetSlug: 'staging',
+                status: 'queued',
+                warnings: ['deploy warning'],
+            });
+            const { warnSpy } = await runWith(v2Flags);
+
+            expect(warnSpy).toHaveBeenCalledWith('upload warning');
+            expect(warnSpy).toHaveBeenCalledWith('deploy warning');
+        });
     });
 
     describe('SCAPI MRT backend', () => {

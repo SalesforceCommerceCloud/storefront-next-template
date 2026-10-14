@@ -1,6 +1,6 @@
 import "../logger.js";
 import { t as prepareForLocalDev } from "../local-dev-setup.js";
-import { r as commonFlags } from "../flags.js";
+import { i as commonFlags } from "../flags.js";
 import { Command, Flags } from "@oclif/core";
 
 //#region src/commands/prepare-local.ts

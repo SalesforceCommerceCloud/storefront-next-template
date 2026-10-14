@@ -2,7 +2,7 @@ import { i as printShutdownMessage, n as printServerConfig, r as printServerInfo
 import "../logger2.js";
 import { i as loadProjectConfig, n as initBasePathEnv, r as getCommerceCloudApiUrl, t as createServer$2 } from "../server.js";
 import "../config.js";
-import { r as commonFlags } from "../flags.js";
+import { i as commonFlags } from "../flags.js";
 import { Command, Flags } from "@oclif/core";
 import path from "path";
 import { createServer } from "node:http";

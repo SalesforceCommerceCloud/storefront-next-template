@@ -1,4 +1,4 @@
-import { r as commonFlags } from "../../flags.js";
+import { i as commonFlags } from "../../flags.js";
 import { a as readAllSchemaMetadata } from "../../schema-utils.js";
 import { t as generateCustomClientsFile } from "../../generate-custom-clients.js";
 import { Args, Command } from "@oclif/core";

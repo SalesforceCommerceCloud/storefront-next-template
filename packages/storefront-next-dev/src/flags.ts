@@ -27,6 +27,10 @@ export const commonFlags = {
     }),
 };
 
+/** Supported MRT bundle format versions for `--bundle-version`. Add new versions here. */
+export const BUNDLE_VERSIONS = ['1', '2'] as const;
+export type BundleVersion = (typeof BUNDLE_VERSIONS)[number];
+
 /**
  * Restore the 1.x short flags on `MrtCommand.baseFlags`: `-t` for `--environment`/`--target`
  * and `-o` for `--cloud-origin` (b2c-tooling-sdk 2.x moved it to `-u`).

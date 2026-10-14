@@ -3,26 +3,31 @@ import "../logger2.js";
 import { n as getDefaultBuildDir, r as getDefaultMessage } from "../utils.js";
 import "../format-with-project-biome.js";
 import { a as buildMrtConfig, i as SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR, n as GENERATE_AND_DEPLOY_CARTRIDGE_ON_MRT_PUSH, r as SFNEXT_BASE_CARTRIDGE_NAME, t as CARTRIDGES_BASE_DIR } from "../config.js";
-import { i as withLegacyMrtShortFlags } from "../flags.js";
-import { n as getBundleDependencies, t as createBundle } from "../bundle.js";
+import { a as withLegacyMrtShortFlags, t as BUNDLE_VERSIONS } from "../flags.js";
+import { n as createBundle, r as getBundleDependencies, t as toV2SsrParameters } from "../bundle-v2.js";
 import { t as generateMetadata } from "../generate-cartridge.js";
 import { Flags } from "@oclif/core";
 import path from "path";
 import fs from "fs-extra";
 import { MrtCommand } from "@salesforce/b2c-tooling-sdk/cli";
 import { uploadCartridges } from "@salesforce/b2c-tooling-sdk/operations/code";
-import { createBundleV2, createDeploymentScapi, mrtScapiUnavailableMessage, runMrtWithFallback, uploadBundle, uploadBundleScapi, waitForDeploymentScapi, waitForEnv } from "@salesforce/b2c-tooling-sdk/operations/mrt";
+import { createBundleV2, createDeployment, createDeploymentScapi, mrtScapiUnavailableMessage, runMrtWithFallback, uploadBundle, uploadBundleScapi, uploadBundleV2, waitForDeploymentScapi, waitForEnv } from "@salesforce/b2c-tooling-sdk/operations/mrt";
 import { DEFAULT_MRT_ORIGIN, createMrtClient } from "@salesforce/b2c-tooling-sdk/clients";
 
 //#region src/commands/push.ts
-/** config.server.ts SSR parameter keys and their v2 bundle (PascalCase) equivalents. */
-const V2_SSR_PARAMETER_KEYS = {
-	ssrFunctionNodeVersion: "SSRFunctionNodeVersion",
-	envBasePath: "EnvBasePath"
-};
-/** Rename known camelCase SSR parameters to the PascalCase keys the v2 bundle config expects. */
-function toV2SsrParameters(params) {
-	return Object.fromEntries(Object.entries(params).map(([key, value]) => [V2_SSR_PARAMETER_KEYS[key] ?? key, value]));
+/** Options for the SDK's v2 bundler, shared by the legacy `--bundle-version 2` and SCAPI push paths. */
+function toV2BundleOptions(options) {
+	const { message, config, buildDirectory, projectDirectory } = options;
+	return {
+		message,
+		ssrParameters: toV2SsrParameters(config.ssrParameters),
+		ssrOnly: config.ssrOnly,
+		ssrShared: config.ssrShared,
+		bundleMetadata: { dependencies: getBundleDependencies(projectDirectory) },
+		buildDirectory,
+		projectDirectory,
+		matchMode: "ignore_missing"
+	};
 }
 /**
 * MRT Push command - builds and pushes bundle to Managed Runtime.
@@ -47,7 +52,8 @@ var Push = class Push extends MrtCommand {
 		"<%= config.bin %> <%= command.id %> --project-directory ./my-project",
 		"<%= config.bin %> <%= command.id %> --project my-project --environment staging",
 		"<%= config.bin %> <%= command.id %> --wait",
-		"<%= config.bin %> <%= command.id %> --mrt-backend scapi --environment staging --wait"
+		"<%= config.bin %> <%= command.id %> --mrt-backend scapi --environment staging --wait",
+		"<%= config.bin %> <%= command.id %> --bundle-version 2 --environment staging"
 	];
 	static flags = {
 		...withLegacyMrtShortFlags(MrtCommand.baseFlags),
@@ -63,6 +69,11 @@ var Push = class Push extends MrtCommand {
 			char: "w",
 			description: "Wait for deployment to complete",
 			default: false
+		}),
+		"bundle-version": Flags.string({
+			description: "MRT bundle format version for the legacy backend (the SCAPI backend always uses 2)",
+			options: [...BUNDLE_VERSIONS],
+			default: "1"
 		}),
 		"project-slug": Flags.string({
 			description: "DEPRECATED: Use --project instead",
@@ -93,7 +104,8 @@ var Push = class Push extends MrtCommand {
 			buildDirectory,
 			projectDirectory,
 			projectSlug,
-			target
+			target,
+			bundleVersion: flags["bundle-version"]
 		};
 		const { value: result } = await runMrtWithFallback({
 			preference,
@@ -127,9 +139,32 @@ var Push = class Push extends MrtCommand {
 	supportsScapiMrt() {
 		return true;
 	}
-	/** Upload a v1 bundle through the legacy MRT Cloud API (API key auth). */
+	/** Upload a bundle (v1, or v2 with `--bundle-version 2`) through the legacy MRT Cloud API (API key auth). */
 	async pushLegacy(options) {
-		const { message, config, buildDirectory, projectDirectory, projectSlug, target } = options;
+		const { message, config, buildDirectory, projectDirectory, projectSlug, target, bundleVersion } = options;
+		const origin = this.resolvedConfig.values.mrtOrigin || DEFAULT_MRT_ORIGIN;
+		const auth = this.getMrtAuth();
+		const client = createMrtClient({ origin }, auth);
+		if (bundleVersion === "2") {
+			const bundle$1 = await createBundleV2(toV2BundleOptions(options));
+			this.log(`Uploading v2 bundle to ${origin}`);
+			const uploaded = await uploadBundleV2(client, projectSlug, bundle$1);
+			const warnings = [...uploaded.warnings];
+			if (target) {
+				const deployment = await createDeployment({
+					projectSlug,
+					targetSlug: target,
+					bundleId: uploaded.bundleId,
+					origin
+				}, auth);
+				warnings.push(...deployment.warnings ?? []);
+			}
+			return {
+				backend: "legacy",
+				bundleId: uploaded.bundleId,
+				warnings
+			};
+		}
 		const bundle = await createBundle({
 			message,
 			ssr_parameters: config.ssrParameters,
@@ -139,8 +174,6 @@ var Push = class Push extends MrtCommand {
 			projectDirectory,
 			projectSlug
 		});
-		const origin = this.resolvedConfig.values.mrtOrigin || DEFAULT_MRT_ORIGIN;
-		const client = createMrtClient({ origin }, this.getMrtAuth());
 		this.log(`Uploading bundle to ${origin}`);
 		const result = await uploadBundle(client, projectSlug, bundle, target);
 		return {
@@ -155,17 +188,8 @@ var Push = class Push extends MrtCommand {
 	*/
 	async pushScapi(conn, options) {
 		if (!conn) throw new Error(mrtScapiUnavailableMessage());
-		const { message, config, buildDirectory, projectDirectory, projectSlug, target } = options;
-		const bundle = await createBundleV2({
-			message,
-			ssrParameters: toV2SsrParameters(config.ssrParameters),
-			ssrOnly: config.ssrOnly,
-			ssrShared: config.ssrShared,
-			bundleMetadata: { dependencies: getBundleDependencies(projectDirectory) },
-			buildDirectory,
-			projectDirectory,
-			matchMode: "ignore_missing"
-		});
+		const { projectSlug, target } = options;
+		const bundle = await createBundleV2(toV2BundleOptions(options));
 		this.log(`Uploading bundle via SCAPI (${conn.shortCode})`);
 		const uploaded = await uploadBundleScapi(conn, {
 			storefrontId: projectSlug,
