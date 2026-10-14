@@ -56,7 +56,6 @@ export default function WriteReviewButton({ formConfig }: WriteReviewButtonProps
         },
         {
             actionName: 'writeReview',
-            getReturnUrl: () => window.location.pathname,
         }
     );
 

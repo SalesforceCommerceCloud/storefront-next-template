@@ -34,12 +34,12 @@ jobs:
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -246,9 +246,8 @@ jobs:
           echo "✅ $NEW_VERSION > $CURRENT_LATEST_VERSION - Updating latest branch..."
 
           # Use app token to push to the protected default branch
-          git config --unset-all http.https://github.com/.extraheader
           git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}.git"
-          git push origin "HEAD:latest" --force
+          git -c http.https://github.com/.extraheader= push origin "HEAD:latest" --force
 
           echo "✅ 'latest' branch updated to $NEW_VERSION from $BRANCH_NAME"
           echo "🎯 'Use this template' button will now give customers version $NEW_VERSION"

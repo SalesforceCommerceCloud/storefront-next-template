@@ -12,8 +12,11 @@ name: Deploy
 #                MRT_BACKEND (optional: legacy (default), scapi, or auto)
 #
 #     With MRT_BACKEND=scapi or auto, the push authenticates with the
-#     SFCC_CLIENT_ID / SFCC_CLIENT_SECRET API client (scope
-#     `sfcc.storefront.deployments.rw`) and needs SFCC_SHORTCODE and SFCC_TENANT_ID.
+#     SFCC_CLIENT_ID / SFCC_CLIENT_SECRET API client and needs SFCC_SHORTCODE
+#     and SFCC_TENANT_ID. MRT_API_KEY is not needed for scapi; auto uses it to
+#     fall back to the legacy backend. In Account Manager, add the
+#     `sfcc.storefront.deployments.rw` scope to the API client. If the same
+#     client deploys cartridges, it keeps the cartridge permissions below too.
 #     https://salesforcecommercecloud.github.io/b2c-developer-tooling/cli/mrt.html#mrt-backends
 #
 #   deploy-cartridges  - Deploys cartridges to a B2C Commerce instance.
@@ -96,11 +99,19 @@ jobs:
           MRT_API_KEY: ${{ secrets.MRT_API_KEY }}
           SFCC_CLIENT_SECRET: ${{ secrets.SFCC_CLIENT_SECRET }}
         run: |
+          MISSING_SCAPI=()
+          [ -n "$SFCC_CLIENT_ID" ] || MISSING_SCAPI+=(SFCC_CLIENT_ID)
+          [ -n "$SFCC_CLIENT_SECRET" ] || MISSING_SCAPI+=(SFCC_CLIENT_SECRET)
+          [ -n "$SFCC_SHORTCODE" ] || MISSING_SCAPI+=(SFCC_SHORTCODE)
+          [ -n "$SFCC_TENANT_ID" ] || MISSING_SCAPI+=(SFCC_TENANT_ID)
+          # An explicit scapi backend never falls back to MRT_API_KEY, so missing config is an error, not a skip.
+          if [ "$MRT_BACKEND" = "scapi" ] && [ ${#MISSING_SCAPI[@]} -gt 0 ]; then
+            echo "::error title=MRT deploy misconfigured::MRT_BACKEND is scapi but these are not set: ${MISSING_SCAPI[*]}."
+            exit 1
+          fi
           HAS_SCAPI=false
-          if [ "$MRT_BACKEND" = "scapi" ] || [ "$MRT_BACKEND" = "auto" ]; then
-            if [ -n "$SFCC_CLIENT_ID" ] && [ -n "$SFCC_CLIENT_SECRET" ] && [ -n "$SFCC_SHORTCODE" ] && [ -n "$SFCC_TENANT_ID" ]; then
-              HAS_SCAPI=true
-            fi
+          if { [ "$MRT_BACKEND" = "scapi" ] || [ "$MRT_BACKEND" = "auto" ]; } && [ ${#MISSING_SCAPI[@]} -eq 0 ]; then
+            HAS_SCAPI=true
           fi
           if [ -z "$MRT_API_KEY" ] && [ "$HAS_SCAPI" != "true" ]; then
             echo "::notice title=MRT deploy skipped::MRT deployment was skipped because no MRT credentials are set. Set the MRT_API_KEY secret, or set MRT_BACKEND to scapi with SFCC_CLIENT_ID, SFCC_CLIENT_SECRET, SFCC_SHORTCODE, and SFCC_TENANT_ID."

@@ -88,6 +88,9 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
     const rootCategoryPromise = fetchCategory(context, rootCategoryId, 1, {
         select: NAVIGATION_FIELDS_SELECT_ROOT,
         personalized: 'none',
+    }).catch((error: unknown) => {
+        logger.error('AppLayout: root navigation fetch failed', { error, rootCategoryId });
+        return { id: rootCategoryId, categories: [] };
     });
 
     // Load each second-level sub categories tree as well, in case the resolved root-level category has any sub
@@ -109,24 +112,33 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
                           return acc;
                       }, []) ?? [];
 
+                  if (subCategoryIds.length === 0) {
+                      return [];
+                  }
+
                   return fetchCategoriesByIds(context, subCategoryIds, maxDepth as 0 | 1 | 2, {
                       select: NAVIGATION_FIELDS_SELECT_SUB,
                       personalized: 'none',
+                  }).catch((error: unknown) => {
+                      logger.warn('AppLayout: subcategory navigation fetch failed', { error, rootCategoryId });
+                      return [];
                   });
               })
             : Promise.resolve([]);
 
+    const fetchEmbeddedComponent = (componentId: string) =>
+        fetchComponentWithComponentData({ context, request, params: {} } as Route.LoaderArgs, { componentId }).catch(
+            (error: unknown) => {
+                logger.warn('AppLayout: embedded component fetch failed', { componentId, error });
+                return null;
+            }
+        );
+
     // Fetch header embedded component data (non-blocking, streamed to client, should be blocking once data is available from KVS to avoid layout shift)
-    const headerComponentPromise = fetchComponentWithComponentData(
-        { context, request, params: {} } as Route.LoaderArgs,
-        { componentId: 'header' }
-    );
+    const headerComponentPromise = fetchEmbeddedComponent('header');
 
     // Fetch mega-menu embedded component data — populates per-category dropdown panel content slots
-    const megaMenuComponentPromise = fetchComponentWithComponentData(
-        { context, request, params: {} } as Route.LoaderArgs,
-        { componentId: 'mega-menu' }
-    );
+    const megaMenuComponentPromise = fetchEmbeddedComponent('mega-menu');
 
     return {
         root: rootCategoryPromise,

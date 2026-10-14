@@ -19,6 +19,21 @@ import { buildUrl, siteContext } from '@salesforce/storefront-next-runtime/site-
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getBasePath } from '@/lib/utils';
 
+/** Remove the known MRT base path from an externally supplied internal URL before it is rebuilt. */
+export function stripMrtBasePathFromUrl(to: string): string {
+    const basePath = getBasePath();
+    if (!basePath || !to.startsWith('/') || to.startsWith('//')) return to;
+
+    const suffixIndex = to.search(/[?#]/);
+    const pathname = suffixIndex === -1 ? to : to.slice(0, suffixIndex);
+    const suffix = suffixIndex === -1 ? '' : to.slice(suffixIndex);
+
+    if (pathname === basePath) return `/${suffix}`;
+    if (!pathname.startsWith(`${basePath}/`)) return to;
+
+    return `${pathname.slice(basePath.length)}${suffix}`;
+}
+
 /**
  * Server-side counterpart of the client-side `useCurrentSiteAndLocaleRef` + `buildUrl` pattern.
  * Reads the resolved site and locale from router context, applies alias mappings,
@@ -39,7 +54,7 @@ import { getBasePath } from '@/lib/utils';
  * }
  * ```
  *
- * @param to - The bare path (e.g., '/login', '/account/orders')
+ * @param to - An application-relative target without the MRT base path (e.g., '/login', '/account/orders')
  * @param context - The router context from loader/action args
  * @returns The prefixed URL (e.g., '/shop/global/en-GB/login')
  */
@@ -59,15 +74,11 @@ export function buildUrlFromContext(to: string, context: Readonly<RouterContextP
               });
     const basePath = getBasePath();
 
-    if (
-        !basePath ||
-        !siteUrl.startsWith('/') ||
-        siteUrl.startsWith('//') ||
-        siteUrl === basePath ||
-        siteUrl.startsWith(`${basePath}/`)
-    ) {
+    if (!basePath || !siteUrl.startsWith('/') || siteUrl.startsWith('//')) {
         return siteUrl;
     }
 
+    // `to` is application-relative by contract. Inferring that the base path is already present
+    // from the first segment is ambiguous because site aliases and application routes can match it.
     return `${basePath}${siteUrl}`;
 }

@@ -4,9 +4,17 @@ Storefront template for Salesforce Commerce Cloud built with React Router v7, Re
 
 This file is the single source of truth for AI coding agents (Claude Code, Cursor, Codex, etc.) working in this package. `CLAUDE.md` is a symlink to this file.
 
-> **Agent tooling**: use the [B2C MCP server](https://salesforcecommercecloud.github.io/b2c-developer-tooling/mcp/) (`@salesforce/b2c-dx-mcp`). It provides the Storefront Next skills (start with `sfnext-overview`), docs search, SCAPI, Managed Runtime, and log tools. See [Storefront Next with the B2C tooling](https://salesforcecommercecloud.github.io/b2c-developer-tooling/guide/storefront-next.html).
-
 > **Changesets**: any change in this package needs a changeset. Run `pnpm changeset` from the repo root, pick `@salesforce/template` (and `@salesforce/storefront-next-{dev,runtime}` if applicable), and commit the generated `.changeset/<id>.md`. See [`../../CONTRIBUTING.md#changesets`](../../CONTRIBUTING.md#changesets).
+
+## B2C Commerce Tooling
+
+The [B2C MCP server](https://salesforcecommercecloud.github.io/b2c-developer-tooling/llms.txt) (`@salesforce/b2c-dx-mcp`) is recommended. When it's connected:
+
+- Discover its tools before using shell commands or direct HTTP requests.
+- Use `skills_read` for Storefront Next skills (start with `sfnext-overview`) and the `docs_*` tools for Commerce documentation.
+- For SCAPI data, use code mode: `scapi_search` to find APIs and schemas, then `scapi_execute` to call them.
+- For anything the MCP doesn't cover, use the bundled B2C CLI (`pnpm b2c --help`).
+- Always deploy to Managed Runtime with `pnpm push`, not the MCP or CLI. Confirm destructive operations with the user first.
 
 ## Project Structure
 

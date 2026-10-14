@@ -49,7 +49,7 @@ import {
     COOKIE_DWSID,
     COOKIE_AUTH_RECOVERY_GUARD,
 } from '@/middlewares/auth.utils';
-import { isAbsoluteURL } from '@/lib/utils';
+import { getBasePath, isAbsoluteURL } from '@/lib/utils';
 import { getAppOrigin } from '@/lib/origin';
 import { buildUrlFromContext } from '@/lib/url.server';
 import { getLogger } from '@/lib/logger.server';
@@ -58,7 +58,7 @@ import { performanceTimerContext, PERFORMANCE_MARKS } from '@/middlewares/perfor
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { createCookie, getCookieConfig, getCookieNameWithSiteId, parseAllCookies } from '@/lib/cookie-utils.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
-import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
+import { siteContext, stripPathPrefix } from '@salesforce/storefront-next-runtime/site-context';
 import { TrackingConsent, trackingConsentToBoolean } from '@/types/tracking-consent';
 import { SHOPPER_CONTEXT_COOKIE_NAME_BASE, SOURCE_CODE_COOKIE_NAME_BASE } from '@/lib/shopper-context/constants';
 
@@ -1272,13 +1272,13 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
             // to avoid an infinite redirect loop.
             logger.warn('Auth middleware: registered refresh failure blocked by guard, falling back to guest');
         } else {
-            // Redirect the registered shopper to the login page. The request path already
-            // carries the site/locale prefix (e.g. /uk/en-GB/checkout), so buildUrlFromContext
-            // applies the same prefix to /login and the current path is used as returnUrl.
+            // Redirect the registered shopper to the login page. Keep the site/locale prefix in
+            // returnUrl, but remove the MRT base path because buildUrlFromContext owns applying it.
             const requestPath = new URL(request.url).pathname;
+            const returnPath = stripPathPrefix({ pathname: requestPath, prefix: getBasePath() }) || '/';
             const loginPath = buildUrlFromContext('/login', context);
-            const loginUrl = `${loginPath}?returnUrl=${encodeURIComponent(requestPath)}&error=session_expired`;
-            logger.info('Auth middleware: registered refresh failed, redirecting to login', { requestPath });
+            const loginUrl = `${loginPath}?returnUrl=${encodeURIComponent(returnPath)}&error=session_expired`;
+            logger.info('Auth middleware: registered refresh failed, redirecting to login', { returnPath });
             authRecoveryTriggered = true;
             response = new Response(null, {
                 status: 307,

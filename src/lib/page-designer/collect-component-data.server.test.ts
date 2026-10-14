@@ -201,4 +201,24 @@ describe('collectFromRegions', () => {
 
         await expect(map.failing).rejects.toThrow('Loader failed');
     });
+
+    test('observes loader rejections immediately without replacing the stored promise', async () => {
+        const error = new Error('Loader failed early');
+        let rejectLoader!: (reason?: unknown) => void;
+        const loaderPromise = new Promise<unknown>((_resolve, reject) => {
+            rejectLoader = reject;
+        });
+        const catchSpy = vi.spyOn(loaderPromise, 'catch');
+        mockedRegistry.hasLoaders.mockReturnValue(true);
+        mockedRegistry.callLoader.mockReturnValue(loaderPromise);
+
+        const map: Record<string, Promise<unknown>> = {};
+        collectFromRegions(createCtx(), [createRegion([createComponent('failing', 'hero')])], map);
+
+        expect(catchSpy).toHaveBeenCalledTimes(1);
+        expect(map.failing).toBe(loaderPromise);
+
+        rejectLoader(error);
+        await expect(map.failing).rejects.toBe(error);
+    });
 });

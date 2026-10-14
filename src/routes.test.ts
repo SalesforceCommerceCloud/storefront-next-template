@@ -59,33 +59,11 @@ describe('routes.ts', () => {
                 }),
                 expect.objectContaining({
                     id: 'routes/_app.c.$',
-                    path: undefined,
-                    children: expect.arrayContaining([
-                        expect.objectContaining({
-                            id: 'routes/_app.c.$--seo-alias--c',
-                            path: 'c/*',
-                        }),
-                    ]),
+                    path: 'c/*',
                 }),
                 expect.objectContaining({
                     id: 'routes/_app.p.$',
-                    path: undefined,
-                    children: expect.arrayContaining([
-                        expect.objectContaining({
-                            id: 'routes/_app.p.$--seo-alias--p',
-                            path: 'p/*',
-                        }),
-                    ]),
-                }),
-                expect.objectContaining({
-                    id: 'routes/_app.cms.$',
-                    path: undefined,
-                    children: expect.arrayContaining([
-                        expect.objectContaining({
-                            id: 'routes/_app.cms.$--seo-alias--cms',
-                            path: 'cms/*',
-                        }),
-                    ]),
+                    path: 'p/*',
                 }),
                 expect.objectContaining({
                     id: 'routes/_app.cart',
@@ -93,6 +71,7 @@ describe('routes.ts', () => {
                 }),
             ])
         );
+        expect(defaultLayout?.children?.some((route: any) => route.id === 'routes/_app.cms.$')).toBe(false);
 
         // Find the _checkout layout route (minimal header/footer) inside the wrapper
         const checkoutLayout = wrappedRoutes.find((r: any) => r.id === 'routes/_checkout');
