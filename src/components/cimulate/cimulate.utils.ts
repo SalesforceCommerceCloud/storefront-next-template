@@ -447,6 +447,10 @@ declare global {
             injectMessagingWidget: (options: Record<string, unknown>) => void;
             getAuthLinkKey?: () => Promise<string>;
             eventHandlers?: {
+                session?: {
+                    /** Widget 1.39.0+. Ends the conversation and clears the transcript without starting a new one. */
+                    endConversation?: () => Promise<void> | void;
+                };
                 components?: {
                     toggleWidgetOpen?: (show: boolean) => void;
                 };

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { linkCimulateIdentity, requestCimulateAuthLinkKey } from './cimulate-identity-link';
+import { endCimulateConversation, linkCimulateIdentity, requestCimulateAuthLinkKey } from './cimulate-identity-link';
 import { resourceRoutes } from '@/route-paths';
 
 describe('requestCimulateAuthLinkKey', () => {
@@ -77,6 +77,65 @@ describe('requestCimulateAuthLinkKey', () => {
         expect(result).toEqual({ success: false, error: { code, retryable } });
         expect(JSON.stringify(result)).not.toContain('secret raw SDK body');
         expect(JSON.stringify(result)).not.toContain('responseBody');
+    });
+});
+
+describe('endCimulateConversation', () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('does not call an unsupported top-level endConversation', async () => {
+        const sdk = {
+            marker: 'sdk-context',
+            endConversation: vi.fn(function (this: { marker: string }) {
+                if (this.marker !== 'sdk-context') throw new Error('lost SDK receiver');
+                return Promise.resolve();
+            }),
+        };
+        vi.stubGlobal('CimulateMessaging', sdk);
+
+        await expect(endCimulateConversation()).resolves.toEqual({ success: false });
+        expect(sdk.endConversation).not.toHaveBeenCalled();
+    });
+
+    it('prefers eventHandlers.session.endConversation (widget 1.39.0+)', async () => {
+        const session = {
+            marker: 'session-context',
+            endConversation: vi.fn(function (this: { marker: string }) {
+                if (this.marker !== 'session-context') throw new Error('lost session receiver');
+            }),
+        };
+        const legacy = vi.fn();
+        vi.stubGlobal('CimulateMessaging', { endConversation: legacy, eventHandlers: { session } });
+
+        await expect(endCimulateConversation()).resolves.toEqual({ success: true });
+        expect(session.endConversation).toHaveBeenCalledTimes(1);
+        expect(legacy).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        [undefined],
+        [{}],
+        [{ eventHandlers: { session: {} } }],
+        [{ endConversation: 'not-a-function' }],
+    ])('reports failure without throwing when the SDK is unavailable: %j', async (sdk) => {
+        vi.stubGlobal('CimulateMessaging', sdk);
+        await expect(endCimulateConversation()).resolves.toEqual({ success: false });
+    });
+
+    it.each(['throw', 'reject'])('redacts the raw nested SDK %s and reports failure', async (kind) => {
+        vi.stubGlobal('CimulateMessaging', {
+            eventHandlers: {
+                session: {
+                    endConversation: vi.fn(() => {
+                        if (kind === 'throw') throw new Error('secret raw SDK body');
+                        return Promise.reject(new Error('secret raw SDK body'));
+                    }),
+                },
+            },
+        });
+        const result = await endCimulateConversation();
+        expect(result).toEqual({ success: false });
+        expect(JSON.stringify(result)).not.toContain('secret raw SDK body');
     });
 });
 

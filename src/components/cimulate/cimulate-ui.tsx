@@ -16,23 +16,25 @@
 
 import { validateCimulateConfig, type CimulateConfig } from './cimulate.utils';
 import { CimulateWindow } from './cimulate-window';
+import type { CimulateIdentitySnapshot } from './cimulate-conversation';
 
 interface CimulateUIProps {
     cimulateConfiguration?: CimulateConfig;
+    identity?: CimulateIdentitySnapshot;
 }
 
 /**
  * Cimulate UI chunk – validates config and mounts the Commerce Client widget.
  * Loaded after first paint via requestIdleCallback so it stays off the critical path.
  */
-export default function CimulateUI({ cimulateConfiguration }: CimulateUIProps) {
+export default function CimulateUI({ cimulateConfiguration, identity }: CimulateUIProps) {
     if (!validateCimulateConfig(cimulateConfiguration)) {
         return null;
     }
 
     return (
         <div data-testid="cimulate-agent">
-            <CimulateWindow config={cimulateConfiguration} />
+            <CimulateWindow config={cimulateConfiguration} identity={identity} />
         </div>
     );
 }

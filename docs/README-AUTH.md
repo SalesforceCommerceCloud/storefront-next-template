@@ -275,11 +275,15 @@ See [README-EMAIL-VERIFICATION.md](./README-EMAIL-VERIFICATION.md) for the OTP a
 3. Middleware writes `cc-nx` and **deletes** `cc-nx-g` (mutual exclusivity).
 4. Guest resources are merged into the registered account (see below).
 
+If the Shopper Agent (Cimulate) widget is enabled, `<CimulateAgent>` detects the `userType`/`customerId` change and re-links identity on the existing conversation without interrupting it — see [Identity lifecycle](../src/components/cimulate/README.md#identity-lifecycle-login-logout-account-switch-guest-rotation).
+
 ### Logout
 
 1. Action calls `destroyAuth(context)`.
 2. Middleware deletes all auth cookies via expired `Set-Cookie` headers (including the legacy `customer_id`).
 3. Next request finds no cookies → fresh guest login.
+
+If the Shopper Agent widget is enabled, `<CimulateAgent>` requests termination of the current conversation without re-linking it. A new conversation links its guest identity when started; a failed termination request hides the widget until a full reload — see [Identity lifecycle](../src/components/cimulate/README.md#identity-lifecycle-login-logout-account-switch-guest-rotation).
 
 ### Guest → registered resource merge
 

@@ -1801,7 +1801,7 @@ Set as a single JSON string. Defaults in `config.server.ts` are empty or disable
 | Path                            | Type                                        | Description                                                          |
 | ------------------------------- | ------------------------------------------- | -------------------------------------------------------------------- |
 | `enabled`                       | `string \| boolean`                         | `true` / `'true'` to enable.                                         |
-| `commerceClientScriptSourceUrl` | `string`                                    | Full URL to the Cimulate UMD bundle (must be from a trusted domain). Use widget 1.32.0 or newer for identity linking. |
+| `commerceClientScriptSourceUrl` | `string`                                    | Full URL to the Cimulate UMD bundle (must be from a trusted domain). Use widget 1.39.0 or newer for identity linking and logout clearing. |
 | `scrt2Url`                      | `string`                                    | SCRT2 URL for your org.                                              |
 | `salesforceOrgId`               | `string`                                    | Salesforce org ID.                                                   |
 | `esDeveloperName`               | `string`                                    | Embedded Service developer name.                                     |

@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { useSite } from '@salesforce/storefront-next-runtime/site-context';
+import { useAuth } from '@/providers/auth';
 import { CIMULATE_LOAD_EVENT, type CimulateConfig } from './cimulate.utils';
+import type { CimulateIdentitySnapshot } from './cimulate-conversation';
 
 const CimulateUI = lazy(() => import('./cimulate-ui'));
 
@@ -51,6 +54,21 @@ interface CimulateAgentProps {
 function CimulateAgent({ cimulateConfiguration }: CimulateAgentProps) {
     const [deferReady, setDeferReady] = useState(false);
     const idleHandleRef = useRef<number | null>(null);
+    const { site } = useSite();
+    const session = useAuth();
+
+    const identity: CimulateIdentitySnapshot | undefined = useMemo(() => {
+        if (!session?.userType) return undefined;
+        // The userType cookie hint flips to 'registered' before loader data supplies customerId; wait for it
+        // so one login is not classified twice (login, then account-switch).
+        if (session.userType === 'registered' && !session.customerId) return undefined;
+        return {
+            siteId: site.id,
+            userType: session.userType,
+            usid: session.usid,
+            customerId: session.customerId,
+        };
+    }, [site.id, session?.userType, session?.usid, session?.customerId]);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -96,7 +114,7 @@ function CimulateAgent({ cimulateConfiguration }: CimulateAgentProps) {
 
     return (
         <Suspense fallback={null}>
-            <CimulateUI cimulateConfiguration={cimulateConfiguration} />
+            <CimulateUI cimulateConfiguration={cimulateConfiguration} identity={identity} />
         </Suspense>
     );
 }

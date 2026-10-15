@@ -34,16 +34,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parse as parseDotenv } from 'dotenv';
-
-/**
- * True when `CI` indicates an actual CI environment.
- * Treats empty, `false`, `0`, and `no` as local (not CI).
- */
-export function isRealCi(value: string | undefined): boolean {
-    if (value == null || value.trim() === '') return false;
-    const normalized = value.trim().toLowerCase();
-    return normalized !== 'false' && normalized !== '0' && normalized !== 'no';
-}
+import { isRealCiEnv as isRealCi } from '../../utils/env';
 
 /** Keys that gate VerificationScenario / server siteverify paths. */
 const APP_TURNSTILE_ENV_KEYS = ['TURNSTILE_VERIFICATION_ENABLED', 'TURNSTILE_SECRET_KEYS'] as const;

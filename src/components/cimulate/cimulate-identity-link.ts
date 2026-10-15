@@ -94,6 +94,26 @@ function parseBridgeResult(value: unknown): CimulateIdentityLinkResult | null {
     };
 }
 
+/**
+ * Ends the current SCRT2 conversation via the Commerce Client SDK, used on logout so no chat
+ * history from the prior identity remains visible before the new guest identity links.
+ * Success means the reset request was dispatched, not that the asynchronous reset completed.
+ */
+export async function endCimulateConversation(): Promise<{ success: boolean }> {
+    const session = window.CimulateMessaging?.eventHandlers?.session;
+    const endConversation = session?.endConversation;
+    if (typeof endConversation !== 'function') {
+        return { success: false };
+    }
+
+    try {
+        await endConversation.call(session);
+        return { success: true };
+    } catch {
+        return { success: false };
+    }
+}
+
 export async function linkCimulateIdentity({
     fetchImpl = fetch,
 }: {

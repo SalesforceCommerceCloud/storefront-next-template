@@ -47,4 +47,5 @@ export const pageObjects = {
     previewComponentPage: './src/pages/preview-component.page.ts',
     orderLookupPage: './src/pages/order-lookup.page.ts',
     passkeyRegistrationPage: './src/pages/passkey-registration.page.ts',
+    cimulatePage: './src/pages/cimulate.page.ts',
 };

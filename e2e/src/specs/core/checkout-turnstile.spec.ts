@@ -71,17 +71,7 @@ const { I, addToCartFlow, checkoutPage, passwordlessLoginPage } = inject();
 import { expect } from 'chai';
 import { TEST_PRODUCT_CATEGORIES } from '../../test-data/checkout.data';
 import type { Route, Request } from '@playwright/test';
-
-/**
- * True for real CI. Treats empty / `false` / `0` / `no` as local.
- * Dotenv samples often set `CI=false`; that string is truthy in JS and must not
- * flip this suite into Scenario.skip or trip Codecept's empty-run CI check.
- */
-function isRealCiEnv(value: string | undefined): boolean {
-    if (value == null || value.trim() === '') return false;
-    const normalized = value.trim().toLowerCase();
-    return normalized !== 'false' && normalized !== '0' && normalized !== 'no';
-}
+import { isRealCiEnv } from '../../utils/env';
 
 // Automated scenarios run when:
 // 1. Not real CI (Cloudflare test keys + localhost only)

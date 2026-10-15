@@ -35,7 +35,7 @@ Optional `cc_`-prefixed widget options. The `cc_` prefix is stripped when the co
 {
   "enabled": "true",
   "provider": "commerce-client",
-  "commerceClientScriptSourceUrl": "https://cdn.search.cimulate.ai/copilot-widget/1.36.0/messaging.umd.js",
+  "commerceClientScriptSourceUrl": "https://cdn.search.cimulate.ai/copilot-widget/1.39.0/messaging.umd.js",
   "scrt2Url": "https://your-org.salesforce-scrt.com",
   "salesforceOrgId": "00Dxx0000000001",
   "esDeveloperName": "My_Embedded_Service",
@@ -80,7 +80,7 @@ Add `disabledPathPatterns` to the shopper-agent JSON to hide the widget on selec
 {
   "enabled": "true",
   "provider": "commerce-client",
-  "commerceClientScriptSourceUrl": "https://cdn.search.cimulate.ai/copilot-widget/1.36.0/messaging.umd.js",
+  "commerceClientScriptSourceUrl": "https://cdn.search.cimulate.ai/copilot-widget/1.39.0/messaging.umd.js",
   "scrt2Url": "https://your-org.salesforce-scrt.com",
   "salesforceOrgId": "00Dxx0000000001",
   "esDeveloperName": "My_Embedded_Service",
@@ -100,7 +100,7 @@ To disable multiple pages, add more patterns:
 ]
 ```
 
-Use Commerce Client widget version 1.32.0 or newer. Identity linking relies on its public `window.CimulateMessaging.getAuthLinkKey()` API.
+Use Commerce Client widget version **1.39.0 or newer** for identity linking and logout clearing. The integration uses `window.CimulateMessaging.getAuthLinkKey()` and `eventHandlers.session.endConversation()`.
 
 To enable the server-side Token Bridge, also set `AGENT_MYDOMAIN` to the Core My Domain hostname, for example `example.my.salesforce.com`. This optional feature variable is server-only and must not use the `PUBLIC__` prefix.
 
@@ -110,7 +110,21 @@ Controlled environments that use a non-public Core domain can also set `AGENT_MY
 
 - **Root layout** — `<CimulateAgent />` mounts when the resolved shopper-agent config's `enabled` is truthy. The resolver `resolveShopperAgentConfig(appConfig)` from `@/components/cimulate` returns `config.commerce.shopperAgent` when populated, else the legacy `config.cimulateAgent`. No extra wiring needed.
 - **Open widget programmatically** — `openCimulateWidget()`, provider-aware `openAgentWidget()`, or `openAgentWidgetAndSendMessage()` from `@/components/cimulate`.
-- **Identity linking** — On the widget-ready event for the first fresh conversation in a widget mount, `linkCimulateIdentity()` obtains a single-use AuthLink key from the widget SDK, then sends only that key to the same-origin Token Bridge route. The route reads SLAS tokens from the server auth context and forwards them to Core. One retryable failure gets a bounded full-flow retry with a newly minted key. Later new or resumed conversations and shopper identity changes require separate lifecycle handling.
+- **Identity linking** — On the widget-ready event (or on mount for a resumed conversation), `linkCimulateIdentity()` obtains a single-use AuthLink key from the widget SDK, then sends only that key to the same-origin Token Bridge route. The route reads SLAS tokens from the server auth context and forwards them to Core. One retryable failure gets a bounded full-flow retry with a newly minted key. A final failure shows a toast (`shopperAgent.sessionError`) and logs only the stable error code — never raw SDK/network bodies.
+
+### Identity lifecycle: login, logout, account-switch, guest-rotation
+
+`<CimulateAgent>` derives a non-sensitive identity snapshot (`siteId`, `userType`, and `usid` or `customerId`) from `useAuth()` + `useSite()` and passes it to `<CimulateWindow>`, which reacts to both the widget's conversation lifecycle and identity changes:
+
+- **New conversation** — Links on **every** widget-ready event, after the stored conversation token differs from the last one attempted (falling back to the last linked one). Identity changes preserve this pending token check. If no new token appears within the bounded poll, nothing is linked, a warning is logged, and the requirement remains for the next attempt. A ready event always re-links, even for an already-linked conversation id.
+- **Resumed conversation** — The widget sends no ready event on resume, so a stored conversation is linked once on mount. Widget storage is read as JSON: conversation id from `localStorage` then `sessionStorage`; token from `sessionStorage` then `localStorage`.
+- **Login / registration / account switch (guest → registered, or `customerId` change while registered)** — Re-links identity on the existing conversation. The conversation is **not** ended; the shopper keeps their chat history.
+- **Guest-identity rotation (`usid` change while remaining guest)** — Re-links identity the same way as login; the conversation is not ended.
+- **Logout (registered → guest)** — Requests chat termination through `eventHandlers.session.endConversation()` outside the link queue and links nothing. The SDK processes this request asynchronously; it does not automatically start a replacement conversation. A subsequently created conversation links on its ready event. If the API is unavailable or rejects the request, the widget is hidden until a full page reload, its deployment-scoped saved conversation is removed, and a warning and session-error toast are shown. The old conversation is never re-linked as a guest.
+- **Retry waits** — Honors `retryAfterSeconds` for the current attempt. New lifecycle events cancel outdated local waits so an old retry cannot hold up a new link. Active requests remain serialized.
+- **Deduplication** — Only the most recent `(deployment, site, conversation, identity)` link is remembered; the conversation id is read after the token wait. All link work (ready, resume, identity change) runs through one in-memory queue, so overlapping races resolve in order.
+- **Remounts** — Generation, queue, dedup, last-attempted token and identity baseline are module-level, so remounting `<CimulateWindow>` neither re-arms the resume link nor loses the baseline.
+- **Site switch alone** (same `userType`/`usid`/`customerId`) is not treated as an identity change.
 
 ## Security
 
