@@ -34,8 +34,17 @@ definitions:
           - |
             CLIENT_ID="${SFCC_CLIENT_ID:-${PUBLIC__app__commerce__api__clientId:-}}"
             BACKEND="${MRT_BACKEND:-legacy}"
+            MISSING_SCAPI=()
+            [ -n "$CLIENT_ID" ] || MISSING_SCAPI+=(SFCC_CLIENT_ID)
+            [ -n "$SFCC_CLIENT_SECRET" ] || MISSING_SCAPI+=(SFCC_CLIENT_SECRET)
+            [ -n "$SFCC_SHORTCODE" ] || MISSING_SCAPI+=(SFCC_SHORTCODE)
+            [ -n "$SFCC_TENANT_ID" ] || MISSING_SCAPI+=(SFCC_TENANT_ID)
+            if [ "$BACKEND" = "scapi" ] && [ "${#MISSING_SCAPI[@]}" -gt 0 ]; then
+              echo "MRT_BACKEND is scapi but these variables are missing: ${MISSING_SCAPI[*]}."
+              exit 1
+            fi
             HAS_SCAPI=false
-            if [ -n "$CLIENT_ID" ] && [ -n "$SFCC_CLIENT_SECRET" ] && [ -n "$SFCC_SHORTCODE" ] && [ -n "$SFCC_TENANT_ID" ]; then
+            if { [ "$BACKEND" = "scapi" ] || [ "$BACKEND" = "auto" ]; } && [ "${#MISSING_SCAPI[@]}" -eq 0 ]; then
               HAS_SCAPI=true
             fi
             if [ -z "$MRT_API_KEY" ] && [ "$HAS_SCAPI" != "true" ]; then
