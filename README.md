@@ -130,7 +130,7 @@ pnpm push
 pnpm push --mrt-backend scapi --environment staging --wait
 ```
 
-See the [Deployment Guide](https://www.npmjs.com/package/@salesforce/storefront-next-dev?activeTab=readme) for all options and [MRT Backends](https://salesforcecommercecloud.github.io/b2c-developer-tooling/cli/mrt.html#mrt-backends) for backend details. The included `.github/workflows/deploy.yml` deploys to Managed Runtime and B2C Commerce on push to `latest`.
+See the [Deployment Guide](https://www.npmjs.com/package/@salesforce/storefront-next-dev?activeTab=readme) for all options and [MRT Backends](https://salesforcecommercecloud.github.io/b2c-developer-tooling/cli/mrt.html#mrt-backends) for backend details. The included `.github/workflows/deploy.yml` deploys to Managed Runtime and B2C Commerce on push to `latest`; `bitbucket-pipelines.yml` provides equivalent validation and deploy pipelines for Bitbucket Cloud Free.
 
 ## B2C CLI
 

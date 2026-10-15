@@ -1,0 +1,146 @@
+# Bitbucket Cloud Free provides 50 build minutes per workspace each month.
+# Fork pull requests do not run Pipelines. A same-repository PR also runs the
+# source-branch push pipeline, which duplicates minutes on Free. Custom
+# pipelines can target a selected branch; ECOM dispatches deploy-storefront on
+# latest without overriding inputs. ENVIRONMENT is informational only: Free
+# has no GitHub-style environment-scoped secrets or permissions, and repository
+# variables apply to every branch. Keep validation and deploy commands in sync
+# with .github/workflows/build.yml and deploy.yml.
+image: node:24
+
+definitions:
+  caches:
+    pnpm: $BITBUCKET_CLONE_DIR/.pnpm-store
+  steps:
+    - step: &setup-and-build
+        name: Validate build
+        caches: [pnpm]
+        script:
+          - corepack enable
+          - corepack prepare pnpm@10.28.0 --activate
+          - pnpm config set store-dir "$BITBUCKET_CLONE_DIR/.pnpm-store"
+          - |
+            if [ -f pnpm-lock.yaml ]; then
+              pnpm install --frozen-lockfile
+            else
+              pnpm install --no-frozen-lockfile
+            fi
+          - NODE_OPTIONS='--max-old-space-size=4096' pnpm build
+
+    - step: &deploy-mrt
+        name: Deploy to MRT
+        caches: [pnpm]
+        script:
+          - |
+            CLIENT_ID="${SFCC_CLIENT_ID:-${PUBLIC__app__commerce__api__clientId:-}}"
+            BACKEND="${MRT_BACKEND:-legacy}"
+            HAS_SCAPI=false
+            if [ -n "$CLIENT_ID" ] && [ -n "$SFCC_CLIENT_SECRET" ] && [ -n "$SFCC_SHORTCODE" ] && [ -n "$SFCC_TENANT_ID" ]; then
+              HAS_SCAPI=true
+            fi
+            if [ -z "$MRT_API_KEY" ] && [ "$HAS_SCAPI" != "true" ]; then
+              echo "MRT deployment skipped: configure MRT_API_KEY, or MRT_BACKEND=scapi/auto with complete SCAPI credentials."
+              exit 0
+            fi
+            if [ -z "$MRT_API_KEY" ]; then
+              BACKEND=scapi
+            fi
+
+            TARGET="${MRT_TARGET:-${MRT_ENVIRONMENT:-}}"
+            if [ -z "$TARGET" ]; then
+              echo "MRT deployment requires MRT_TARGET or MRT_ENVIRONMENT; refusing to assume a destination."
+              exit 1
+            fi
+            if [ -z "$MRT_PROJECT" ]; then
+              echo "MRT deployment requires MRT_PROJECT."
+              exit 1
+            fi
+            echo "ENVIRONMENT label: ${ENVIRONMENT:-not set} (informational only; it does not scope credentials or permissions)."
+
+            corepack enable
+            corepack prepare pnpm@10.28.0 --activate
+            pnpm config set store-dir "$BITBUCKET_CLONE_DIR/.pnpm-store"
+            if [ -f pnpm-lock.yaml ]; then
+              pnpm install --frozen-lockfile
+            else
+              pnpm install --no-frozen-lockfile
+            fi
+            NODE_OPTIONS='--max-old-space-size=4096' pnpm build
+
+            PUSH_ARGS=(--wait --environment "$TARGET")
+            if [ -n "$MESSAGE" ]; then
+              PUSH_ARGS+=(--message "$MESSAGE")
+            fi
+            SFCC_CLIENT_ID="$CLIENT_ID" MRT_BACKEND="$BACKEND" pnpm push "${PUSH_ARGS[@]}"
+
+    - step: &deploy-cartridge
+        name: Deploy cartridges
+        caches: [pnpm]
+        script:
+          - |
+            CLIENT_ID="${SFCC_CLIENT_ID:-${PUBLIC__app__commerce__api__clientId:-}}"
+            if [ -z "$SFCC_SERVER" ] || [ -z "$CLIENT_ID" ] || [ -z "$SFCC_CLIENT_SECRET" ]; then
+              echo "Cartridge deployment skipped: configure SFCC_SERVER, SFCC_CLIENT_ID, and SFCC_CLIENT_SECRET."
+              exit 0
+            fi
+
+            corepack enable
+            corepack prepare pnpm@10.28.0 --activate
+            pnpm config set store-dir "$BITBUCKET_CLONE_DIR/.pnpm-store"
+            if [ -f pnpm-lock.yaml ]; then
+              pnpm install --frozen-lockfile
+            else
+              pnpm install --no-frozen-lockfile
+            fi
+            NODE_OPTIONS='--max-old-space-size=4096' pnpm build
+
+            if [ -n "$CODE_VERSION" ]; then
+              VERSION="$CODE_VERSION"
+            elif [ -n "$SFCC_CODE_VERSION" ]; then
+              VERSION="$SFCC_CODE_VERSION"
+            else
+              UTC="$(date -u +%Y%m%d_%H%M%S)"
+              SHORT_SHA="$(printf '%s' "$BITBUCKET_COMMIT" | cut -c1-7)"
+              VERSION="${BITBUCKET_BRANCH}_${UTC}_${SHORT_SHA}"
+            fi
+            echo "ENVIRONMENT label: ${ENVIRONMENT:-not set} (informational only; it does not scope credentials or permissions)."
+            SFCC_CLIENT_ID="$CLIENT_ID" pnpm cartridge:deploy --code-version "$VERSION" --reload
+
+pipelines:
+  default:
+    - step: *setup-and-build
+
+  pull-requests:
+    '**':
+      - step: *setup-and-build
+
+  branches:
+    latest:
+      - step: *setup-and-build
+      - parallel:
+          fail-fast: false
+          steps:
+            - step: *deploy-mrt
+            - step: *deploy-cartridge
+
+  custom:
+    validate:
+      - step: *setup-and-build
+    deploy-storefront:
+      - variables:
+          - name: ENVIRONMENT
+            default: ''
+            description: Informational label only; it does not scope credentials or permissions.
+          - name: MRT_TARGET
+            description: Optional MRT deployment target; otherwise MRT_ENVIRONMENT or the repository MRT_TARGET is used.
+          - name: MESSAGE
+            default: ''
+            description: Optional MRT bundle message.
+          - name: CODE_VERSION
+            default: ''
+            description: Optional cartridge code version.
+      - parallel:
+          fail-fast: false
+          steps:
+            - step: *deploy-mrt
+            - step: *deploy-cartridge
