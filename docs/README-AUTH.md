@@ -101,10 +101,10 @@ If a structurally invalid token is detected (decodable but missing required clai
 
 ```bash
 # Override guest refresh token expiry (capped at 30 days)
-PUBLIC_COMMERCE_API_GUEST_REFRESH_TOKEN_EXPIRY_SECONDS=2592000
+PUBLIC__app__commerce__api__guestRefreshTokenExpirySeconds=2592000
 
 # Override registered refresh token expiry (capped at 90 days)
-PUBLIC_COMMERCE_API_REGISTERED_REFRESH_TOKEN_EXPIRY_SECONDS=7776000
+PUBLIC__app__commerce__api__registeredRefreshTokenExpirySeconds=7776000
 ```
 
 ### Cookie domain

@@ -383,7 +383,7 @@ This example shows a resource route that encapsulates complex business logic for
 
 ```typescript
 // src/routes/resource.basket.add.ts
-import type { ActionFunctionArgs } from "react-router";
+import { data, type ActionFunctionArgs } from "react-router";
 import { addToBasket } from "@/lib/basket";
 import { validateInventory } from "@/lib/inventory";
 import { createActionError } from "@/lib/action-error-helpers.server";
@@ -397,7 +397,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Business logic: validate inventory
   const available = await validateInventory(productId, quantity);
   if (!available) {
-    return Response.json(
+    return data(
       {
         success: false,
         error: createActionError({
@@ -412,9 +412,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     // Add to basket via API
     const basket = await addToBasket(context, productId, quantity);
-    return Response.json({ success: true, basket });
+    return data({ success: true, basket });
   } catch (error) {
-    return Response.json(
+    return data(
       { success: false, error: createActionError({ error }) },
       { status: 500 },
     );
