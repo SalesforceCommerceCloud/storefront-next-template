@@ -1,0 +1,71 @@
+name: deploy-cartridges
+description: Deploy and activate cartridges on a B2C Commerce instance
+inputs:
+  cartridge-path:
+    description: Path to cartridges
+    required: true
+  code-version:
+    description: Code version (generated from ref, UTC timestamp, and SHA when unset)
+    required: false
+  ref-name:
+    description: Git ref name for the generated code version
+    required: true
+  sha:
+    description: Git commit SHA for the generated code version
+    required: true
+  server:
+    description: B2C Commerce server
+    required: true
+  client-id:
+    description: API client ID
+    required: true
+  client-secret:
+    description: API client secret
+    required: true
+  short-code:
+    description: Short code for SCAPI activation
+    required: false
+  tenant-id:
+    description: Tenant ID for SCAPI activation
+    required: false
+  account-manager-host:
+    description: Account Manager host
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Generate code version
+      id: code-version
+      shell: bash
+      env:
+        CODE_VERSION: ${{ inputs.code-version }}
+        REF_NAME: ${{ inputs.ref-name }}
+        SHORT_SHA: ${{ inputs.sha }}
+      run: |
+        if [ -z "$CODE_VERSION" ]; then
+          DATESTAMP=$(date -u +%Y%m%d_%H%M%S)
+          SHORT_SHA="${SHORT_SHA:0:7}"
+          SAFE_REF_NAME="$(printf '%s' "$REF_NAME" | tr -c 'A-Za-z0-9._-' '-')"
+          CODE_VERSION="${SAFE_REF_NAME}_${DATESTAMP}_${SHORT_SHA}"
+        fi
+
+        if [[ ! "$CODE_VERSION" =~ ^[A-Za-z0-9._-]+$ ]]; then
+          echo "::error title=Invalid code version::Code versions may contain only letters, numbers, periods, underscores, and hyphens."
+          exit 1
+        fi
+
+        echo "value=$CODE_VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Deploy cartridge
+      uses: SalesforceCommerceCloud/b2c-developer-tooling/actions/code-deploy@v2
+      with:
+        cartridge-path: ${{ inputs.cartridge-path }}
+        code-version: ${{ steps.code-version.outputs.value }}
+        server: ${{ inputs.server }}
+        client-id: ${{ inputs.client-id }}
+        client-secret: ${{ inputs.client-secret }}
+        short-code: ${{ inputs.short-code }}
+        tenant-id: ${{ inputs.tenant-id }}
+        account-manager-host: ${{ inputs.account-manager-host }}
+        # Activate the deployed code version (SCAPI sfcc.scripts.rw, or OCAPI code_versions fallback).
+        activate: 'true'

@@ -98,6 +98,7 @@ jobs:
         env:
           MRT_API_KEY: ${{ secrets.MRT_API_KEY }}
           SFCC_CLIENT_SECRET: ${{ secrets.SFCC_CLIENT_SECRET }}
+        shell: bash
         run: |
           MISSING_SCAPI=()
           [ -n "$SFCC_CLIENT_ID" ] || MISSING_SCAPI+=(SFCC_CLIENT_ID)
@@ -131,19 +132,19 @@ jobs:
 
       - name: Push to MRT
         if: steps.config.outputs.skip != 'true'
-        run: |
-          PUSH_ARGS=(--wait)
-          if [ -n "$MESSAGE" ]; then
-            PUSH_ARGS+=(--message "$MESSAGE")
-          fi
-          pnpm push "${PUSH_ARGS[@]}"
-        env:
-          MRT_API_KEY: ${{ secrets.MRT_API_KEY }}
-          SFCC_CLIENT_SECRET: ${{ secrets.SFCC_CLIENT_SECRET }}
-          MRT_PROJECT: ${{ vars.MRT_PROJECT }}
-          MRT_ENVIRONMENT: ${{ github.event.inputs.mrt_environment || vars.MRT_ENVIRONMENT || vars.MRT_TARGET }}
-          MRT_CLOUD_ORIGIN: ${{ vars.MRT_CLOUD_ORIGIN }}
-          MESSAGE: ${{ github.event.inputs.message }}
+        uses: './.github/actions/deploy-mrt'
+        with:
+          project: ${{ vars.MRT_PROJECT }}
+          environment: ${{ github.event.inputs.mrt_environment || vars.MRT_ENVIRONMENT || vars.MRT_TARGET }}
+          cloud-origin: ${{ vars.MRT_CLOUD_ORIGIN }}
+          backend: ${{ vars.MRT_BACKEND }}
+          client-id: ${{ vars.SFCC_CLIENT_ID }}
+          api-key: ${{ secrets.MRT_API_KEY }}
+          client-secret: ${{ secrets.SFCC_CLIENT_SECRET }}
+          short-code: ${{ vars.SFCC_SHORTCODE }}
+          tenant-id: ${{ vars.SFCC_TENANT_ID }}
+          account-manager-host: ${{ vars.SFCC_ACCOUNT_MANAGER_HOST }}
+          message: ${{ github.event.inputs.message }}
 
   deploy-cartridges:
     runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
@@ -159,6 +160,7 @@ jobs:
         id: config
         env:
           SFCC_CLIENT_SECRET: ${{ secrets.SFCC_CLIENT_SECRET }}
+        shell: bash
         run: |
           if [ -z "$SFCC_SERVER" ] || [ -z "$SFCC_CLIENT_ID" ] || [ -z "$SFCC_CLIENT_SECRET" ]; then
             echo "::notice title=Cartridge deploy skipped::Cartridge deployment was skipped because one or more required variables are not set (SFCC_SERVER, SFCC_CLIENT_ID, SFCC_CLIENT_SECRET). Configure these in repository settings to enable cartridge deploys."
@@ -176,33 +178,17 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           pnpm-version: ${{ env.PNPM_VERSION }}
 
-      - name: Generate code version
-        if: steps.config.outputs.skip != 'true'
-        id: code-version
-        run: |
-          if [ -n "${{ github.event.inputs.code_version }}" ]; then
-            echo "value=${{ github.event.inputs.code_version }}" >> "$GITHUB_OUTPUT"
-          elif [ -n "${{ vars.SFCC_CODE_VERSION }}" ]; then
-            echo "value=${{ vars.SFCC_CODE_VERSION }}" >> "$GITHUB_OUTPUT"
-          else
-            DATESTAMP=$(date -u +%Y%m%d_%H%M%S)
-            SHORT_SHA="${{ github.sha }}"
-            SHORT_SHA="${SHORT_SHA:0:7}"
-            echo "value=${{ github.ref_name }}_${DATESTAMP}_${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-          fi
-        shell: bash
-
       - name: Deploy cartridge
         if: steps.config.outputs.skip != 'true'
-        uses: SalesforceCommerceCloud/b2c-developer-tooling/actions/code-deploy@v2
+        uses: './.github/actions/deploy-cartridges'
         with:
           cartridge-path: cartridges/
-          code-version: ${{ steps.code-version.outputs.value }}
+          code-version: ${{ github.event.inputs.code_version || vars.SFCC_CODE_VERSION }}
+          ref-name: ${{ github.ref_name }}
+          sha: ${{ github.sha }}
           server: ${{ vars.SFCC_SERVER }}
           client-id: ${{ vars.SFCC_CLIENT_ID }}
           client-secret: ${{ secrets.SFCC_CLIENT_SECRET }}
           short-code: ${{ vars.SFCC_SHORTCODE }}
           tenant-id: ${{ vars.SFCC_TENANT_ID }}
           account-manager-host: ${{ vars.SFCC_ACCOUNT_MANAGER_HOST }}
-          # Activate the deployed code version (SCAPI sfcc.scripts.rw, or OCAPI code_versions fallback).
-          activate: 'true'

@@ -279,7 +279,7 @@ importers:
         version: 4.1.10(vitest@4.1.10)
       chromatic:
         specifier: ^18.0.1
-        version: 18.12.1
+        version: 18.12.2
       compression:
         specifier: 1.8.1
         version: 1.8.1
@@ -367,7 +367,7 @@ importers:
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.10.1
-        version: 4.13.0(playwright-core@1.64.0)
+        version: 4.13.0(playwright-core@1.64.1)
       '@codeceptjs/allure-legacy':
         specifier: ^1.0.2
         version: 1.0.2
@@ -3761,8 +3761,8 @@ packages:
   '@storybook/global@5.0.0':
     resolution: {integrity: sha512-FcOqPAXACP0I3oJ/ws6/rrPT9WGhu915Cg8D02a9YxLo0DE9zI+a9A5gRGvmQ09fiWPukqI8ZAEoQEdWUKMQdQ==}
 
-  '@storybook/icons@2.1.0':
-    resolution: {integrity: sha512-Fxh9vYpX9bQqFeHRiY8h2ApeRGDzRSMLwJwNZ/AIRqnyOKHxRKL+yFe+ctEkVJmuptRE9u1Hrn8ZZNHyfDKKNg==}
+  '@storybook/icons@2.2.0':
+    resolution: {integrity: sha512-FpUB/xizIrV1ILhCIYFo+TtQNN9YEoLjfcnAW0JtOXL+BcM2aisSysI0B54JMWDnljriXySBHgN6ps4s9lb75A==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -5058,8 +5058,8 @@ packages:
       '@chromatic-com/playwright':
         optional: true
 
-  chromatic@18.12.1:
-    resolution: {integrity: sha512-EtRUQ8lJ+I+WS6SPQZkf6ab19rGzqqvL4uX7uy6Ams2gHCi7Lx4qus0SeoTJ7k8kIQmnSRhVZgqRw2/xjD+1CA==}
+  chromatic@18.12.2:
+    resolution: {integrity: sha512-Jn/4KsSomJuOnhDr6w8DT3xLxB3lzcznKBaAtsNS7SLm0+5QWa2fJsQWsIKV3Qi3CXYl5J7NXsBuPGD6H9TOiA==}
     engines: {node: '>=22.0.0'}
     hasBin: true
     peerDependencies:
@@ -5700,8 +5700,8 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.454:
-    resolution: {integrity: sha512-NqD5GhkXnxJpDQVCmmpc546qjH6kei2VI9m45CTF+sQU7bcS7YeVt7ba0cnjueMH1AXGRu/driZUP9iYVSv7vg==}
+  electron-to-chromium@1.5.456:
+    resolution: {integrity: sha512-8hboqI6xesozteFb8aa7OGknvxUtTeRJLz0FoePysUEh/oWbddykIGdgpEJRbPRg/nIMfBf2DFos+H2MtvJl2A==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -5969,8 +5969,8 @@ packages:
   fast-copy@3.1.0:
     resolution: {integrity: sha512-IuCOCDFM1F/s4LtG7Bjr3yUUwPHybyhqN74xk2cMYoP51vVeErMy8+6HGFchi/+45lW8uzhs6lBeEqks2GWt6A==}
 
-  fast-copy@4.1.2:
-    resolution: {integrity: sha512-DUHggaYcouhy5I1LacDJ+JDSqGlumVJP2EAi5Nwt1pWPeLpSvIjkrY+x4fsoI1/+GlTyq+DM9zdgWCFSfqNODA==}
+  fast-copy@4.2.0:
+    resolution: {integrity: sha512-WSlnvPXaMdUjFdgxPkovE4e5aslybVod4TNKrEKKyoA8GoHZzbDLlhDXZOvqjtFgjtOHd9TYCstkUcGXy1+SEA==}
 
   fast-deep-equal@2.0.1:
     resolution: {integrity: sha512-bCK/2Z4zLidyB4ReuIsvALH6w31YfAQDmXMqMx6FyfHqvBxtjC0eRumeSu4Bs3XtXwpyIywtSTrVT99BxY1f9w==}
@@ -8275,8 +8275,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  playwright-core@1.64.0:
-    resolution: {integrity: sha512-T9r+MZkTECl2+oUcZ26YgZzTrYidTsIhYYkJix+6iDOymOb1FB2RLLSOxRGnZGv5DStt+aduIVbt+E8WygXYpg==}
+  playwright-core@1.64.1:
+    resolution: {integrity: sha512-BC4s8y6SEVA6Q1rSxZTto8hI1KUI3xXlHGZgvGqP4IqPdI/a6FX9H29IDNz7vKo9l21b6LfYosScPL6M3xxyDQ==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -8479,8 +8479,8 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
-  react-is@19.3.0:
-    resolution: {integrity: sha512-UpMYezM4v5/18F28aC66AEsjXIgE02kyEMH6yLdgLXu/UTfa1Ntwck/nNLrbqJsEXW7gPb0coNO9FQse9WTovA==}
+  react-is@19.3.1:
+    resolution: {integrity: sha512-RRieF6IyxQBkcK6pP8xOHprLTPW6QjRkbGdImtqNme+/hYVwCZkLQLdlZGOhUqXwkS9IEynaGvPJtv6XB/cz0Q==}
 
   react-native@0.81.6:
     resolution: {integrity: sha512-X/tI8GqfzVaa+zfbE4+lySNN5UzwBIAVRHVZPKymOny9Acc5GYYcjAcEVfG3AM4h920YALWoSl8favnDmQEWIg==}
@@ -10342,10 +10342,10 @@ snapshots:
 
   '@aws/lambda-invoke-store@0.3.0': {}
 
-  '@axe-core/playwright@4.13.0(playwright-core@1.64.0)':
+  '@axe-core/playwright@4.13.0(playwright-core@1.64.1)':
     dependencies:
       axe-core: 4.13.0
-      playwright-core: 1.64.0
+      playwright-core: 1.64.1
 
   '@babel/code-frame@7.29.7':
     dependencies:
@@ -13343,7 +13343,7 @@ snapshots:
     dependencies:
       '@mdx-js/react': 3.1.1(@types/react@19.1.13)(react@19.2.3)
       '@storybook/csf-plugin': 10.2.19(esbuild@0.28.1)(rollup@4.62.2)(storybook@10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3))(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))
-      '@storybook/icons': 2.1.0(react@19.2.3)
+      '@storybook/icons': 2.2.0(react@19.2.3)
       '@storybook/react-dom-shim': 10.2.19(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(storybook@10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3))
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
@@ -13359,7 +13359,7 @@ snapshots:
   '@storybook/addon-vitest@10.2.19(@vitest/browser@4.1.10)(@vitest/runner@4.1.10)(react@19.2.3)(storybook@10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3))(vitest@4.1.10)':
     dependencies:
       '@storybook/global': 5.0.0
-      '@storybook/icons': 2.1.0(react@19.2.3)
+      '@storybook/icons': 2.2.0(react@19.2.3)
       storybook: 10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3)
     optionalDependencies:
       '@vitest/browser': 4.1.10(msw@2.11.3(@types/node@24.3.0)(typescript@5.9.2))(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(vitest@4.1.10)
@@ -13390,7 +13390,7 @@ snapshots:
 
   '@storybook/global@5.0.0': {}
 
-  '@storybook/icons@2.1.0(react@19.2.3)':
+  '@storybook/icons@2.2.0(react@19.2.3)':
     dependencies:
       react: 19.2.3
 
@@ -13455,7 +13455,7 @@ snapshots:
       jest-watch-typeahead: 3.0.1(jest@30.5.2(@types/node@24.3.0)(ts-node@10.9.2(@swc/core@1.16.18)(@types/node@24.3.0)(typescript@5.9.2)))
       nyc: 15.1.0
       playwright: 1.61.1
-      playwright-core: 1.64.0
+      playwright-core: 1.64.1
       rimraf: 3.0.2
       storybook: 10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3)
       uuid: 8.3.2
@@ -14552,7 +14552,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.28
       caniuse-lite: 1.0.30001816
-      electron-to-chromium: 1.5.454
+      electron-to-chromium: 1.5.456
       node-releases: 2.0.58
       update-browserslist-db: 1.3.4(browserslist@4.29.3)
 
@@ -14771,7 +14771,7 @@ snapshots:
 
   chromatic@12.2.0: {}
 
-  chromatic@18.12.1:
+  chromatic@18.12.2:
     dependencies:
       semver: 7.8.5
 
@@ -15486,7 +15486,7 @@ snapshots:
 
   ejs@6.0.1: {}
 
-  electron-to-chromium@1.5.454: {}
+  electron-to-chromium@1.5.456: {}
 
   embla-carousel-react@8.6.0(react@19.2.3):
     dependencies:
@@ -15812,7 +15812,7 @@ snapshots:
 
   fast-copy@3.1.0: {}
 
-  fast-copy@4.1.2: {}
+  fast-copy@4.2.0: {}
 
   fast-deep-equal@2.0.1: {}
 
@@ -18659,7 +18659,7 @@ snapshots:
     dependencies:
       colorette: 2.0.20
       dateformat: 4.6.3
-      fast-copy: 4.1.2
+      fast-copy: 4.2.0
       fast-safe-stringify: 2.1.1
       help-me: 5.0.0
       joycon: 3.1.1
@@ -18715,7 +18715,7 @@ snapshots:
 
   playwright-core@1.61.1: {}
 
-  playwright-core@1.64.0: {}
+  playwright-core@1.64.1: {}
 
   playwright@1.61.1:
     dependencies:
@@ -18752,7 +18752,7 @@ snapshots:
   pretty-format@30.5.1:
     dependencies:
       '@jest/react-is-18': react-is@18.3.1
-      '@jest/react-is-19': react-is@19.3.0
+      '@jest/react-is-19': react-is@19.3.1
       '@jest/schemas': 30.5.0
       ansi-styles: 5.2.0
 
@@ -18950,7 +18950,7 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-is@19.3.0: {}
+  react-is@19.3.1: {}
 
   react-native@0.81.6(@babel/core@7.29.7)(@types/react@19.1.13)(react@19.2.3):
     dependencies:
@@ -19626,7 +19626,7 @@ snapshots:
   storybook@10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3):
     dependencies:
       '@storybook/global': 5.0.0
-      '@storybook/icons': 2.1.0(react@19.2.3)
+      '@storybook/icons': 2.2.0(react@19.2.3)
       '@testing-library/jest-dom': 6.8.0
       '@testing-library/user-event': 14.6.1(@testing-library/dom@10.4.2)
       '@vitest/expect': 3.2.4

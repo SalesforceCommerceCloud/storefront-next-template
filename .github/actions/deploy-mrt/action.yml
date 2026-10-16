@@ -1,0 +1,59 @@
+name: deploy-mrt
+description: Push the built storefront bundle to Managed Runtime
+inputs:
+  project:
+    description: MRT project
+    required: false
+  environment:
+    description: MRT target environment (uses the push command default when unset)
+    required: false
+  cloud-origin:
+    description: MRT cloud origin
+    required: false
+  backend:
+    description: MRT backend (legacy, scapi, or auto)
+    required: false
+  client-id:
+    description: API client ID for the SCAPI backend
+    required: false
+  api-key:
+    description: API key for the legacy MRT backend
+    required: false
+  client-secret:
+    description: API client secret for the SCAPI backend
+    required: false
+  short-code:
+    description: Short code for the SCAPI backend
+    required: false
+  tenant-id:
+    description: Tenant ID for the SCAPI backend
+    required: false
+  account-manager-host:
+    description: Account Manager host
+    required: false
+  message:
+    description: Message for the deployed bundle
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Push to MRT
+      shell: bash
+      run: |
+        PUSH_ARGS=(--wait)
+        if [ -n "$MESSAGE" ]; then
+          PUSH_ARGS+=(--message "$MESSAGE")
+        fi
+        pnpm push "${PUSH_ARGS[@]}"
+      env:
+        MRT_API_KEY: ${{ inputs.api-key }}
+        SFCC_CLIENT_SECRET: ${{ inputs.client-secret }}
+        MRT_PROJECT: ${{ inputs.project }}
+        MRT_ENVIRONMENT: ${{ inputs.environment }}
+        MRT_CLOUD_ORIGIN: ${{ inputs.cloud-origin }}
+        MRT_BACKEND: ${{ inputs.backend }}
+        SFCC_CLIENT_ID: ${{ inputs.client-id }}
+        SFCC_SHORTCODE: ${{ inputs.short-code }}
+        SFCC_TENANT_ID: ${{ inputs.tenant-id }}
+        SFCC_ACCOUNT_MANAGER_HOST: ${{ inputs.account-manager-host }}
+        MESSAGE: ${{ inputs.message }}
