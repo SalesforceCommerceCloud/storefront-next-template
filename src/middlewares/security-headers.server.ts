@@ -24,6 +24,7 @@ import { createData360CspContributor } from './csp-contributors/data360.js';
 // version permitting the OSM tile origin. A relative import would pin the default and leave those
 // map tiles CSP-blocked.
 import { createOpenStreetMapCspContributor } from '@/middlewares/csp-contributors/openstreetmap';
+import { mergeExtensionServerCsp } from './csp-contributors/extension-server-csp.js';
 
 let middleware: MiddlewareFunction<Response> | null = null;
 
@@ -42,7 +43,8 @@ export const securityHeadersMiddleware: MiddlewareFunction<Response> = async (ar
             createData360CspContributor(config.engagement?.adapters?.data360),
             createOpenStreetMapCspContributor(),
         ];
-        middleware = createSecurityHeadersMiddleware(config.security?.headers ?? {}, contributors);
+        const headers = mergeExtensionServerCsp(config.security?.headers ?? {}, config.serverExtension);
+        middleware = createSecurityHeadersMiddleware(headers, contributors);
     }
     return middleware(args, next);
 };

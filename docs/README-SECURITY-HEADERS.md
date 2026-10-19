@@ -80,6 +80,21 @@ Origins are derived from the resolved shopper-agent config (`commerceClientScrip
 
 To author a new contributor for a feature, use the `add-csp-contributor` skill.
 
+## Extension CSP
+
+An installed extension can add host sources without editing `config.server.ts`. Export a static `csp` object from `src/extensions/<app>/server-config.ts`:
+
+```ts
+export default {
+    csp: {
+        'script-src': ['https://*.example.com'],
+        'connect-src': ['https://*.example.com', 'wss://*.example.com'],
+    },
+};
+```
+
+The security middleware appends those sources onto the directive lists already in effect (`defaultCspDirectives`, plus any `config.server.ts` override). Accepted directive names are `script-src`, `style-src`, `img-src`, `frame-src`, and `connect-src`. `https` and `wss` host sources are accepted, including a leading `*.` wildcard when the rest is a registrable domain (`*.example.com`, `*.example.co.uk`). A wildcard over a public or private suffix (`*.co.uk`, `*.com`, `*.github.io`) is ignored. Other directive names, keywords such as `'unsafe-inline'`, `ws://`, and values that contain a path, whitespace, or `;` are ignored. Each ignored directive or host is logged once, when the middleware is first created. This is separate from CSP contributors, which still accept only exact `https` origins.
+
 **Note:** The Page Designer `frame-ancestors` relaxation is currently inline in the SDK middleware (a documented legacy exception) and will migrate to a contributor in a follow-up (W-23050622).
 
 ## Disabling a header

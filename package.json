@@ -95,6 +95,7 @@
         "sonner": "2.0.7",
         "tailwind-merge": "3.3.1",
         "tailwindcss": "4.1.13",
+        "tldts": "7.4.18",
         "vaul": "1.1.2",
         "zod": "4.1.11"
     },
@@ -206,8 +207,8 @@
         "server": [
             {
                 "name": "**/*",
-                "limit": "6.6 mB",
-                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. Delivery estimates add private destination-cookie and resource-route handling, measuring 6,206 kB in the cosmetic vertical. The footwear vertical's server code (PDP recommendation rails in pdp-recommendations.server.ts, the size-guide route, colorway/width/size selectors) measured ~6,201 kB, bumped 6.2 mB → 6.3 mB, then main's growth carried the matrix to 6,309–6,385 kB (furniture largest). Luxury (W-24144914) is now the heaviest — its boutique locator/appointment/directory routes, watch-finder tool, and store-locator extension measure the direct luxury server build at ~6,472 kB — so the limit rises 6.4 mB → 6.6 mB. Uncompressed. Follow-up: server-bundle diet to bring this back under 6 mB."
+                "limit": "6.8 mB",
+                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. Delivery estimates add private destination-cookie and resource-route handling, measuring 6,206 kB in the cosmetic vertical. The footwear vertical's server code (PDP recommendation rails in pdp-recommendations.server.ts, the size-guide route, colorway/width/size selectors) measured ~6,201 kB, bumped 6.2 mB → 6.3 mB, then main's growth carried the matrix to 6,309–6,385 kB (furniture largest). Luxury (W-24144914) is now the heaviest — its boutique locator/appointment/directory routes, watch-finder tool, and store-locator extension measure the direct luxury server build at ~6,472 kB — so the limit rises 6.4 mB → 6.6 mB. The public-suffix check (tldts) adds ~144 kB to the server chunk; mirror builds then measure footwear 6,635 kB, furniture 6,646 kB, and luxury 6,703 kB, so the limit rises 6.6 mB → 6.8 mB. Uncompressed. Follow-up: server-bundle diet to bring this back under 6 mB."
             }
         ],
         "client": [

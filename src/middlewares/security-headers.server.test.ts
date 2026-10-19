@@ -147,4 +147,19 @@ describe('securityHeadersMiddleware (template wiring)', () => {
         // rejected by mergeEnvConfig's path validation.
         expect(headers.csp).toMatchObject({ reportOnly: expect.any(Boolean) });
     });
+
+    it('appends CSP hosts declared in extension server config', async () => {
+        vi.doMock('@salesforce/storefront-next-runtime/config', () => ({
+            getConfig: () => ({
+                security: { headers: {} },
+                serverExtension: {
+                    example: { csp: { 'script-src': ['https://*.example.com'] } },
+                },
+            }),
+        }));
+        const { securityHeadersMiddleware: mw } = await import('./security-headers.server');
+        const { args } = makeArgs();
+        const res = await run(mw, args, (() => Promise.resolve(new Response('ok'))) as unknown as Next);
+        expect(res.headers.get('content-security-policy')).toContain('https://*.example.com');
+    });
 });
