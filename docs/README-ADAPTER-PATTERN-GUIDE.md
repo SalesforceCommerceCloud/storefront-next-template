@@ -137,6 +137,12 @@ If an adapter's `enabled` flag is `false`, it is not registered.
 
 **Data 360 maps page, search, product-view, and impression interactions** — `view_page`, `view_product`, `view_search`, `view_category`, and `view_recommender`. Search, category, and product events send a separate Page View interaction when shared Page View tracking blocks their path and `view_page` is enabled. A direct search sends one Search interaction per search execution and correlates its product impressions across pagination. Recommendations do not derive a Page View. Cart, checkout, wishlist, and click events have no Data 360 mapping and ship disabled in `eventToggles`.
 
+The adapter uses public types and fresh interaction builders from `@salesforce/cc-datacloud-typescript`, pinned to `1.2.0`. Consent, identity/session fields, and site attribution remain storefront-owned. Missing, empty, or whitespace-only product identifiers are skipped without changing valid identifiers, result positions, or search counts. Valid siblings and independent Page View/Search interactions are retained; empty catalog interactions are omitted.
+
+Delivery uses the public SDK client with `fetch` and `keepalive: true`. The SDK serializes UTF-8 Base64 into an escaped `event=` form value. Search uses `eventType: 'searchEvent'` and `interactionName: 'search'`; its Search Result ID connects the Search Execution to its catalog impressions. Each build and delivery is attempted independently. Validation, HTTP, network/CORS, and browser quota failures are diagnosed without logging payloads or suppressing sibling attempts. Delivery remains best-effort, with default fetch credentials and no retries or beacon fallback. A successful response does not prove collector ingestion.
+
+Keepalive only protects requests that have started. Loading an SDK module during page exit can lose events before fetch begins; HTTP completion also does not establish downstream receipt or mapping.
+
 ---
 
 ## Testing

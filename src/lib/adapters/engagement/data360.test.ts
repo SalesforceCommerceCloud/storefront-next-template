@@ -19,16 +19,18 @@
  *
  * Mirrors the PWA Kit `use-datacloud.test.js` payload assertions: standard
  * identity + partyIdentification events prepended to per-event domain events,
- * base64 `event=` form body, sendBeacon delivery.
+ * base64 `event=` form body, public SDK keepalive fetch delivery.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createData360Adapter } from './data360';
-import type { Data360Config, Data360Interaction } from './data360-config';
+import type { Data360Config } from './data360-config';
+import { SearchBuilder, type Interaction as Data360Interaction } from '@salesforce/cc-datacloud-typescript/models';
+import { validateInteraction } from '@salesforce/cc-datacloud-typescript';
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import type { AnalyticsEvent, ConsentPreferences } from '@salesforce/storefront-next-runtime/events';
 import type { EngagementAdapter } from '@/lib/adapters';
 
-// Capture the adapter's logger so we can assert on the sendBeacon-failure debug log.
+// Capture the adapter's logger so we can assert on sanitized delivery-failure logs.
 // vi.hoisted so the fn exists before vi.mock's hoisted factory references it.
 const { mockLoggerDebug } = vi.hoisted(() => ({ mockLoggerDebug: vi.fn() }));
 vi.mock('@/lib/logger', () => ({
@@ -49,12 +51,8 @@ type Data360Adapter = EngagementAdapter & {
     sendEvent: (event: AnalyticsEvent, siteInfo?: any, consentPreferences?: ConsentPreferences) => Promise<unknown>;
 };
 
-// Mock navigator.sendBeacon
-const mockSendBeacon = vi.fn(() => true);
-Object.defineProperty(navigator, 'sendBeacon', {
-    value: mockSendBeacon,
-    writable: true,
-});
+// Leave SDK initialization, builders, validation, and serialization real.
+const mockFetch = vi.fn<typeof fetch>();
 
 // Deterministic UUIDs so payload snapshots are stable
 let uuidCounter = 0;
@@ -63,29 +61,20 @@ Object.defineProperty(globalThis.crypto, 'randomUUID', {
     writable: true,
 });
 
-// Decode the base64 form body of the Nth sendBeacon call into the interaction.
-// Body is `event=<base64(JSON)>`; read the Blob text, strip the prefix, decode.
-const readBlob = (blob: Blob): Promise<string> =>
-    new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsText(blob);
-    });
-
-const getInteraction = async (callIndex = 0): Promise<Data360Interaction> => {
-    const call = mockSendBeacon.mock.calls[callIndex] as unknown as [string, Blob];
-    const body = await readBlob(call[1]);
-    const base64 = body.replace(/^event=/, '');
-    // Mirror the adapter's UTF-8-safe encode: atob → bytes → TextDecoder.
+// Decode the base64 form body of the Nth SDK fetch call into the interaction.
+// Parse the form normally before decoding its UTF-8 base64 event value.
+const getInteraction = (callIndex = 0): Promise<Data360Interaction> => {
+    const init = mockFetch.mock.calls[callIndex][1];
+    const body = init?.body;
+    if (typeof body !== 'string') throw new Error('Expected SDK form body string');
+    const base64 = new URLSearchParams(body).get('event');
+    if (base64 === null) throw new Error('Missing event form value');
+    // Decode the SDK's UTF-8-safe base64 serialization.
     const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-    return JSON.parse(new TextDecoder().decode(bytes)) as Data360Interaction;
+    return Promise.resolve(JSON.parse(new TextDecoder().decode(bytes)) as Data360Interaction);
 };
 
-const getBeaconUrl = (callIndex = 0): string => {
-    const call = mockSendBeacon.mock.calls[callIndex] as unknown as [string, Blob];
-    return call[0];
-};
+const getRequestUrl = (callIndex = 0): string => String(mockFetch.mock.calls[callIndex][0]);
 
 const mockConfig: Data360Config = {
     enabled: true,
@@ -144,13 +133,311 @@ const defaultConsent: ConsentPreferences = ['necessary', 'analytics', 'marketing
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockFetch.mockReset().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', mockFetch);
     uuidCounter = 0;
     mockCookiesGet.mockReturnValue(undefined);
     window.history.replaceState({}, '', '/');
 });
 
+afterEach(() => {
+    vi.unstubAllGlobals();
+});
+
 describe('Data 360 Adapter', () => {
+    it('delivers adapter envelopes through public SDK keepalive fetch serialization', async () => {
+        const adapter = createData360Adapter(mockConfig);
+        if (!adapter.sendEvent) throw new Error('Missing Data 360 sendEvent');
+        const result = await adapter.sendEvent(
+            {
+                eventType: 'view_search',
+                path: '/search?q=unicode',
+                payload: registeredUser,
+                searchInputText: '\u00e9\u6f22\ud83d\ude3e + / = &',
+                searchResultId: 'qualification-search',
+                searchResults: [{ ...mockSearchHit, productName: '\u00e9\u6f22\ud83d\ude3e + / = &' }],
+                total: 7,
+                sort: '',
+                refinements: {},
+            },
+            { siteId: 'current-site', localeId: 'en-US' },
+            defaultConsent
+        );
+        expect(result).toEqual({ success: true });
+        expect(mockFetch).toHaveBeenCalledTimes(3);
+        const interactions = await Promise.all([getInteraction(0), getInteraction(1), getInteraction(2)]);
+        for (const [index, [, init]] of mockFetch.mock.calls.entries()) {
+            if (!init) throw new Error('Missing request init');
+            expect(getRequestUrl(index)).toBe('https://test-tenant.c360a.salesforce.com/web/events/app-source-id/');
+            expect(init).toMatchObject({ method: 'POST', keepalive: true });
+            expect(init.credentials).toBeUndefined();
+            expect(new Headers(init.headers).get('content-type')).toBe('application/x-www-form-urlencoded');
+            for (const event of interactions[index].events) {
+                expect(event).toMatchObject({ siteId: 'current-site' });
+            }
+        }
+        expect(interactions[0].events[2]).toMatchObject({ interactionName: 'page-view' });
+        expect(interactions[1].events[2]).toMatchObject({
+            eventType: 'searchEvent',
+            interactionName: 'search',
+            searchQuery: '\u00e9\u6f22\ud83d\ude3e + / = &',
+            searchResultId: 'qualification-search',
+            numberOfResultsReturned: 1,
+            resultsReturnedQuantity: 7,
+        });
+        expect(interactions[2].events[2]).toMatchObject({
+            interactionName: 'catalog-object-impression',
+            searchResultTitle: '\u00e9\u6f22\ud83d\ude3e + / = &',
+            searchResultId: 'qualification-search',
+        });
+    });
+
+    describe('invalid catalog identifiers', () => {
+        it.each([undefined, '', ' \t '])('preserves identifier precedence for product ID %j', async (id) => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_product',
+                    path: '/product/invalid',
+                    payload: guestUser,
+                    product: {
+                        id,
+                        productId: 'must-not-fallback',
+                        master: { masterId: 'master-id' },
+                    } as ShopperProducts.schemas['Product'],
+                },
+                undefined,
+                defaultConsent
+            );
+            // Missing id falls through to productId; blank ids must not.
+            expect(mockFetch).toHaveBeenCalledTimes(id === undefined ? 2 : 1);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
+            if (id === undefined) {
+                expect((await getInteraction(1)).events[2]).toMatchObject({ id: 'must-not-fallback' });
+            } else {
+                expect(mockLoggerDebug).toHaveBeenCalledWith(
+                    'Skipping Data 360 catalog item with an invalid identifier',
+                    { eventType: 'view_product' }
+                );
+            }
+        });
+
+        it('retains only the Page View when a product has no identifier', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_product',
+                    path: '/product/invalid',
+                    payload: guestUser,
+                    product: {} as ShopperProducts.schemas['Product'],
+                },
+                undefined,
+                defaultConsent
+            );
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
+        });
+
+        it('retains Page View and Search when every search hit is invalid', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    path: '/search',
+                    payload: guestUser,
+                    searchInputText: '',
+                    searchResultId: 'empty-query-search',
+                    searchResults: [{ productId: '' }, { productId: ' ' }],
+                    sort: '',
+                    refinements: {},
+                },
+                undefined,
+                defaultConsent
+            );
+            expect(mockFetch).toHaveBeenCalledTimes(2);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
+            expect((await getInteraction(1)).events[2]).toMatchObject({
+                eventType: 'searchEvent',
+                interactionName: 'search',
+                searchQuery: '',
+                searchResultId: 'empty-query-search',
+                numberOfResultsReturned: 2,
+                resultsReturnedQuantity: 2,
+            });
+        });
+
+        it('retains the category Page View for all-invalid results and sends nothing for all-invalid recommendations', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_category',
+                    path: '/category/shoes',
+                    payload: guestUser,
+                    category: { id: 'shoes' },
+                    searchResults: [{ productId: '' }],
+                    sort: '',
+                    refinements: {},
+                },
+                undefined,
+                defaultConsent
+            );
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_recommender',
+                    payload: guestUser,
+                    recommenderId: 'reco',
+                    recommenderName: 'Reco',
+                    products: [{ productId: ' \t ' }],
+                },
+                undefined,
+                defaultConsent
+            );
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
+        });
+
+        it('skips invalid search hits without renumbering valid siblings or changing search counts', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    path: '/search?q=shoes',
+                    payload: registeredUser,
+                    searchResultId: 'search-result-id',
+                    searchInputText: 'shoes',
+                    searchResults: [
+                        { productId: '' },
+                        { productId: ' valid-id ', productName: 'Valid Product' },
+                        { productName: 'Missing ID' } as ShopperSearch.schemas['ProductSearchHit'],
+                        { productId: ' \t ' },
+                        mockSearchHit,
+                    ],
+                    sort: '',
+                    refinements: {},
+                    offset: 12,
+                    limit: 12,
+                    total: 40,
+                },
+                undefined,
+                defaultConsent
+            );
+
+            expect(mockFetch).toHaveBeenCalledTimes(3);
+            expect((await getInteraction(1)).events[2]).toMatchObject({
+                numberOfResultsReturned: 5,
+                resultsReturnedQuantity: 40,
+            });
+            const { events } = await getInteraction(2);
+            expect(events).toHaveLength(4);
+            expect(events[2]).toMatchObject({
+                id: ' valid-id ',
+                searchResultPosition: 14,
+                searchResultPositionInPage: 2,
+                searchResultTitle: 'Valid Product',
+                searchResultId: 'search-result-id',
+            });
+            expect(events[3]).toMatchObject({ id: 'hit-product-id', searchResultPosition: 17 });
+            expect(mockLoggerDebug.mock.calls).toEqual([
+                ['Skipping Data 360 catalog item with an invalid identifier', { eventType: 'view_search' }],
+                ['Skipping Data 360 catalog item with an invalid identifier', { eventType: 'view_search' }],
+                ['Skipping Data 360 catalog item with an invalid identifier', { eventType: 'view_search' }],
+            ]);
+        });
+    });
+
     describe('endpoint + envelope', () => {
+        it('preserves complete envelopes, repeated items, and fresh identity/session/site values across sends', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            mockCookiesGet.mockReturnValue('first-sid');
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_recommender',
+                    payload: registeredUser,
+                    recommenderId: 'reco-1',
+                    recommenderName: 'Recently Viewed',
+                    products: [mockSearchHit, { productId: '' }, mockSearchHit],
+                },
+                { siteId: 'OtherSite', localeId: 'en-US' },
+                defaultConsent
+            );
+            const base = {
+                guestId: 'test-usid',
+                customerId: 'test-customer-id',
+                deviceId: 'test-customer-id',
+                sessionId: 'first-sid',
+                siteId: 'OtherSite',
+                dateTime: expect.any(String),
+                eventId: expect.any(String),
+            };
+            const catalog = {
+                ...base,
+                eventType: 'catalog',
+                category: 'Engagement',
+                id: 'hit-product-id',
+                type: 'Product',
+                webStoreId: 'sfnext',
+                interactionName: 'catalog-object-impression',
+                personalizationId: 'Recently Viewed',
+                personalizationContentId: 'reco-1',
+            };
+            expect(await getInteraction()).toEqual({
+                events: [
+                    { ...base, eventType: 'identity', category: 'Profile', isAnonymous: '0' },
+                    {
+                        ...base,
+                        eventType: 'partyIdentification',
+                        category: 'Profile',
+                        party: 'test-customer-id',
+                        userId: 'test-customer-id',
+                        IDName: 'CC_REGISTERED_CUSTOMER_ID',
+                        IDType: 'CC_REGISTERED_CUSTOMER_ID',
+                        partyIdentificationId: 'test-customer-id',
+                        internalOrganizationId: 'OtherSite',
+                    },
+                    catalog,
+                    catalog,
+                ],
+            });
+
+            mockCookiesGet.mockReturnValue('second-sid');
+            await adapter.sendEvent(
+                { eventType: 'view_page', payload: guestUser, path: '/next' },
+                undefined,
+                defaultConsent
+            );
+            const guestBase = {
+                guestId: 'test-usid',
+                deviceId: 'test-usid',
+                sessionId: 'second-sid',
+                siteId: 'RefArch',
+                dateTime: expect.any(String),
+                eventId: expect.any(String),
+            };
+            expect(await getInteraction(1)).toEqual({
+                events: [
+                    { ...guestBase, eventType: 'identity', category: 'Profile', isAnonymous: '1', sourceUrl: '/next' },
+                    {
+                        ...guestBase,
+                        eventType: 'partyIdentification',
+                        category: 'Profile',
+                        party: 'test-usid',
+                        userId: 'test-usid',
+                        IDName: 'CC_USID',
+                        IDType: 'CC_USID',
+                        partyIdentificationId: 'test-usid',
+                        internalOrganizationId: 'RefArch',
+                    },
+                    {
+                        ...guestBase,
+                        eventType: 'userEngagement',
+                        category: 'Engagement',
+                        interactionName: 'page-view',
+                        sourceUrl: '/next',
+                    },
+                ],
+            });
+        });
+
         it('POSTs to the tenant/appSourceId endpoint with a base64 event= body', async () => {
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
@@ -159,9 +446,10 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(getBeaconUrl()).toBe('https://test-tenant.c360a.salesforce.com/web/events/app-source-id/');
+            expect(getRequestUrl()).toBe('https://test-tenant.c360a.salesforce.com/web/events/app-source-id/');
             const interaction = await getInteraction();
             expect(Array.isArray(interaction.events)).toBe(true);
+            expect(() => validateInteraction(interaction)).not.toThrow();
         });
     });
 
@@ -418,7 +706,7 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect(mockFetch).toHaveBeenCalledTimes(2);
             const pageViewEvents = (await getInteraction()).events as Array<Record<string, any>>;
             expect(pageViewEvents).toHaveLength(3);
             expect(pageViewEvents[0].eventType).toBe('identity');
@@ -486,7 +774,7 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(3);
+            expect(mockFetch).toHaveBeenCalledTimes(3);
             expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
             expect((await getInteraction(1)).events[2]).toMatchObject({
                 interactionName: 'catalog-object-impression',
@@ -514,7 +802,7 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect(mockFetch).toHaveBeenCalledTimes(2);
             const pageViewEvents = (await getInteraction()).events as Array<Record<string, any>>;
             expect(pageViewEvents).toHaveLength(3);
             expect(pageViewEvents[0].eventType).toBe('identity');
@@ -558,7 +846,7 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect(mockFetch).toHaveBeenCalledTimes(2);
             const domains = (await getInteraction(1)).events.slice(2) as Array<Record<string, any>>;
             // positions are one-based; page = floor(offset/limit)+1
             expect(domains[0].searchResultPosition).toBe(25);
@@ -607,7 +895,7 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
+            expect(mockFetch).toHaveBeenCalledTimes(1);
             const { events } = await getInteraction();
             expect(events).toHaveLength(3);
             expect(events[2]).toMatchObject({
@@ -632,7 +920,7 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
+            expect(mockFetch).toHaveBeenCalledTimes(1);
             expect((await getInteraction()).events[2]).toMatchObject({
                 interactionName: 'catalog-object-impression',
             });
@@ -659,7 +947,7 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(3);
+            expect(mockFetch).toHaveBeenCalledTimes(3);
             const pageViewEvents = (await getInteraction()).events;
             const searchEvents = (await getInteraction(1)).events;
             const impressionEvents = (await getInteraction(2)).events;
@@ -673,6 +961,7 @@ describe('Data 360 Adapter', () => {
                 sourceUrl: '/global/en-GB/search?q=shoes#results',
             });
             expect(searchEvents[2]).toMatchObject({
+                eventType: 'searchEvent',
                 interactionName: 'search',
                 searchQuery: 'shoes',
                 searchResultId: 'search-result-id',
@@ -708,8 +997,11 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
-            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'search' });
+            expect(mockFetch).toHaveBeenCalledTimes(2);
+            expect((await getInteraction()).events[2]).toMatchObject({
+                eventType: 'searchEvent',
+                interactionName: 'search',
+            });
             expect((await getInteraction(1)).events[2]).toMatchObject({
                 interactionName: 'catalog-object-impression',
             });
@@ -736,7 +1028,7 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect(mockFetch).toHaveBeenCalledTimes(2);
             expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
             expect((await getInteraction(1)).events[2]).toMatchObject({
                 interactionName: 'catalog-object-impression',
@@ -763,11 +1055,12 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect(mockFetch).toHaveBeenCalledTimes(2);
             expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
             expect((await getInteraction(1)).events[2]).toMatchObject({
                 interactionName: 'search',
                 searchResultId: 'empty-search-result-id',
+                eventType: 'searchEvent',
                 numberOfResultsReturned: 0,
                 resultsReturnedQuantity: 0,
                 eventStatus: 'success',
@@ -796,17 +1089,20 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
-            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'search' });
+            expect(mockFetch).toHaveBeenCalledTimes(2);
+            expect((await getInteraction()).events[2]).toMatchObject({
+                eventType: 'searchEvent',
+                interactionName: 'search',
+            });
             expect((await getInteraction(1)).events[2]).toMatchObject({
                 interactionName: 'catalog-object-impression',
             });
         });
 
-        it('attempts every search interaction when an earlier beacon is refused', async () => {
-            mockSendBeacon.mockReturnValueOnce(false).mockReturnValue(true);
+        it('attempts every search interaction when an earlier HTTP response fails', async () => {
+            mockFetch.mockResolvedValueOnce(new Response('private shopper/session payload', { status: 503 }));
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
-            await adapter.sendEvent(
+            const result = await adapter.sendEvent(
                 {
                     eventType: 'view_search',
                     path: '/global/en-GB/search?q=shoes',
@@ -823,11 +1119,18 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(3);
-            expect((await getInteraction(1)).events[2]).toMatchObject({ interactionName: 'search' });
+            expect(result).toEqual({ success: false });
+            expect(mockFetch).toHaveBeenCalledTimes(3);
+            expect((await getInteraction(1)).events[2]).toMatchObject({
+                eventType: 'searchEvent',
+                interactionName: 'search',
+            });
             expect((await getInteraction(2)).events[2]).toMatchObject({
                 interactionName: 'catalog-object-impression',
             });
+            expect(mockLoggerDebug.mock.calls).toEqual([
+                ['Failed to deliver the Data 360 payload (dropped)', { eventType: 'view_page' }],
+            ]);
         });
 
         it('serializes the guest search impression contract', async () => {
@@ -931,7 +1234,7 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect(mockFetch).toHaveBeenCalledTimes(2);
             const domain = (await getInteraction(1)).events[2] as Record<string, any>;
             expect(domain.searchResultTitle).toBe('Ténis corações 👟');
         });
@@ -973,7 +1276,7 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
+            expect(mockFetch).toHaveBeenCalledTimes(1);
             const domain = (await getInteraction()).events[2] as Record<string, any>;
             expect(domain.interactionName).toBe('catalog-object-impression');
             expect(domain.personalizationId).toBe('Recently Viewed');
@@ -989,7 +1292,7 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 ['necessary']
             );
-            expect(mockSendBeacon).not.toHaveBeenCalled();
+            expect(mockFetch).not.toHaveBeenCalled();
         });
 
         it('sends nothing when the event toggle is off', async () => {
@@ -999,7 +1302,7 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            expect(mockSendBeacon).not.toHaveBeenCalled();
+            expect(mockFetch).not.toHaveBeenCalled();
         });
 
         it('sends nothing (does not throw) for an event type with no DC mapping', async () => {
@@ -1014,7 +1317,7 @@ describe('Data 360 Adapter', () => {
                     defaultConsent
                 )
             ).resolves.toBeDefined();
-            expect(mockSendBeacon).not.toHaveBeenCalled();
+            expect(mockFetch).not.toHaveBeenCalled();
         });
 
         it('uses the view_page toggle independently from the specialized interaction toggle', async () => {
@@ -1032,10 +1335,10 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
+            expect(mockFetch).toHaveBeenCalledTimes(1);
             expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'catalog-object-view-start' });
 
-            mockSendBeacon.mockClear();
+            mockFetch.mockClear();
             const productViewDisabled = createData360Adapter({
                 ...mockConfig,
                 eventToggles: { ...mockConfig.eventToggles, view_product: false },
@@ -1050,7 +1353,7 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
+            expect(mockFetch).toHaveBeenCalledTimes(1);
             expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
         });
     });
@@ -1078,8 +1381,101 @@ describe('Data 360 Adapter', () => {
     });
 
     describe('delivery failure', () => {
-        it('logs a debug message when sendBeacon drops the payload (returns false)', async () => {
-            mockSendBeacon.mockReturnValueOnce(false);
+        it.each([
+            'builder',
+            'validation',
+        ] as const)('contains a %s failure without suppressing sibling deliveries', async (failureMode) => {
+            const build = vi.spyOn(SearchBuilder.prototype, 'build');
+            if (failureMode === 'builder') {
+                build.mockImplementationOnce(() => {
+                    throw new Error('private shopper/session payload');
+                });
+            } else {
+                build.mockReturnValueOnce({ events: [] });
+            }
+            try {
+                const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+                await expect(
+                    adapter.sendEvent(
+                        {
+                            eventType: 'view_search',
+                            path: '/search?q=shoes',
+                            payload: registeredUser,
+                            searchInputText: 'shoes',
+                            searchResults: [mockSearchHit],
+                            sort: '',
+                            refinements: {},
+                        },
+                        undefined,
+                        defaultConsent
+                    )
+                ).resolves.toEqual({ success: false });
+                expect(mockFetch).toHaveBeenCalledTimes(2);
+                expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
+                expect((await getInteraction(1)).events[2]).toMatchObject({
+                    interactionName: 'catalog-object-impression',
+                });
+                expect(mockLoggerDebug.mock.calls).toEqual([
+                    ['Failed to deliver the Data 360 payload (dropped)', { eventType: 'view_search' }],
+                ]);
+            } finally {
+                build.mockRestore();
+            }
+        });
+
+        describe.each(['throw', 'reject', 'http'] as const)('%s transport failure', (failureMode) => {
+            it.each([
+                0, 1, 2,
+            ])('attempts sibling envelopes when request %i fails, with sanitized diagnostics', async (failureIndex) => {
+                for (let index = 0; index < failureIndex; index++) {
+                    mockFetch.mockResolvedValueOnce(new Response(null, { status: 204 }));
+                }
+                const error = new TypeError('keepalive quota exceeded: private shopper/session payload');
+                if (failureMode === 'throw') {
+                    mockFetch.mockImplementationOnce(() => {
+                        throw error;
+                    });
+                } else if (failureMode === 'reject') {
+                    mockFetch.mockRejectedValueOnce(error);
+                } else {
+                    mockFetch.mockResolvedValueOnce(new Response('private shopper/session payload', { status: 503 }));
+                }
+                const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+                await expect(
+                    adapter.sendEvent(
+                        {
+                            eventType: 'view_search',
+                            path: '/search?q=shoes',
+                            payload: registeredUser,
+                            searchInputText: 'shoes',
+                            searchResults: [mockSearchHit],
+                            sort: '',
+                            refinements: {},
+                        },
+                        undefined,
+                        defaultConsent
+                    )
+                ).resolves.toEqual({ success: false });
+                expect(mockFetch).toHaveBeenCalledTimes(3);
+                expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
+                expect((await getInteraction(1)).events[2]).toMatchObject({
+                    eventType: 'searchEvent',
+                    interactionName: 'search',
+                });
+                expect((await getInteraction(2)).events[2]).toMatchObject({
+                    interactionName: 'catalog-object-impression',
+                });
+                expect(mockLoggerDebug.mock.calls).toEqual([
+                    [
+                        'Failed to deliver the Data 360 payload (dropped)',
+                        { eventType: failureIndex === 0 ? 'view_page' : 'view_search' },
+                    ],
+                ]);
+            });
+        });
+
+        it('logs only eventType when the HTTP response fails', async () => {
+            mockFetch.mockResolvedValueOnce(new Response('private shopper/session payload', { status: 503 }));
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
 
             const result = await adapter.sendEvent(
@@ -1089,24 +1485,28 @@ describe('Data 360 Adapter', () => {
             );
 
             expect(result).toEqual({ success: false });
-            expect(mockLoggerDebug).toHaveBeenCalledTimes(1);
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+            expect(mockLoggerDebug.mock.calls).toEqual([
+                ['Failed to deliver the Data 360 payload (dropped)', { eventType: 'view_page' }],
+            ]);
         });
 
-        it('does not log when sendBeacon succeeds', async () => {
+        it('reports HTTP completion, not ingestion, without logging when the response is 204', async () => {
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
 
-            await adapter.sendEvent({ eventType: 'view_page', path: '/', payload: guestUser }, undefined, [
-                'analytics',
-            ]);
+            await expect(
+                adapter.sendEvent({ eventType: 'view_page', path: '/', payload: guestUser }, undefined, ['analytics'])
+            ).resolves.toEqual({ success: true });
 
+            expect(mockFetch).toHaveBeenCalledTimes(1);
             expect(mockLoggerDebug).not.toHaveBeenCalled();
         });
 
-        it('attempts the catalog interaction when the derived page-view beacon is refused', async () => {
-            mockSendBeacon.mockReturnValueOnce(false).mockReturnValueOnce(true);
+        it('attempts the catalog interaction when the derived page-view request is rejected', async () => {
+            mockFetch.mockRejectedValueOnce(new TypeError('keepalive quota exceeded: private shopper/session payload'));
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
 
-            await adapter.sendEvent(
+            const result = await adapter.sendEvent(
                 {
                     eventType: 'view_product',
                     path: '/product/test-product-id',
@@ -1117,9 +1517,60 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
 
-            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
-            expect(mockLoggerDebug).toHaveBeenCalledTimes(1);
+            expect(result).toEqual({ success: false });
+            expect(mockFetch).toHaveBeenCalledTimes(2);
+            expect(mockLoggerDebug.mock.calls).toEqual([
+                ['Failed to deliver the Data 360 payload (dropped)', { eventType: 'view_page' }],
+            ]);
             expect((await getInteraction(1)).events[2]).toMatchObject({ interactionName: 'catalog-object-view-start' });
+        });
+
+        it('starts all three requests before the first response resolves and waits for HTTP completion', async () => {
+            let resolve: (response: Response) => void = () => {
+                throw new Error('Response resolver not initialized');
+            };
+            const promise = new Promise<Response>((complete) => {
+                resolve = complete;
+            });
+            mockFetch.mockReturnValueOnce(promise);
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            let completed = false;
+            const delivery = adapter
+                .sendEvent(
+                    {
+                        eventType: 'view_search',
+                        path: '/search?q=shoes',
+                        payload: registeredUser,
+                        searchInputText: 'shoes',
+                        searchResults: [mockSearchHit],
+                        sort: '',
+                        refinements: {},
+                    },
+                    undefined,
+                    defaultConsent
+                )
+                .then((result) => {
+                    completed = true;
+                    return result;
+                });
+
+            try {
+                await vi.waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(3));
+                expect(completed).toBe(false);
+                expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
+                expect((await getInteraction(1)).events[2]).toMatchObject({
+                    eventType: 'searchEvent',
+                    interactionName: 'search',
+                });
+                expect((await getInteraction(2)).events[2]).toMatchObject({
+                    interactionName: 'catalog-object-impression',
+                });
+            } finally {
+                resolve(new Response(null, { status: 204 }));
+                await delivery;
+            }
+            await expect(delivery).resolves.toEqual({ success: true });
+            expect(mockLoggerDebug).not.toHaveBeenCalled();
         });
     });
 });

@@ -38,24 +38,6 @@ export type Data360Config = EngagementAdapterConfig & {
     webStoreId: string;
 };
 
-/**
- * A single Data 360 interaction event. The shape is the frozen PWA Kit
- * contract (identity / partyIdentification / userEngagement / catalog events);
- * fields vary per event type so the object is open-ended.
- *
- * ponytail: local type instead of `@salesforce/cc-datacloud-typescript` — the
- * dep drags in `rollup@^2` + `openapi-fetch` + `headers-polyfill` as dead
- * runtime declarations for zero benefit (base64 transform is one line, all
- * builders were hand-written on the PWA Kit hook). Add the dep only if the
- * wire schema starts changing out from under us.
- */
-export type Data360Event = Record<string, unknown>;
-
-/** The interaction envelope POSTed to Data 360. */
-export type Data360Interaction = {
-    events: Data360Event[];
-};
-
 function isNonBlankString(value: unknown): boolean {
     return typeof value === 'string' && value.trim() !== '';
 }

@@ -21,16 +21,27 @@ import type {
 } from '@salesforce/storefront-next-runtime/events';
 import { resolvePrefix } from '@salesforce/storefront-next-runtime/site-context';
 import Cookies from 'js-cookie';
+import { initDataCloudSdk } from '@salesforce/cc-datacloud-typescript';
+import {
+    ViewPageBuilder,
+    ProductViewStartBuilder,
+    SearchBuilder,
+    ViewProductImpressionsBuilder,
+    type Event,
+    type Identity,
+    type PartyIdentification,
+    type Catalog,
+    type SearchResult,
+    type ViewPage,
+    type ProductViewStart,
+    type Search,
+    type ViewProductImpressions,
+} from '@salesforce/cc-datacloud-typescript/models';
 import { hasConsent, type EngagementAdapter } from '@/lib/adapters';
 import { createLogger } from '@/lib/logger';
-import { bytesToBase64, isPageViewBlocked } from '@/lib/url';
+import { isPageViewBlocked } from '@/lib/url';
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
-import {
-    validateData360Config,
-    type Data360Config,
-    type Data360Event,
-    type Data360Interaction,
-} from './data360-config';
+import { validateData360Config, type Data360Config } from './data360-config';
 
 export const DATA360_ADAPTER_NAME = 'data360' as const;
 
@@ -39,6 +50,8 @@ const logger = createLogger({ adapter: DATA360_ADAPTER_NAME });
 const DEFAULT_WEB_STORE_ID = 'sfnext';
 
 type ViewSearchEvent = Extract<AnalyticsEvent, { eventType: 'view_search' }>;
+type Data360Interaction = ViewPage | ProductViewStart | Search | ViewProductImpressions;
+type BaseEvent = Omit<Event, 'eventId' | 'eventType' | 'category'>;
 
 /**
  * Type guard to check if payload is AnalyticsUser
@@ -82,12 +95,12 @@ function registeredCustomerId(user: AnalyticsUser | null): string | undefined {
  * id, so preferring it keeps parity — a customer migrating from PWA Kit to
  * Storefront Next keeps the same session id in Data 360. `sid` isn't
  * guaranteed present, though (it's tied to Active Data being enabled, and may
- * not have landed yet when a beacon fires), so `usid` — always present — is the
+ * not have landed yet when an interaction is sent), so `usid` — always present — is the
  * fallback. `sid` is read fresh at send time (see `sendEvent`), so whichever
- * value exists when each beacon fires wins; early beacons fall back to `usid`
+ * value exists at send time wins; early interactions fall back to `usid`
  * and later ones pick up `sid` once it's set.
  */
-function buildBaseEvent(user: AnalyticsUser | null, siteId: string, sid?: string): Data360Event {
+function buildBaseEvent(user: AnalyticsUser | null, siteId: string, sid?: string): BaseEvent {
     const usid = user?.usid ?? '';
     const customerId = registeredCustomerId(user);
     return {
@@ -101,7 +114,10 @@ function buildBaseEvent(user: AnalyticsUser | null, siteId: string, sid?: string
 }
 
 /** Per-event details block (unique event id + type + category). */
-function buildEventDetails(eventType: string, category: string): Data360Event {
+function buildEventDetails(
+    eventType: Event['eventType'],
+    category: Event['category']
+): Pick<Event, 'eventId' | 'eventType' | 'category'> {
     return {
         eventId: crypto.randomUUID(),
         eventType,
@@ -122,7 +138,13 @@ function buildEventDetails(eventType: string, category: string): Data360Event {
  * key. Keep it this way unless identity resolution demonstrably needs `customerNo`;
  * adding it back means widening the client session payload to carry more PII.
  */
-function buildPartyIdentification(user: AnalyticsUser | null, siteId: string): Data360Event {
+function buildPartyIdentification(
+    user: AnalyticsUser | null,
+    siteId: string
+): Pick<
+    PartyIdentification,
+    'party' | 'userId' | 'IDName' | 'IDType' | 'partyIdentificationId' | 'internalOrganizationId'
+> {
     const customerId = registeredCustomerId(user);
     const identifier = customerId ?? user?.usid ?? '';
     const idType = customerId ? 'CC_REGISTERED_CUSTOMER_ID' : 'CC_USID';
@@ -142,12 +164,12 @@ function buildPartyIdentification(user: AnalyticsUser | null, siteId: string): D
  * sendEvent gate blocks on `hasConsent`), so there is no separate DNT path.
  */
 function buildStandardEvents(
-    base: Data360Event,
+    base: BaseEvent,
     user: AnalyticsUser | null,
     siteId: string,
-    identityExtras: Data360Event = {}
-): Data360Event[] {
-    const identity: Data360Event = {
+    identityExtras: Pick<Identity, 'sourceUrl'> = {}
+): [Identity, PartyIdentification] {
+    const identity: Identity = {
         ...base,
         ...buildEventDetails('identity', 'Profile'),
         // Anonymous unless we have a durable registered id — same gate as the party
@@ -156,7 +178,7 @@ function buildStandardEvents(
         isAnonymous: registeredCustomerId(user) ? '0' : '1',
         ...identityExtras,
     };
-    const partyIdentification: Data360Event = {
+    const partyIdentification: PartyIdentification = {
         ...base,
         ...buildEventDetails('partyIdentification', 'Profile'),
         ...buildPartyIdentification(user, siteId),
@@ -173,7 +195,7 @@ function buildStandardEvents(
  * page-number formula). When paging is absent (undefined `offset`/`limit`) it
  * falls back to page-local values (positions = per-page index + 1, page = 1).
  */
-function buildSearchPosition(index: number, offset = 0, limit = 0): Data360Event {
+function buildSearchPosition(index: number, offset = 0, limit = 0): SearchResult {
     return {
         searchResultPosition: offset + index + 1,
         searchResultPositionInPage: index + 1,
@@ -187,66 +209,61 @@ function buildSearchPosition(index: number, offset = 0, limit = 0): Data360Event
  * — PWA Kit parity only covers view/impression), so the caller can no-op
  * rather than throw and error the mediator's `Promise.allSettled` fan-out.
  */
-function buildDomainEvents(event: AnalyticsEvent, base: Data360Event, webStoreId: string): Data360Event[] | null {
+function buildDomainEvents(event: AnalyticsEvent, base: BaseEvent, webStoreId: string): Catalog[] | null {
+    const catalog = (
+        product: Partial<ShopperProducts.schemas['Product']> | ShopperSearch.schemas['ProductSearchHit'],
+        extras: Pick<
+            Catalog,
+            'categoryId' | 'searchResultTitle' | 'searchResultId' | 'personalizationId' | 'personalizationContentId'
+        > &
+            SearchResult = {}
+    ): Catalog[] => {
+        const id = resolveProductId(product);
+        if (typeof id !== 'string' || id.trim() === '') {
+            logger.debug('Skipping Data 360 catalog item with an invalid identifier', { eventType: event.eventType });
+            return [];
+        }
+        return [
+            {
+                ...base,
+                ...buildEventDetails('catalog', 'Engagement'),
+                id,
+                type: 'Product',
+                webStoreId,
+                interactionName:
+                    event.eventType === 'view_product' ? 'catalog-object-view-start' : 'catalog-object-impression',
+                ...extras,
+            },
+        ];
+    };
     switch (event.eventType) {
-        case 'view_page':
-            return [
-                {
-                    ...base,
-                    ...buildEventDetails('userEngagement', 'Engagement'),
-                    interactionName: 'page-view',
-                    sourceUrl: event.path,
-                },
-            ];
-
         case 'view_product':
-            return [
-                {
-                    ...base,
-                    ...buildEventDetails('catalog', 'Engagement'),
-                    id: resolveProductId(event.product),
-                    type: 'Product',
-                    webStoreId,
-                    interactionName: 'catalog-object-view-start',
-                },
-            ];
+            return catalog(event.product);
 
         case 'view_category':
-            return event.searchResults.map((hit, index) => ({
-                ...base,
-                ...buildEventDetails('catalog', 'Engagement'),
-                ...buildSearchPosition(index, event.offset, event.limit),
-                id: resolveProductId(hit),
-                type: 'Product',
-                webStoreId,
-                categoryId: event.category.id,
-                interactionName: 'catalog-object-impression',
-            }));
+            return event.searchResults.flatMap((hit, index) =>
+                catalog(hit, {
+                    ...buildSearchPosition(index, event.offset, event.limit),
+                    categoryId: event.category.id,
+                })
+            );
 
         case 'view_search':
-            return event.searchResults.map((hit, index) => ({
-                ...base,
-                ...buildEventDetails('catalog', 'Engagement'),
-                ...buildSearchPosition(index, event.offset, event.limit),
-                ...(hit.productName && { searchResultTitle: hit.productName }),
-                searchResultId: event.searchResultId,
-                id: resolveProductId(hit),
-                type: 'Product',
-                webStoreId,
-                interactionName: 'catalog-object-impression',
-            }));
+            return event.searchResults.flatMap((hit, index) =>
+                catalog(hit, {
+                    ...buildSearchPosition(index, event.offset, event.limit),
+                    ...(hit.productName && { searchResultTitle: hit.productName }),
+                    searchResultId: event.searchResultId,
+                })
+            );
 
         case 'view_recommender':
-            return event.products.map((product) => ({
-                ...base,
-                ...buildEventDetails('catalog', 'Engagement'),
-                id: resolveProductId(product),
-                type: 'Product',
-                webStoreId,
-                interactionName: 'catalog-object-impression',
-                personalizationId: event.recommenderName,
-                personalizationContentId: event.recommenderId,
-            }));
+            return event.products.flatMap((product) =>
+                catalog(product, {
+                    personalizationId: event.recommenderName,
+                    personalizationContentId: event.recommenderId,
+                })
+            );
 
         default:
             // No Data 360 mapping (cart/checkout/wishlist/click) — no-op.
@@ -261,25 +278,25 @@ function buildSearchInteraction(
     webStoreId: string,
     searchResultId: string,
     sid?: string
-): Data360Interaction {
+): Search {
     const user = isAnalyticsUser(event.payload) ? event.payload : null;
     const base = buildBaseEvent(user, siteId, sid);
-    return {
-        events: [
-            ...buildStandardEvents(base, user, siteId),
-            {
-                ...base,
-                ...buildEventDetails('search', 'Engagement'),
-                interactionName: 'search',
-                eventStatus: 'success',
-                searchQuery: event.searchInputText,
-                searchResultId,
-                numberOfResultsReturned: event.searchResults.length,
-                resultsReturnedQuantity: event.total ?? event.searchResults.length,
-                webStoreId,
-            },
-        ],
-    };
+    const [identity, party] = buildStandardEvents(base, user, siteId);
+    return new SearchBuilder()
+        .withIdentity(identity)
+        .withPartyIdentification(party)
+        .withSearchEvent({
+            ...base,
+            ...buildEventDetails('searchEvent', 'Engagement'),
+            interactionName: 'search',
+            eventStatus: 'success',
+            searchQuery: event.searchInputText,
+            searchResultId,
+            numberOfResultsReturned: event.searchResults.length,
+            resultsReturnedQuantity: event.total ?? event.searchResults.length,
+            webStoreId,
+        })
+        .build();
 }
 
 /**
@@ -295,27 +312,43 @@ function buildInteraction(
     const user = isAnalyticsUser(event.payload) ? event.payload : null;
     const base = buildBaseEvent(user, siteId, sid);
 
+    if (event.eventType === 'view_page') {
+        const [identity, party] = buildStandardEvents(base, user, siteId, { sourceUrl: event.path });
+        return new ViewPageBuilder()
+            .withIdentity(identity)
+            .withPartyIdentification(party)
+            .withUserEngagement({
+                ...base,
+                ...buildEventDetails('userEngagement', 'Engagement'),
+                interactionName: 'page-view',
+                sourceUrl: event.path,
+            })
+            .build();
+    }
     const domainEvents = buildDomainEvents(event, base, webStoreId);
     // `null` = event type has no DC mapping; `[]` = a mapped event (search/category/
     // recommender) with an empty result list — nothing to impress, so no-op rather
-    // than send an identity-only beacon PWA Kit never emitted.
+    // than send an identity-only interaction PWA Kit never emitted.
     if (!domainEvents || domainEvents.length === 0) {
         return null;
     }
 
-    // page-view carries the source URL on its identity event too (PWA Kit parity).
-    const identityExtras: Data360Event = event.eventType === 'view_page' ? { sourceUrl: event.path } : {};
-    const standardEvents = buildStandardEvents(base, user, siteId, identityExtras);
-
-    return { events: [...standardEvents, ...domainEvents] };
+    const [identity, party] = buildStandardEvents(base, user, siteId);
+    const builder =
+        event.eventType === 'view_product' ? new ProductViewStartBuilder() : new ViewProductImpressionsBuilder();
+    builder.withIdentity(identity).withPartyIdentification(party);
+    for (const domain of domainEvents) {
+        builder.withCatalog(domain);
+    }
+    return builder.build();
 }
 
 /**
  * Create a Data 360 adapter that implements the EngagementAdapter interface.
  *
  * Delivers interactions to `https://{tenantId}.c360a.salesforce.com/web/events/{appSourceId}/`
- * via `navigator.sendBeacon` with a base64 `event=` form body — the transform
- * the Data 360 SDK's `DataCloudMiddleware` applies. Never throws for delivery.
+ * via the public SDK's fetch transport with keepalive and form serialization.
+ * HTTP completion does not prove ingestion. Never throws for delivery.
  */
 export function createData360Adapter(config: Data360Config): EngagementAdapter {
     const { errors } = validateData360Config(config);
@@ -327,7 +360,7 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
     }
 
     const webStoreId = config.webStoreId || DEFAULT_WEB_STORE_ID;
-    const url = `https://${config.tenantId}.c360a.salesforce.com/web/events/${config.appSourceId}/`;
+    const client = initDataCloudSdk(config.tenantId, config.appSourceId, { keepalive: true });
 
     return {
         name: DATA360_ADAPTER_NAME,
@@ -347,12 +380,16 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
             // right `siteId`/`internalOrganizationId`. Falls back to config.siteId
             // (a required, validated field) when the mediator omits siteInfo.
             const siteId = siteInfo?.siteId || config.siteId;
-            // Read `sid` fresh per beacon (PWA Kit parity — its use-datacloud hook
+            // Read `sid` fresh per send (PWA Kit parity — its use-datacloud hook
             // reads Cookies.get('sid') at build time). `sid` is not httpOnly, so it's
             // readable here; it may be absent (Active Data disabled, or not yet set),
             // in which case buildBaseEvent falls back to usid.
             const sid = Cookies.get('sid');
-            const interactions: Array<{ eventType: AnalyticsEvent['eventType']; interaction: Data360Interaction }> = [];
+            // Defer each build to its caught delivery attempt so a builder failure does not block sibling envelopes.
+            const interactions: Array<{
+                eventType: AnalyticsEvent['eventType'];
+                build: () => Data360Interaction | null;
+            }> = [];
             const pageViewPrefix =
                 config.urlPrefix && siteInfo
                     ? resolvePrefix({
@@ -375,15 +412,16 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
                 (event.eventType !== 'view_category' || event.isNavigation !== false) &&
                 isPageViewBlocked(event.path ?? '/', pageViewPrefix, config.pageViewsBlocklist)
             ) {
-                const pageView = buildInteraction(
-                    { eventType: 'view_page', path: event.path ?? '/', payload: event.payload },
-                    siteId,
-                    webStoreId,
-                    sid
-                );
-                if (pageView) {
-                    interactions.push({ eventType: 'view_page', interaction: pageView });
-                }
+                interactions.push({
+                    eventType: 'view_page',
+                    build: () =>
+                        buildInteraction(
+                            { eventType: 'view_page', path: event.path ?? '/', payload: event.payload },
+                            siteId,
+                            webStoreId,
+                            sid
+                        ),
+                });
             }
 
             if (
@@ -394,20 +432,21 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
             ) {
                 interactions.push({
                     eventType: 'view_search',
-                    interaction: buildSearchInteraction(event, siteId, webStoreId, searchResultId, sid),
+                    build: () => buildSearchInteraction(event, siteId, webStoreId, searchResultId, sid),
                 });
             }
 
             if (config.eventToggles[event.eventType]) {
-                const interaction = buildInteraction(
-                    event.eventType === 'view_search' && searchResultId ? { ...event, searchResultId } : event,
-                    siteId,
-                    webStoreId,
-                    sid
-                );
-                if (interaction) {
-                    interactions.push({ eventType: event.eventType, interaction });
-                }
+                interactions.push({
+                    eventType: event.eventType,
+                    build: () =>
+                        buildInteraction(
+                            event.eventType === 'view_search' && searchResultId ? { ...event, searchResultId } : event,
+                            siteId,
+                            webStoreId,
+                            sid
+                        ),
+                });
             }
 
             if (interactions.length === 0) {
@@ -415,28 +454,19 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
                 return Promise.resolve({});
             }
 
-            const results = interactions.map(({ eventType, interaction }) => {
-                // UTF-8-safe base64 — raw btoa throws on non-Latin1 chars (e.g. accented
-                // or emoji product names in searchResultTitle).
-                const body = `event=${bytesToBase64(new TextEncoder().encode(JSON.stringify(interaction)))}`;
-                const success = navigator.sendBeacon(
-                    url,
-                    new Blob([body], { type: 'application/x-www-form-urlencoded' })
-                );
-
-                if (!success) {
-                    // sendBeacon returns false when the browser refuses to queue the
-                    // payload — most commonly a large fan-out (view_category/view_search
-                    // impressions) exceeding the ~64KB beacon cap. The event is dropped;
-                    // log it so the drop is diagnosable rather than silent.
-                    logger.debug('sendBeacon refused the Data 360 payload (dropped)', {
-                        eventType,
-                        bytes: body.length,
-                    });
-                }
-
-                return success;
-            });
+            const results = await Promise.all(
+                interactions.map(async ({ eventType, build }) => {
+                    try {
+                        const interaction = build();
+                        if (!interaction) return true;
+                        await client.webEventsAppSourceIdPost(interaction);
+                        return true;
+                    } catch {
+                        logger.debug('Failed to deliver the Data 360 payload (dropped)', { eventType });
+                        return false;
+                    }
+                })
+            );
 
             return Promise.resolve({ success: results.every(Boolean) });
         },

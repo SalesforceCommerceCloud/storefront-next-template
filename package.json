@@ -67,6 +67,7 @@
         "@radix-ui/react-switch": "1.2.2",
         "@radix-ui/react-tooltip": "1.2.8",
         "@react-router/node": "7.18.2",
+        "@salesforce/cc-datacloud-typescript": "1.2.0",
         "@salesforce/storefront-next-dev": "workspace:*",
         "@salesforce/storefront-next-runtime": "workspace:*",
         "@vis.gl/react-google-maps": "1.7.1",
