@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { type ReactElement } from 'react';
+import { useRouteLoaderData } from 'react-router';
 import type { ShopperProducts } from '@/scapi';
 import ImageGallery from '@/components/image-gallery';
 import ProductInfo from '@/components/product-view/product-info';
@@ -27,6 +28,8 @@ import { usesInlineAddToCartQuantity } from '@/lib/product/add-to-cart-quantity-
 import CollapsibleHtmlSection from '@/components/collapsible-section/collapsible-html-section';
 import { useTranslation } from 'react-i18next';
 import { UITarget } from '@/targets/ui-target';
+import EmbeddedAgentWidget, { isEmbeddedAgentConfigured, parsePdpQuestions } from '@/components/embedded-agent';
+import type { loader as rootLoader } from '@/root';
 
 interface ProductViewProps {
     product: ShopperProducts.schemas['Product'];
@@ -54,6 +57,9 @@ export default function ProductView({ product, mode = 'add' }: ProductViewProps)
     const selectedAttributes = useSelectedVariations({ product });
     const { galleryImages } = useProductImages({ product, selectedAttributes });
     const { t } = useTranslation('product');
+    const rootData = useRouteLoaderData<typeof rootLoader>('root');
+    const embeddedAgent = rootData?.appConfig?.commerce?.embeddedAgent;
+    const pdpQuestions = parsePdpQuestions((product as unknown as { c_pdpQuestions?: unknown }).c_pdpQuestions);
     // Furniture opts into the mosaic PDP gallery via config; every other vertical stays stacked.
     const galleryLayout = uiConfig.pages.product.galleryLayout ?? 'stacked';
     const useInlineCartQuantity =
@@ -93,6 +99,15 @@ export default function ProductView({ product, mode = 'add' }: ProductViewProps)
                     // @sfdc-extension-block-end SFDC_EXT_BOPIS
                 />
                 <ProductCartActions product={product} showInlineCartQuantity={useInlineCartQuantity} />
+                {isEmbeddedAgentConfigured(embeddedAgent) && !isProductASet && !isProductABundle && (
+                    <div className="mt-6">
+                        <EmbeddedAgentWidget
+                            config={embeddedAgent}
+                            pdpQuestions={pdpQuestions}
+                            productName={product.name}
+                        />
+                    </div>
+                )}
                 <UITarget targetId="sfcc.pdp.returnsWarranty" />
                 <UITarget targetId="sfcc.pdp.collapsibles" />
             </div>

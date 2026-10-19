@@ -29,6 +29,7 @@ import type { EngagementAdapterConfig } from '@/lib/adapters';
 // so a value import here would create a runtime cycle. Erased at emit by
 // verbatimModuleSyntax; do not promote to `import { ClientAppConfig }`.
 import type { ClientAppConfig } from '@/lib/app-config-client';
+import type { EmbeddedAgentConfig } from '@/components/embedded-agent';
 import type { TrackingConsent } from '@/types/tracking-consent';
 // Auto-generated barrel of installed extensions' config defaults. Its type is the source
 // for `AppConfig['extension']`, so the type and the runtime value (config.server.ts) can't drift.
@@ -121,6 +122,15 @@ export type ShopperAgentConfig = {
 };
 
 /**
+ * Inline PDP Embedded Agent configuration. The component defines the authoritative
+ * shape in `@/components/embedded-agent`; re-export it here so merchant-facing
+ * config and the component can never drift. Populated via
+ * `PUBLIC__app__commerce__embeddedAgent` (single JSON string). Required:
+ * `enabled`, `scrt2Url`, `orgId`, `esDeveloperName`.
+ */
+export type { EmbeddedAgentConfig };
+
+/**
  * Recursively strip `readonly` so an extension config authored with `as const` still merges
  * into the mutable `AppConfig`. The generated barrel is the source of both the value (in
  * config.server.ts) and this type, so the two can never drift.
@@ -163,6 +173,12 @@ export type AppConfig = {
          * `commerce.shopperAgent` wins.
          */
         shopperAgent?: ShopperAgentConfig;
+        /**
+         * Inline PDP Embedded Agent (`<inline-agent-widget>` custom element).
+         * Override via `PUBLIC__app__commerce__embeddedAgent` (single JSON string).
+         * See `src/components/embedded-agent/README.md`.
+         */
+        embeddedAgent?: EmbeddedAgentConfig;
     };
     /**
      * Global default cookie attributes applied to ALL storefront cookies (auth/session and

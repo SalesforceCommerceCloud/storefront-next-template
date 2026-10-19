@@ -21,6 +21,7 @@
         "_local/**/*",
         "**/__snapshots__/**/*",
         "**/*-snapshot.tsx",
+        "public/**/*.umd.js",
         "lint-plugins/**"
     ],
     "plugins": ["react", "typescript", "import", "jsx-a11y"],

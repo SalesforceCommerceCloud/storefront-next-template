@@ -258,6 +258,18 @@ export default defineConfig<Config>(
                     salesforceOrgId: '',
                     esDeveloperName: '',
                 },
+                // Inline PDP Embedded Agent (`<inline-agent-widget>` custom element).
+                // Empty-value block is REQUIRED for the same reason as `shopperAgent`
+                // above — mergeEnvConfig drops PUBLIC__app__commerce__embeddedAgent
+                // overrides whose config path is absent from baseConfig.
+                // Override via PUBLIC__app__commerce__embeddedAgent (single JSON string;
+                // see src/components/embedded-agent/README.md).
+                embeddedAgent: {
+                    enabled: '',
+                    scrt2Url: '',
+                    orgId: '',
+                    esDeveloperName: '',
+                },
             },
             // Global default cookie attributes applied to ALL storefront cookies
             // (auth/session + site-context: site_id, locale, currency). A per-site

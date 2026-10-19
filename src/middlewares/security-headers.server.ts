@@ -18,6 +18,7 @@ import { createSecurityHeadersMiddleware } from '@salesforce/storefront-next-run
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { resolveShopperAgentConfig } from '@/components/cimulate';
 import { createCimulateCspContributor } from './csp-contributors/cimulate.js';
+import { createEmbeddedAgentCspContributor } from './csp-contributors/embedded-agent.js';
 import { createData360CspContributor } from './csp-contributors/data360.js';
 // Imported via the `@/` alias (not a sibling-relative path) so a brand can override this contributor:
 // the default is a no-op, and a brand that renders the boutique map ships its own always-active
@@ -40,6 +41,7 @@ export const securityHeadersMiddleware: MiddlewareFunction<Response> = async (ar
         const config = getConfig(args.context);
         const contributors = [
             createCimulateCspContributor(resolveShopperAgentConfig(config)),
+            createEmbeddedAgentCspContributor(config.commerce?.embeddedAgent),
             createData360CspContributor(config.engagement?.adapters?.data360),
             createOpenStreetMapCspContributor(),
         ];
