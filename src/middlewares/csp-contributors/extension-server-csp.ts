@@ -39,7 +39,14 @@ const PORT = /^(?:\d{1,5}|\*)$/;
 
 // Resource host lists an extension may extend. Directives that change page
 // policy (default-src, form-action, base-uri, frame-ancestors) are not accepted.
-const DIRECTIVES = new Set<CspDirectiveName>(['script-src', 'style-src', 'img-src', 'frame-src', 'connect-src']);
+const DIRECTIVES = new Set<CspDirectiveName>([
+    'script-src',
+    'style-src',
+    'img-src',
+    'frame-src',
+    'connect-src',
+    'worker-src',
+]);
 
 function isDirective(name: string): name is CspDirectiveName {
     return DIRECTIVES.has(name as CspDirectiveName);
@@ -93,11 +100,25 @@ function collect(serverExtension: unknown): Map<CspDirectiveName, string[]> {
     return additions;
 }
 
-function sourcesFor(directive: CspDirectiveName, customer: CspDirectives | undefined): string[] {
-    const current = customer?.[directive];
-    if (Array.isArray(current)) return [...current];
-    const fallback = defaultCspDirectives[directive];
-    return Array.isArray(fallback) ? [...fallback] : [];
+function readList(directives: CspDirectives | undefined, name: CspDirectiveName): string[] | undefined {
+    const sources = directives?.[name];
+    return Array.isArray(sources) ? [...sources] : undefined;
+}
+
+function sourcesFor(directive: CspDirectiveName, customer: CspDirectives | undefined, built?: CspDirectives): string[] {
+    const own =
+        readList(built, directive) ?? readList(customer, directive) ?? readList(defaultCspDirectives, directive);
+    // A new worker-src replaces the browser's use of script-src, so copy that list
+    // after other extensions have already been merged into it.
+    if (directive === 'worker-src' && !readList(built, 'worker-src') && !readList(customer, 'worker-src')) {
+        return (
+            readList(built, 'script-src') ??
+            readList(customer, 'script-src') ??
+            readList(defaultCspDirectives, 'script-src') ??
+            []
+        );
+    }
+    return own ?? [];
 }
 
 /**
@@ -124,13 +145,18 @@ export function mergeExtensionServerCsp(headers: SecurityConfig, serverExtension
 
     const customer = headers.csp?.directives;
     const directives: CspDirectives = { ...customer };
-    for (const [directive, sources] of additions) {
-        const merged = sourcesFor(directive, customer);
+    const apply = (directive: CspDirectiveName, sources: string[]) => {
+        const merged = sourcesFor(directive, customer, directives);
         for (const source of sources) {
             if (!merged.includes(source)) merged.push(source);
         }
         directives[directive] = merged;
+    };
+    for (const [directive, sources] of additions) {
+        if (directive !== 'worker-src') apply(directive, sources);
     }
+    const workerSources = additions.get('worker-src');
+    if (workerSources) apply('worker-src', workerSources);
 
     return {
         ...headers,

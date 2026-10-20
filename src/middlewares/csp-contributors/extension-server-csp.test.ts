@@ -18,13 +18,15 @@ import { defaultCspDirectives, type SecurityConfig } from '@salesforce/storefron
 import { describe, expect, it, vi } from 'vitest';
 import { mergeExtensionServerCsp } from './extension-server-csp';
 
-function defaultSources(name: 'script-src' | 'connect-src'): string[] {
+type Directive = 'script-src' | 'connect-src' | 'worker-src';
+
+function defaultSources(name: Directive): string[] {
     const sources = defaultCspDirectives[name];
     if (!sources) throw new Error(`missing default ${name}`);
     return sources;
 }
 
-function directive(headers: SecurityConfig, name: 'script-src' | 'connect-src'): string[] | undefined {
+function directive(headers: SecurityConfig, name: Directive): string[] | undefined {
     const csp = headers.csp;
     if (!csp) return undefined;
     const sources = csp.directives?.[name];
@@ -111,7 +113,6 @@ describe('mergeExtensionServerCsp', () => {
                         ],
                         'not-a-directive': ['https://ignored.example.com'],
                         'form-action': ['https://evil.example.com'],
-                        'worker-src': ['https://evil.example.com'],
                         'default-src': ['https://evil.example.com'],
                     },
                 },
@@ -120,9 +121,6 @@ describe('mergeExtensionServerCsp', () => {
         expect(directive(merged, 'script-src')).toEqual([...defaultSources('script-src'), 'https://ok.example.com']);
         expect(merged.csp && typeof merged.csp === 'object' ? merged.csp.directives : undefined).not.toHaveProperty(
             'form-action'
-        );
-        expect(merged.csp && typeof merged.csp === 'object' ? merged.csp.directives : undefined).not.toHaveProperty(
-            'worker-src'
         );
         expect(merged.csp && typeof merged.csp === 'object' ? merged.csp.directives : undefined).not.toHaveProperty(
             'default-src'
@@ -138,7 +136,7 @@ describe('mergeExtensionServerCsp', () => {
             {
                 bad: {
                     csp: {
-                        'worker-src': ['https://cdn.example.com'],
+                        'font-src': ['https://cdn.example.com'],
                         'script-src': 'https://cdn.example.com',
                         'connect-src': ['https://ok.example.com', 'https://*.co.uk'],
                     },
@@ -148,11 +146,65 @@ describe('mergeExtensionServerCsp', () => {
 
         const messages = warn.mock.calls.map((call) => String(call[1]));
         expect(messages).toEqual([
-            expect.stringContaining('"directive":"worker-src"'),
+            expect.stringContaining('"directive":"font-src"'),
             expect.stringContaining('"reason":"not a list"'),
             expect.stringContaining('"source":"https://*.co.uk"'),
         ]);
         warn.mockRestore();
+    });
+
+    it('starts worker-src from script-src so existing workers keep loading', () => {
+        const merged = mergeExtensionServerCsp({}, { analytics: { csp: { 'worker-src': ['https://*.example.com'] } } });
+        expect(directive(merged, 'worker-src')).toEqual([...defaultSources('script-src'), 'https://*.example.com']);
+    });
+
+    it('starts worker-src from a merchant script-src', () => {
+        const merged = mergeExtensionServerCsp(
+            { csp: { directives: { 'script-src': ["'self'", 'https://cdn.merchant.com'] } } },
+            { analytics: { csp: { 'worker-src': ['https://*.example.com'] } } }
+        );
+        expect(directive(merged, 'worker-src')).toEqual([
+            "'self'",
+            'https://cdn.merchant.com',
+            'https://*.example.com',
+        ]);
+    });
+
+    it('keeps extension script-src hosts on the worker-src copy', () => {
+        const merged = mergeExtensionServerCsp(
+            {},
+            {
+                analytics: {
+                    csp: {
+                        'worker-src': ['https://workers.example.com'],
+                        'script-src': ['https://cdn.example.com'],
+                    },
+                },
+                checkout: { csp: { 'script-src': ['https://cdn.checkout.example.com'] } },
+            }
+        );
+        expect(directive(merged, 'worker-src')).toEqual([
+            ...defaultSources('script-src'),
+            'https://cdn.example.com',
+            'https://cdn.checkout.example.com',
+            'https://workers.example.com',
+        ]);
+    });
+
+    it('keeps a merchant worker-src list and appends extension hosts', () => {
+        const merged = mergeExtensionServerCsp(
+            { csp: { directives: { 'worker-src': ["'self'", 'blob:'] } } },
+            { analytics: { csp: { 'worker-src': ['https://*.example.com'] } } }
+        );
+        expect(directive(merged, 'worker-src')).toEqual(["'self'", 'blob:', 'https://*.example.com']);
+    });
+
+    it('keeps the default list when a merchant directive is not a list', () => {
+        const merged = mergeExtensionServerCsp(
+            { csp: { directives: { 'script-src': undefined } } },
+            { analytics: { csp: { 'script-src': ['https://cdn.example.com'] } } }
+        );
+        expect(directive(merged, 'script-src')).toEqual([...defaultSources('script-src'), 'https://cdn.example.com']);
     });
 
     it('does not merge when CSP is disabled', () => {
