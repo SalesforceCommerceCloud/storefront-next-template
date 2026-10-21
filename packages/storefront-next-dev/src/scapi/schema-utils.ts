@@ -105,6 +105,13 @@ export interface SchemaMetadata {
      * Older sidecars without this field are treated as 'custom' for backwards compatibility.
      */
     kind?: 'override' | 'custom';
+    /**
+     * When true, the client is built without `onAuthTokenInvalid`, so 401 responses
+     * throw `AuthTokenInvalidError` directly rather than triggering shopper session
+     * invalidation. Required for service-account clients (e.g. the notify client) whose
+     * tokens are independent of the shopper session.
+     */
+    serviceAccount?: boolean;
 }
 
 /**

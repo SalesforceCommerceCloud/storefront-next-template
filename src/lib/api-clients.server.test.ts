@@ -658,6 +658,47 @@ describe('createApiClients', () => {
                 expect(result.headers.get('sfdc_dwsid')).toBe('test-dwsid');
             });
 
+            it('should preserve a pre-set Authorization header (service-account use case)', async () => {
+                const mockRequest = new Request(
+                    'https://kv7kzm78.api.commercecloud.salesforce.com/custom/sfnext-notify/v1/organizations/test/notify',
+                    {
+                        headers: { Authorization: 'Bearer service-account-token' },
+                    }
+                );
+                const mockSession: SessionData = {
+                    accessToken: 'shopper-token',
+                    customerId: 'test-customer',
+                    userType: 'registered',
+                };
+
+                mockContextProvider.set(authContext, {
+                    ref: Promise.resolve(mockSession),
+                });
+
+                const result = await authMiddleware.onRequest({ request: mockRequest });
+
+                // The service-account token must survive; the shopper token must not overwrite it.
+                expect(result.headers.get('Authorization')).toBe('Bearer service-account-token');
+            });
+
+            it('should not require a session when Authorization is already set', async () => {
+                const mockRequest = new Request(
+                    'https://kv7kzm78.api.commercecloud.salesforce.com/custom/sfnext-notify/v1/organizations/test/notify',
+                    {
+                        headers: { Authorization: 'Bearer service-account-token' },
+                    }
+                );
+
+                // No session at all.
+                mockContextProvider.set(authContext, {
+                    ref: Promise.resolve(undefined),
+                });
+
+                // Should not throw "No session found".
+                const result = await authMiddleware.onRequest({ request: mockRequest });
+                expect(result.headers.get('Authorization')).toBe('Bearer service-account-token');
+            });
+
             it('should not inject sfdc_dwsid for SLAS auth endpoints when session has no dwsid', async () => {
                 const mockRequest = new Request(
                     'https://kv7kzm78.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/test/oauth2/token'

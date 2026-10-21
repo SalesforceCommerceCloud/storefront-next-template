@@ -1,0 +1,8 @@
+{
+    "clientKey": "notifications",
+    "basePath": "/custom/sfnext-notify/v1",
+    "supportsLocale": true,
+    "orgPrefix": true,
+    "serviceAccount": true,
+    "kind": "custom"
+}

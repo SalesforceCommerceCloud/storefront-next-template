@@ -113,14 +113,15 @@ export const customClients: never[] = [];
     const typeEntries: string[] = [];
     const clientEntries: string[] = [];
 
-    entries.forEach(({ clientKey, basePath, supportsLocale, orgPrefix, schemaName }, index) => {
+    entries.forEach(({ clientKey, basePath, supportsLocale, orgPrefix, serviceAccount, schemaName }, index) => {
         imports.push(
             `import type { paths as P${index} } from './generated/${schemaName}';`,
             `import { operations as ops${index} } from './generated/${schemaName}.operations';`
         );
         typeEntries.push(`    ${clientKey}: ProxyClient<Client<P${index}>, typeof ops${index}>;`);
+        const serviceAccountPart = serviceAccount ? `, serviceAccount: true` : '';
         clientEntries.push(
-            `    { key: '${clientKey}', basePath: '${basePath}', ops: ops${index}, locale: ${supportsLocale}, orgPrefix: ${orgPrefix} },`
+            `    { key: '${clientKey}', basePath: '${basePath}', ops: ops${index}, locale: ${supportsLocale}, orgPrefix: ${orgPrefix}${serviceAccountPart} },`
         );
     });
 

@@ -174,6 +174,7 @@ export default defineConfig([
             'commands/locales/aggregate-extensions': 'src/commands/locales/aggregate-extensions.ts',
             // oclif hooks
             'hooks/init': 'src/hooks/init.ts',
+            'hooks/operation-lifecycle': 'src/hooks/operation-lifecycle.ts',
         },
         platform: 'node',
         target: 'node24',

@@ -71,7 +71,8 @@
     "commands": "./dist/commands",
     "topicSeparator": " ",
     "hooks": {
-      "init": "./dist/hooks/init"
+      "init": "./dist/hooks/init",
+      "b2c:operation-lifecycle": "./dist/hooks/operation-lifecycle"
     },
     "plugins": [
       "@oclif/plugin-help",

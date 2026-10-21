@@ -48,6 +48,7 @@ type CustomClientConfigEntry = {
     ops: OperationMap;
     locale: boolean;
     orgPrefix: boolean;
+    serviceAccount?: boolean;
 };
 
 type ActiveClient = {
@@ -628,8 +629,10 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
                 }
             }
 
-            // SLAS auth endpoints handle their own Authorization header (Basic auth or PKCE)
-            if (!isSlasAuthEndpoint) {
+            // SLAS auth endpoints handle their own Authorization header (Basic auth or PKCE).
+            // Non-SLAS endpoints that already carry an explicit Authorization header (e.g. a
+            // service-account Bearer for custom APIs) keep it; all others get the shopper token.
+            if (!isSlasAuthEndpoint && !request.headers.has('Authorization')) {
                 if (!session) {
                     throw new Error('No session found');
                 }
@@ -796,6 +799,7 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
         ops,
         locale: supportsLocale,
         orgPrefix,
+        serviceAccount,
     } of customClients as readonly CustomClientConfigEntry[]) {
         const orgPath = orgPrefix ? `/organizations/${organizationId}` : '';
         const expectedBaseUrl = `${baseUrl}${basePath}${orgPath}`;
@@ -803,7 +807,7 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
             createOpenApiFetchClient({ baseUrl: expectedBaseUrl, ...clientOptions }),
             ops,
             supportsLocale ? globalParams : globalParamsWithoutLocale,
-            { onAuthTokenInvalid }
+            serviceAccount ? {} : { onAuthTokenInvalid }
         );
 
         if (key in BUILT_IN_CLIENT_DEFAULTS) {

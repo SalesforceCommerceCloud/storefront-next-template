@@ -533,6 +533,16 @@ The number of seconds before refresh tokens expire for guest users. If you don't
 
 ---
 
+### commerce.api.notifyClientId
+
+Type: `string` Optional | Default: `undefined`
+
+Client ID for the dedicated private SLAS client used to send transactional notifications (passwordless login, password reset, OTP verification). This client must be registered in SLAS Admin with the `c_sfnext_notify` scope **only** and configured as a private (confidential) client. Its secret is supplied via the `COMMERCE_API_SLAS_NOTIFY_SECRET` environment variable.
+
+See [README-EMAIL-CARTRIDGE.md](./README-EMAIL-CARTRIDGE.md) for setup instructions and the full notification flow.
+
+---
+
 ### commerce.sites
 
 Type: `Site[]` | Default: Array with one site configuration

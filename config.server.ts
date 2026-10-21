@@ -153,6 +153,7 @@ export default defineConfig<Config>(
                     // OAuth2 redirect_uri sent to SLAS — must match what's registered in SLAS Admin.
                     // Not a storefront route; token exchange happens server-side with redirect: 'manual'.
                     callback: '/callback',
+                    notifyClientId: 'cdaa0bde-f866-4bf9-941a-e0fe5076db42',
                     privateKeyEnabled: false,
                     registeredRefreshTokenExpirySeconds: undefined,
                     guestRefreshTokenExpirySeconds: undefined,
@@ -320,7 +321,7 @@ export default defineConfig<Config>(
                     callbackUri: '',
                 },
                 resetPassword: {
-                    mode: 'email',
+                    mode: 'callback',
                     callbackUri: '/reset-password-callback',
                     landingUri: '/reset-password',
                 },

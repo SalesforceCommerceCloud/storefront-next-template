@@ -151,6 +151,14 @@ export type AppConfig = {
             privateKeyEnabled?: boolean;
             registeredRefreshTokenExpirySeconds?: number;
             guestRefreshTokenExpirySeconds?: number;
+            /**
+             * Client ID for the dedicated private SLAS notify client.
+             * This client must be registered in SLAS Admin with the `c_sfnext_notify`
+             * scope only, and must be configured as a private (confidential) client.
+             * Its secret lives in the `COMMERCE_API_SLAS_NOTIFY_SECRET` environment variable.
+             * Client IDs are not credentials, so this lives in config rather than an env var.
+             */
+            notifyClientId?: string;
         };
         sites: Array<Site>;
         /**

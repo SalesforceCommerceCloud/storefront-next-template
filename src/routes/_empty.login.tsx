@@ -127,7 +127,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     const config = getConfig(context);
     // To enable passwordless login, the "Enable Email Verification" site preference under "Storefront Login Preferences" must be enabled.
     const { emailVerificationEnabled } = await getLoginPreferences(context);
-    const isPasswordlessLoginEnabled = Boolean(emailVerificationEnabled);
+    const isPasswordlessLoginEnabled = emailVerificationEnabled;
     const isSocialLoginEnabled = Boolean(config.features.socialLogin?.enabled);
 
     // Ignore `?mode` when passwordless is disabled - force standard password login so the
