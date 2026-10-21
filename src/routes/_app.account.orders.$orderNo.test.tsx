@@ -220,6 +220,38 @@ describe('Order Details Route (_app.account.orders.$orderNo)', () => {
             // once per section, not per order. This loader must not carry them.
             expect(result).not.toHaveProperty('omsMetaData');
         });
+
+        test('observes the orderData promise so a rejection is not unhandled when the page never renders', async () => {
+            // A signed-out shopper is redirected to login by the parent _app.account loader, which
+            // runs in parallel with this one. React Router then discards this loader's data, so no
+            // <Await> ever subscribes to orderData. The guest token's getOrder call still 404s.
+            const unhandledRejections: unknown[] = [];
+            const onUnhandledRejection = (reason: unknown) => {
+                unhandledRejections.push(reason);
+            };
+            process.on('unhandledRejection', onUnhandledRejection);
+
+            try {
+                vi.mocked(fetchOrderWithProducts).mockReturnValue({
+                    orderDataPromise: Promise.reject(new Error('API Error 404')),
+                    // Never settles on purpose: the loader doesn't return orderPromise, and in the
+                    // real fetchOrderWithProducts it is already consumed by Promise.all.
+                    orderPromise: new Promise<never>(() => {}),
+                });
+
+                const result = loader({ context: {} as any, params: { orderNo: 'ORD-123' } } as any);
+
+                // Node emits unhandledRejection once the microtask queue drains, before the next
+                // macrotask, so a setTimeout(0) is the earliest point where it would have fired.
+                await new Promise((resolve) => setTimeout(resolve, 0));
+                expect(unhandledRejections).toHaveLength(0);
+
+                // The observer must not swallow the rejection: <Await errorElement> still needs it.
+                await expect(result.orderData).rejects.toThrow('API Error 404');
+            } finally {
+                process.off('unhandledRejection', onUnhandledRejection);
+            }
+        });
     });
 
     describe('ErrorBoundary', () => {

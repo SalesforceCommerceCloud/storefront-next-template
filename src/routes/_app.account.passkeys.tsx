@@ -37,7 +37,15 @@ export function loader({ context }: Route.LoaderArgs): AccountPasskeysPageData {
     if (!getConfig(context).features?.passkey?.enabled) {
         throw new Response('Not Found', { status: 404 });
     }
-    return { credentials: getPasskeyList(context) };
+    const credentials = getPasskeyList(context);
+
+    // Observe immediately: for a signed-out shopper the parent _app.account loader redirects to
+    // login in parallel, and React Router then discards this loader's data, so nothing ever awaits
+    // credentials and its rejection would go unhandled. The returned promise still rejects into
+    // the list's <Await errorElement> when the page does render.
+    void Promise.allSettled([credentials]);
+
+    return { credentials };
 }
 
 /**

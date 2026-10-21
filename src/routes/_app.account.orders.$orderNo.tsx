@@ -75,6 +75,12 @@ export function loader({ context, params }: Route.LoaderArgs): OrderDetailsPageL
         includeAvailability: allowReorders,
     });
 
+    // Observe immediately: for a signed-out shopper the parent _app.account loader redirects to
+    // login in parallel, and React Router then discards this loader's data, so no <Await> ever
+    // subscribes to orderData and its rejection would go unhandled. The returned promise still
+    // rejects into <Await errorElement> when the page does render.
+    void Promise.allSettled([orderDataPromise]);
+
     return {
         orderData: orderDataPromise,
         // Note: OMS reason codes are fetched by the parent section loader
