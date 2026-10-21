@@ -447,7 +447,10 @@
             "saving": "正在保存...",
             "lookupFallbackMessage": "客户查找失败。以访客身份继续。",
             "saveError": "无法保存联系人信息",
-            "sessionExpired": "会话已过期。重新登录。"
+            "sessionExpired": "会话已过期。重新登录。",
+            "phonePlaceholder": "输入您的电话号码",
+            "verificationFailed": "我们无法验证您的信息。请重试。",
+            "passkeyLoginFailed": "无法使用该通行密钥登录。请重试或使用其他登录方式。"
         },
         "addressModal": {
             "title": "添加新地址",
@@ -503,7 +506,8 @@
             "postalCodeLabel": "邮政编码",
             "postalCodePlaceholder": "邮政编码",
             "codeLabel": "代码",
-            "phoneLabel": "电话号码"
+            "phoneLabel": "电话号码",
+            "phonePlaceholder": "输入您的电话号码"
         },
         "shippingOptions": {
             "title": "送货方式",
@@ -518,7 +522,8 @@
             "free": "免费",
             "noMethodsAvailable": "无可用的运货方式",
             "noMethodsAvailableHelp": "请确保您的送货地址完整并重试。",
-            "deliveryWindow": "Arrives {{window}}"
+            "deliveryWindow": "预计送达 {{window}}",
+            "priceAndMethod": "{{price}} | {{methodName}}"
         },
         "payment": {
             "title": "付款",
@@ -571,18 +576,41 @@
             "billingSummaryTitle": "账单地址",
             "viewAllMore": "查看全部 （{{count}} 个以上）",
             "viewLess": "查看更少",
-            "savePaymentToProfile": "保存付款方式以备将来使用"
+            "savePaymentToProfile": "保存付款方式以备将来使用",
+            "expiryDateLabel": "到期日期",
+            "cvvLabel": "安全码*",
+            "cvvPlaceholder": "安全码*",
+            "billingFirstNameRequired": "名字为必填项",
+            "billingLastNameRequired": "姓氏为必填项",
+            "billingAddress1Required": "地址第 1 行为必填项",
+            "billingCityRequired": "城市为必填项",
+            "billingPostalCodeRequired": "邮政编码为必填项",
+            "billingStateRequired": "州/省为必填项",
+            "billingCountryRequired": "国家/地区为必填项"
         },
         "expressPayments": {
             "separator": "或",
-            "venmoUnavailable": "Venmo 在此设备上不可用。"
+            "venmoUnavailable": "Venmo 在此设备上不可用。",
+            "title": "快捷结账",
+            "applePayLabel": "Apple Pay",
+            "googlePayLabel": "Google Pay",
+            "amazonPayLabel": "Amazon Pay",
+            "payPalLabel": "PayPal",
+            "venmoLabel": "Venmo"
         },
         "common": {
             "edit": "编辑",
             "submitting": "正在提交",
             "notProvided": "未提供",
             "backToCart": "返回购物车",
-            "emptyCart": "购物车中没有商品。在结账前添加商品。"
+            "emptyCart": "购物车中没有商品。在结账前添加商品。",
+            "stepCompleted": "✓",
+            "stepNumbers": {
+                "contactInfo": "1",
+                "shippingAddress": "2",
+                "shippingOptions": "3",
+                "payment": "4"
+            }
         },
         "orderSummary": {
             "title": "订单摘要",
@@ -590,7 +618,8 @@
         },
         "myCart": {
             "title": "我的购物车",
-            "saved": "已保存 {{amount}}"
+            "saved": "已保存 {{amount}}",
+            "delivery": "送货"
         },
         "placeOrder": {
             "button": "下订单 - {{total}}",
@@ -665,11 +694,29 @@
                 "title": "下次订单可享 10% 的折扣。加入电子邮件列表。",
                 "subtitle": "及时了解产品发布和独家优惠。",
                 "placeholder": "电子邮件地址",
-                "cta": "加入"
+                "cta": "加入",
+                "label": "电子邮件地址"
             },
             "summaryTitle": "摘要",
             "emptyItemsFallback": "您的商品正在准备中。",
-            "productPlaceholderInitial": "商品"
+            "productPlaceholderInitial": "商品",
+            "orderPlacedDetailsUnavailable": "您已下单",
+            "orderPlacedDetailsUnavailableDescription": "您已下单，但我们目前无法加载完整详情。请查看电子邮件中的确认信息。如果没有收到电子邮件，请联系 Salesforce 客户支持。",
+            "orderNumberLabel": "订单编号：{{orderNo}}",
+            "postOrderRegistration": {
+                "title": "创建账户，下次更快结账",
+                "subtitle": "使用您的电子邮件创建账户，保存您的信息并跟踪订单。",
+                "emailLabel": "电子邮件",
+                "passwordLabel": "密码",
+                "passwordPlaceholder": "创建密码",
+                "confirmPasswordLabel": "确认密码",
+                "confirmPasswordPlaceholder": "确认您的密码",
+                "passwordMismatch": "密码不匹配",
+                "createAccountButton": "创建账户",
+                "creating": "正在创建账户...",
+                "successTitle": "账户已创建！",
+                "successDescription": "已使用 {{email}} 创建您的账户。您现已登录，可以跟踪订单。"
+            }
         },
         "errorBoundary": {
             "title": "结账功能暂时不可用",
@@ -694,7 +741,10 @@
             "accountCreationLabel": "账户创建",
             "accountWillBeCreated": "将创建账户",
             "continueAsGuest": "以访客身份继续"
-        }
+        },
+        "pageTitle": "结账",
+        "savingStatus": "正在保存",
+        "placingOrderStatus": "正在下订单"
     },
     "account": {
         "title": "账户详情",
