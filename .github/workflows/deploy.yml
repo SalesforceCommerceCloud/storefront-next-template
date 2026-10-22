@@ -7,9 +7,11 @@ name: Deploy
 #
 #   deploy-mrt        - Pushes the built storefront bundle to Managed Runtime.
 #     Secrets:  MRT_API_KEY (legacy backend), or SFCC_CLIENT_SECRET (SCAPI backend)
+#               SFCC_EXTRA_HEADERS (optional JSON object of custom deployment HTTP headers)
 #     Variables: MRT_PROJECT, MRT_ENVIRONMENT (optional, defaults to 'production';
 #                MRT_TARGET is still accepted), MRT_CLOUD_ORIGIN (optional),
 #                MRT_BACKEND (optional: legacy (default), scapi, or auto)
+#                SFCC_DEPLOYMENT_ENVIRONMENT (default GitHub Environment for pushes)
 #
 #     With MRT_BACKEND=scapi or auto, the push authenticates with the
 #     SFCC_CLIENT_ID / SFCC_CLIENT_SECRET API client and needs SFCC_SHORTCODE
@@ -81,8 +83,10 @@ env:
 
 jobs:
   deploy-mrt:
+    # Fast Setup dispatches the initial deployment after configuring the environment.
+    if: github.event_name != 'push' || github.event.created != true
     runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.environment || vars.SFCC_DEPLOYMENT_ENVIRONMENT }}
     timeout-minutes: 30
     # Secrets are passed only to the steps that need them, not to checkout/install/build.
     env:
@@ -133,6 +137,8 @@ jobs:
       - name: Push to MRT
         if: steps.config.outputs.skip != 'true'
         uses: './.github/actions/deploy-mrt'
+        env:
+          SFCC_EXTRA_HEADERS: ${{ secrets.SFCC_EXTRA_HEADERS }}
         with:
           project: ${{ vars.MRT_PROJECT }}
           environment: ${{ github.event.inputs.mrt_environment || vars.MRT_ENVIRONMENT || vars.MRT_TARGET }}
@@ -147,8 +153,9 @@ jobs:
           message: ${{ github.event.inputs.message }}
 
   deploy-cartridges:
+    if: github.event_name != 'push' || github.event.created != true
     runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.environment || vars.SFCC_DEPLOYMENT_ENVIRONMENT }}
     timeout-minutes: 15
     env:
       SFCC_SERVER: ${{ vars.SFCC_SERVER }}
