@@ -902,6 +902,7 @@ describe('createAuthHelpers', () => {
                 const auth = createAuthHelpers(config);
                 await auth.passwordless.exchangeToken({
                     pwdlessLoginToken: 'passwordless-token-from-link',
+                    loginId: 'samantha.sampleson@example.com',
                 });
 
                 expect(mockShopperLoginClient.getPasswordLessAccessToken).toHaveBeenCalledWith({
@@ -916,8 +917,68 @@ describe('createAuthHelpers', () => {
                         hint: 'pwdless_login',
                         pwdless_login_token: 'passwordless-token-from-link',
                         code_verifier: 'mock-code-verifier-123',
+                        login_id: 'samantha.sampleson@example.com',
+                        channel_id: 'RefArch',
                     },
                 });
+            });
+
+            it('should send login_id exactly matching the userId used for passwordless.authorize, with no case/trim changes', async () => {
+                const config: AuthConfig = {
+                    ...baseConfig,
+                    clientSecret: 'test-secret',
+                };
+
+                mockShopperLoginClient.authorizePasswordlessCustomer.mockResolvedValue({
+                    data: { status: 'ok' },
+                    response: new Response(),
+                });
+                mockShopperLoginClient.getPasswordLessAccessToken.mockResolvedValue({
+                    data: mockTokenResponse,
+                    response: new Response(),
+                });
+
+                const auth = createAuthHelpers(config);
+                const rawUserId = '  Samantha.Sampleson@Example.com  ';
+
+                await auth.passwordless.authorize({
+                    userId: rawUserId,
+                    mode: 'email',
+                });
+                await auth.passwordless.exchangeToken({
+                    pwdlessLoginToken: 'passwordless-token-from-link',
+                    loginId: rawUserId,
+                });
+
+                const authorizeCallBody = mockShopperLoginClient.authorizePasswordlessCustomer.mock.calls[0][0].body;
+                const exchangeCallBody = mockShopperLoginClient.getPasswordLessAccessToken.mock.calls[0][0].body;
+
+                expect(exchangeCallBody.login_id).toBe(authorizeCallBody.user_id);
+                expect(exchangeCallBody.channel_id).toBe('RefArch');
+            });
+
+            it('should throw error when loginId is empty', async () => {
+                const config: AuthConfig = {
+                    ...baseConfig,
+                    clientSecret: 'test-secret',
+                };
+                const auth = createAuthHelpers(config);
+
+                await expect(
+                    auth.passwordless.exchangeToken({
+                        pwdlessLoginToken: 'some-token',
+                        loginId: '',
+                    })
+                ).rejects.toThrow('loginId is required for passwordless token exchange');
+
+                await expect(
+                    auth.passwordless.exchangeToken({
+                        pwdlessLoginToken: 'some-token',
+                        loginId: '   ',
+                    })
+                ).rejects.toThrow('loginId is required for passwordless token exchange');
+
+                expect(mockShopperLoginClient.getPasswordLessAccessToken).not.toHaveBeenCalled();
             });
 
             it('should throw error when clientSecret is not provided', async () => {
@@ -926,6 +987,7 @@ describe('createAuthHelpers', () => {
                 await expect(
                     auth.passwordless.exchangeToken({
                         pwdlessLoginToken: 'some-token',
+                        loginId: 'user@example.com',
                     })
                 ).rejects.toThrow('Client secret is required for passwordless token exchange');
             });
@@ -944,6 +1006,7 @@ describe('createAuthHelpers', () => {
                 const auth = createAuthHelpers(config);
                 await auth.passwordless.exchangeToken({
                     pwdlessLoginToken: 'passwordless-token',
+                    loginId: 'user@example.com',
                     dnt: true,
                 });
 
@@ -1233,6 +1296,34 @@ describe('createAuthHelpers', () => {
                         }),
                     })
                 );
+            });
+
+            it('should send user_id and channel_id matching the password/reset request, and never login_id', async () => {
+                mockShopperLoginClient.getPasswordResetToken.mockResolvedValue({
+                    data: { status: 'ok' },
+                    response: new Response(),
+                });
+                mockShopperLoginClient.resetPassword.mockResolvedValue({
+                    data: mockTokenResponse,
+                    response: new Response(),
+                });
+
+                const auth = createAuthHelpers(baseConfig);
+                const userId = 'user@example.com';
+
+                await auth.password.requestReset({ userId, mode: 'email' });
+                await auth.password.reset({
+                    userId,
+                    token: 'password-reset-token',
+                    newPassword: 'newSecurePassword123',
+                });
+
+                const requestResetBody = mockShopperLoginClient.getPasswordResetToken.mock.calls[0][0].body;
+                const resetBody = mockShopperLoginClient.resetPassword.mock.calls[0][0].body;
+
+                expect(resetBody.user_id).toBe(requestResetBody.user_id);
+                expect(resetBody.channel_id).toBe(requestResetBody.channel_id);
+                expect(resetBody).not.toHaveProperty('login_id');
             });
         });
     });

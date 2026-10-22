@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import type { ShopperLogin } from '../types';
 import type {
     AuthConfig,
     AuthNamespace,
@@ -490,13 +491,30 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
             },
 
             exchangeToken: async (options: PasswordlessExchangeTokenOptions): Promise<AuthResponse> => {
-                const { pwdlessLoginToken, dnt } = options;
+                const { pwdlessLoginToken, loginId, dnt } = options;
 
                 if (!clientSecret) {
                     throw new Error('Client secret is required for passwordless token exchange');
                 }
 
+                if (!loginId.trim()) {
+                    throw new Error('loginId is required for passwordless token exchange');
+                }
+
                 const codeVerifier = createCodeVerifier();
+
+                // `channel_id` is required by SLAS on this endpoint but is missing from the
+                // generated PasswordLessLoginTokenRequest schema, so it's added via intersection
+                // rather than editing the generated types.
+                const requestBody: ShopperLogin.schemas['PasswordLessLoginTokenRequest'] & { channel_id: string } = {
+                    grant_type: 'client_credentials',
+                    hint: 'pwdless_login',
+                    pwdless_login_token: pwdlessLoginToken,
+                    code_verifier: codeVerifier,
+                    login_id: loginId,
+                    channel_id: siteId,
+                    ...(dnt !== undefined && { dnt: dnt.toString() }),
+                };
 
                 const result = await shopperLoginClient.getPasswordLessAccessToken({
                     params: {
@@ -505,13 +523,7 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
                         },
                     },
                     headers: FORM_URLENCODED_HEADER,
-                    body: {
-                        grant_type: 'client_credentials' as const,
-                        hint: 'pwdless_login',
-                        pwdless_login_token: pwdlessLoginToken,
-                        code_verifier: codeVerifier,
-                        ...(dnt !== undefined && { dnt: dnt.toString() }),
-                    },
+                    body: requestBody,
                 });
 
                 return addDwsidToTokenData({ data: result.data, response: result.response });

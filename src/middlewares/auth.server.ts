@@ -389,10 +389,14 @@ export async function resetPasswordWithToken(
 /**
  * Get passwordless access token using the token from magic link.
  * Returns AuthResponse which includes dwsid (automatically extracted from Set-Cookie header by SDK).
+ *
+ * `loginId` must be the exact same user ID (email) that was passed to `authorizePasswordless` for
+ * this login — SLAS rejects the exchange if it doesn't match (no case or whitespace normalization).
  */
 export async function getPasswordLessAccessToken(
     context: Readonly<RouterContextProvider>,
-    pwdlessLoginToken: string
+    pwdlessLoginToken: string,
+    loginId: string
 ): Promise<AuthResponse> {
     const clients = createApiClients(context);
     const performanceTimer = context.get(performanceTimerContext);
@@ -423,6 +427,7 @@ export async function getPasswordLessAccessToken(
     try {
         const result = await clients.auth.passwordless.exchangeToken({
             pwdlessLoginToken,
+            loginId,
             ...(dnt !== undefined && { dnt }),
         });
         logger.debug('Auth: getPasswordLessAccessToken succeeded');

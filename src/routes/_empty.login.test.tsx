@@ -537,7 +537,11 @@ describe('Login Route', () => {
                     })
                 );
 
-                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(mockContext, 'otp-token-123');
+                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(
+                    mockContext,
+                    'otp-token-123',
+                    'test@example.com'
+                );
                 expect(mockUpdateAuth).toHaveBeenCalled();
                 expect(mockMergeBasket).toHaveBeenCalledWith(mockContext);
 
@@ -573,7 +577,11 @@ describe('Login Route', () => {
                     })
                 );
 
-                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(mockContext, 'otp-token-123');
+                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(
+                    mockContext,
+                    'otp-token-123',
+                    'test@example.com'
+                );
                 expect(mockMergeBasket).toHaveBeenCalledWith(mockContext);
 
                 // Should still redirect successfully despite basket merge failure
@@ -597,7 +605,11 @@ describe('Login Route', () => {
                     })
                 );
 
-                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(mockContext, 'invalid-token');
+                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(
+                    mockContext,
+                    'invalid-token',
+                    'test@example.com'
+                );
                 expect(mockMergeBasket).not.toHaveBeenCalled();
 
                 if (!(result instanceof Response) && 'error' in result) {
@@ -692,7 +704,11 @@ describe('Login Route', () => {
                     })
                 );
 
-                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(mockContext, 'legacy-otp-123');
+                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(
+                    mockContext,
+                    'legacy-otp-123',
+                    'test@example.com'
+                );
                 expect(mockMergeBasket).toHaveBeenCalledWith(mockContext);
 
                 if (!(result instanceof Response) && 'redirectTo' in result) {

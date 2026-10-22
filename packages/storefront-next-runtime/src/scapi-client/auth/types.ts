@@ -177,6 +177,12 @@ export interface PasswordlessAuthorizeOptions {
 export interface PasswordlessExchangeTokenOptions {
     /** The passwordless login token from the magic link */
     pwdlessLoginToken: string;
+    /**
+     * The same user ID (email or phone) that was passed as `userId` to `passwordless.authorize()`
+     * for this login. SLAS validates that this exactly matches the ID used during passwordless
+     * login (no case or whitespace normalization) and rejects the exchange on mismatch.
+     */
+    loginId: string;
     /** Enable Do Not Track for the user */
     dnt?: boolean;
 }
@@ -690,9 +696,10 @@ export interface AuthNamespace {
      *   mode: 'callback'
      * });
      *
-     * // Exchange token from magic link
+     * // Exchange token from magic link - loginId must match the userId used above
      * const tokens = await clients.auth.passwordless.exchangeToken({
-     *   pwdlessLoginToken: tokenFromUrl
+     *   pwdlessLoginToken: tokenFromUrl,
+     *   loginId: 'user@example.com'
      * });
      * console.log(tokens.access_token, tokens.dwsid);
      * ```

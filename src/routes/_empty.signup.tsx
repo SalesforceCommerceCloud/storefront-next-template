@@ -100,7 +100,7 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Si
     const formData = await request.formData();
     const firstName = formData.get('firstName')?.toString();
     const lastName = formData.get('lastName')?.toString();
-    const email = formData.get('email')?.toString();
+    const email = formData.get('email')?.toString()?.trim();
     const registrationMode = formData.get('registrationMode')?.toString() as RegistrationMode;
     const url = new URL(request.url);
     const returnUrl = getSafeReturnUrl(url.searchParams.get('returnUrl'));
