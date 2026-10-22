@@ -28,6 +28,7 @@
 
 import { ConsoleSpanExporter, type ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ExportResultCode, type ExportResult, hrTimeToTimeStamp } from '@opentelemetry/core';
+import { isOtelEnabled } from './enabled';
 
 export class MrtConsoleSpanExporter extends ConsoleSpanExporter {
     export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
@@ -48,7 +49,7 @@ export class MrtConsoleSpanExporter extends ConsoleSpanExporter {
                     links: span.links,
                     start_time: span.startTime,
                     end_time: span.endTime,
-                    forwardTrace: process.env.SFNEXT_OTEL_ENABLED === 'true',
+                    forwardTrace: isOtelEnabled(),
                 };
                 // oxlint-disable-next-line no-console -- intentional: MRT collects stdout as the telemetry transport
                 console.info(JSON.stringify(spanData));

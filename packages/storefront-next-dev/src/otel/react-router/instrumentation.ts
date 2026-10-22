@@ -33,6 +33,8 @@
  * and calls through immediately, so the disabled path is always obvious.
  *
  * @env SFNEXT_OTEL_ENABLED — set to `"true"` to enable OpenTelemetry tracing.
+ * @env MRT_DISTRIBUTED_TRACING_ENABLED — set to `"true"` to enable OpenTelemetry tracing
+ *   (alternative to SFNEXT_OTEL_ENABLED).
  *   Spans are written synchronously to stdout via ConsoleSpanExporter, which is
  *   compatible with both local development and the Managed Runtime serverless
  *   environment (see otel/setup.ts for the full design rationale).
@@ -45,9 +47,10 @@ import { type Tracer, type Attributes, SpanStatusCode } from '@opentelemetry/api
 import type { ServerInstrumentation } from 'react-router';
 import { ATTR_HTTP_REQUEST_METHOD, ATTR_HTTP_ROUTE, ATTR_URL_PATH } from '@opentelemetry/semantic-conventions';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
+import { isOtelEnabled } from '../enabled';
 import { initTelemetry } from '../setup';
 
-const tracer: Tracer | null = process.env.SFNEXT_OTEL_ENABLED === 'true' ? initTelemetry() : null;
+const tracer: Tracer | null = isOtelEnabled() ? initTelemetry() : null;
 
 /**
  * The read-only router context passed to each instrumentation callback. React

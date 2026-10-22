@@ -1,8 +1,8 @@
 # OpenTelemetry spans
 
 The storefront emits OpenTelemetry spans describing each inbound request and the
-work it triggers. All tracing is gated by the `SFNEXT_OTEL_ENABLED=true` environment
-variable; when unset, no spans, no propagator, and no instrumentation are installed.
+work it triggers. All tracing is gated by the `SFNEXT_OTEL_ENABLED=true` or
+`MRT_DISTRIBUTED_TRACING_ENABLED=true` environment variables; when neither is set, no spans, no propagator, and no instrumentation are installed.
 
 Spans are written synchronously to stdout as JSON (`MrtConsoleSpanExporter` →
 `console.info`). Managed Runtime (MRT) collects stdout and forwards it to the trace

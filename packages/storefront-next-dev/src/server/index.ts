@@ -32,6 +32,7 @@ import { patchReactRouterBuild } from './utils';
 import { ServerModeFeatureMap, type ServerMode, type ServerModeFeatures } from './modes';
 import { getBundlePath, getBasePath } from '../utils/paths';
 import { createOtelExpressMiddleware } from '../otel/express/middleware';
+import { isOtelEnabled } from '../otel/enabled';
 import { createHealthCheckHandler, HEALTH_ENDPOINT_PATH } from './handlers/health-check';
 
 /** Relative path to the middleware registry TypeScript source (development). Must match appDirectory + server dir + filename used by buildMiddlewareRegistry plugin. */
@@ -134,7 +135,7 @@ export async function createServer(options: ServerOptions): Promise<Express> {
     app.set('trust proxy', true);
 
     // OTel server + streaming spans — must be first to wrap the entire request lifecycle
-    if (process.env.SFNEXT_OTEL_ENABLED === 'true') {
+    if (isOtelEnabled()) {
         app.use(createOtelExpressMiddleware());
     }
 

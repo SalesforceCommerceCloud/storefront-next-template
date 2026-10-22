@@ -65,6 +65,7 @@
  *     rate via MRT_DISTRIBUTED_TRACING_ENABLED / MRT_DISTRIBUTED_TRACING_SAMPLING_RATE.
  *
  * @env SFNEXT_OTEL_ENABLED — set to `"true"` to enable (e.g. `SFNEXT_OTEL_ENABLED=true pnpm dev`)
+ * @env MRT_DISTRIBUTED_TRACING_ENABLED — set to `"true"` to enable (alternative to SFNEXT_OTEL_ENABLED)
  */
 
 import { context, trace, type Tracer } from '@opentelemetry/api';

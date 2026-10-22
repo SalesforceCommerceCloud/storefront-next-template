@@ -133,8 +133,24 @@ describe('MrtConsoleSpanExporter', () => {
         expect(parsed.forwardTrace).toBe(true);
     });
 
-    it('sets forwardTrace to false when SFNEXT_OTEL_ENABLED is not "true"', () => {
+    it('sets forwardTrace to true when MRT_DISTRIBUTED_TRACING_ENABLED is "true"', () => {
         delete process.env.SFNEXT_OTEL_ENABLED;
+        process.env.MRT_DISTRIBUTED_TRACING_ENABLED = 'true';
+        try {
+            const exporter = new MrtConsoleSpanExporter();
+
+            exporter.export([createMockSpan()], vi.fn());
+
+            const parsed = JSON.parse(consoleSpy.mock.calls[0][0] as string);
+            expect(parsed.forwardTrace).toBe(true);
+        } finally {
+            delete process.env.MRT_DISTRIBUTED_TRACING_ENABLED;
+        }
+    });
+
+    it('sets forwardTrace to false when neither tracing flag is "true"', () => {
+        delete process.env.SFNEXT_OTEL_ENABLED;
+        delete process.env.MRT_DISTRIBUTED_TRACING_ENABLED;
         const exporter = new MrtConsoleSpanExporter();
         const callback = vi.fn();
 

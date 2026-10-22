@@ -5,8 +5,8 @@ import { Tracer } from "@opentelemetry/api";
 /**
  * Resolve the platform's provider-held OpenTelemetry tracer, or `null` when tracing is disabled.
  *
- * Returns `null` when the platform has not initialized telemetry (the default — `SFNEXT_OTEL_ENABLED`
- * unset), in which case callers inject `null` into a tracer seam and the instrumented code runs
+ * Returns `null` when the platform has not initialized telemetry (the default — neither `SFNEXT_OTEL_ENABLED`
+ * nor `MRT_DISTRIBUTED_TRACING_ENABLED` set), in which case callers inject `null` into a tracer seam and the instrumented code runs
  * untraced with no overhead. When enabled, the dev layer initializes telemetry at server bootstrap
  * (before any request), so this returns the shared tracer.
  *
