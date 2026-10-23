@@ -56,6 +56,23 @@ describe('Base64URL codec', () => {
 
 describe('isPageViewBlocked', () => {
     it.each([
+        ['/c', true],
+        ['/c/shoes?sort=price#grid', true],
+        ['/p', true],
+        ['/p/shoe?color=blue#details', true],
+        ['/car/', false],
+        ['/cart', false],
+        ['/checkout', false],
+        ['/collections', false],
+        ['/product/', false],
+        ['/privacy', false],
+        ['/preview', false],
+    ])('matches short route segments without matching similar paths: %s', (path, expected) => {
+        expect(isPageViewBlocked(path, '', ['/c', '/p'])).toBe(expected);
+        expect(isPageViewBlocked(`/global/en-GB${path}`, '/global/en-GB', ['/c', '/p'])).toBe(expected);
+    });
+
+    it.each([
         ['/product/123?color=blue#details', '', true],
         ['/global/en-GB/product/123', '/global/en-GB', true],
         ['/global/en-GB/production', '/global/en-GB', false],

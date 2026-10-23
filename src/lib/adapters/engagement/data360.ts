@@ -160,7 +160,7 @@ function buildPartyIdentification(
 
 /**
  * Standard identity + partyIdentification events prepended to every
- * interaction. Consent is already confirmed by the time this runs (the
+ * analytics call. Consent is already confirmed by the time this runs (the
  * sendEvent gate blocks on `hasConsent`), so there is no separate DNT path.
  */
 function buildStandardEvents(
@@ -274,14 +274,12 @@ function buildDomainEvents(event: AnalyticsEvent, base: BaseEvent, webStoreId: s
 /** Build the self-contained Search interaction sent once per Search Execution. */
 function buildSearchInteraction(
     event: ViewSearchEvent,
-    siteId: string,
+    base: BaseEvent,
+    profiles: [Identity, PartyIdentification],
     webStoreId: string,
-    searchResultId: string,
-    sid?: string
+    searchResultId: string
 ): Search {
-    const user = isAnalyticsUser(event.payload) ? event.payload : null;
-    const base = buildBaseEvent(user, siteId, sid);
-    const [identity, party] = buildStandardEvents(base, user, siteId);
+    const [identity, party] = profiles;
     return new SearchBuilder()
         .withIdentity(identity)
         .withPartyIdentification(party)
@@ -305,15 +303,13 @@ function buildSearchInteraction(
  */
 function buildInteraction(
     event: AnalyticsEvent,
-    siteId: string,
-    webStoreId: string,
-    sid?: string
+    base: BaseEvent,
+    profiles: [Identity, PartyIdentification],
+    webStoreId: string
 ): Data360Interaction | null {
-    const user = isAnalyticsUser(event.payload) ? event.payload : null;
-    const base = buildBaseEvent(user, siteId, sid);
+    const [identity, party] = profiles;
 
     if (event.eventType === 'view_page') {
-        const [identity, party] = buildStandardEvents(base, user, siteId, { sourceUrl: event.path });
         return new ViewPageBuilder()
             .withIdentity(identity)
             .withPartyIdentification(party)
@@ -333,7 +329,6 @@ function buildInteraction(
         return null;
     }
 
-    const [identity, party] = buildStandardEvents(base, user, siteId);
     const builder =
         event.eventType === 'view_product' ? new ProductViewStartBuilder() : new ViewProductImpressionsBuilder();
     builder.withIdentity(identity).withPartyIdentification(party);
@@ -360,7 +355,10 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
     }
 
     const webStoreId = config.webStoreId || DEFAULT_WEB_STORE_ID;
-    const client = initDataCloudSdk(config.tenantId, config.appSourceId, { keepalive: true });
+    // Exercise public SDK validation/serialization without sending preflight envelopes.
+    const preflight = initDataCloudSdk(config.tenantId, config.appSourceId, {
+        fetchApi: () => Promise.resolve(new Response(null, { status: 204 })),
+    });
 
     return {
         name: DATA360_ADAPTER_NAME,
@@ -384,25 +382,35 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
             // reads Cookies.get('sid') at build time). `sid` is not httpOnly, so it's
             // readable here; it may be absent (Active Data disabled, or not yet set),
             // in which case buildBaseEvent falls back to usid.
-            const sid = Cookies.get('sid');
-            // Defer each build to its caught delivery attempt so a builder failure does not block sibling envelopes.
+            let sid: string | undefined;
+            // All slices use one context; deferred builds keep local failures isolated.
+            let base: BaseEvent;
+            let profiles: [Identity, PartyIdentification];
             const interactions: Array<{
                 eventType: AnalyticsEvent['eventType'];
                 build: () => Data360Interaction | null;
             }> = [];
-            const pageViewPrefix =
-                config.urlPrefix && siteInfo
-                    ? resolvePrefix({
-                          prefix: config.urlPrefix,
-                          params: {
-                              siteId: config.siteAliasMap?.[siteInfo.siteId] ?? siteInfo.siteId,
-                              localeId: config.localeAliasMap?.[siteInfo.localeId] ?? siteInfo.localeId,
-                          },
-                      })
-                    : '';
+            let pageViewPrefix: string;
+            let searchResultId: string | undefined;
+            try {
+                sid = Cookies.get('sid');
+                pageViewPrefix =
+                    config.urlPrefix && siteInfo
+                        ? resolvePrefix({
+                              prefix: config.urlPrefix,
+                              params: {
+                                  siteId: config.siteAliasMap?.[siteInfo.siteId] ?? siteInfo.siteId,
+                                  localeId: config.localeAliasMap?.[siteInfo.localeId] ?? siteInfo.localeId,
+                              },
+                          })
+                        : '';
 
-            const searchResultId =
-                event.eventType === 'view_search' ? (event.searchResultId ?? crypto.randomUUID()) : undefined;
+                searchResultId =
+                    event.eventType === 'view_search' ? (event.searchResultId ?? crypto.randomUUID()) : undefined;
+            } catch {
+                logger.debug('Rejected Data 360 call (context construction failed)', { eventType: event.eventType });
+                return { success: false };
+            }
 
             if (
                 config.eventToggles.view_page &&
@@ -417,9 +425,9 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
                     build: () =>
                         buildInteraction(
                             { eventType: 'view_page', path: event.path ?? '/', payload: event.payload },
-                            siteId,
-                            webStoreId,
-                            sid
+                            base,
+                            profiles,
+                            webStoreId
                         ),
                 });
             }
@@ -430,9 +438,10 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
                 event.startsSearchExecution !== false &&
                 searchResultId
             ) {
+                const correlatedSearchResultId = searchResultId;
                 interactions.push({
                     eventType: 'view_search',
-                    build: () => buildSearchInteraction(event, siteId, webStoreId, searchResultId, sid),
+                    build: () => buildSearchInteraction(event, base, profiles, webStoreId, correlatedSearchResultId),
                 });
             }
 
@@ -442,9 +451,9 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
                     build: () =>
                         buildInteraction(
                             event.eventType === 'view_search' && searchResultId ? { ...event, searchResultId } : event,
-                            siteId,
-                            webStoreId,
-                            sid
+                            base,
+                            profiles,
+                            webStoreId
                         ),
                 });
             }
@@ -454,21 +463,79 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
                 return Promise.resolve({});
             }
 
-            const results = await Promise.all(
-                interactions.map(async ({ eventType, build }) => {
-                    try {
-                        const interaction = build();
-                        if (!interaction) return true;
-                        await client.webEventsAppSourceIdPost(interaction);
-                        return true;
-                    } catch {
-                        logger.debug('Failed to deliver the Data 360 payload (dropped)', { eventType });
-                        return false;
-                    }
-                })
-            );
+            try {
+                const user = isAnalyticsUser(event.payload) ? event.payload : null;
+                base = buildBaseEvent(user, siteId, sid);
+                profiles = buildStandardEvents(
+                    base,
+                    user,
+                    siteId,
+                    interactions.some((slice) => slice.eventType === 'view_page')
+                        ? { sourceUrl: ('path' in event && event.path) || '/' }
+                        : {}
+                );
+                await preflight.webEventsAppSourceIdPost({ events: profiles });
+            } catch {
+                logger.debug('Rejected Data 360 call (profile construction/validation/serialization failed)', {
+                    eventType: event.eventType,
+                });
+                return { success: false };
+            }
 
-            return Promise.resolve({ success: results.every(Boolean) });
+            const events: Array<Data360Interaction['events'][number]> = [...profiles];
+            let success = true;
+            for (const { eventType, build } of interactions) {
+                try {
+                    const interaction = build();
+                    if (!interaction) continue;
+                    await preflight.webEventsAppSourceIdPost(interaction);
+                    events.push(...interaction.events.slice(2));
+                } catch {
+                    logger.debug('Omitted Data 360 slice (construction/validation/serialization failed)', {
+                        eventType,
+                    });
+                    success = false;
+                }
+            }
+            // No engagement events survived; do not send a profile-only request.
+            if (events.length === profiles.length) return { success };
+
+            let transportStarted = false;
+            let oversized = false;
+            const client = initDataCloudSdk(config.tenantId, config.appSourceId, {
+                keepalive: true,
+                fetchApi: (input, init) => {
+                    const bytes = new TextEncoder().encode(String(init?.body)).byteLength;
+                    // Reject outright oversized SDK-encoded bodies so drops are easy to diagnose.
+                    // The 64 KiB keepalive budget is shared across unfinished requests; this check
+                    // cannot prevent quota failures for smaller bodies when other requests are in flight.
+                    if (bytes > 65_536) {
+                        oversized = true;
+                        logger.debug('Rejected Data 360 call (encoded body exceeds keepalive limit)', {
+                            eventType: event.eventType,
+                            bytes,
+                            limit: 65_536,
+                        });
+                        throw new Error('Oversized Data 360 body');
+                    }
+                    transportStarted = true;
+                    return globalThis.fetch(input, init);
+                },
+            });
+            try {
+                await client.webEventsAppSourceIdPost({ events });
+                return { success };
+            } catch {
+                if (!oversized) {
+                    logger.debug(
+                        transportStarted
+                            ? 'Failed to deliver the Data 360 payload (shared request dropped)'
+                            : 'Rejected Data 360 call (combined validation/serialization failed)',
+                        { eventType: event.eventType }
+                    );
+                }
+                return { success: false };
+            }
         },
     };
 }
