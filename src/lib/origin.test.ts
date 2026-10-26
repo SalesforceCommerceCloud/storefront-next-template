@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { resolveRequestOrigin, getAppOrigin } from './origin';
+import { resolveRequestOrigin, getAppOrigin, isSameOrigin } from './origin';
 import { getRequestFromContext } from '@/middlewares/request-origin';
 
 vi.mock('@/middlewares/request-origin', () => ({
@@ -235,5 +235,51 @@ describe('getAppOrigin', () => {
             delete process.env.EXTERNAL_DOMAIN_NAME;
             expect(getAppOrigin()).toBe('http://localhost:5173');
         });
+    });
+});
+
+describe('isSameOrigin', () => {
+    const buildReq = (url: string, headers: Record<string, string> = {}) => new Request(url, { headers });
+
+    it('returns true when Origin header matches the server origin', () => {
+        const request = buildReq('http://shop.example.com/resource/ordered-products', {
+            'x-forwarded-host': 'shop.example.com',
+            'x-forwarded-proto': 'https',
+            origin: 'https://shop.example.com',
+        });
+        expect(isSameOrigin(request)).toBe(true);
+    });
+
+    it('returns false when Origin header is a different domain', () => {
+        const request = buildReq('http://shop.example.com/resource/ordered-products', {
+            'x-forwarded-host': 'shop.example.com',
+            'x-forwarded-proto': 'https',
+            origin: 'https://evil.example.com',
+        });
+        expect(isSameOrigin(request)).toBe(false);
+    });
+
+    it('returns true when Referer matches (no Origin header)', () => {
+        const request = buildReq('http://shop.example.com/resource/ordered-products', {
+            'x-forwarded-host': 'shop.example.com',
+            'x-forwarded-proto': 'https',
+            referer: 'https://shop.example.com/buy-it-again',
+        });
+        expect(isSameOrigin(request)).toBe(true);
+    });
+
+    it('returns false when neither Origin nor Referer is present', () => {
+        const request = buildReq('http://shop.example.com/resource/ordered-products', {
+            'x-forwarded-host': 'shop.example.com',
+            'x-forwarded-proto': 'https',
+        });
+        expect(isSameOrigin(request)).toBe(false);
+    });
+
+    it('returns true when Origin matches the request URL origin (no forwarded headers)', () => {
+        const request = buildReq('https://shop.example.com/resource/ordered-products', {
+            origin: 'https://shop.example.com',
+        });
+        expect(isSameOrigin(request)).toBe(true);
     });
 });

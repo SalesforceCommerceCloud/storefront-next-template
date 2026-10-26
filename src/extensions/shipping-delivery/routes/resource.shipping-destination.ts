@@ -16,32 +16,10 @@
 /** @sfdc-extension-file SFDC_EXT_SHIPPING_DELIVERY */
 import type { Route } from './+types/resource.shipping-destination';
 import { getLogger } from '@/lib/logger.server';
-import { resolveRequestOrigin } from '@/lib/origin';
+import { isSameOrigin } from '@/lib/origin';
 import { getInitialDeliveryDestination } from '@/extensions/shipping-delivery/lib/api/delivery-destination-cookie.server';
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' } as const;
-
-function isSameOrigin(request: Request): boolean {
-    let serverOrigin: string;
-    try {
-        serverOrigin = new URL(resolveRequestOrigin(request) ?? request.url).origin;
-    } catch {
-        return false;
-    }
-
-    const requestUrlOrigin = new URL(request.url).origin;
-    const origin = request.headers.get('origin');
-    if (origin) return origin === serverOrigin || origin === requestUrlOrigin;
-
-    const referer = request.headers.get('referer');
-    if (!referer) return false;
-    try {
-        const refererOrigin = new URL(referer).origin;
-        return refererOrigin === serverOrigin || refererOrigin === requestUrlOrigin;
-    } catch {
-        return false;
-    }
-}
 
 export async function loader({ request, context }: Route.LoaderArgs): Promise<Response> {
     const logger = getLogger(context);

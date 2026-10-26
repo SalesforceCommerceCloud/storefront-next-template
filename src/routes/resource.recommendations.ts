@@ -18,34 +18,7 @@ import type { Route } from './+types/resource.recommendations';
 import { fetchProductRecommendations } from '@/lib/product/recommendations.server';
 import { getLogger } from '@/lib/logger.server';
 import type { Product } from '@/hooks/recommenders/use-recommenders';
-import { resolveRequestOrigin } from '@/lib/origin';
-
-function isSameOrigin(request: Request): boolean {
-    let serverOrigin: string;
-    try {
-        serverOrigin = new URL(resolveRequestOrigin(request) ?? request.url).origin;
-    } catch {
-        return false;
-    }
-
-    const requestUrlOrigin = new URL(request.url).origin;
-    const origin = request.headers.get('origin');
-    if (origin) {
-        return origin === serverOrigin || origin === requestUrlOrigin;
-    }
-
-    const referer = request.headers.get('referer');
-    if (!referer) {
-        return false;
-    }
-
-    try {
-        const refererOrigin = new URL(referer).origin;
-        return refererOrigin === serverOrigin || refererOrigin === requestUrlOrigin;
-    } catch {
-        return false;
-    }
-}
+import { isSameOrigin } from '@/lib/origin';
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' } as const;
 

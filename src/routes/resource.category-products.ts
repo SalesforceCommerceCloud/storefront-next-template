@@ -18,10 +18,12 @@ import type { Route } from './+types/resource.category-products';
 import type { ShopperSearch } from '@/scapi';
 import { fetchSearchProducts } from '@/lib/api/search.server';
 import { getAllQueryParams, getQueryParam, PRODUCT_SEARCH_QUERY_PARAMS } from '@/lib/query-params';
-import { resolveRequestOrigin } from '@/lib/origin';
+import { isSameOrigin } from '@/lib/origin';
 import { getLogger } from '@/lib/logger.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { isCategoryRefinement } from '@/lib/seo/url-resolution.server';
+
+export { shouldRevalidate } from '@/lib/revalidation/routes/buy-it-again';
 
 type ProductSearchHit = ShopperSearch.schemas['ProductSearchHit'];
 
@@ -41,37 +43,6 @@ export interface CategoryProductsResult {
 }
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' } as const;
-
-/**
- * Reject cross-origin GETs so this data endpoint can only be driven by the storefront itself.
- * Mirrors the guard used by the other resource routes (e.g. resource.recommendations).
- */
-function isSameOrigin(request: Request): boolean {
-    let serverOrigin: string;
-    try {
-        serverOrigin = new URL(resolveRequestOrigin(request) ?? request.url).origin;
-    } catch {
-        return false;
-    }
-
-    const requestUrlOrigin = new URL(request.url).origin;
-    const origin = request.headers.get('origin');
-    if (origin) {
-        return origin === serverOrigin || origin === requestUrlOrigin;
-    }
-
-    const referer = request.headers.get('referer');
-    if (!referer) {
-        return false;
-    }
-
-    try {
-        const refererOrigin = new URL(referer).origin;
-        return refererOrigin === serverOrigin || refererOrigin === requestUrlOrigin;
-    } catch {
-        return false;
-    }
-}
 
 /**
  * Resource endpoint that returns a single offset window of product search results.

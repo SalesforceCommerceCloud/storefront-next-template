@@ -2135,6 +2135,15 @@
         "cooldownActive": "Please wait {{seconds}} seconds before requesting a new code.",
         "codeResentHint": "Didn't receive the email? Check your spam folder or wait 15 minutes before requesting a new code."
     },
+    "buyItAgain": {
+        "title": "Buy It Again",
+        "newArrivalsTitle": "New Arrivals",
+        "shopAllText": "View all",
+        "pageTitle": "Past Purchases",
+        "pageDescription": "Items you've ordered before.",
+        "addToCart": "Add",
+        "empty": "No past purchases found."
+    },
     "shopperAgent": {
         "sessionError": "We couldn't start your assistant session. Please try again."
     }

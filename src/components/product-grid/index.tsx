@@ -15,4 +15,4 @@
  */
 // oxlint-disable-next-line react-refresh/only-export-components
 export { default } from './deferred';
-export { default as ProductGrid } from './grid';
+export { default as ProductGrid, ProductGridSkeleton } from './grid';

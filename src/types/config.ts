@@ -302,6 +302,11 @@ export type AppConfig = {
         };
         mrtBasedPageDesignerResolution: boolean;
         livePreview: boolean;
+        /**
+         * Category ID used for the "New Arrivals" carousel shown to guest shoppers on the grocery
+         * homepage. Falls back to `'new-arrivals'` when omitted.
+         */
+        newArrivalsCategory?: string;
     };
     guestOrderLookup: {
         enabled: boolean;
@@ -425,6 +430,8 @@ export type AppConfig = {
         };
         home: {
             featuredProductsCount: number;
+            /** Number of products shown in the Buy It Again carousel on the home page. Default: 12. */
+            buyItAgainCarouselLimit?: number;
         };
         cart: {
             quantityUpdateDebounce: number;
@@ -451,6 +458,10 @@ export type AppConfig = {
             sharedMaintenancePage: boolean;
             cdnUrl: string;
             forwardedHost: string;
+        };
+        buyItAgain?: {
+            /** Number of products per page on the Buy It Again full-page grid. Default: 24. */
+            pageSize?: number;
         };
         orderDetail?: {
             allowReorders?: boolean;

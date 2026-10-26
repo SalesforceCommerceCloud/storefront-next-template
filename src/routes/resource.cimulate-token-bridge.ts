@@ -17,7 +17,7 @@ import type { Route } from './+types/resource.cimulate-token-bridge';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getAuth } from '@/middlewares/auth.server';
 import { getLogger } from '@/lib/logger.server';
-import { resolveRequestOrigin } from '@/lib/origin';
+import { isSameOrigin } from '@/lib/origin';
 import { isCimulateEnabled, resolveShopperAgentConfig } from '@/components/cimulate/cimulate.utils';
 import { bridgeCimulateToken } from '@/lib/cimulate/token-bridge.server';
 import type { CimulateTokenBridgeErrorCode, CimulateTokenBridgeResult } from '@/lib/cimulate/types';
@@ -30,26 +30,6 @@ function response(body: CimulateTokenBridgeResult, status = 200, headers?: Heade
 
 function error(code: CimulateTokenBridgeErrorCode, status: number): Response {
     return response({ success: false, error: { code } }, status);
-}
-
-function isSameOrigin(request: Request): boolean {
-    let publicOrigin: string;
-    let requestOrigin: string;
-    try {
-        publicOrigin = new URL(resolveRequestOrigin(request) ?? request.url).origin;
-        requestOrigin = new URL(request.url).origin;
-    } catch {
-        return false;
-    }
-
-    const source = request.headers.get('Origin') ?? request.headers.get('Referer');
-    if (!source) return false;
-    try {
-        const sourceOrigin = new URL(source).origin;
-        return sourceOrigin === publicOrigin || sourceOrigin === requestOrigin;
-    } catch {
-        return false;
-    }
 }
 
 export function loader(): Response {

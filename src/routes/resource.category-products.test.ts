@@ -51,7 +51,9 @@ const buildUrl = (params: Record<string, string | string[]> = {}) => {
 };
 
 const buildRequest = (params: Record<string, string | string[]> = {}, headers: Record<string, string> = {}) =>
-    new Request(buildUrl(params), { method: 'GET', headers: { Origin: ORIGIN, ...headers } });
+    // Use Referer (no Origin) to match the browser behaviour for same-origin GET fetches.
+    // Pass { Origin: '...' } in headers to override when testing cross-origin rejection.
+    new Request(buildUrl(params), { method: 'GET', headers: { Referer: `${ORIGIN}/category/womens`, ...headers } });
 
 const invoke = (request: Request, context = buildContext('GBP')) =>
     // The loader only uses request + context; params aren't read.
@@ -64,12 +66,21 @@ describe('resource.category-products', () => {
         const request = buildRequest({ refine: 'cgid=womens' }, { Origin: 'https://evil.example' });
         const response = await invoke(request);
         expect(response.status).toBe(403);
+        expect(response.headers.get('Cache-Control')).toBe('no-store');
+        expect(fetchSearchProducts).not.toHaveBeenCalled();
+    });
+
+    it('returns 403 when neither Origin nor Referer is present', async () => {
+        const response = await invoke(new Request(buildUrl({ refine: 'cgid=womens' }), { method: 'GET' }));
+        expect(response.status).toBe(403);
+        expect(response.headers.get('Cache-Control')).toBe('no-store');
         expect(fetchSearchProducts).not.toHaveBeenCalled();
     });
 
     it('returns 400 when no refine is provided', async () => {
         const response = await invoke(buildRequest({ offset: '24', limit: '24' }));
         expect(response.status).toBe(400);
+        expect(response.headers.get('Cache-Control')).toBe('no-store');
         expect(fetchSearchProducts).not.toHaveBeenCalled();
     });
 
@@ -78,7 +89,9 @@ describe('resource.category-products', () => {
         const conflictingCategories = await invoke(buildRequest({ refine: ['cgid=womens', 'cgslug=womens/shoes'] }));
 
         expect(missingCategory.status).toBe(400);
+        expect(missingCategory.headers.get('Cache-Control')).toBe('no-store');
         expect(conflictingCategories.status).toBe(400);
+        expect(conflictingCategories.headers.get('Cache-Control')).toBe('no-store');
         expect(fetchSearchProducts).not.toHaveBeenCalled();
     });
 
@@ -94,6 +107,7 @@ describe('resource.category-products', () => {
         );
 
         expect(response.status).toBe(200);
+        expect(response.headers.get('Cache-Control')).toBe('no-store');
         const body = await response.json();
         expect(body).toEqual({ hits: [{ productId: 'p1' }, { productId: 'p2' }], total: 218, offset: 24, limit: 24 });
 
@@ -130,11 +144,13 @@ describe('resource.category-products', () => {
         );
         const response = await invoke(buildRequest({ refine: 'cgid=womens' }));
         expect(response.status).toBe(404);
+        expect(response.headers.get('Cache-Control')).toBe('no-store');
     });
 
     it('rejects non-GET methods', () => {
         const response = action();
         expect(response.status).toBe(405);
         expect(response.headers.get('Allow')).toBe('GET');
+        expect(response.headers.get('Cache-Control')).toBe('no-store');
     });
 });

@@ -171,7 +171,7 @@ describe('Config Test Utils', () => {
         it('should have valid global configurations', () => {
             expect(mockBuildConfig.app.global.branding.name).toBe('Test Store');
             expect(mockBuildConfig.app?.search.products.hits.limit).toBe(24);
-            expect(mockBuildConfig.app.global.carousel.defaultItemCount).toBe(4);
+            expect(mockBuildConfig.app.global.carousel.defaultItemCount).toBe(5);
             expect(mockBuildConfig.app.global.badges).toHaveLength(2);
         });
     });

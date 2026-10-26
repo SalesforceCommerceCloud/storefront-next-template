@@ -112,6 +112,7 @@ export const routes = {
     orderLookupVerify: '/order-lookup/verify/:orderNo',
     orderLookupResults: '/order-lookup/results/:orderNo',
     search: '/search',
+    buyItAgain: '/buy-it-again',
     aboutUs: '/about-us',
     storeLocator: '/store-locator',
     maintenance: '/maintenance',
@@ -167,6 +168,7 @@ export const resourceRoutes = {
     // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
     shippingDestination: '/resource/shipping-destination',
     categoryProducts: '/resource/category-products',
+    orderedProducts: '/resource/ordered-products',
     stores: '/resource/stores',
     analyticsProxy: '/resource/analytics-proxy',
     apiClient: '/resource/api/client/:resource',

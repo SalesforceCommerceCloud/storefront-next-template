@@ -18,7 +18,7 @@ import type { ShouldRevalidateFunction } from 'react-router';
 import type { Route } from './+types/resource.shipping-estimate';
 import { ApiError } from '@/scapi';
 import { getLogger } from '@/lib/logger.server';
-import { resolveRequestOrigin } from '@/lib/origin';
+import { isSameOrigin } from '@/lib/origin';
 import {
     getFallbackDeliveryDescription,
     getEstimateCountryCode,
@@ -53,31 +53,6 @@ async function getEstimateResponseHeaders(
             countryCode,
         }),
     };
-}
-
-function isSameOrigin(request: Request): boolean {
-    let serverOrigin: string;
-    try {
-        serverOrigin = new URL(resolveRequestOrigin(request) ?? request.url).origin;
-    } catch {
-        return false;
-    }
-
-    const requestUrlOrigin = new URL(request.url).origin;
-    const origin = request.headers.get('origin');
-    if (origin) {
-        return origin === serverOrigin || origin === requestUrlOrigin;
-    }
-
-    const referer = request.headers.get('referer');
-    if (!referer) return false;
-
-    try {
-        const refererOrigin = new URL(referer).origin;
-        return refererOrigin === serverOrigin || refererOrigin === requestUrlOrigin;
-    } catch {
-        return false;
-    }
 }
 
 export async function loader({ request, context }: Route.LoaderArgs): Promise<Response> {

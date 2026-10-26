@@ -108,7 +108,13 @@ export async function fetchProductsByIds(
             )
         );
 
-        return responses.flatMap(({ data }) => data?.data ?? []);
+        // SCAPI returns results in arbitrary order within each batch; restore the
+        // caller's input order so callers that sort by ID position get correct results.
+        const productMap = new Map(responses.flatMap(({ data }) => data?.data ?? []).map((p) => [p.id, p]));
+        return normalizedIds.flatMap((id) => {
+            const product = productMap.get(id);
+            return product ? [product] : [];
+        });
     } catch (error) {
         logger.error('shopperProducts.getProducts failed', { ids: normalizedIds });
         throw new NormalizedApiError(error);

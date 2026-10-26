@@ -159,7 +159,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <p
           class="text-sm font-normal leading-normal text-muted-foreground mb-1"
@@ -425,7 +425,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -706,7 +706,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -1014,7 +1014,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -1308,7 +1308,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <p
           class="text-sm font-normal leading-normal text-muted-foreground mb-1"
@@ -1574,7 +1574,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <p
           class="text-sm font-normal leading-normal text-muted-foreground mb-1"
@@ -1840,7 +1840,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -2121,7 +2121,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -2699,7 +2699,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <p
           class="text-sm font-normal leading-normal text-muted-foreground mb-1"
@@ -2999,7 +2999,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -3314,7 +3314,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -3656,7 +3656,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div

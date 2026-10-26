@@ -6,7 +6,9 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
 >
   <div>
     <div
+      aria-label="Loading You May Also Like"
       class="w-full section-container py-6 animate-pulse"
+      role="status"
     >
       <div
         class="flex items-center justify-between"
@@ -29,7 +31,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
               class="flex -ml-4 items-stretch flex-nowrap"
             >
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -91,7 +93,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -153,7 +155,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -215,7 +217,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"

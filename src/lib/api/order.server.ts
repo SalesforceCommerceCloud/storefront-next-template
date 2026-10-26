@@ -19,6 +19,7 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
 import { getLogger } from '@/lib/logger.server';
+import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { getOrderReturnStatus, resolveOrderStatus } from '@/lib/order/status';
 import { isOrderCancelled } from '@/lib/order-management/cancel';
 import type { Order } from '@/components/account/order-list';
@@ -386,5 +387,69 @@ export async function fetchCustomerOrders(
     } catch {
         // Return empty result on error - allows the page to render without orders
         return { orders: [], total: 0, offset, limit };
+    }
+}
+
+// Number of recent orders to scan when building the ordered-products list.
+const ORDERS_SCAN_LIMIT = 20;
+
+/**
+ * Returns products from the shopper's recent order history with purchase counts,
+ * ordered by first appearance (most recent order first).
+ *
+ * `count` is the number of distinct orders in which the product appeared — not the
+ * quantity ordered, and not the number of line items if a product appears multiple
+ * times in a single order.
+ *
+ * Used by the ordered-products resource route and the Buy It Again carousel.
+ *
+ * @param context - React Router loader context
+ * @param customerId - Customer ID from auth session
+ */
+export async function fetchOrderedProductIds(
+    context: LoaderFunctionArgs['context'],
+    customerId: string
+): Promise<{ id: string; count: number }[]> {
+    const clients = createApiClients(context);
+    try {
+        const { data } = await clients.shopperCustomers.getCustomerOrders({
+            params: {
+                path: { customerId },
+                query: { offset: 0, limit: ORDERS_SCAN_LIMIT },
+            },
+        });
+        const rawOrders = data?.data ?? [];
+        const countMap = new Map<string, number>();
+        for (const order of rawOrders) {
+            // Deduplicate within the order so a product appearing in multiple line items
+            // of the same order counts as one, not many.
+            const seenInThisOrder = new Set<string>();
+            for (const item of order.productItems ?? []) {
+                if (item.bonusProductLineItem) continue;
+                const id = item.productId;
+                if (typeof id === 'string' && id.length > 0) {
+                    seenInThisOrder.add(id);
+                }
+            }
+            for (const id of seenInThisOrder) {
+                countMap.set(id, (countMap.get(id) ?? 0) + 1);
+            }
+        }
+        return Array.from(countMap.entries()).map(([id, count]) => ({ id, count }));
+    } catch (error) {
+        // Re-throw auth errors — a 401/403 from SCAPI here means the session token is
+        // invalid or expired, which is not a degradable condition. Letting it propagate
+        // gives the resource route a real HTTP status to return, which LazyFetcher then
+        // surfaces as hasFailed rather than silently showing an empty product list.
+        if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+            throw new NormalizedApiError(error);
+        }
+        if (error instanceof NormalizedApiError && (error.status === 401 || error.status === 403)) {
+            throw error;
+        }
+        getLogger(context).warn('fetchOrderedProductIds: order history fetch failed, degrading to empty list', {
+            error: error instanceof Error ? error.message : String(error),
+        });
+        return [];
     }
 }

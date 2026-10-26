@@ -343,6 +343,7 @@ export default defineConfig<Config>(
                 },
                 mrtBasedPageDesignerResolution: false,
                 livePreview: false,
+                newArrivalsCategory: 'newarrivals',
             },
             // Guest Order Lookup configuration
             // Allows guests to look up past orders using order number + email + access-code verification.
@@ -439,7 +440,7 @@ export default defineConfig<Config>(
                     defaultProductTileImgAspectRatio: 1,
                 },
                 inventory: { lowStockThreshold: 5 },
-                carousel: { defaultItemCount: 4 },
+                carousel: { defaultItemCount: 5 },
                 badges: [
                     { propertyName: 'c_isNew', label: 'New', color: 'green', priority: 1 },
                     { propertyName: 'c_isSale', label: 'Sale', color: 'orange', priority: 2 },

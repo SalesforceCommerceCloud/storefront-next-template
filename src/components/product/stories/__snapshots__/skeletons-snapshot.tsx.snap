@@ -199,7 +199,9 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
     class="p-4"
   >
     <div
+      aria-label="Loading You May Also Like"
       class="w-full section-container py-6 animate-pulse"
+      role="status"
     >
       <div
         class="flex items-center justify-between"
@@ -222,7 +224,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
               class="flex -ml-4 items-stretch flex-nowrap"
             >
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -284,7 +286,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -346,7 +348,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -408,7 +410,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -500,7 +502,9 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
     class="p-4"
   >
     <div
+      aria-label="Loading products"
       class="w-full section-container py-6 animate-pulse"
+      role="status"
     >
       <div
         class="py-6"
@@ -515,7 +519,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
               class="flex -ml-4 items-stretch flex-nowrap"
             >
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -577,7 +581,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -639,7 +643,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -701,7 +705,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -784,7 +788,9 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
       </div>
     </div>
     <div
+      aria-label="Loading products"
       class="w-full section-container py-6 animate-pulse"
+      role="status"
     >
       <div
         class="py-6"
@@ -799,7 +805,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
               class="flex -ml-4 items-stretch flex-nowrap"
             >
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -861,7 +867,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -923,7 +929,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -985,7 +991,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"

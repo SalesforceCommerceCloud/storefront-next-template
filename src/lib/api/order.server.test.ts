@@ -17,7 +17,13 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { ApiError, type ShopperCustomers, type ShopperOrders, type ShopperProducts } from '@/scapi';
 import { createApiClients } from '@/lib/api-clients.server';
 import { createTestContext } from '@/lib/test-utils';
-import { fetchOmsMetaData, fetchOrderWithProducts, transformOrderForList, fetchCustomerOrders } from './order.server';
+import {
+    fetchOmsMetaData,
+    fetchOrderWithProducts,
+    transformOrderForList,
+    fetchCustomerOrders,
+    fetchOrderedProductIds,
+} from './order.server';
 
 vi.mock('@/lib/api-clients.server', () => ({
     createApiClients: vi.fn(),
@@ -946,5 +952,110 @@ describe('fetchOmsMetaData', () => {
         mockGetOmsMetaData.mockRejectedValue(makeApiError(503));
 
         await expect(fetchOmsMetaData(createTestContext())).resolves.toBeDefined();
+    });
+});
+
+describe('fetchOrderedProductIds', () => {
+    const mockGetCustomerOrders = vi.fn();
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.mocked(createApiClients).mockReturnValue({
+            shopperCustomers: { getCustomerOrders: mockGetCustomerOrders },
+        } as never);
+    });
+
+    const makeResponse = (
+        orders: Array<{ productItems?: Array<{ productId?: string; bonusProductLineItem?: boolean }> }>
+    ) => Promise.resolve({ data: { data: orders } });
+
+    test('returns [] when data.data is empty', async () => {
+        mockGetCustomerOrders.mockReturnValue(makeResponse([]));
+        expect(await fetchOrderedProductIds(createTestContext(), 'c001')).toEqual([]);
+    });
+
+    test('returns [] on thrown error', async () => {
+        mockGetCustomerOrders.mockRejectedValue(new Error('network'));
+        expect(await fetchOrderedProductIds(createTestContext(), 'c001')).toEqual([]);
+    });
+
+    test('counts product IDs across multiple orders', async () => {
+        mockGetCustomerOrders.mockReturnValue(
+            makeResponse([
+                { productItems: [{ productId: 'p1' }, { productId: 'p2' }] },
+                { productItems: [{ productId: 'p1' }] },
+            ])
+        );
+        const result = await fetchOrderedProductIds(createTestContext(), 'c001');
+        expect(result.find((r) => r.id === 'p1')?.count).toBe(2);
+        expect(result.find((r) => r.id === 'p2')?.count).toBe(1);
+    });
+
+    test('counts per distinct order, not per line item', async () => {
+        // p1 appears twice in the same order — should count as 1, not 2.
+        mockGetCustomerOrders.mockReturnValue(
+            makeResponse([{ productItems: [{ productId: 'p1' }, { productId: 'p1' }] }])
+        );
+        const result = await fetchOrderedProductIds(createTestContext(), 'c001');
+        expect(result.find((r) => r.id === 'p1')?.count).toBe(1);
+    });
+
+    test('deduplicates — each distinct productId is its own entry', async () => {
+        mockGetCustomerOrders.mockReturnValue(
+            makeResponse([{ productItems: [{ productId: 'p1' }, { productId: 'p2' }, { productId: 'p1' }] }])
+        );
+        expect(await fetchOrderedProductIds(createTestContext(), 'c001')).toHaveLength(2);
+    });
+
+    test('preserves insertion order (first seen comes first)', async () => {
+        mockGetCustomerOrders.mockReturnValue(
+            makeResponse([{ productItems: [{ productId: 'first' }] }, { productItems: [{ productId: 'second' }] }])
+        );
+        const result = await fetchOrderedProductIds(createTestContext(), 'c001');
+        expect(result[0].id).toBe('first');
+        expect(result[1].id).toBe('second');
+    });
+
+    test('excludes items where bonusProductLineItem is true', async () => {
+        mockGetCustomerOrders.mockReturnValue(
+            makeResponse([
+                {
+                    productItems: [
+                        { productId: 'p1', bonusProductLineItem: false },
+                        { productId: 'bonus', bonusProductLineItem: true },
+                    ],
+                },
+            ])
+        );
+        const result = await fetchOrderedProductIds(createTestContext(), 'c001');
+        expect(result.map((r) => r.id)).not.toContain('bonus');
+        expect(result.map((r) => r.id)).toContain('p1');
+    });
+
+    test('always scans 20 recent orders', async () => {
+        mockGetCustomerOrders.mockReturnValue(makeResponse([]));
+        await fetchOrderedProductIds(createTestContext(), 'c001');
+        expect(mockGetCustomerOrders).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({ query: expect.objectContaining({ limit: 20 }) }),
+            })
+        );
+    });
+
+    test('filters out items with falsy or empty productId', async () => {
+        mockGetCustomerOrders.mockReturnValue(
+            makeResponse([{ productItems: [{ productId: '' }, { productId: undefined }, { productId: 'valid' }] }])
+        );
+        expect(await fetchOrderedProductIds(createTestContext(), 'c001')).toEqual([{ id: 'valid', count: 1 }]);
+    });
+
+    test('rethrows ApiError with status 403 (does not degrade to empty list)', async () => {
+        mockGetCustomerOrders.mockRejectedValue(makeApiError(403));
+        await expect(fetchOrderedProductIds(createTestContext(), 'c001')).rejects.toThrow();
+    });
+
+    test('rethrows ApiError with status 401', async () => {
+        mockGetCustomerOrders.mockRejectedValue(makeApiError(401));
+        await expect(fetchOrderedProductIds(createTestContext(), 'c001')).rejects.toThrow();
     });
 });

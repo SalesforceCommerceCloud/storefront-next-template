@@ -61,7 +61,10 @@ export default function ProductCarouselSkeleton({
     const config = useConfig();
     const finalItemCount = itemCount ?? config.global.carousel.defaultItemCount;
     return (
-        <div className={cn('w-full section-container py-6 animate-pulse', className)}>
+        <div
+            role="status"
+            aria-label={title ? `Loading ${title}` : 'Loading products'}
+            className={cn('w-full section-container py-6 animate-pulse', className)}>
             {title && (
                 <div className="flex items-center justify-between">
                     <Skeleton className="h-8 md:h-9 w-64" />
@@ -77,7 +80,7 @@ export default function ProductCarouselSkeleton({
                             {Array.from({ length: finalItemCount }, (_, i) => i).map((index) => (
                                 <div
                                     key={`carousel-item-${index}`}
-                                    className="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex">
+                                    className="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex">
                                     <div className="w-full max-w-full min-w-0 flex">
                                         <ProductTileSkeleton />
                                     </div>

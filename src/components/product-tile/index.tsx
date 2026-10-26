@@ -461,7 +461,7 @@ const ProductTile = memo(
                     </div>
 
                     {/* Info section */}
-                    <div className="relative p-4">
+                    <div className="relative flex flex-col flex-1 p-4">
                         {/* Color swatches */}
                         {colorValues.length > 0 && (
                             <div>
@@ -558,7 +558,7 @@ const ProductTile = memo(
                         {/* Inline Quick-Add — always-visible, full-width button at the bottom of the
                             tile (opt-in via quickAddPlacement="inline"; the overlay above is skipped). */}
                         {quickAddPlacement === 'inline' && (
-                            <div className="mt-3">
+                            <div className="mt-auto pt-3">
                                 <QuickAddButton
                                     productId={product.productId ?? ''}
                                     productName={productName}

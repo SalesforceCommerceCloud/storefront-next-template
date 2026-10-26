@@ -157,7 +157,7 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <p
           class="text-sm font-normal leading-normal text-muted-foreground mb-1"
@@ -426,7 +426,7 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -722,7 +722,7 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -1019,7 +1019,7 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <p
           class="text-sm font-normal leading-normal text-muted-foreground mb-1"
@@ -1288,7 +1288,7 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -1584,7 +1584,7 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div
@@ -1881,7 +1881,7 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <p
           class="text-sm font-normal leading-normal text-muted-foreground mb-1"
@@ -2150,7 +2150,7 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
         </div>
       </div>
       <div
-        class="relative p-4"
+        class="relative flex flex-col flex-1 p-4"
       >
         <div>
           <div

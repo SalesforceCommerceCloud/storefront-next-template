@@ -148,3 +148,47 @@ export const getAppOrigin = (context?: Readonly<RouterContextProvider>): string 
     const protocol = isLocalhostHost(EXTERNAL_DOMAIN_NAME) ? 'http' : 'https';
     return `${protocol}://${EXTERNAL_DOMAIN_NAME}`;
 };
+
+/**
+ * Returns true when the request's `Origin` or `Referer` header matches the
+ * server's own origin. Used by resource routes to reject cross-origin fetches.
+ *
+ * **Referrer-Policy dependency:** same-origin `fetch()` GETs — the kind
+ * `useFetcher.load()` issues — do not include an `Origin` header per the Fetch
+ * spec (browsers only send `Origin` for cross-origin or credentialed requests).
+ * Same-origin GETs therefore fall through to the `Referer` check, which means
+ * this function depends on the storefront's `Referrer-Policy` being
+ * `strict-origin-when-cross-origin` (or looser). If the policy is ever
+ * tightened to `no-referrer`, or if a browser extension / network appliance
+ * strips the `Referer` header, `isSameOrigin` will return `false` for
+ * legitimate same-origin fetches and resource routes will respond with 403.
+ * See `README-SECURITY-HEADERS.md` before changing the Referrer-Policy.
+ */
+export function isSameOrigin(request: Request): boolean {
+    let serverOrigin: string;
+    try {
+        serverOrigin = new URL(resolveRequestOrigin(request) ?? request.url).origin;
+    } catch {
+        return false;
+    }
+
+    const requestUrlOrigin = new URL(request.url).origin;
+    const origin = request.headers.get('origin');
+    if (origin) {
+        return origin === serverOrigin || origin === requestUrlOrigin;
+    }
+
+    // No Origin header on same-origin GETs (see JSDoc). Fall back to Referer,
+    // which is present as long as Referrer-Policy is not set to no-referrer.
+    const referer = request.headers.get('referer');
+    if (!referer) {
+        return false;
+    }
+
+    try {
+        const refererOrigin = new URL(referer).origin;
+        return refererOrigin === serverOrigin || refererOrigin === requestUrlOrigin;
+    } catch {
+        return false;
+    }
+}

@@ -6,7 +6,9 @@ exports[`ProductCarouselSkeleton stories snapshot > CustomItemCount story render
     class="p-8"
   >
     <div
+      aria-label="Loading products"
       class="w-full section-container py-6 animate-pulse"
+      role="status"
     >
       <div
         class="py-6"
@@ -21,7 +23,7 @@ exports[`ProductCarouselSkeleton stories snapshot > CustomItemCount story render
               class="flex -ml-4 items-stretch flex-nowrap"
             >
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -83,7 +85,7 @@ exports[`ProductCarouselSkeleton stories snapshot > CustomItemCount story render
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -145,7 +147,7 @@ exports[`ProductCarouselSkeleton stories snapshot > CustomItemCount story render
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -207,7 +209,7 @@ exports[`ProductCarouselSkeleton stories snapshot > CustomItemCount story render
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -269,7 +271,7 @@ exports[`ProductCarouselSkeleton stories snapshot > CustomItemCount story render
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -331,7 +333,7 @@ exports[`ProductCarouselSkeleton stories snapshot > CustomItemCount story render
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -423,7 +425,9 @@ exports[`ProductCarouselSkeleton stories snapshot > Default story renders and ma
     class="p-8"
   >
     <div
+      aria-label="Loading products"
       class="w-full section-container py-6 animate-pulse"
+      role="status"
     >
       <div
         class="py-6"
@@ -438,7 +442,7 @@ exports[`ProductCarouselSkeleton stories snapshot > Default story renders and ma
               class="flex -ml-4 items-stretch flex-nowrap"
             >
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -500,7 +504,7 @@ exports[`ProductCarouselSkeleton stories snapshot > Default story renders and ma
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -562,7 +566,7 @@ exports[`ProductCarouselSkeleton stories snapshot > Default story renders and ma
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -624,7 +628,69 @@ exports[`ProductCarouselSkeleton stories snapshot > Default story renders and ma
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
+              >
+                <div
+                  class="w-full max-w-full min-w-0 flex"
+                >
+                  <div
+                    class="bg-card text-card-foreground rounded-ui border-ui border-border shadow-ui border-0 overflow-hidden w-full max-w-full flex flex-col h-full gap-0 py-0"
+                    data-slot="card"
+                  >
+                    <div
+                      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-0"
+                      data-slot="card-header"
+                    >
+                      <div
+                        class="bg-accent animate-pulse rounded-ui w-full"
+                        data-slot="skeleton"
+                        style="aspect-ratio: 0.8 / 1;"
+                      />
+                    </div>
+                    <div
+                      class="px-4 pt-3 pb-0"
+                      data-slot="card-content"
+                    >
+                      <div
+                        class="flex items-center gap-1"
+                      >
+                        <div
+                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          data-slot="skeleton"
+                        />
+                        <div
+                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          data-slot="skeleton"
+                        />
+                      </div>
+                    </div>
+                    <div
+                      class="px-4 pt-2 pb-0"
+                      data-slot="card-content"
+                    >
+                      <div
+                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        data-slot="skeleton"
+                      />
+                      <div
+                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        data-slot="skeleton"
+                      />
+                    </div>
+                    <div
+                      class="px-4 pt-2 pb-4"
+                      data-slot="card-content"
+                    >
+                      <div
+                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        data-slot="skeleton"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -716,7 +782,9 @@ exports[`ProductCarouselSkeleton stories snapshot > WithTitle story renders and 
     class="p-8"
   >
     <div
+      aria-label="Loading Loading Products..."
       class="w-full section-container py-6 animate-pulse"
+      role="status"
     >
       <div
         class="flex items-center justify-between"
@@ -739,7 +807,7 @@ exports[`ProductCarouselSkeleton stories snapshot > WithTitle story renders and 
               class="flex -ml-4 items-stretch flex-nowrap"
             >
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -801,7 +869,7 @@ exports[`ProductCarouselSkeleton stories snapshot > WithTitle story renders and 
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -863,7 +931,7 @@ exports[`ProductCarouselSkeleton stories snapshot > WithTitle story renders and 
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -925,7 +993,69 @@ exports[`ProductCarouselSkeleton stories snapshot > WithTitle story renders and 
                 </div>
               </div>
               <div
-                class="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
+              >
+                <div
+                  class="w-full max-w-full min-w-0 flex"
+                >
+                  <div
+                    class="bg-card text-card-foreground rounded-ui border-ui border-border shadow-ui border-0 overflow-hidden w-full max-w-full flex flex-col h-full gap-0 py-0"
+                    data-slot="card"
+                  >
+                    <div
+                      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-0"
+                      data-slot="card-header"
+                    >
+                      <div
+                        class="bg-accent animate-pulse rounded-ui w-full"
+                        data-slot="skeleton"
+                        style="aspect-ratio: 0.8 / 1;"
+                      />
+                    </div>
+                    <div
+                      class="px-4 pt-3 pb-0"
+                      data-slot="card-content"
+                    >
+                      <div
+                        class="flex items-center gap-1"
+                      >
+                        <div
+                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          data-slot="skeleton"
+                        />
+                        <div
+                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          data-slot="skeleton"
+                        />
+                      </div>
+                    </div>
+                    <div
+                      class="px-4 pt-2 pb-0"
+                      data-slot="card-content"
+                    >
+                      <div
+                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        data-slot="skeleton"
+                      />
+                      <div
+                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        data-slot="skeleton"
+                      />
+                    </div>
+                    <div
+                      class="px-4 pt-2 pb-4"
+                      data-slot="card-content"
+                    >
+                      <div
+                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        data-slot="skeleton"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="w-[348px] md:w-[256px] 2xl:w-[288px] shrink-0 basis-auto pl-4 py-1 flex"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"

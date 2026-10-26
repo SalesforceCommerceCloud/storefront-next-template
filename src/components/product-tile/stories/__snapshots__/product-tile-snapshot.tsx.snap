@@ -120,7 +120,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
       </div>
     </div>
     <div
-      class="relative p-4"
+      class="relative flex flex-col flex-1 p-4"
     >
       <div>
         <div
@@ -432,7 +432,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
       </div>
     </div>
     <div
-      class="relative p-4"
+      class="relative flex flex-col flex-1 p-4"
     >
       <div>
         <div
@@ -782,7 +782,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
       </div>
     </div>
     <div
-      class="relative p-4"
+      class="relative flex flex-col flex-1 p-4"
     >
       <div>
         <div
@@ -1107,7 +1107,7 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
       </div>
     </div>
     <div
-      class="relative p-4"
+      class="relative flex flex-col flex-1 p-4"
     >
       <p
         class="text-sm font-normal leading-normal text-muted-foreground mb-1"

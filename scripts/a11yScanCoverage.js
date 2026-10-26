@@ -141,6 +141,7 @@ const ALLOWLIST = {
     '_app.collections._index': 'deferred:auto-discovery,vertical-exclusive (luxury) collections index, no Scenario yet',
     '_app.collections.$collection':
         'deferred:auto-discovery,vertical-exclusive (luxury) collection detail page, no Scenario yet',
+    '_app.buy-it-again': 'deferred:auto-discovery,vertical-exclusive (grocery) auth-gated page, no Scenario yet',
     '_app.account.overview': 'deferred:auto-discovery,auth-gated, no Scenario yet',
     '_app.account.passkeys': 'deferred:auto-discovery,auth-gated, no Scenario yet',
     '_app.account.store-preferences': 'deferred:auto-discovery,auth-gated, no Scenario yet',
