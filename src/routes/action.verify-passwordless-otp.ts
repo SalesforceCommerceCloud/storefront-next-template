@@ -88,6 +88,7 @@ export async function action({
 
         const tokenResponse = await clients.auth.passwordless.exchangeToken({
             pwdlessLoginToken: otpCode,
+            loginId: email.trim(),
             ...(dnt !== undefined && { dnt }),
         });
 

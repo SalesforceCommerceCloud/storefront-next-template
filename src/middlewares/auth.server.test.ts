@@ -1140,10 +1140,11 @@ describe('auth middleware (server)', () => {
                 getMockAuthResponse(mockTokenResponse, 'pwdless-dwsid')
             );
 
-            const result = await getPasswordLessAccessToken(provider, token);
+            const result = await getPasswordLessAccessToken(provider, token, 'user@example.com');
 
             expect(mockAuth.passwordless.exchangeToken).toHaveBeenCalledWith({
                 pwdlessLoginToken: token,
+                loginId: 'user@example.com',
             });
             expect(result).toEqual({ ...mockTokenResponse, dwsid: 'pwdless-dwsid' });
             expect(mockLogger.debug).toHaveBeenCalledWith('Auth: getPasswordLessAccessToken starting', {
@@ -1173,10 +1174,11 @@ describe('auth middleware (server)', () => {
 
             mockAuth.passwordless.exchangeToken.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
 
-            const result = await getPasswordLessAccessToken(provider, token);
+            const result = await getPasswordLessAccessToken(provider, token, 'user@example.com');
 
             expect(mockAuth.passwordless.exchangeToken).toHaveBeenCalledWith({
                 pwdlessLoginToken: token,
+                loginId: 'user@example.com',
                 dnt: true, // TrackingConsent.Declined converts to true
             });
             expect(result).toEqual({ ...mockTokenResponse, dwsid: undefined });
@@ -1200,10 +1202,11 @@ describe('auth middleware (server)', () => {
 
             mockAuth.passwordless.exchangeToken.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
 
-            const result = await getPasswordLessAccessToken(provider, token);
+            const result = await getPasswordLessAccessToken(provider, token, 'user@example.com');
 
             expect(mockAuth.passwordless.exchangeToken).toHaveBeenCalledWith({
                 pwdlessLoginToken: token,
+                loginId: 'user@example.com',
                 // No dnt parameter when feature is disabled
             });
             expect(result).toEqual({ ...mockTokenResponse, dwsid: undefined });
@@ -1230,10 +1233,11 @@ describe('auth middleware (server)', () => {
 
             mockAuth.passwordless.exchangeToken.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
 
-            const result = await getPasswordLessAccessToken(provider, token);
+            const result = await getPasswordLessAccessToken(provider, token, 'user@example.com');
 
             expect(mockAuth.passwordless.exchangeToken).toHaveBeenCalledWith({
                 pwdlessLoginToken: token,
+                loginId: 'user@example.com',
                 // No dnt parameter when trackingConsent is not set
             });
             expect(result).toEqual({ ...mockTokenResponse, dwsid: undefined });
@@ -1260,13 +1264,29 @@ describe('auth middleware (server)', () => {
 
             mockAuth.passwordless.exchangeToken.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
 
-            const result = await getPasswordLessAccessToken(provider, token);
+            const result = await getPasswordLessAccessToken(provider, token, 'user@example.com');
 
             expect(mockAuth.passwordless.exchangeToken).toHaveBeenCalledWith({
                 pwdlessLoginToken: token,
+                loginId: 'user@example.com',
                 dnt: false, // TrackingConsent.Accepted converts to false
             });
             expect(result).toEqual({ ...mockTokenResponse, dwsid: undefined });
+        });
+
+        it('should pass loginId through unchanged, with no case/trim normalization', async () => {
+            const { provider } = mockContext(getMockAuthData());
+            const mockTokenResponse = getMockTokenResponse();
+            const token = 'passwordless-token-123';
+            const rawLoginId = '  Samantha.Sampleson@Example.com  ';
+
+            mockAuth.passwordless.exchangeToken.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
+
+            await getPasswordLessAccessToken(provider, token, rawLoginId);
+
+            expect(mockAuth.passwordless.exchangeToken).toHaveBeenCalledWith(
+                expect.objectContaining({ loginId: rawLoginId })
+            );
         });
 
         it('should handle invalid passwordless token', async () => {
@@ -1276,7 +1296,9 @@ describe('auth middleware (server)', () => {
 
             mockAuth.passwordless.exchangeToken.mockRejectedValue(mockError);
 
-            await expect(getPasswordLessAccessToken(provider, token)).rejects.toThrow('Invalid token');
+            await expect(getPasswordLessAccessToken(provider, token, 'user@example.com')).rejects.toThrow(
+                'Invalid token'
+            );
             expect(mockLogger.error).toHaveBeenCalledWith('Auth: getPasswordLessAccessToken failed', {
                 error: mockError,
             });

@@ -178,6 +178,7 @@ describe('action.verify-passwordless-otp', () => {
         expect(mockExchangeToken).toHaveBeenCalledTimes(1);
         expect(mockExchangeToken).toHaveBeenCalledWith({
             pwdlessLoginToken: '12345678',
+            loginId: 'test@example.com',
         });
 
         // Single updateAuth call: userType derives from the JWT inside updateAuth — no follow-up.
@@ -194,6 +195,20 @@ describe('action.verify-passwordless-otp', () => {
             message: 'Login successful',
             tokenResponse: mockTokenResponse,
         });
+    });
+
+    it('trims the submitted email before passing it as loginId, without changing case', async () => {
+        const mockTokenResponse = { access_token: 'access-token', token_type: 'Bearer' as const } as any;
+        mockExchangeToken.mockResolvedValue(mockTokenResponse);
+
+        const rawEmail = '  Samantha.Sampleson@Example.com  ';
+        await action(createActionArgs({ otpCode: '12345678', email: rawEmail }));
+
+        expect(mockExchangeToken).toHaveBeenCalledWith(
+            expect.objectContaining({
+                loginId: rawEmail.trim(),
+            })
+        );
     });
 
     it('recalculates basket after OTP auth swap to apply registered pricing', async () => {

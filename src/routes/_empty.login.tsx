@@ -143,7 +143,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         const guestWishlistSnapshot = await captureGuestWishlistSnapshot(context);
 
         try {
-            const tokenResponse = await getPasswordLessAccessToken(context, token);
+            const tokenResponse = await getPasswordLessAccessToken(context, token, email.trim());
 
             // Update session with auth data. userType, customerId, usid, and the refresh-token
             // expiry cap all derive from the access-token JWT inside updateAuth; no follow-up
@@ -245,7 +245,7 @@ export async function action({
     try {
         const formData = await request.formData();
 
-        const email = formData.get('email')?.toString();
+        const email = formData.get('email')?.toString()?.trim();
         const password = formData.get('password')?.toString();
         const loginMode = formData.get('loginMode')?.toString();
         const provider = formData.get('provider')?.toString();
