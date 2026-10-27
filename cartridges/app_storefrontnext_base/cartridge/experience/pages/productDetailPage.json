@@ -17,5 +17,5 @@
         }
     ],
     "supported_aspect_types": ["pdp"],
-    "route": "/:siteId/:localeId/p/*"
+    "route": "/:siteId/:localeId/p/:productId"
 }
