@@ -50,6 +50,9 @@ Thumbs.db
 # Vitest
 .vitest/
 
+# Site audit workspaces (`sfnext audit`): collected evidence and reports for this machine
+.site-audit/
+
 # Workspace configuration and packages (monorepo only - included in mirror repo)
 # In monorepo: Ignored (created temporarily for syncing)
 # In mirror repo: Tracked (needed for standalone workspace)

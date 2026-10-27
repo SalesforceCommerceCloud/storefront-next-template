@@ -24,6 +24,7 @@ minimumReleaseAgeExclude:
   - '@salesforce/storefront-next-runtime@1.4.0'
   - '@salesforce/mrt-utilities@0.3.0'
   - '@salesforce/b2c-tooling-sdk@2.6.1'      # transitive via storefront-next-dev; bare entry auto-pinned by prepare-standalone-template.js
+  - '@salesforce/playhouse@0.1.2'            # transitive via storefront-next-dev (site audit); bare entry auto-pinned by prepare-standalone-template.js
   - '@salesforce/b2c-cli@2.5.2'       # template devDependency (not reachable from the SDK dirs the prepare script resolves), so pin explicitly; keep in lockstep with the exact pin in package.json
 
 # Prevent lockfile version downgrades.
@@ -38,3 +39,4 @@ trustPolicy: no-downgrade
 trustPolicyExclude:
   - 'chokidar@4.0.3'          # Lost SLSA provenance in 4.0.2+; dep of @react-router/dev
   - 'semver@6.3.1 || 5.7.2'   # Lost provenance; dep of eslint-plugin-import, lighthouse
+  - 'chromium-bidi@157.0.8090-0'  # Published by Google's chrome-devtools-npm without provenance; dep of puppeteer-core via @salesforce/playhouse
