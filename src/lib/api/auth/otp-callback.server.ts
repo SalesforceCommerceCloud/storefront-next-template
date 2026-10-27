@@ -76,7 +76,7 @@ export async function handleOtpCallback({ request, context }: ActionFunctionArgs
         }
 
         await sendNotification(context, {
-            type: 'otp',
+            type: 'password-registration',
             recipient: email_id,
             data: { token },
         });

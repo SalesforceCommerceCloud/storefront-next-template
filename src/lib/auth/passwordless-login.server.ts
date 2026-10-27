@@ -19,6 +19,7 @@ import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { buildUrlFromContext } from '@/lib/url.server';
 import { sendNotification, validateSlasCallbackToken } from '@/lib/notify/notify.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import { getLogger } from '@/lib/logger.server';
 import { routes } from '@/route-paths';
 
 /** @deprecated No-op kept for test backwards compatibility */
@@ -32,7 +33,8 @@ async function sendMagicLinkEmail(
     context: Readonly<RouterContextProvider>,
     email_id: string,
     token: string,
-    redirectUrl?: string
+    redirectUrl?: string,
+    isRegistration?: boolean
 ): Promise<void> {
     const config = getConfig(context);
     const landingPath = buildUrlFromContext(config.features.passwordlessLogin.landingUri ?? '/login', context);
@@ -49,7 +51,11 @@ async function sendMagicLinkEmail(
         magicLinkPath += `&redirectUrl=${encodeURIComponent(normalizedRedirectUrl)}`;
     }
 
-    await sendNotification(context, { type: 'passwordless-magic-link', recipient: email_id, data: { magicLinkPath } });
+    await sendNotification(context, {
+        type: isRegistration ? 'passwordless-registration' : 'passwordless-login',
+        recipient: email_id,
+        data: { magicLinkPath },
+    });
 }
 
 /**
@@ -58,9 +64,13 @@ async function sendMagicLinkEmail(
  */
 export async function handlePasswordlessCallback({ request, context }: ActionFunctionArgs) {
     const { t } = getTranslation(context);
+    const logger = getLogger(context);
 
     const config = getConfig(context);
     if (config?.features?.passwordlessLogin?.mode !== 'callback') {
+        logger.error('handlePasswordlessCallback: mode is not callback', {
+            mode: config?.features?.passwordlessLogin?.mode,
+        });
         return { success: false, error: t('errors:passwordless.missingCallbackToken') };
     }
 
@@ -77,6 +87,7 @@ export async function handlePasswordlessCallback({ request, context }: ActionFun
 
         const url = new URL(request.url);
         const redirectUrl = url.searchParams.get('redirectUrl') || undefined;
+        const isRegistration = url.searchParams.get('register') === 'true';
 
         const jwtPayload = await validateSlasCallbackToken(context, slasCallbackToken);
 
@@ -94,13 +105,15 @@ export async function handlePasswordlessCallback({ request, context }: ActionFun
             throw new Error('Callback body fields do not match SLAS callback token claims');
         }
 
-        await sendMagicLinkEmail(context, email_id, token, redirectUrl);
+        await sendMagicLinkEmail(context, email_id, token, redirectUrl, isRegistration);
+        logger.info('handlePasswordlessCallback: magic link email sent', { email_id });
 
         return {
             success: true,
             data: {},
         };
     } catch (error) {
+        logger.error('handlePasswordlessCallback: failed', { error: getErrorMessage(error) });
         return {
             success: false,
             error: getErrorMessage(error),

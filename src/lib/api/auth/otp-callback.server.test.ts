@@ -157,7 +157,7 @@ describe('handleOtpCallback', () => {
             expect(mockSendNotification).toHaveBeenCalledWith(
                 mockContext,
                 expect.objectContaining({
-                    type: 'otp',
+                    type: 'password-registration',
                     recipient: 'test@example.com',
                     data: expect.objectContaining({ token: 'otp-token-123' }),
                 })

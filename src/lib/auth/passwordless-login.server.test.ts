@@ -196,7 +196,7 @@ describe('passwordless-login', () => {
                 // Verify B2C email was sent with token and email in magic link path
                 expect(mockSendNotification).toHaveBeenCalledTimes(1);
                 const [, payload] = mockSendNotification.mock.calls[0];
-                expect(payload.type).toBe('passwordless-magic-link');
+                expect(payload.type).toBe('passwordless-login');
                 expect(payload.recipient).toBe('test@example.com');
                 expect(payload.data.magicLinkPath).toContain('magic-link-token');
                 expect(payload.data.magicLinkPath).toContain('test%40example.com');

@@ -6,9 +6,10 @@ Email types supported out of the box:
 
 | `type` | Use |
 |---|---|
-| `passwordless-magic-link` | Passwordless sign-in link |
+| `passwordless-login` | Passwordless sign-in link (existing user) |
+| `passwordless-registration` | Passwordless registration link (new user) |
 | `password-reset` | Password reset link |
-| `otp` | One-time verification code |
+| `password-registration` | One-time verification code for new account registration |
 | _(hook)_ `sfcc.app.order.sendOrderAccessCode` | Guest order lookup access code |
 
 ## Setup
@@ -214,7 +215,7 @@ When `features.passwordlessLogin.mode` is `callback`, SLAS calls your storefront
 2. SLAS makes a `POST` to `callbackUri` with:
    - Header: `x-slas-callback-token` — a signed JWT issued by SLAS
    - Body: `{ "email_id": "shopper@example.com", "token": "<magic-link-token>" }`
-3. The storefront validates the JWT (verifying the SLAS signature via JWKS), builds a magic link, and sends a `passwordless-magic-link` email via the cartridge.
+3. The storefront validates the JWT (verifying the SLAS signature via JWKS), builds a magic link, and sends a `passwordless-login` (or `passwordless-registration` for new users) email via the cartridge.
 4. Shopper clicks the magic link, lands on `features.passwordlessLogin.landingUri`, and is logged in.
 
 ### SLAS Admin configuration

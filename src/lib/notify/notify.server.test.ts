@@ -98,7 +98,11 @@ function makeConfig(organizationId = 'f_ecom_zzrf_001', shortCode = 'kv7kzm78') 
 }
 
 describe('sendNotification / token cache', () => {
-    const payload = { type: 'otp' as const, recipient: 'user@example.com', data: { token: '123456' } };
+    const payload = {
+        type: 'password-registration' as const,
+        recipient: 'user@example.com',
+        data: { token: '123456' },
+    };
 
     beforeEach(() => {
         vi.clearAllMocks();

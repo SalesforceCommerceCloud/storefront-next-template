@@ -312,12 +312,12 @@ export default defineConfig<Config>(
                 },
                 passwordlessLogin: {
                     enabled: false,
-                    mode: 'email',
+                    mode: 'callback',
                     callbackUri: '/passwordless-login-callback',
                     landingUri: '/login',
                 },
                 otpRequest: {
-                    mode: 'email',
+                    mode: 'callback',
                     callbackUri: '',
                 },
                 resetPassword: {

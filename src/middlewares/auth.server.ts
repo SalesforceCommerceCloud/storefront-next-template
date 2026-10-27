@@ -268,10 +268,13 @@ export async function authorizePasswordless(
             : `${getAppOrigin(context)}${passwordlessCallback}`;
     }
 
-    const finalCallbackUri =
-        baseCallbackUri && parameters.redirectPath
-            ? `${baseCallbackUri}?redirectUrl=${encodeURIComponent(parameters.redirectPath)}`
-            : baseCallbackUri;
+    let finalCallbackUri = baseCallbackUri;
+    if (baseCallbackUri) {
+        const cbUrl = new URL(baseCallbackUri);
+        if (parameters.redirectPath) cbUrl.searchParams.set('redirectUrl', parameters.redirectPath);
+        if (parameters.registerCustomer) cbUrl.searchParams.set('register', 'true');
+        finalCallbackUri = cbUrl.toString();
+    }
 
     const usid = session.usid;
 

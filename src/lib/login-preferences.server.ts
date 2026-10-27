@@ -40,5 +40,6 @@ export const LOGIN_PREFERENCES_FALLBACK: Readonly<LoginPreferences> = Object.fre
  * @returns Login preferences; `emailVerificationEnabled` is `undefined` when unavailable
  */
 export async function getLoginPreferences(context: Readonly<RouterContextProvider>): Promise<LoginPreferences> {
-    return (await getLoginPreferencesLazy(context)) ?? Object.freeze({});
+    const prefs = (await getLoginPreferencesLazy(context)) ?? Object.freeze({});
+    return { ...prefs };
 }

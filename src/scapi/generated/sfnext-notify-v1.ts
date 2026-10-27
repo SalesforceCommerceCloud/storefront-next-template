@@ -44,9 +44,10 @@ export interface operations {
     requestBody: {
       content: {
         "application/json":
-          | { type: "passwordless-magic-link"; recipient: string; data: { magicLinkPath: string } }
+          | { type: "passwordless-login"; recipient: string; data: { magicLinkPath: string } }
+          | { type: "passwordless-registration"; recipient: string; data: { magicLinkPath: string } }
           | { type: "password-reset"; recipient: string; data: { magicLinkPath: string } }
-          | { type: "otp"; recipient: string; data: { token: string } };
+          | { type: "password-registration"; recipient: string; data: { token: string } };
       };
     };
     responses: {

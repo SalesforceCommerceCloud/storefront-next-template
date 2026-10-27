@@ -23,7 +23,11 @@ import { getLogger } from '@/lib/logger.server';
 import { stringToBase64 } from '@/lib/utils';
 import { createApiClients } from '@/lib/api-clients.server';
 
-export type NotifyType = 'passwordless-magic-link' | 'password-reset' | 'otp';
+export type NotifyType =
+    | 'passwordless-login'
+    | 'passwordless-registration'
+    | 'password-reset'
+    | 'password-registration';
 
 export type NotifyPayload = operations['notify']['requestBody']['content']['application/json'];
 
@@ -113,6 +117,7 @@ async function acquireNotifyToken(opts: NotifyTokenOpts): Promise<string> {
 
     const accessToken = result.data?.access_token;
     if (typeof accessToken !== 'string' || !accessToken) {
+        logger.error('acquireNotifyToken: no access_token in response', { notifyClientId, responseData: result.data });
         throw new Error(`Failed to acquire notify token [clientId=${notifyClientId}]: no access_token in response`);
     }
     const expiresIn = result.data?.expires_in ?? 1800;
@@ -172,12 +177,15 @@ export async function sendNotification(
         await callNotify();
     } catch (err) {
         if (err instanceof AuthTokenInvalidError) {
-            // Token may have been revoked or expired early; invalidate cache and retry once.
-            // The SDK always throws AuthTokenInvalidError on non-SLAS 401s regardless of
-            // whether onAuthTokenInvalid is wired, so we match on that rather than ApiError.
+            logger.warn('sendNotification: token invalid, retrying', { notifyClientId, siteId });
             invalidateNotifyTokenCache(cacheKey);
             await callNotify();
         } else {
+            logger.error('sendNotification: notify call failed', {
+                error: err instanceof Error ? err.message : String(err),
+                type: payload.type,
+                siteId,
+            });
             throw err;
         }
     }
