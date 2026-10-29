@@ -957,28 +957,35 @@ describe('createAuthHelpers', () => {
                 expect(exchangeCallBody.channel_id).toBe('RefArch');
             });
 
-            it('should throw error when loginId is empty', async () => {
+            it('should omit login_id when loginId is absent or empty', async () => {
                 const config: AuthConfig = {
                     ...baseConfig,
                     clientSecret: 'test-secret',
                 };
+
+                mockShopperLoginClient.getPasswordLessAccessToken.mockResolvedValue({
+                    data: mockTokenResponse,
+                    response: new Response(),
+                });
+
                 const auth = createAuthHelpers(config);
 
-                await expect(
-                    auth.passwordless.exchangeToken({
-                        pwdlessLoginToken: 'some-token',
-                        loginId: '',
-                    })
-                ).rejects.toThrow('loginId is required for passwordless token exchange');
+                await auth.passwordless.exchangeToken({
+                    pwdlessLoginToken: 'some-token',
+                });
 
-                await expect(
-                    auth.passwordless.exchangeToken({
-                        pwdlessLoginToken: 'some-token',
-                        loginId: '   ',
-                    })
-                ).rejects.toThrow('loginId is required for passwordless token exchange');
+                const bodyWithoutLoginId = mockShopperLoginClient.getPasswordLessAccessToken.mock.calls[0][0].body;
+                expect(bodyWithoutLoginId.login_id).toBeUndefined();
 
-                expect(mockShopperLoginClient.getPasswordLessAccessToken).not.toHaveBeenCalled();
+                mockShopperLoginClient.getPasswordLessAccessToken.mockClear();
+
+                await auth.passwordless.exchangeToken({
+                    pwdlessLoginToken: 'some-token',
+                    loginId: '',
+                });
+
+                const bodyWithEmptyLoginId = mockShopperLoginClient.getPasswordLessAccessToken.mock.calls[0][0].body;
+                expect(bodyWithEmptyLoginId.login_id).toBeUndefined();
             });
 
             it('should throw error when clientSecret is not provided', async () => {

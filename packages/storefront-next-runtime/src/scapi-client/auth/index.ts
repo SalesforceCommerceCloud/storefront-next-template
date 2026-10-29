@@ -497,10 +497,6 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
                     throw new Error('Client secret is required for passwordless token exchange');
                 }
 
-                if (!loginId.trim()) {
-                    throw new Error('loginId is required for passwordless token exchange');
-                }
-
                 const codeVerifier = createCodeVerifier();
 
                 // `channel_id` is required by SLAS on this endpoint but is missing from the
@@ -511,7 +507,7 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
                     hint: 'pwdless_login',
                     pwdless_login_token: pwdlessLoginToken,
                     code_verifier: codeVerifier,
-                    login_id: loginId,
+                    ...(loginId && { login_id: loginId }),
                     channel_id: siteId,
                     ...(dnt !== undefined && { dnt: dnt.toString() }),
                 };

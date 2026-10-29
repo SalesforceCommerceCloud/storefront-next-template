@@ -35516,10 +35516,11 @@ interface PasswordlessExchangeTokenOptions {
   pwdlessLoginToken: string;
   /**
    * The same user ID (email or phone) that was passed as `userId` to `passwordless.authorize()`
-   * for this login. SLAS validates that this exactly matches the ID used during passwordless
-   * login (no case or whitespace normalization) and rejects the exchange on mismatch.
+   * for this login. When provided, SLAS validates it matches the ID used during authorization.
+   * Optional — the token itself encodes the user identity; omit when the email is not available
+   * at exchange time (e.g. magic-link flow where email is not embedded in the URL).
    */
-  loginId: string;
+  loginId?: string;
   /** Enable Do Not Track for the user */
   dnt?: boolean;
 }

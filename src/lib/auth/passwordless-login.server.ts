@@ -38,7 +38,7 @@ async function sendMagicLinkEmail(
 ): Promise<void> {
     const config = getConfig(context);
     const landingPath = buildUrlFromContext(config.features.passwordlessLogin.landingUri ?? '/login', context);
-    let magicLinkPath = `${landingPath}?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email_id)}`;
+    let magicLinkPath = `${landingPath}?token=${encodeURIComponent(token)}`;
 
     if (redirectUrl) {
         // SLAS may double-encode query params in its callback; normalize before encoding
@@ -128,12 +128,10 @@ export async function handlePasswordlessCallback({ request, context }: ActionFun
 export function handlePasswordlessLanding({ request }: LoaderFunctionArgs) {
     const url = new URL(request.url);
     const token = url.searchParams.get('token') || '';
-    const email = url.searchParams.get('email') || '';
     const redirectUrl = url.searchParams.get('redirectUrl') || '';
 
     const params = new URLSearchParams();
     params.set('token', token);
-    params.set('email', email);
     if (redirectUrl) params.set('returnUrl', redirectUrl);
 
     return redirect(`${routes.login}?${params.toString()}`);

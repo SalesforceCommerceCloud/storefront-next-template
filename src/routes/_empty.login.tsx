@@ -137,13 +137,13 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     // Turnstile widget when the email-verification site permission is off.
     const showOTPForm = isPasswordlessLoginEnabled && url.searchParams.get('otp') === 'true';
 
-    // Auto-verify OTP token if both email and token are provided in URL
-    if (email && token) {
+    // Auto-verify OTP token when a token is present in the URL (email is optional)
+    if (token) {
         // Snapshot the guest wishlist BEFORE the SLAS swap; the registered token can't authorize a read against the guest customerId.
         const guestWishlistSnapshot = await captureGuestWishlistSnapshot(context);
 
         try {
-            const tokenResponse = await getPasswordLessAccessToken(context, token, email.trim());
+            const tokenResponse = await getPasswordLessAccessToken(context, token, email?.trim());
 
             // Update session with auth data. userType, customerId, usid, and the refresh-token
             // expiry cap all derive from the access-token JWT inside updateAuth; no follow-up

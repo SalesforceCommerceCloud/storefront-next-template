@@ -193,13 +193,13 @@ describe('passwordless-login', () => {
                 // Verify JWT validation was called
                 expect(mockValidateSlasCallbackToken).toHaveBeenCalledWith(mockContext, mockSlasToken);
 
-                // Verify B2C email was sent with token and email in magic link path
+                // Verify B2C email was sent with token in magic link path (no email — PII not in URL)
                 expect(mockSendNotification).toHaveBeenCalledTimes(1);
                 const [, payload] = mockSendNotification.mock.calls[0];
                 expect(payload.type).toBe('passwordless-login');
                 expect(payload.recipient).toBe('test@example.com');
                 expect(payload.data.magicLinkPath).toContain('magic-link-token');
-                expect(payload.data.magicLinkPath).toContain('test%40example.com');
+                expect(payload.data.magicLinkPath).not.toContain('test%40example.com');
             });
 
             it('should handle callback with redirect URL', async () => {
@@ -223,11 +223,11 @@ describe('passwordless-login', () => {
 
                 expect(result.success).toBe(true);
 
-                // Verify the magic link includes the token, email, and redirect URL
+                // Verify the magic link includes the token and redirect URL (no email — PII not in URL)
                 expect(mockSendNotification).toHaveBeenCalledTimes(1);
                 const [, payload] = mockSendNotification.mock.calls[0];
                 expect(payload.data.magicLinkPath).toContain('magic-link-token');
-                expect(payload.data.magicLinkPath).toContain('test%40example.com');
+                expect(payload.data.magicLinkPath).not.toContain('test%40example.com');
                 expect(payload.data.magicLinkPath).toContain('redirectUrl=%2Fdashboard');
             });
 
@@ -255,7 +255,7 @@ describe('passwordless-login', () => {
 
                 const [, payload] = mockSendNotification.mock.calls[0];
                 expect(payload.data.magicLinkPath).toContain('magic-link-token');
-                expect(payload.data.magicLinkPath).toContain('test%40example.com');
+                expect(payload.data.magicLinkPath).not.toContain('test%40example.com');
                 // redirectUrl should be single-encoded, not double-encoded
                 expect(payload.data.magicLinkPath).toContain('redirectUrl=%2Fdashboard');
                 expect(payload.data.magicLinkPath).not.toContain('redirectUrl=%252Fdashboard');
@@ -390,9 +390,9 @@ describe('passwordless-login', () => {
     });
 
     describe('handlePasswordlessLanding', () => {
-        it('should pass through token and email to /login', () => {
+        it('should pass through token to /login (email not forwarded — PII not in URL)', () => {
             const mockRequest = {
-                url: 'https://example.com/passwordless-landing?token=valid-token&email=user%40example.com',
+                url: 'https://example.com/passwordless-landing?token=valid-token',
             } as any;
 
             mockRedirect.mockReturnValue('redirect-response' as any);
@@ -405,13 +405,13 @@ describe('passwordless-login', () => {
                 pattern: {} as any,
             });
 
-            expect(mockRedirect).toHaveBeenCalledWith('/login?token=valid-token&email=user%40example.com');
+            expect(mockRedirect).toHaveBeenCalledWith('/login?token=valid-token');
             expect(result).toBe('redirect-response');
         });
 
         it('should pass through redirectUrl as returnUrl', () => {
             const mockRequest = {
-                url: 'https://example.com/passwordless-landing?token=valid-token&email=user%40example.com&redirectUrl=%2Fdashboard',
+                url: 'https://example.com/passwordless-landing?token=valid-token&redirectUrl=%2Fdashboard',
             } as any;
 
             mockRedirect.mockReturnValue('redirect-response' as any);
@@ -424,9 +424,7 @@ describe('passwordless-login', () => {
                 pattern: {} as any,
             });
 
-            expect(mockRedirect).toHaveBeenCalledWith(
-                '/login?token=valid-token&email=user%40example.com&returnUrl=%2Fdashboard'
-            );
+            expect(mockRedirect).toHaveBeenCalledWith('/login?token=valid-token&returnUrl=%2Fdashboard');
             expect(result).toBe('redirect-response');
         });
 
@@ -445,7 +443,7 @@ describe('passwordless-login', () => {
                 pattern: {} as any,
             });
 
-            expect(mockRedirect).toHaveBeenCalledWith('/login?token=&email=');
+            expect(mockRedirect).toHaveBeenCalledWith('/login?token=');
             expect(result).toBe('redirect-response');
         });
     });

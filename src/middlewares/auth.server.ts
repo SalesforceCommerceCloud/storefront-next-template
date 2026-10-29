@@ -399,7 +399,7 @@ export async function resetPasswordWithToken(
 export async function getPasswordLessAccessToken(
     context: Readonly<RouterContextProvider>,
     pwdlessLoginToken: string,
-    loginId: string
+    loginId?: string
 ): Promise<AuthResponse> {
     const clients = createApiClients(context);
     const performanceTimer = context.get(performanceTimerContext);
