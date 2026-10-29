@@ -4125,8 +4125,8 @@ packages:
   '@types/glob@8.1.0':
     resolution: {integrity: sha512-IO+MJPVhoqz+28h1qLAcBEH2+xHMK6MTyHJc7MTnnYb6wsoLR29POVGJ7LycmVXIqyy/4/2ShP5sUwTXuOwb/w==}
 
-  '@types/google.maps@3.66.7':
-    resolution: {integrity: sha512-4EhLRkBtF5TMBAifddMeK+tn5MS6Sa6cMwrg4TbQiPlV4nU9IbKwHJ5csBfnpykNmXwqy+a9y0/38ZezOwtxmg==}
+  '@types/google.maps@3.66.8':
+    resolution: {integrity: sha512-79smuL2cQ28Uqo01YlPCcHNCq96iyZQhvXinCBl9NvxsVP8kEel1cLsKtImNcwv0x4stX3QGgEUsE1ObXyCs5A==}
 
   '@types/graceful-fs@4.1.9':
     resolution: {integrity: sha512-olP3sd1qOEe5dXTSaFvQG+02VdRXcdytWLAZsAq1PecU8uqQAhkrnbli7DagjtXKW/Bl7YJbUsa8MPcuc8LHEQ==}
@@ -5710,8 +5710,8 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.465:
-    resolution: {integrity: sha512-zg4iUpbeGw7YNZsswc2xKr2uiBex2d8dELAXo92Icw3but1ULbrvK8USe6wVLaWjgJnKBARv0pchx9Owktx6wQ==}
+  electron-to-chromium@1.5.466:
+    resolution: {integrity: sha512-WkgFvScwZjvCPupYGfQr5qlKCv/Tu+GYELGMCGcoBOQbNb6nx/TqGwJyLMwcNAAy2kKJF2agjM7KZKest538JA==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -13774,7 +13774,7 @@ snapshots:
       '@types/minimatch': 5.1.2
       '@types/node': 24.3.0
 
-  '@types/google.maps@3.66.7': {}
+  '@types/google.maps@3.66.8': {}
 
   '@types/graceful-fs@4.1.9':
     dependencies:
@@ -13967,7 +13967,7 @@ snapshots:
 
   '@vis.gl/react-google-maps@1.7.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
-      '@types/google.maps': 3.66.7
+      '@types/google.maps': 3.66.8
       fast-deep-equal: 3.1.3
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
@@ -14571,7 +14571,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.33
       caniuse-lite: 1.0.30001819
-      electron-to-chromium: 1.5.465
+      electron-to-chromium: 1.5.466
       node-releases: 2.0.60
       update-browserslist-db: 1.3.4(browserslist@4.29.5)
 
@@ -15505,7 +15505,7 @@ snapshots:
 
   ejs@6.0.1: {}
 
-  electron-to-chromium@1.5.465: {}
+  electron-to-chromium@1.5.466: {}
 
   embla-carousel-react@8.6.0(react@19.2.3):
     dependencies:

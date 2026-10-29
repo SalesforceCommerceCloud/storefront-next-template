@@ -976,9 +976,9 @@ Configuration options for internationalization configuration using i18next.
 
 ### i18n.fallbackLng
 
-Type: `string` | Default: `'en-US'`
+Type: `string` | Default: `'en-GB'`
 
-The fallback language to use when a translation isn't available in the user's selected language. If a translation key is missing in the current locale, the application displays the text from this fallback locale.
+The fallback language for storefront text when a translation isn't available in the current language. If a translation key is missing, the application displays the text from this fallback language. This setting doesn't change the resolved Commerce locale.
 
 Example:
 
@@ -1917,7 +1917,7 @@ PUBLIC__app__commerce__sites='[
 
 # Configure i18n with all supported languages
 PUBLIC__app__i18n__supportedLngs='["en-GB", "de-DE", "fr-FR"]'
-PUBLIC__app__i18n__fallbackLng="en-US"
+PUBLIC__app__i18n__fallbackLng="en-GB"
 ```
 
 **Important:** Multi-line JSON is supported and recommended for readability. The parser automatically normalizes whitespace.
