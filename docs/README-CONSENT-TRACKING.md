@@ -36,6 +36,10 @@ Shopper Action (Accept/Decline)
 3. The `useAnalytics` hook and `PageViewTracker` block all tracking when `consentPreferences` is `undefined` or empty — no events are sent until the shopper has explicitly accepted.
 4. When consent is accepted, `ConsentPreferences` are forwarded through the event mediator to every adapter, where each adapter calls `hasConsent(config.consentCategory, consentPreferences)` to decide whether to send.
 
+### Current-View Recovery
+
+After a shopper accepts tracking consent, the current page's eligible analytics events fire. This includes Page Views and search, category, and product views. Events from previously visited pages and completed actions are not replayed.
+
 ### Default Consent Categories
 
 The default configuration defines four categories:

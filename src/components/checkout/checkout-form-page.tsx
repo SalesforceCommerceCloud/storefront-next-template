@@ -24,7 +24,7 @@ import {
     type FormEvent,
     type ReactElement,
 } from 'react';
-import { useFetcher } from 'react-router';
+import { useFetcher, useNavigation } from 'react-router';
 import { useCheckoutContext } from '@/hooks/use-checkout';
 import { useBasket, useBasketHydrated } from '@/providers/basket';
 import { useCheckoutActions, type PaymentSubmissionRef } from '@/hooks/use-checkout-actions';
@@ -436,99 +436,62 @@ export default function CheckoutFormPage({
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     const analytics = useAnalytics();
-    // useAnalytics() returns a fresh object every render; cart identity also churns on basket
-    // updates. Keep both in refs so idle-effect deps stay stable — otherwise cleanup cancels the
-    // pending tick on every re-render and events can be starved until idle finally settles.
+    const { state: navigationState } = useNavigation();
     const analyticsRef = useRef(analytics);
     analyticsRef.current = analytics;
     const cartRef = useRef(cart);
     cartRef.current = cart;
-    const stepsRef = useRef(STEPS);
-    stepsRef.current = STEPS;
     const hasTrackedCheckoutStartRef = useRef(false);
     const previousStepRef = useRef<CheckoutStep | null>(null);
-    // Observed step transitions are pushed synchronously and drained on idle. Returning
-    // scheduleIdleTick's cancel from the step effect would drop queued steps whenever `step`
-    // changes mid-flight (CONTACT_INFO → computedStep on provider advance).
-    const pendingStepsRef = useRef<CheckoutStep[]>([]);
-    const cancelPendingStepIdleRef = useRef<(() => void) | null>(null);
-    // Primitive signal only: schedule when items appear; ignore cart/analytics identity churn.
-    const cartItemCount = cart?.productItems?.length ?? 0;
+    // Compare data, not basket identity: equivalent store snapshots must not starve idle work.
+    const cartKey = JSON.stringify(cart);
+    const currentStep = editingStep ?? step;
+    const stepName = Object.keys(STEPS).find((key) => STEPS[key as keyof typeof STEPS] === currentStep) || '';
+    const { consentKey } = analytics;
 
-    // Deferred to idle so analytics dispatch doesn't contribute to the hydration long-task window.
-    // Guard ref is flipped inside the callback (not synchronously): if the effect's cleanup cancels
-    // the pending tick before it fires (e.g. cart empties within the idle window), the guard stays
-    // false and the next effect run can reschedule, so the checkout-start event is not silently dropped.
     useEffect(() => {
-        if (!hasTrackedCheckoutStartRef.current && cartItemCount > 0) {
-            return scheduleIdleTick(
-                () => {
-                    const currentCart = cartRef.current;
-                    if (!currentCart?.productItems?.length) {
-                        return;
-                    }
-                    hasTrackedCheckoutStartRef.current = true;
-                    void analyticsRef.current.trackCheckoutStart({ basket: currentCart });
-                },
-                { idleTimeout: 2000, fallbackTimeout: 0 }
-            );
-        }
-    }, [cartItemCount]);
-
-    // Deferred to idle so analytics dispatch doesn't contribute to the hydration long-task window.
-    // Enqueue each observed step synchronously; drain on a single idle tick so transitions that
-    // happen before the callback runs (including the initial CONTACT_INFO → computedStep advance)
-    // are not discarded. Cancel the idle handle only on unmount — never on `step` change.
-    // Depend on `step` (and cartItemCount) only — unrelated re-renders must not reschedule.
-    useEffect(() => {
-        if (cartItemCount <= 0) {
+        const currentCart = cartRef.current;
+        if (
+            navigationState !== 'idle' ||
+            !basketHydrated ||
+            !currentCart?.basketId ||
+            !currentCart.productItems?.length
+        ) {
             return;
         }
-
-        const pending = pendingStepsRef.current;
-        const lastQueuedOrTracked = pending.length > 0 ? pending[pending.length - 1] : previousStepRef.current;
-        if (lastQueuedOrTracked !== step) {
-            pending.push(step);
-        }
-
-        if (pending.length === 0 || cancelPendingStepIdleRef.current) {
+        if (hasTrackedCheckoutStartRef.current && previousStepRef.current === currentStep) {
             return;
         }
-
-        cancelPendingStepIdleRef.current = scheduleIdleTick(
+        const controller = new AbortController();
+        const { trackCheckoutStart, trackCheckoutStep } = analyticsRef.current;
+        const cancelIdle = scheduleIdleTick(
             () => {
-                cancelPendingStepIdleRef.current = null;
-                const currentCart = cartRef.current;
-                if (!currentCart?.productItems?.length) {
-                    // Leave the queue intact so a later effect can reschedule when items return.
-                    return;
+                // A skipped/aborted attempt is not a handoff. Recover only the current step.
+                if (!hasTrackedCheckoutStartRef.current) {
+                    void trackCheckoutStart({ basket: currentCart }, controller.signal)
+                        .then((handedOff) => {
+                            if (handedOff) hasTrackedCheckoutStartRef.current = true;
+                        })
+                        .catch(() => undefined);
                 }
-                const queuedSteps = pendingStepsRef.current.splice(0);
-                const steps = stepsRef.current;
-                for (const queuedStep of queuedSteps) {
-                    if (previousStepRef.current === queuedStep) {
-                        continue;
-                    }
-                    const stepName =
-                        Object.keys(steps).find((key) => steps[key as keyof typeof steps] === queuedStep) || '';
-                    previousStepRef.current = queuedStep;
-                    void analyticsRef.current.trackCheckoutStep({
-                        stepName,
-                        stepNumber: queuedStep,
-                        basket: currentCart,
-                    });
+                if (previousStepRef.current !== currentStep) {
+                    void trackCheckoutStep(
+                        { stepName, stepNumber: currentStep, basket: currentCart },
+                        controller.signal
+                    )
+                        .then((handedOff) => {
+                            if (handedOff) previousStepRef.current = currentStep;
+                        })
+                        .catch(() => undefined);
                 }
             },
             { idleTimeout: 2000, fallbackTimeout: 0 }
         );
-    }, [step, cartItemCount]);
-
-    useEffect(() => {
         return () => {
-            cancelPendingStepIdleRef.current?.();
-            cancelPendingStepIdleRef.current = null;
+            cancelIdle();
+            controller.abort();
         };
-    }, []);
+    }, [basketHydrated, cartKey, currentStep, stepName, consentKey, navigationState]);
 
     const isPlacingOrder = placeOrderFetcher.state === 'submitting';
     const [isPlaceOrderPending, setIsPlaceOrderPending] = useState(false);

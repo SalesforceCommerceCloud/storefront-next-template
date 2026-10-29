@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useAsyncError, useLocation, useNavigation } from 'react-router';
 import type { Route } from './+types/_app.search';
 import type { ShopperSearch } from '@/scapi';
@@ -219,13 +219,20 @@ export default function SearchPage({
     );
 
     const analytics = useAnalytics();
+    const consentKey = analytics?.consentKey;
     const lastTrackedSearchRef = useRef<string | null>(null);
-    const pendingSearchRef = useRef<string | null>(null);
+    const currentSearchKeyRef = useRef<string | null>(null);
     const searchExecutionRef = useRef<{ criteria: string; searchResultId: string; started: boolean } | null>(null);
 
     const location = useLocation();
     const navigation = useNavigation();
     const searchWithoutFiltersParam = useMemo(() => getSearchWithoutFiltersParam(location.search), [location.search]);
+    const isDeparting =
+        navigation.state !== 'idle' &&
+        !!navigation.location &&
+        (navigation.location.pathname !== location.pathname ||
+            getSearchWithoutFiltersParam(navigation.location.search) !== searchWithoutFiltersParam ||
+            navigation.location.hash !== location.hash);
     const pageIdentity = `${currency}-${locale}`;
     const analyticsKey = `${site.id}-${pageIdentity}-${location.pathname}-${searchWithoutFiltersParam}-${location.hash}-${limit}`;
     const productGridDataKey = `${pageIdentity}-${searchWithoutFiltersParam}`;
@@ -264,8 +271,6 @@ export default function SearchPage({
         return hitsPromise;
     }, [searchResultNonCritical]);
 
-    const [, startTransition] = useTransition();
-
     const handleProductClick = useCallback(
         (product: ShopperSearch.schemas['ProductSearchHit']) => {
             if (analytics) {
@@ -279,9 +284,9 @@ export default function SearchPage({
     );
 
     useEffect(() => {
-        if (analyticsKey !== lastTrackedSearchRef.current && analyticsKey !== pendingSearchRef.current) {
-            pendingSearchRef.current = analyticsKey;
-            let active = true;
+        currentSearchKeyRef.current = analyticsKey;
+        if (analytics && !isDeparting && analyticsKey !== lastTrackedSearchRef.current) {
+            const controller = new AbortController();
             if (searchExecutionRef.current?.criteria !== searchCriteria) {
                 searchExecutionRef.current = {
                     criteria: searchCriteria,
@@ -289,22 +294,15 @@ export default function SearchPage({
                     started: false,
                 };
             }
-            const searchResultId = searchExecutionRef.current.searchResultId;
+            const execution = searchExecutionRef.current;
 
-            startTransition(() => {
-                void nonCriticalPromise
-                    .then((searchHitsData: ShopperSearch.schemas['ProductSearchHit'][]) => {
-                        if (!active || pendingSearchRef.current !== analyticsKey) return;
-                        const startsSearchExecution = !searchExecutionRef.current?.started;
-                        if (searchExecutionRef.current) {
-                            searchExecutionRef.current.started = true;
-                        }
-                        pendingSearchRef.current = null;
-                        lastTrackedSearchRef.current = analyticsKey;
-
-                        void analytics.trackViewSearch({
-                            searchResultId,
-                            startsSearchExecution,
+            void nonCriticalPromise
+                .then(async (searchHitsData: ShopperSearch.schemas['ProductSearchHit'][]) => {
+                    if (controller.signal.aborted) return;
+                    const handedOff = await analytics.trackViewSearch(
+                        {
+                            searchResultId: execution.searchResultId,
+                            startsSearchExecution: !execution.started,
                             searchInputText: searchTerm,
                             searchResults: [...(searchResultCritical.hits ?? []), ...searchHitsData],
                             sort:
@@ -315,24 +313,27 @@ export default function SearchPage({
                             offset: searchResultCritical.offset,
                             limit,
                             total: searchResultCritical.total,
-                        });
-                    })
-                    .catch(() => {
-                        if (pendingSearchRef.current === analyticsKey) {
-                            pendingSearchRef.current = null;
+                        },
+                        controller.signal
+                    );
+                    // Cancellation cannot undo a handoff that already occurred.
+                    if (handedOff === true) {
+                        execution.started = true;
+                        if (searchExecutionRef.current === execution && currentSearchKeyRef.current === analyticsKey) {
+                            lastTrackedSearchRef.current = analyticsKey;
                         }
-                    });
-            });
+                    }
+                })
+                .catch(() => {
+                    // Analytics and deferred-result failures must not interrupt the rendered route.
+                });
 
             return () => {
-                active = false;
-                if (pendingSearchRef.current === analyticsKey) {
-                    pendingSearchRef.current = null;
-                }
+                controller.abort();
             };
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchTerm, searchCriteria, analyticsKey, nonCriticalPromise]);
+    }, [searchTerm, searchCriteria, analyticsKey, nonCriticalPromise, consentKey, isDeparting]);
 
     return (
         <>

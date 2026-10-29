@@ -63,9 +63,16 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
             site: { id: mockAltSiteObject.id, defaultLocale: mockAltSiteObject.defaultLocale },
             language: mockAltSiteObject.defaultLocale,
             currency: mockAltSiteObject.defaultCurrency,
+            locale: { id: mockAltSiteObject.defaultLocale },
         })),
     };
 });
+
+vi.mock('react-router', async (importOriginal) => ({
+    ...(await importOriginal<object>()),
+    useLocation: () => ({ pathname: '/product/current', search: '', hash: '', key: 'current' }),
+    useNavigation: () => ({ state: 'idle' }),
+}));
 
 // Mock useRecommenders hook
 const mockGetRecommendations = vi.fn();
@@ -113,7 +120,7 @@ vi.mock('@/components/product-carousel/carousel', () => ({
 }));
 
 // Mock analytics so we can assert the recommender impression + click calls.
-const mockTrackViewRecommender = vi.fn();
+const mockTrackViewRecommender = vi.fn().mockResolvedValue(true);
 const mockTrackClickProductInRecommender = vi.fn();
 vi.mock('@/hooks/use-analytics', () => ({
     useAnalytics: vi.fn(() => ({
@@ -173,11 +180,14 @@ describe('ProductRecommendations', () => {
             await waitFor(() => {
                 expect(mockTrackViewRecommender).toHaveBeenCalledTimes(1);
             });
-            expect(mockTrackViewRecommender).toHaveBeenCalledWith({
-                recommenderId: mockRecommendations.recoUUID,
-                recommenderName: mockRecommendations.recommenderName,
-                products: mockRecommendations.recs,
-            });
+            expect(mockTrackViewRecommender).toHaveBeenCalledWith(
+                {
+                    recommenderId: mockRecommendations.recoUUID,
+                    recommenderName: mockRecommendations.recommenderName,
+                    products: mockRecommendations.recs,
+                },
+                expect.any(AbortSignal)
+            );
         });
 
         test('does not fire trackViewRecommender when off-screen', async () => {
@@ -198,6 +208,18 @@ describe('ProductRecommendations', () => {
                 expect(screen.getByTestId('product-carousel')).toBeInTheDocument();
             });
             expect(mockTrackViewRecommender).not.toHaveBeenCalled();
+        });
+
+        test('aborts the pending impression when a resolved loader carousel is hidden by Suspense', async () => {
+            mockTrackViewRecommender.mockImplementationOnce(() => new Promise<boolean>(() => {}));
+            const { rerender } = renderComponent(
+                <ProductRecommendations data={Promise.resolve(mockRecommendations)} />
+            );
+            await waitFor(() => expect(mockTrackViewRecommender).toHaveBeenCalledTimes(1));
+            const signal = mockTrackViewRecommender.mock.calls[0][1] as AbortSignal;
+            expect(signal.aborted).toBe(false);
+            rerender(<ProductRecommendations data={new Promise<Recommendation>(() => {})} />);
+            expect(signal.aborted).toBe(true);
         });
 
         test('fires trackClickProductInRecommender with the clicked product on tile click', async () => {

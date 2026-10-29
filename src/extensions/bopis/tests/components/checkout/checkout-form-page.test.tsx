@@ -106,8 +106,9 @@ vi.mock('@/components/toast', () => ({
 }));
 
 const mockAnalytics = {
-    trackCheckoutStart: vi.fn(),
-    trackCheckoutStep: vi.fn(),
+    consentKey: '["analytics"]',
+    trackCheckoutStart: vi.fn().mockResolvedValue(true),
+    trackCheckoutStep: vi.fn().mockResolvedValue(true),
 };
 const mockUseAnalytics = vi.fn(() => mockAnalytics);
 vi.mock('@/hooks/use-analytics', () => ({
@@ -359,8 +360,8 @@ describe('CheckoutFormPage - bopis', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        mockAnalytics.trackCheckoutStart.mockReset();
-        mockAnalytics.trackCheckoutStep.mockReset();
+        mockAnalytics.trackCheckoutStart.mockReset().mockResolvedValue(true);
+        mockAnalytics.trackCheckoutStep.mockReset().mockResolvedValue(true);
         mockUseAnalytics.mockReturnValue(mockAnalytics);
         Object.defineProperty(window, 'scrollTo', {
             writable: true,

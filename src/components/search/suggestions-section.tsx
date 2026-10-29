@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/hooks/use-analytics';
 import type { PhraseSuggestion, SearchSuggestions } from './types';
 import { useEffect, useRef } from 'react';
+import { useLocation, useNavigation } from 'react-router';
 
 interface SuggestionSectionProps {
     searchSuggestions: SearchSuggestions;
@@ -63,6 +64,8 @@ const DidYouMean = ({ suggestion, searchPhrase, onLinkClick }: DidYouMeanProps) 
 export default function SuggestionSection({ searchSuggestions, closeAndNavigate }: SuggestionSectionProps) {
     const { t } = useTranslation('search');
     const analytics = useAnalytics();
+    const location = useLocation();
+    const navigation = useNavigation();
 
     const hasCategories = Boolean(searchSuggestions?.categorySuggestions?.length);
     const hasProducts = Boolean(searchSuggestions?.productSuggestions?.length);
@@ -74,26 +77,31 @@ export default function SuggestionSection({ searchSuggestions, closeAndNavigate 
     const searchPhrase = searchSuggestions?.searchPhrase || '';
 
     const lastTrackedSuggestionsRef = useRef<string | null>(null);
+    const data = {
+        searchInputText: searchPhrase,
+        suggestions: [
+            ...(searchSuggestions?.categorySuggestions || []).map((s) => s.name),
+            ...(searchSuggestions?.productSuggestions || []).map((s) => s.name),
+            ...(searchSuggestions?.phraseSuggestions || []).map((s) => s.name),
+            ...(searchSuggestions?.popularSearchSuggestions || []).map((s) => s.name),
+        ],
+    };
+    const suggestionsKey = JSON.stringify([location.key, location.pathname, location.search, data]);
+    const trackingRef = useRef({ analytics, data });
+    trackingRef.current = { analytics, data };
 
-    // Track on mount and whenever suggestions changes
     useEffect(() => {
-        // Create a unique key based on search phrase and suggestion counts
-        const suggestionsKey = `${searchSuggestions?.searchPhrase || ''}-${searchSuggestions?.categorySuggestions?.length || 0}-${searchSuggestions?.productSuggestions?.length || 0}-${searchSuggestions?.phraseSuggestions?.length || 0}-${searchSuggestions?.popularSearchSuggestions?.length || 0}`;
-
-        // Only track if we haven't already tracked this specific suggestions combination
-        if (suggestionsKey !== lastTrackedSuggestionsRef.current) {
-            void analytics.trackViewSearchSuggestions({
-                searchInputText: searchSuggestions?.searchPhrase || '',
-                suggestions: [
-                    ...(searchSuggestions?.categorySuggestions || []).map((s) => s.name),
-                    ...(searchSuggestions?.productSuggestions || []).map((s) => s.name),
-                    ...(searchSuggestions?.phraseSuggestions || []).map((s) => s.name),
-                    ...(searchSuggestions?.popularSearchSuggestions || []).map((s) => s.name),
-                ],
-            });
-            lastTrackedSuggestionsRef.current = suggestionsKey;
-        }
-    }, [analytics, searchSuggestions]);
+        if (navigation.state !== 'idle' || lastTrackedSuggestionsRef.current === suggestionsKey) return;
+        const controller = new AbortController();
+        const { analytics: currentAnalytics, data: currentData } = trackingRef.current;
+        void currentAnalytics
+            .trackViewSearchSuggestions(currentData, controller.signal)
+            .then((handedOff) => {
+                if (handedOff && !controller.signal.aborted) lastTrackedSuggestionsRef.current = suggestionsKey;
+            })
+            .catch(() => undefined);
+        return () => controller.abort();
+    }, [analytics.consentKey, navigation.state, suggestionsKey]);
 
     const handleLinkClick = (link: string) => {
         closeAndNavigate(link);

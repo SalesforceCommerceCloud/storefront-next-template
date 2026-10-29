@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useLayoutEffect } from 'react';
 import { useLocation } from 'react-router';
 import { useAuth } from '@/providers/auth';
 import type { SessionData } from '@/lib/api/types';
@@ -32,6 +32,7 @@ import type { AppConfig } from '@/types/config';
 import { ensureAdaptersInitialized } from '@/lib/adapters/engagement/initialize';
 import { getAllAdapters, buildConsentPreferences } from '@/lib/adapters';
 import { useTrackingConsent } from './use-tracking-consent';
+import { getSearchWithoutFiltersParam } from '@/hooks/use-filters-panel-state';
 
 /**
  * Ensures adapters are initialized and returns the event mediator
@@ -47,13 +48,14 @@ async function getInitializedMediator(appConfig: AppConfig): Promise<EventMediat
 /**
  * Helper function to track an event with auth validation and mediator initialization
  *
- * @param authPromise - Promise that resolves when auth is available
+ * @param getAuthPromise - Returns the current promise that resolves when auth is available
  * @param appConfig - The application configuration
  * @param consentPreferences - The visitor's granted consent categories (adapters use this for per-adapter filtering)
  * @param siteInfo - Site identification for multi-site support
  * @param eventType - The type of event to track
  * @param eventData - The event data (without user payload, as payload is added automatically)
- * @returns Promise that resolves when tracking is complete or undefined if auth/mediator is unavailable
+ * @param isCurrent - Optional guard for cancellable current-view impressions
+ * @returns Whether a consent-eligible event was handed to the mediator, not delivered
  */
 // ⚠️ Build-time instrumentation check depends on this argument order.
 // The `eventInstrumentationValidatorPlugin` in `storefront-next-dev` finds instrumented
@@ -64,29 +66,36 @@ async function getInitializedMediator(appConfig: AppConfig): Promise<EventMediat
 // `packages/storefront-next-dev/src/plugins/eventInstrumentationValidator.ts` — otherwise the
 // check silently stops finding events and reports false "never instrumented" warnings.
 async function trackEvent<TEventType extends AnalyticsEvent['eventType']>(
-    authPromise: Promise<SessionData | undefined>,
+    getAuthPromise: () => Promise<SessionData | undefined>,
     appConfig: AppConfig,
     consentPreferences: ConsentPreferences | undefined,
     siteInfo: EventSiteInfo | undefined,
     eventType: TEventType,
-    eventData: Omit<Parameters<typeof createEvent<TEventType>>[1], 'payload'>
-): Promise<void> {
+    eventData: Omit<Parameters<typeof createEvent<TEventType>>[1], 'payload'>,
+    isCurrent: () => boolean = () => true
+): Promise<boolean> {
     // Don't track if user has declined tracking or hasn't provided consent yet
     // (avoids unnecessary auth resolution and mediator initialization)
-    if (!consentPreferences || consentPreferences.length === 0) {
-        return;
+    if (!consentPreferences || consentPreferences.length === 0 || !isCurrent()) {
+        return false;
     }
 
     // Wait for auth to be defined before tracking
-    const auth = await authPromise;
-    if (auth === undefined) {
+    let auth = await getAuthPromise();
+    if (auth === undefined || !isCurrent()) {
         // Auth not available - silently fail to not break the app
-        return;
+        return false;
     }
 
     const mediator = await getInitializedMediator(appConfig);
-    if (!mediator) {
-        return;
+    if (!mediator || !isCurrent()) {
+        return false;
+    }
+
+    // Auth may have changed while adapters initialized; wait for the current identity.
+    auth = await getAuthPromise();
+    if (auth === undefined || !isCurrent()) {
+        return false;
     }
 
     const event = createEvent(eventType, {
@@ -98,7 +107,8 @@ async function trackEvent<TEventType extends AnalyticsEvent['eventType']>(
             customerId: auth.customerId,
         },
     } as Parameters<typeof createEvent<TEventType>>[1]);
-    return void mediator.track(event, siteInfo, consentPreferences);
+    mediator.track(event, siteInfo, consentPreferences);
+    return true;
 }
 
 /**
@@ -113,19 +123,34 @@ export const useAnalytics = () => {
     const siteInfo = { siteId: site.id, localeId: language };
     const consentCategories = appConfig.engagement.analytics.trackingConsent?.consentCategories ?? [];
     const consentPreferences = buildConsentPreferences(trackingConsent, consentCategories, isTrackingConsentEnabled);
+    const consentKey = JSON.stringify(consentPreferences ?? []);
+    const viewKey = JSON.stringify([
+        consentKey,
+        site.id,
+        language,
+        location.pathname,
+        getSearchWithoutFiltersParam(location.search),
+    ]);
+    const currentViewRef = useRef<{ key: string } | null>({ key: viewKey });
+    // Refresh before consumers dispatch from layout effects, including deferred consent commits.
+    useLayoutEffect(() => {
+        currentViewRef.current = { key: viewKey };
+        return () => {
+            currentViewRef.current = null;
+        };
+    }, [viewKey]);
+    const createCurrentViewGuard = (signal?: AbortSignal) => {
+        const current = currentViewRef.current;
+        return () => !signal?.aborted && current?.key === viewKey && currentViewRef.current === current;
+    };
 
     // Store the promise resolver so we can resolve it when auth becomes available
     const authResolverRef = useRef<((value: SessionData | undefined) => void) | null>(null);
 
     // Create a promise that resolves when auth is available
     // This promise is updated via useEffect when auth changes
-    const authPromiseRef = useRef<Promise<SessionData | undefined>>(
-        auth !== undefined
-            ? Promise.resolve(auth)
-            : new Promise<SessionData | undefined>((resolve) => {
-                  authResolverRef.current = resolve;
-              })
-    );
+    const authPromiseRef = useRef<Promise<SessionData | undefined>>(Promise.resolve(auth));
+    const getAuthPromise = () => authPromiseRef.current;
 
     // Update the promise when auth changes
     useEffect(() => {
@@ -137,7 +162,7 @@ export const useAnalytics = () => {
             }
             // Create a new resolved promise for future calls
             authPromiseRef.current = Promise.resolve(auth);
-        } else {
+        } else if (!authResolverRef.current) {
             // Auth is undefined - create a new pending promise
             authPromiseRef.current = new Promise<SessionData | undefined>((resolve) => {
                 authResolverRef.current = resolve;
@@ -149,22 +174,32 @@ export const useAnalytics = () => {
     if (typeof window === 'undefined') {
         /* oxlint-disable @typescript-eslint/no-empty-function */
         return {
+            consentKey,
             trackViewPage: () => {},
-            trackViewProduct: () => {},
+            trackViewProduct: (_data: { product: ShopperProducts.schemas['Product'] }, _signal?: AbortSignal) =>
+                Promise.resolve(false),
             trackCartItemAdd: () => {},
-            trackCheckoutStart: () => {},
-            trackCheckoutStep: () => {},
-            trackViewSearch: () => {},
-            trackViewCategory: () => {},
+            trackCheckoutStart: (_data: Parameters<typeof trackCheckoutStart>[0], _signal?: AbortSignal) =>
+                Promise.resolve(false),
+            trackCheckoutStep: (_data: Parameters<typeof trackCheckoutStep>[0], _signal?: AbortSignal) =>
+                Promise.resolve(false),
+            trackViewSearch: (_data: Parameters<typeof trackViewSearch>[0], _signal?: AbortSignal) =>
+                Promise.resolve(false),
+            trackViewCategory: (_data: Parameters<typeof trackViewCategory>[0], _signal?: AbortSignal) =>
+                Promise.resolve(false),
             trackClickProductInCategory: () => {},
             trackClickProductInSearch: () => {},
-            trackViewRecommender: () => {},
+            trackViewRecommender: (_data: Parameters<typeof trackViewRecommender>[0], _signal?: AbortSignal) =>
+                Promise.resolve(false),
             trackClickProductInRecommender: () => {},
-            trackViewSearchSuggestions: () => {},
+            trackViewSearchSuggestions: (
+                _data: Parameters<typeof trackViewSearchSuggestions>[0],
+                _signal?: AbortSignal
+            ) => Promise.resolve(false),
             trackClickSearchSuggestion: () => {},
             trackWishlistItemAdded: () => {},
             trackWishlistItemRemoved: () => {},
-            trackWishlistViewed: () => {},
+            trackWishlistViewed: (_signal?: AbortSignal) => Promise.resolve(false),
             trackWishlistItemMerged: () => {},
             trackWishlistMerged: () => {},
         };
@@ -178,7 +213,7 @@ export const useAnalytics = () => {
      * function is provided for manual firing of page views.
      */
     const trackViewPage = async (data: { url: string }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_page', {
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, 'view_page', {
             path: data.url,
         });
     };
@@ -186,18 +221,26 @@ export const useAnalytics = () => {
     /**
      * Track a product view
      */
-    const trackViewProduct = async (data: { product: ShopperProducts.schemas['Product'] }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_product', {
-            path: `${location.pathname}${location.search}${location.hash}`,
-            product: data.product,
-        });
+    const trackViewProduct = async (data: { product: ShopperProducts.schemas['Product'] }, signal?: AbortSignal) => {
+        return trackEvent(
+            getAuthPromise,
+            appConfig,
+            consentPreferences,
+            siteInfo,
+            'view_product',
+            {
+                path: `${location.pathname}${location.search}${location.hash}`,
+                product: data.product,
+            },
+            createCurrentViewGuard(signal)
+        );
     };
 
     /**
      * Track add to cart
      */
     const trackCartItemAdd = async (data: { cartItems: ShopperBasketsV2.schemas['ProductItem'][] }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'cart_item_add', {
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, 'cart_item_add', {
             cartItems: data.cartItems,
         });
     };
@@ -205,79 +248,120 @@ export const useAnalytics = () => {
     /**
      * Track start of checkout process
      */
-    const trackCheckoutStart = async (data: { basket: ShopperBasketsV2.schemas['Basket'] }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'checkout_start', {
-            basket: data.basket,
-        });
+    const trackCheckoutStart = async (data: { basket: ShopperBasketsV2.schemas['Basket'] }, signal?: AbortSignal) => {
+        return trackEvent(
+            getAuthPromise,
+            appConfig,
+            consentPreferences,
+            siteInfo,
+            'checkout_start',
+            {
+                basket: data.basket,
+            },
+            createCurrentViewGuard(signal)
+        );
     };
 
     /**
      * Track start of given checkout step
      */
-    const trackCheckoutStep = async (data: {
-        stepName: string;
-        stepNumber: number;
-        basket: ShopperBasketsV2.schemas['Basket'];
-    }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'checkout_step', {
-            stepName: data.stepName,
-            stepNumber: data.stepNumber,
-            basket: data.basket,
-        });
+    const trackCheckoutStep = async (
+        data: {
+            stepName: string;
+            stepNumber: number;
+            basket: ShopperBasketsV2.schemas['Basket'];
+        },
+        signal?: AbortSignal
+    ) => {
+        return trackEvent(
+            getAuthPromise,
+            appConfig,
+            consentPreferences,
+            siteInfo,
+            'checkout_step',
+            {
+                stepName: data.stepName,
+                stepNumber: data.stepNumber,
+                basket: data.basket,
+            },
+            createCurrentViewGuard(signal)
+        );
     };
 
     /**
      * Track search
      */
-    const trackViewSearch = async (data: {
-        searchResultId: string;
-        startsSearchExecution: boolean;
-        searchInputText: string;
-        searchResults: ShopperSearch.schemas['ProductSearchHit'][];
-        sort: string;
-        refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
-        offset?: number;
-        limit?: number;
-        total?: number;
-    }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_search', {
-            path: `${location.pathname}${location.search}${location.hash}`,
-            searchResultId: data.searchResultId,
-            startsSearchExecution: data.startsSearchExecution,
-            searchInputText: data.searchInputText,
-            searchResults: data.searchResults,
-            sort: data.sort || '',
-            refinements: data.refinements || {},
-            offset: data.offset,
-            limit: data.limit,
-            total: data.total,
-        });
+    const trackViewSearch = async (
+        data: {
+            searchResultId: string;
+            startsSearchExecution: boolean;
+            searchInputText: string;
+            searchResults: ShopperSearch.schemas['ProductSearchHit'][];
+            sort: string;
+            refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
+            offset?: number;
+            limit?: number;
+            total?: number;
+        },
+        signal?: AbortSignal
+    ) => {
+        return trackEvent(
+            getAuthPromise,
+            appConfig,
+            consentPreferences,
+            siteInfo,
+            'view_search',
+            {
+                path: `${location.pathname}${location.search}${location.hash}`,
+                searchResultId: data.searchResultId,
+                startsSearchExecution: data.startsSearchExecution,
+                searchInputText: data.searchInputText,
+                searchResults: data.searchResults,
+                sort: data.sort || '',
+                refinements: data.refinements || {},
+                offset: data.offset,
+                limit: data.limit,
+                total: data.total,
+            },
+            createCurrentViewGuard(signal)
+        );
     };
 
     /**
      * Track category view
      */
-    const trackViewCategory = async (data: {
-        category: ShopperProducts.schemas['Category'];
-        isNavigation?: boolean;
-        searchResults: ShopperSearch.schemas['ProductSearchHit'][];
-        sort: string;
-        refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
-        offset?: number;
-        limit?: number;
-        total?: number;
-    }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_category', {
-            path: `${location.pathname}${location.search}${location.hash}`,
-            category: data.category,
-            isNavigation: data.isNavigation,
-            searchResults: data.searchResults,
-            sort: data.sort || '',
-            refinements: data.refinements || {},
-            offset: data.offset,
-            limit: data.limit,
-            total: data.total,
-        });
+    const trackViewCategory = async (
+        data: {
+            category: ShopperProducts.schemas['Category'];
+            isNavigation?: boolean;
+            searchResults: ShopperSearch.schemas['ProductSearchHit'][];
+            sort: string;
+            refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
+            offset?: number;
+            limit?: number;
+            total?: number;
+        },
+        signal?: AbortSignal
+    ) => {
+        return trackEvent(
+            getAuthPromise,
+            appConfig,
+            consentPreferences,
+            siteInfo,
+            'view_category',
+            {
+                path: `${location.pathname}${location.search}${location.hash}`,
+                category: data.category,
+                isNavigation: data.isNavigation,
+                searchResults: data.searchResults,
+                sort: data.sort || '',
+                refinements: data.refinements || {},
+                offset: data.offset,
+                limit: data.limit,
+                total: data.total,
+            },
+            createCurrentViewGuard(signal)
+        );
     };
 
     /**
@@ -287,17 +371,10 @@ export const useAnalytics = () => {
         category: ShopperProducts.schemas['Category'];
         product: ShopperSearch.schemas['ProductSearchHit'];
     }) => {
-        return trackEvent(
-            authPromiseRef.current,
-            appConfig,
-            consentPreferences,
-            siteInfo,
-            'click_product_in_category',
-            {
-                category: data.category,
-                product: data.product,
-            }
-        );
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, 'click_product_in_category', {
+            category: data.category,
+            product: data.product,
+        });
     };
 
     /**
@@ -307,7 +384,7 @@ export const useAnalytics = () => {
         searchInputText: string;
         product: ShopperSearch.schemas['ProductSearchHit'];
     }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'click_product_in_search', {
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, 'click_product_in_search', {
             searchInputText: data.searchInputText,
             product: data.product,
         });
@@ -316,16 +393,27 @@ export const useAnalytics = () => {
     /**
      * Track a recommender impression (carousel scrolled into view with resolved recs)
      */
-    const trackViewRecommender = async (data: {
-        recommenderId: string;
-        recommenderName: string;
-        products: ShopperSearch.schemas['ProductSearchHit'][];
-    }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_recommender', {
-            recommenderId: data.recommenderId,
-            recommenderName: data.recommenderName,
-            products: data.products,
-        });
+    const trackViewRecommender = async (
+        data: {
+            recommenderId: string;
+            recommenderName: string;
+            products: ShopperSearch.schemas['ProductSearchHit'][];
+        },
+        signal?: AbortSignal
+    ) => {
+        return trackEvent(
+            getAuthPromise,
+            appConfig,
+            consentPreferences,
+            siteInfo,
+            'view_recommender',
+            {
+                recommenderId: data.recommenderId,
+                recommenderName: data.recommenderName,
+                products: data.products,
+            },
+            createCurrentViewGuard(signal)
+        );
     };
 
     /**
@@ -336,35 +424,39 @@ export const useAnalytics = () => {
         recommenderName: string;
         product: ShopperSearch.schemas['ProductSearchHit'];
     }) => {
-        return trackEvent(
-            authPromiseRef.current,
-            appConfig,
-            consentPreferences,
-            siteInfo,
-            'click_product_in_recommender',
-            {
-                recommenderId: data.recommenderId,
-                recommenderName: data.recommenderName,
-                product: data.product,
-            }
-        );
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, 'click_product_in_recommender', {
+            recommenderId: data.recommenderId,
+            recommenderName: data.recommenderName,
+            product: data.product,
+        });
     };
 
     /**
      * Track view of search suggestions
      */
-    const trackViewSearchSuggestions = async (data: { searchInputText: string; suggestions: Array<string> }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_search_suggestion', {
-            searchInputText: data.searchInputText,
-            suggestions: data.suggestions,
-        });
+    const trackViewSearchSuggestions = async (
+        data: { searchInputText: string; suggestions: Array<string> },
+        signal?: AbortSignal
+    ) => {
+        return trackEvent(
+            getAuthPromise,
+            appConfig,
+            consentPreferences,
+            siteInfo,
+            'view_search_suggestion',
+            {
+                searchInputText: data.searchInputText,
+                suggestions: data.suggestions,
+            },
+            createCurrentViewGuard(signal)
+        );
     };
 
     /**
      * Track click on a search suggestion
      */
     const trackClickSearchSuggestion = async (data: { searchInputText: string; suggestion: string }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'click_search_suggestion', {
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, 'click_search_suggestion', {
             searchInputText: data.searchInputText,
             suggestion: data.suggestion,
         });
@@ -377,7 +469,7 @@ export const useAnalytics = () => {
         surface: 'pdp' | 'plp' | 'cart' | 'wishlist-page';
         productId: string;
     }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'wishlist_item_added', {
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, 'wishlist_item_added', {
             surface: data.surface,
             productId: data.productId,
         });
@@ -390,7 +482,7 @@ export const useAnalytics = () => {
         surface: 'pdp' | 'plp' | 'cart' | 'wishlist-page';
         productId: string;
     }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'wishlist_item_removed', {
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, 'wishlist_item_removed', {
             surface: data.surface,
             productId: data.productId,
         });
@@ -399,15 +491,23 @@ export const useAnalytics = () => {
     /**
      * Track wishlist page view
      */
-    const trackWishlistViewed = async () => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'wishlist_viewed', {});
+    const trackWishlistViewed = async (signal?: AbortSignal) => {
+        return trackEvent(
+            getAuthPromise,
+            appConfig,
+            consentPreferences,
+            siteInfo,
+            'wishlist_viewed',
+            {},
+            createCurrentViewGuard(signal)
+        );
     };
 
     /**
      * Track individual product merged from guest to registered wishlist
      */
     const trackWishlistItemMerged = async (data: { productId: string }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'wishlist_item_merged', {
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, 'wishlist_item_merged', {
             productId: data.productId,
         });
     };
@@ -423,10 +523,11 @@ export const useAnalytics = () => {
         skippedProductIds: string[];
         failedProductIds: string[];
     }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'wishlist_merged', data);
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, 'wishlist_merged', data);
     };
 
     return {
+        consentKey,
         trackViewPage,
         trackViewProduct,
         trackCartItemAdd,

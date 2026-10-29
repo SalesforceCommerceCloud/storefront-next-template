@@ -65,7 +65,7 @@ vi.mock('@/lib/url', async () => {
 
 vi.mock('@/hooks/use-analytics', () => ({
     useAnalytics: () => ({
-        trackViewSearchSuggestions: vi.fn(),
+        trackViewSearchSuggestions: vi.fn().mockResolvedValue(true),
         trackClickSearchSuggestion: vi.fn(),
     }),
 }));

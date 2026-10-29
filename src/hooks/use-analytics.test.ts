@@ -208,6 +208,229 @@ describe('useAnalytics', () => {
         }
     });
 
+    it('reports skipped consent and a successful mediator handoff after acceptance', async () => {
+        vi.mocked(useAuth).mockReturnValue(mockAuth);
+        vi.mocked(buildConsentPreferences).mockReturnValue(undefined);
+        const { result, rerender } = renderHook(() => useAnalytics());
+        expect(await result.current.trackViewProduct({ product: mockProduct })).toBe(false);
+        expect(mockAnalytics.track).not.toHaveBeenCalled();
+        vi.mocked(buildConsentPreferences).mockReturnValue(mockConsentPreferences);
+        rerender();
+        expect(await result.current.trackViewProduct({ product: mockProduct })).toBe(true);
+        expect(mockAnalytics.track).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+        'withdrawal',
+        'navigation',
+        'abort',
+        'unmount',
+    ])('cancels %s during adapter initialization', async (change) => {
+        vi.mocked(useAuth).mockReturnValue(mockAuth);
+        let initialize!: () => void;
+        vi.mocked(ensureAdaptersInitialized).mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                initialize = resolve;
+            })
+        );
+        const { result, rerender, unmount } = renderHook(() => useAnalytics());
+        const controller = new AbortController();
+        const pending = result.current.trackViewProduct({ product: mockProduct }, controller.signal);
+        await act(async () => {
+            await Promise.resolve();
+        });
+        if (change === 'withdrawal') {
+            vi.mocked(buildConsentPreferences).mockReturnValue([]);
+            rerender();
+        } else if (change === 'navigation') {
+            window.history.replaceState({}, '', '/departed');
+            rerender();
+        } else if (change === 'abort') controller.abort();
+        else unmount();
+        initialize();
+        expect(await pending).toBe(false);
+        expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        'checkout_start',
+        'checkout_step',
+        'wishlist_viewed',
+        'view_recommender',
+        'view_search_suggestion',
+    ])('cancels pending %s after consent withdrawal', async (eventType) => {
+        vi.mocked(useAuth).mockReturnValue(mockAuth);
+        let initialize!: () => void;
+        vi.mocked(ensureAdaptersInitialized).mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                initialize = resolve;
+            })
+        );
+        const { result, rerender } = renderHook(() => useAnalytics());
+        const analytics = result.current;
+        const pending =
+            eventType === 'checkout_start'
+                ? analytics.trackCheckoutStart({ basket: mockBasket })
+                : eventType === 'checkout_step'
+                  ? analytics.trackCheckoutStep({ basket: mockBasket, stepName: 'PAYMENT', stepNumber: 4 })
+                  : eventType === 'wishlist_viewed'
+                    ? analytics.trackWishlistViewed()
+                    : eventType === 'view_recommender'
+                      ? analytics.trackViewRecommender({
+                            recommenderId: 'reco',
+                            recommenderName: 'similar',
+                            products: [mockSearchResult],
+                        })
+                      : analytics.trackViewSearchSuggestions({ searchInputText: 'shoe', suggestions: ['Shoes'] });
+        await act(async () => {
+            await Promise.resolve();
+        });
+        vi.mocked(buildConsentPreferences).mockReturnValue([]);
+        rerender();
+        initialize();
+        expect(await pending).toBe(false);
+        expect(mockAnalytics.track).not.toHaveBeenCalled();
+    });
+
+    it('keeps pending category handoff eligible across filters-panel and hash changes', async () => {
+        vi.mocked(useAuth).mockReturnValue(mockAuth);
+        window.history.replaceState({}, '', '/category/shoes');
+        let initialize!: () => void;
+        vi.mocked(ensureAdaptersInitialized).mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                initialize = resolve;
+            })
+        );
+        const { result, rerender } = renderHook(() => useAnalytics());
+        const pending = result.current.trackViewCategory({
+            category: mockCategory,
+            searchResults: [],
+            sort: '',
+            refinements: {},
+        });
+        await act(async () => {
+            await Promise.resolve();
+        });
+        window.history.replaceState({}, '', '/category/shoes?filters=true#grid');
+        rerender();
+        initialize();
+        expect(await pending).toBe(true);
+        expect(mockAnalytics.track).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not revive pending work after withdrawal and reacceptance', async () => {
+        vi.mocked(useAuth).mockReturnValue(mockAuth);
+        let initialize!: () => void;
+        vi.mocked(ensureAdaptersInitialized).mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                initialize = resolve;
+            })
+        );
+        const { result, rerender } = renderHook(() => useAnalytics());
+        const pending = result.current.trackViewProduct({ product: mockProduct });
+        await act(async () => {
+            await Promise.resolve();
+        });
+        vi.mocked(buildConsentPreferences).mockReturnValue([]);
+        rerender();
+        vi.mocked(buildConsentPreferences).mockReturnValue(mockConsentPreferences);
+        rerender();
+        initialize();
+        expect(await pending).toBe(false);
+        expect(await result.current.trackViewProduct({ product: mockProduct })).toBe(true);
+        expect(mockAnalytics.track).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+        'view',
+        'action',
+        'departed action',
+    ])('uses current auth for a pending %s after adapter initialization', async (kind) => {
+        vi.mocked(useAuth).mockReturnValue({ userType: 'guest', usid: 'guest-usid', customerId: 'guest-customer-id' });
+        let initialize!: () => void;
+        vi.mocked(ensureAdaptersInitialized).mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                initialize = resolve;
+            })
+        );
+        const { result, rerender, unmount } = renderHook(() => useAnalytics());
+        const pending =
+            kind === 'view'
+                ? result.current.trackViewProduct({ product: mockProduct })
+                : result.current.trackCartItemAdd({ cartItems: [mockCartItem] });
+        await act(async () => {
+            await Promise.resolve();
+        });
+        expect(ensureAdaptersInitialized).toHaveBeenCalledTimes(1);
+        expect(mockAnalytics.track).not.toHaveBeenCalled();
+        const registeredAuth = { ...mockAuth, encUserId: 'registered-enc-user-id' };
+        vi.mocked(useAuth).mockReturnValue(registeredAuth);
+        rerender();
+        if (kind === 'departed action') {
+            window.history.replaceState({}, '', '/completed-action');
+            rerender();
+            unmount();
+        }
+        initialize();
+        expect(await pending).toBe(true);
+        expect(mockAnalytics.track).toHaveBeenCalledTimes(1);
+        expect(mockAnalytics.track).toHaveBeenCalledWith(
+            expect.objectContaining({
+                eventType: kind === 'view' ? 'view_product' : 'cart_item_add',
+                payload: {
+                    userType: registeredAuth.userType,
+                    encUserId: registeredAuth.encUserId,
+                    usid: registeredAuth.usid,
+                    customerId: registeredAuth.customerId,
+                },
+            }),
+            { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
+            mockConsentPreferences
+        );
+    });
+
+    it.each([
+        false,
+        true,
+    ])('waits for auth that becomes unknown during initialization (cancelled: %s)', async (cancelled) => {
+        vi.mocked(useAuth).mockReturnValue(mockAuth);
+        let initialize!: () => void;
+        vi.mocked(ensureAdaptersInitialized).mockReturnValueOnce(
+            new Promise<void>((resolve) => {
+                initialize = resolve;
+            })
+        );
+        const { result, rerender } = renderHook(() => useAnalytics());
+        const controller = new AbortController();
+        const pending = result.current.trackViewProduct({ product: mockProduct }, controller.signal);
+        await act(async () => {
+            await Promise.resolve();
+        });
+        vi.mocked(useAuth).mockReturnValue(undefined);
+        rerender();
+        await act(async () => {
+            initialize();
+            await Promise.resolve();
+        });
+        expect(mockAnalytics.track).not.toHaveBeenCalled();
+        if (cancelled) controller.abort();
+        vi.mocked(useAuth).mockReturnValue(mockAuth);
+        rerender();
+        expect(await pending).toBe(!cancelled);
+        expect(mockAnalytics.track).toHaveBeenCalledTimes(cancelled ? 0 : 1);
+    });
+
+    it('waits for available auth without losing the original pending view', async () => {
+        vi.mocked(useAuth).mockReturnValue(undefined);
+        const { result, rerender } = renderHook(() => useAnalytics());
+        const pending = result.current.trackViewProduct({ product: mockProduct });
+        rerender();
+        vi.mocked(useAuth).mockReturnValue(mockAuth);
+        rerender();
+        expect(await pending).toBe(true);
+        expect(mockAnalytics.track).toHaveBeenCalledTimes(1);
+    });
+
     describe('trackViewPage', () => {
         it('should track page view for user', async () => {
             vi.mocked(useAuth).mockReturnValue(mockAuth);
