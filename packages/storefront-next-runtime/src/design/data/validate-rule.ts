@@ -70,10 +70,9 @@ export function validateRule(
             // When promotionId is provided, qualification is keyed by campaign+promotion
             // in `campaignQualifiers`. When omitted, the campaign-only result lives under
             // `campaigns` per the QualifierResolveResponse schema.
-            const qualified =
-                campaignQualifier.promotionId !== undefined
-                    ? context?.campaignQualifiers?.[campaignQualifier.campaignId]?.[campaignQualifier.promotionId]
-                    : context?.campaigns?.[campaignQualifier.campaignId];
+            const qualified = campaignQualifier.promotionId
+                ? context?.campaignQualifiers?.[campaignQualifier.campaignId]?.[campaignQualifier.promotionId]
+                : context?.campaigns?.[campaignQualifier.campaignId];
             if (!qualified) {
                 return false;
             }

@@ -4801,8 +4801,8 @@ packages:
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
-  baseline-browser-mapping@2.11.33:
-    resolution: {integrity: sha512-yiVKDX+qCMRKBE084lXvq9EcwFUhKZ2nU8TK1EQQuOgPNR/lmbGxXOeDdlGUqC2Zz11Cs9rk1d/8NfgBmlkt0w==}
+  baseline-browser-mapping@2.11.34:
+    resolution: {integrity: sha512-Aqr8mA1kIvyJ3UY5YAY7ib8LSo1DmDMbMnVqGPtsKW1LxaFQFwn9Eb3yvq2fUKJsRvaXjnAV7R5osqETapzNiA==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -5710,8 +5710,8 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.466:
-    resolution: {integrity: sha512-WkgFvScwZjvCPupYGfQr5qlKCv/Tu+GYELGMCGcoBOQbNb6nx/TqGwJyLMwcNAAy2kKJF2agjM7KZKest538JA==}
+  electron-to-chromium@1.5.467:
+    resolution: {integrity: sha512-Nw9X371rtZmYcBSnEijnCDONILjs93biCZO34juC7MBOmK8E+GFnyD4T/WvyrlJkppul7oxg6TwvtKst9SODTw==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -6422,6 +6422,7 @@ packages:
   http-call@5.3.0:
     resolution: {integrity: sha512-ahwimsC23ICE4kPl9xTBjKB4inbRaeLyZeRunC/1Jy/Z6X8tv22MEAjK+KBOMSVLaqXPTTmd8638waVIKLGx2w==}
     engines: {node: '>=8.0.0'}
+    deprecated: Renamed to @heroku/http-call — please install @heroku/http-call instead.
 
   http-errors@2.0.1:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
@@ -9310,8 +9311,8 @@ packages:
   tldts-core@6.1.86:
     resolution: {integrity: sha512-Je6p7pkk+KMzMv2XXKmAE3McmolOQFdxkKw0R8EYNr7sELW46JqnNeTX8ybPiQgvg1ymCoF8LXs5fzFaZvJPTA==}
 
-  tldts-core@7.4.19:
-    resolution: {integrity: sha512-goNXV6Ho9TIOfpJZanTd6CKG5DyYgYAL+k+22T0SLh8l6+KHIfBUPFuePuSZv05UttIaaLmI9tb7TmGIdK5AkQ==}
+  tldts-core@7.4.20:
+    resolution: {integrity: sha512-C630TWXZCZmLq0F2bW4QqwnaaxCQ/svpAqvJwnC4JvgEM5ohhBnGsEzTLSOXcN+xjz+kEaHS5uoWIw2klnqd0A==}
 
   tldts-icann@6.1.86:
     resolution: {integrity: sha512-NFxmRT2lAEMcCOBgeZ0NuM0zsK/xgmNajnY6n4S1mwAKocft2s2ise1O3nQxrH3c+uY6hgHUV9GGNVp7tUE4Sg==}
@@ -14481,7 +14482,7 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  baseline-browser-mapping@2.11.33: {}
+  baseline-browser-mapping@2.11.34: {}
 
   basic-auth@2.0.1:
     dependencies:
@@ -14569,9 +14570,9 @@ snapshots:
 
   browserslist@4.29.5:
     dependencies:
-      baseline-browser-mapping: 2.11.33
+      baseline-browser-mapping: 2.11.34
       caniuse-lite: 1.0.30001819
-      electron-to-chromium: 1.5.466
+      electron-to-chromium: 1.5.467
       node-releases: 2.0.60
       update-browserslist-db: 1.3.4(browserslist@4.29.5)
 
@@ -15505,7 +15506,7 @@ snapshots:
 
   ejs@6.0.1: {}
 
-  electron-to-chromium@1.5.466: {}
+  electron-to-chromium@1.5.467: {}
 
   embla-carousel-react@8.6.0(react@19.2.3):
     dependencies:
@@ -19931,7 +19932,7 @@ snapshots:
 
   tldts-core@6.1.86: {}
 
-  tldts-core@7.4.19: {}
+  tldts-core@7.4.20: {}
 
   tldts-icann@6.1.86:
     dependencies:
@@ -19939,7 +19940,7 @@ snapshots:
 
   tldts@7.4.18:
     dependencies:
-      tldts-core: 7.4.19
+      tldts-core: 7.4.20
 
   tmp@0.2.7: {}
 

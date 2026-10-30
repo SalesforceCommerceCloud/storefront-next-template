@@ -61,6 +61,32 @@ describe('validateRule', () => {
             expect(validateRule(rule, LOCALE, context)).toBe(false);
         });
 
+        test('uses campaign-only qualification when promotionId is empty', () => {
+            const rule: VisibilityRuleDef = {
+                activeLocales: [LOCALE],
+                campaignQualifiers: [{ campaignId: 'summer-sale', promotionId: '' }],
+                customerGroups: ['vip'],
+            };
+            const context = makeContext({
+                campaigns: { 'summer-sale': true },
+                customerGroups: { vip: true },
+            });
+            expect(validateRule(rule, LOCALE, context)).toBe(true);
+        });
+
+        test('does not pass when an empty-promotion campaign is false, even if customer group matches', () => {
+            const rule: VisibilityRuleDef = {
+                activeLocales: [LOCALE],
+                campaignQualifiers: [{ campaignId: 'summer-sale', promotionId: '' }],
+                customerGroups: ['vip'],
+            };
+            const context = makeContext({
+                campaigns: { 'summer-sale': false },
+                customerGroups: { vip: true },
+            });
+            expect(validateRule(rule, LOCALE, context)).toBe(false);
+        });
+
         test('all campaign qualifiers must match (AND logic)', () => {
             const rule: VisibilityRuleDef = {
                 activeLocales: [LOCALE],

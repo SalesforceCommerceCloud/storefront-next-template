@@ -797,7 +797,7 @@ function dispatchByType(value, typeId, attrId, attrDef, ctx) {
 */
 function validateRule(rule, locale, context) {
 	if (rule.campaignQualifiers?.length) {
-		for (const campaignQualifier of rule.campaignQualifiers) if (!(campaignQualifier.promotionId !== void 0 ? context?.campaignQualifiers?.[campaignQualifier.campaignId]?.[campaignQualifier.promotionId] : context?.campaigns?.[campaignQualifier.campaignId])) return false;
+		for (const campaignQualifier of rule.campaignQualifiers) if (!(campaignQualifier.promotionId ? context?.campaignQualifiers?.[campaignQualifier.campaignId]?.[campaignQualifier.promotionId] : context?.campaigns?.[campaignQualifier.campaignId])) return false;
 	} else {
 		if (rule.activeLocales && !rule.activeLocales.includes(locale)) return false;
 		if (rule.schedule) {
