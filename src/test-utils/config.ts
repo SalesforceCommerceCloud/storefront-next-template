@@ -140,6 +140,11 @@ export const mockBuildConfig: Config = {
             },
             mrtBasedPageDesignerResolution: false,
             livePreview: false,
+            appointment: {
+                enabled: true,
+                provider: 'scapi',
+                advanceNoticeMinutes: 120,
+            },
         },
         guestOrderLookup: {
             enabled: false,

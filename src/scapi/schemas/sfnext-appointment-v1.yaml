@@ -1,0 +1,129 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: SFNext Appointment API
+  description: >-
+    Storefront-facing Custom SCAPI for Salesforce Scheduler appointment booking and (companion)
+    grocery delivery slots. The cartridge handler reaches a separate Salesforce Core org's Connect
+    REST + Data API through the B2C Service Framework (OAuth client-credentials; the Core credential
+    lives on the B2C instance, not in storefront env). Both appointments and delivery slots map onto
+    the same Core objects (ServiceTerritory / ServiceAppointment).
+components:
+  securitySchemes:
+    ShopperToken:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://{shortCode}.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/{organizationId}/oauth2/token
+          scopes:
+            c_sfnext_appointment: Read appointment availability and book appointments via Storefront Next
+paths:
+  /appointment-availability:
+    get:
+      summary: Get appointment availability (open slots) for the configured territory + work-type group
+      operationId: getAppointmentAvailability
+      parameters:
+        - in: query
+          name: siteId
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - in: query
+          name: startTime
+          required: true
+          description: ISO 8601 start of the search window.
+          schema:
+            type: string
+            minLength: 1
+        - in: query
+          name: endTime
+          required: true
+          description: ISO 8601 end of the search window (Core caps results to 31 days from startTime).
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Availability returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  slots:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        startTime:
+                          type: string
+                        endTime:
+                          type: string
+                        resources:
+                          type: array
+                          items:
+                            type: string
+        '400':
+          description: Invalid request
+        '503':
+          description: Scheduler unavailable or not configured
+      security:
+        - ShopperToken: [c_sfnext_appointment]
+  /appointments:
+    post:
+      summary: Book an appointment
+      operationId: createAppointment
+      parameters:
+        - in: query
+          name: siteId
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [schedStartTime, schedEndTime, email, b2cCustomerId]
+              properties:
+                schedStartTime:
+                  type: string
+                  description: ISO 8601 appointment start (must match an available slot).
+                schedEndTime:
+                  type: string
+                  description: ISO 8601 appointment end.
+                email:
+                  type: string
+                  description: Shopper email the confirmation is sent to.
+                b2cCustomerId:
+                  type: string
+                  description: >-
+                    Shopper correlation id carried on ServiceAppointment.b2cCustomerId__c. Derived by the
+                    storefront server from the authenticated session before the call — never from the browser.
+                subject:
+                  type: string
+      responses:
+        '200':
+          description: Appointment booked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  serviceAppointmentId:
+                    type: string
+                  assignedResourceId:
+                    type: string
+        '400':
+          description: Invalid request
+        '503':
+          description: Scheduler unavailable or not configured
+      security:
+        - ShopperToken: [c_sfnext_appointment]

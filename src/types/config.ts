@@ -302,6 +302,19 @@ export type AppConfig = {
         };
         mrtBasedPageDesignerResolution: boolean;
         livePreview: boolean;
+        // @sfdc-extension-block-start SFDC_EXT_APPOINTMENT_SCHEDULING
+        appointment: {
+            enabled: boolean;
+            provider: 'bff' | 'scapi';
+            /**
+             * Minimum advance notice in minutes before a slot can be booked.
+             * Slots starting sooner than this from now are hidden in the calendar.
+             * Configurable in BM via site preference `sfnextAppointmentAdvanceNoticeMinutes`.
+             * Default: 120 (2 hours).
+             */
+            advanceNoticeMinutes: number;
+        };
+        // @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING
         /**
          * Category ID used for the "New Arrivals" carousel shown to guest shoppers on the grocery
          * homepage. Falls back to `'new-arrivals'` when omitted.
@@ -318,6 +331,37 @@ export type AppConfig = {
             failOpen: boolean;
         };
     };
+    // @sfdc-extension-block-start SFDC_EXT_APPOINTMENT_SCHEDULING
+    /**
+     * Salesforce Scheduler (Core org) appointment booking. The storefront server (BFF) calls a
+     * separate Salesforce Core org via OAuth 2.0 client-credentials, then Scheduler Connect REST
+     * (availability) and the Data API (ServiceAppointment create). All values here are non-secret;
+     * the OAuth consumer SECRET is read from `process.env.SCHEDULER_CLIENT_SECRET` in server code
+     * only (never config, never `PUBLIC__`). See `src/lib/scheduler/` and docs/README-CONFIG.md.
+     */
+    scheduler?: {
+        /** Master switch. When false, the scheduler resource routes return 404 (feature disabled). */
+        enabled: boolean;
+        /** Core org My Domain host, e.g. `example.my.salesforce.com`. */
+        myDomain: string;
+        /** OAuth client-credentials consumer key (client ID). Not a secret. */
+        clientId: string;
+        /** Salesforce API version used for Connect REST + Data API, e.g. `v64.0`. */
+        apiVersion: string;
+        /** Service territory offering the appointments (ServiceTerritory Id). */
+        territoryId: string;
+        /** Work type group whose availability is queried (WorkTypeGroup Id). */
+        workTypeGroupId: string;
+        /** Work type booked on the ServiceAppointment (WorkType Id). */
+        workTypeId: string;
+        /** Anchor Account used as `ParentRecordId` (no-Contact correlation design). */
+        parentRecordId: string;
+        /** Optional AppointmentSchedulingPolicy Id applied to availability lookups. */
+        schedulingPolicyId?: string;
+        /** Optional ServiceResource required on the booking so the slot is consumed. */
+        serviceResourceId?: string;
+    };
+    // @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING
     global: {
         branding: {
             name: string;

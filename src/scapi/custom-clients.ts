@@ -19,13 +19,21 @@
  */
 import { type Client, type Clients, type MergeClients, type ProxyClient } from '@salesforce/storefront-next-runtime/scapi';
 
-import type { paths as P0 } from './generated/sfnext-notify-v1';
-import { operations as ops0 } from './generated/sfnext-notify-v1.operations';
+import type { paths as P0 } from './generated/sfnext-appointment-v1';
+import { operations as ops0 } from './generated/sfnext-appointment-v1.operations';
+import type { paths as P1 } from './generated/sfnext-notify-v1';
+import { operations as ops1 } from './generated/sfnext-notify-v1.operations';
 
 export type AppClients = MergeClients<Clients, {
-    notifications: ProxyClient<Client<P0>, typeof ops0>;
+    // @sfdc-extension-block-start SFDC_EXT_APPOINTMENT_SCHEDULING
+    appointments: ProxyClient<Client<P0>, typeof ops0>;
+    // @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING
+    notifications: ProxyClient<Client<P1>, typeof ops1>;
 }>;
 
 export const customClients = [
-    { key: 'notifications', basePath: '/custom/sfnext-notify/v1', ops: ops0, locale: true, orgPrefix: true, serviceAccount: true },
+    // @sfdc-extension-block-start SFDC_EXT_APPOINTMENT_SCHEDULING
+    { key: 'appointments', basePath: '/custom/sfnext-appointment/v1', ops: ops0, locale: false, orgPrefix: true },
+    // @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING
+    { key: 'notifications', basePath: '/custom/sfnext-notify/v1', ops: ops1, locale: true, orgPrefix: true, serviceAccount: true },
 ] as const;

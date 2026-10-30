@@ -343,6 +343,30 @@ export default defineConfig<Config>(
                 },
                 mrtBasedPageDesignerResolution: false,
                 livePreview: false,
+                /**
+                 * @env PUBLIC__app__features__appointment__enabled - Optional. Default `false`.
+                 *   Enables the appointment booking UI and resource routes.
+                 *   Example: `PUBLIC__app__features__appointment__enabled=true`.
+                 * @env PUBLIC__app__features__appointment__provider - Optional. Default `'scapi'`.
+                 *   `'scapi'` uses the CAP Custom SCAPI; `'bff'` routes storefront Node → Core org
+                 *   directly via OAuth 2.0 client-credentials (for dev/POC).
+                 *   Example: `PUBLIC__app__features__appointment__provider=bff`.
+                 * @env PUBLIC__app__features__appointment__advanceNoticeMinutes - Optional. Default `120`.
+                 *   Minimum advance notice in minutes before a slot can be booked. Slots starting
+                 *   sooner than this are hidden in the calendar. Set in BM via site preference
+                 *   `sfnextAppointmentAdvanceNoticeMinutes` (CAP impex provisions this preference).
+                 *   Example: `PUBLIC__app__features__appointment__advanceNoticeMinutes=60`.
+                 */
+                // @sfdc-extension-block-start SFDC_EXT_APPOINTMENT_SCHEDULING
+                appointment: {
+                    enabled: process.env.PUBLIC__app__features__appointment__enabled === 'true',
+                    provider: process.env.PUBLIC__app__features__appointment__provider === 'bff' ? 'bff' : 'scapi',
+                    advanceNoticeMinutes: Math.max(
+                        0,
+                        Number(process.env.PUBLIC__app__features__appointment__advanceNoticeMinutes ?? 120) || 120
+                    ),
+                },
+                // @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING
                 newArrivalsCategory: 'newarrivals',
             },
             // Guest Order Lookup configuration
@@ -405,6 +429,24 @@ export default defineConfig<Config>(
                     failOpen: false,
                 },
             },
+            // @sfdc-extension-block-start SFDC_EXT_APPOINTMENT_SCHEDULING
+            // Salesforce Scheduler (Core org) appointment booking. Non-secret values only — the
+            // OAuth consumer secret is read from SCHEDULER_CLIENT_SECRET in server code, never here.
+            // Disabled by default; set PUBLIC__app__scheduler__enabled=true plus the IDs below to
+            // turn it on. See docs/README-CONFIG.md and src/lib/scheduler/.
+            scheduler: {
+                enabled: process.env.PUBLIC__app__scheduler__enabled === 'true',
+                myDomain: process.env.PUBLIC__app__scheduler__myDomain ?? '',
+                clientId: process.env.PUBLIC__app__scheduler__clientId ?? '',
+                apiVersion: process.env.PUBLIC__app__scheduler__apiVersion ?? 'v64.0',
+                territoryId: process.env.PUBLIC__app__scheduler__territoryId ?? '',
+                workTypeGroupId: process.env.PUBLIC__app__scheduler__workTypeGroupId ?? '',
+                workTypeId: process.env.PUBLIC__app__scheduler__workTypeId ?? '',
+                parentRecordId: process.env.PUBLIC__app__scheduler__parentRecordId ?? '',
+                schedulingPolicyId: process.env.PUBLIC__app__scheduler__schedulingPolicyId || undefined,
+                serviceResourceId: process.env.PUBLIC__app__scheduler__serviceResourceId || undefined,
+            },
+            // @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING
             // Internationalization configuration
             // See CONFIG-OPTIONS.md#i18n for detailed documentation
             // When updating these i18n properties, please also check that the middleware configurations are in sync

@@ -1,0 +1,7 @@
+{
+    "clientKey": "appointments",
+    "basePath": "/custom/sfnext-appointment/v1",
+    "supportsLocale": false,
+    "orgPrefix": true,
+    "kind": "custom"
+}
