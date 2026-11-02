@@ -13,19 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Suspense } from 'react';
+import { renderToString } from 'react-dom/server';
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { afterEach, describe, expect, it, vi, beforeEach } from 'vitest';
 import { EmbeddedComponentRegion } from './embedded-component-region';
 import { ComponentDataProvider, useComponentData } from './component-data-context';
+import { useIsInCriticalRegion } from './critical-component-context';
 import type { ComponentWithComponentData } from '@/lib/page-designer/component-loader.server';
+import { prepareCriticalRegion } from '@/lib/page-designer/critical-region';
 
 // Mock the inner Component wrapper so the test focuses on Region+Embedded glue,
 // not on the per-component data flow (covered separately in component.test.tsx).
-// The mock probes ComponentDataContext so tests can assert which provider is active.
+// The mock probes ComponentDataContext and the critical region context so tests can
+// assert which providers are active.
 const componentDataProbe = vi.fn();
+const criticalRegionProbe = vi.fn();
 vi.mock('./component', () => ({
     Component: ({ component }: { component: { id: string; typeId: string } }) => {
         componentDataProbe(useComponentData());
+        criticalRegionProbe(useIsInCriticalRegion());
         return <div data-testid={`component-${component.id}`}>{component.typeId}</div>;
     },
 }));
@@ -35,8 +42,7 @@ vi.mock('./region-wrapper', () => ({
         className ? <div className={className}>{children}</div> : <>{children}</>,
 }));
 
-// Embedded component regions cannot be marked critical; keep their tests isolated
-// from the page-level critical-region registry preparation.
+// Critical module preparation is covered with the registry in component-ssr.integration.test.tsx.
 vi.mock('@/lib/page-designer/critical-region', () => ({
     prepareCriticalRegion: vi.fn(),
 }));
@@ -73,6 +79,7 @@ describe('EmbeddedComponentRegion', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         componentDataProbe.mockReset();
+        criticalRegionProbe.mockReset();
     });
 
     describe('synchronous (resolved) component', () => {
@@ -207,6 +214,69 @@ describe('EmbeddedComponentRegion', () => {
             // Inner component sees the OUTER provider's data, not the embedded one.
             // This preserves promise-identity stability when embeds are nested.
             expect(componentDataProbe).toHaveBeenCalledWith(outerData);
+        });
+    });
+
+    describe('critical', () => {
+        afterEach(() => {
+            vi.unstubAllEnvs();
+        });
+
+        it('renders its components in a critical region', () => {
+            render(<EmbeddedComponentRegion component={mockComponent} regionId="announcement" critical />);
+
+            expect(screen.getByTestId('component-banner-1')).toBeInTheDocument();
+            expect(criticalRegionProbe).toHaveBeenCalledWith(true);
+        });
+
+        it('keeps its components non-critical without the prop', () => {
+            render(<EmbeddedComponentRegion component={mockComponent} regionId="announcement" />);
+
+            expect(criticalRegionProbe).toHaveBeenCalledWith(false);
+            expect(criticalRegionProbe).not.toHaveBeenCalledWith(true);
+        });
+
+        it('prepares the rendered region on the server', () => {
+            vi.stubEnv('SSR', true);
+
+            renderToString(<EmbeddedComponentRegion component={mockComponent} regionId="announcement" critical />);
+
+            expect(prepareCriticalRegion).toHaveBeenCalledOnce();
+            expect(prepareCriticalRegion).toHaveBeenCalledWith(mockComponent.regions?.[0]);
+        });
+
+        it('does not prepare the region in the browser', () => {
+            render(<EmbeddedComponentRegion component={mockComponent} regionId="announcement" critical />);
+
+            expect(prepareCriticalRegion).not.toHaveBeenCalled();
+        });
+
+        it('suspends a pending component at the nearest outer boundary', async () => {
+            let resolveComponent: (value: ComponentWithComponentData) => void = () => {};
+            const pending = new Promise<ComponentWithComponentData>((resolve) => {
+                resolveComponent = resolve;
+            });
+
+            render(
+                <Suspense fallback={<div data-testid="outer-fallback">loading page</div>}>
+                    <EmbeddedComponentRegion
+                        component={pending}
+                        regionId="announcement"
+                        critical
+                        fallbackElement={<div data-testid="local-fallback">loading banner</div>}
+                    />
+                </Suspense>
+            );
+
+            expect(screen.getByTestId('outer-fallback')).toBeInTheDocument();
+            expect(screen.queryByTestId('local-fallback')).not.toBeInTheDocument();
+
+            resolveComponent(mockComponent);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('component-banner-1')).toBeInTheDocument();
+            });
+            expect(screen.queryByTestId('outer-fallback')).not.toBeInTheDocument();
         });
     });
 });

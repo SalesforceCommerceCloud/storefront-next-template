@@ -55,8 +55,8 @@ interface PageRegionPropsBase extends HTMLAttributes<HTMLDivElement> {
     fallbackOnEmpty?: boolean;
 }
 
-// A critical region must be available in the synchronous shell. Its boundary-free component
-// markers form the client hydration barrier and therefore cannot arrive in a later segment.
+// A critical region must be available in the synchronous shell. Its boundary-free components
+// hydrate with the shell and therefore cannot arrive in a later segment.
 interface CriticalPageRegionProps extends PageRegionPropsBase {
     page: PageWithDesignMetadata | null;
     critical: true;
@@ -79,7 +79,11 @@ interface ComponentRegionProps extends HTMLAttributes<HTMLDivElement> {
     fallbackElement?: ReactNode;
     errorElement?: ReactNode;
     fallbackOnEmpty?: boolean;
-    critical?: never;
+    /**
+     * Starts a critical subtree from a component that has no critical page region above it, such as an embedded
+     * component. Regions nested inside a critical region inherit critical status and don't need this.
+     */
+    critical?: boolean;
 }
 
 // Discriminated union
@@ -174,6 +178,7 @@ function useLiveComponentData(
  *    ```
  *    - Accepts component (ShopperExperience.schemas['Component'])
  *    - Synchronous region lookup; each child owns its component-local Suspense boundary
+ *    - Inherits critical status from a containing critical region; `critical` starts one at an embedded component
  *    - Inherits ComponentDataContext from parent
  *    - No PageDesignerPageMetadataProvider (only for page-level)
  *
@@ -228,7 +233,7 @@ export function Region(props: RegionProps) {
         // target (e.g. a Grid column with no content yet). `errorElement` stays `undefined` here to
         // preserve the prior live-storefront behavior exactly: an empty component-mode region on the
         // storefront (`!isDesignMode`) still renders nothing, as before.
-        return renderRegionContent(
+        const content = renderRegionContent(
             region,
             regionId,
             metadata,
@@ -236,8 +241,10 @@ export function Region(props: RegionProps) {
             rest,
             undefined,
             isDesignMode,
-            isInCriticalRegion
+            isInCriticalRegion || Boolean(critical)
         );
+
+        return critical && !isInCriticalRegion ? <CriticalRegionProvider>{content}</CriticalRegionProvider> : content;
     }
 
     // PAGE MODE: Rendering a page-level region

@@ -22,6 +22,7 @@ import type { RegionDefinitionConfig } from '@/lib/decorators';
 import type { ShopperExperience } from '@/scapi';
 import { prepareCriticalRegion } from '@/lib/page-designer/critical-region';
 import type { PageWithComponentData } from '@/lib/page-designer/page-loader.server';
+import { useIsInCriticalRegion } from './critical-component-context';
 import {
     useRegionContext,
     useDesignContext,
@@ -47,7 +48,7 @@ vi.mock('./critical-component-context', () => ({
         capturedCriticalRegion = true;
         return <>{children}</>;
     },
-    useIsInCriticalRegion: () => false,
+    useIsInCriticalRegion: vi.fn(() => false),
 }));
 
 // Mock the RegionWrapper to capture designMetadata
@@ -102,6 +103,7 @@ describe('Region', () => {
         // clearAllMocks resets call records but not mockReturnValue overrides, so re-assert the
         // default here — otherwise a design-mode test would leak isDesignMode:true into later tests.
         vi.mocked(usePageDesignerMode).mockReturnValue({ isDesignMode: false, isPreviewMode: false });
+        vi.mocked(useIsInCriticalRegion).mockReturnValue(false);
     });
 
     const mockRegion = {
@@ -193,6 +195,58 @@ describe('Region', () => {
         render(<Region page={mockPage} regionId="test-region" />);
         expect(prepareCriticalRegion).not.toHaveBeenCalled();
         expect(capturedCriticalRegion).toBe(false);
+    });
+
+    describe('critical component region', () => {
+        const owner = { id: 'header', typeId: 'header', regions: [mockRegion] } as ComponentType;
+
+        afterEach(() => {
+            vi.unstubAllEnvs();
+        });
+
+        it('starts a critical region when not already inside one', () => {
+            render(<Region component={owner} regionId="test-region" critical />);
+
+            expect(screen.getByTestId('component-component-1')).toBeInTheDocument();
+            expect(capturedCriticalRegion).toBe(true);
+            expect(prepareCriticalRegion).not.toHaveBeenCalled();
+        });
+
+        it('does not start another critical region inside one', () => {
+            vi.mocked(useIsInCriticalRegion).mockReturnValue(true);
+
+            render(<Region component={owner} regionId="test-region" critical />);
+
+            expect(capturedCriticalRegion).toBe(false);
+        });
+
+        it('stays non-critical without the prop outside a critical region', () => {
+            vi.stubEnv('SSR', true);
+
+            renderToString(<Region component={owner} regionId="test-region" />);
+
+            expect(capturedCriticalRegion).toBe(false);
+            expect(prepareCriticalRegion).not.toHaveBeenCalled();
+        });
+
+        it('prepares the rendered region on the server', () => {
+            vi.stubEnv('SSR', true);
+
+            renderToString(<Region component={owner} regionId="test-region" critical />);
+
+            expect(prepareCriticalRegion).toHaveBeenCalledOnce();
+            expect(prepareCriticalRegion).toHaveBeenCalledWith(mockRegion);
+        });
+
+        it('prepares a region that inherits critical status on the server', () => {
+            vi.stubEnv('SSR', true);
+            vi.mocked(useIsInCriticalRegion).mockReturnValue(true);
+
+            renderToString(<Region component={owner} regionId="test-region" />);
+
+            expect(prepareCriticalRegion).toHaveBeenCalledWith(mockRegion);
+            expect(capturedCriticalRegion).toBe(false);
+        });
     });
 
     it('renders component region synchronously without Suspense', () => {

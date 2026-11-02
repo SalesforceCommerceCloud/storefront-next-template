@@ -52,11 +52,20 @@ vi.mock('@/lib/page-designer/component-loader.server', () => ({
 }));
 
 vi.mock('@/components/region/embedded-component-region', () => ({
-    EmbeddedComponentRegion: ({ component, regionId }: { component: unknown; regionId: string }) => (
+    EmbeddedComponentRegion: ({
+        component,
+        regionId,
+        critical,
+    }: {
+        component: unknown;
+        regionId: string;
+        critical?: boolean;
+    }) => (
         <div
             data-testid="embedded-component-region"
             data-region-id={regionId}
             data-has-component={component == null ? 'false' : 'true'}
+            data-critical={critical ? 'true' : 'false'}
         />
     ),
 }));
@@ -170,6 +179,33 @@ describe('_app.tsx - Default Layout Route', () => {
                 // Verify child content is rendered via Outlet
                 expect(screen.getByTestId('child-content')).toBeInTheDocument();
             });
+        });
+
+        it('renders the header announcement as a critical region', async () => {
+            const Stub = createRoutesStub([
+                {
+                    id: 'root',
+                    path: '/',
+                    Component: DefaultLayout,
+                    loader: () => ({
+                        root: Promise.resolve(mockCategory),
+                        subs: Promise.resolve(mockSubCategories),
+                        headerComponent: Promise.resolve({ id: 'header-component' }),
+                    }),
+                    children: [{ index: true, Component: () => <div /> }],
+                },
+            ]);
+
+            render(
+                <AllProvidersWrapper>
+                    <Stub initialEntries={['/']} />
+                </AllProvidersWrapper>
+            );
+
+            const region = await screen.findByTestId('embedded-component-region');
+            expect(region).toHaveAttribute('data-region-id', 'announcement');
+            expect(region).toHaveAttribute('data-has-component', 'true');
+            expect(region).toHaveAttribute('data-critical', 'true');
         });
 
         it('should render main element with correct styling', async () => {

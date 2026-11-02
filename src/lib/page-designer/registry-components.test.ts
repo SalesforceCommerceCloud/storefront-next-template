@@ -76,13 +76,13 @@ describe('server-rendered Page Designer registry components', () => {
         );
     });
 
-    it('discovers only exact critical component markers and preserves DOM order', () => {
+    it('discovers only exact component markers and preserves DOM order', () => {
         document.body.innerHTML = `
             <template data-page-designer-region-component-types='["Content.declaredOnly"]'></template>
-            <template id="critical-one" data-page-designer-component-type="Layout.criticalOne"></template>
-            <template id="critical-shared-one" data-page-designer-component-type="Content.shared"></template>
-            <template id="critical-two" data-page-designer-component-type="Content.criticalTwo"></template>
-            <template id="critical-shared-two" data-page-designer-component-type="Content.shared"></template>
+            <template id="component-one" data-pdct="Layout.criticalOne"></template>
+            <template id="component-shared-one" data-pdct="Content.shared"></template>
+            <template id="component-two" data-pdct="Content.criticalTwo"></template>
+            <template id="component-shared-two" data-pdct="Content.shared"></template>
         `;
 
         expect(getServerRenderedComponentTypeIds(document)).toEqual([
@@ -94,8 +94,8 @@ describe('server-rendered Page Designer registry components', () => {
 
     it('ignores empty marker values and registers exact types before DOMContentLoaded', async () => {
         document.body.innerHTML = `
-            <template data-page-designer-component-type=""></template>
-            <template data-page-designer-component-type="Content.critical"></template>
+            <template data-pdct=""></template>
+            <template data-pdct="Content.critical"></template>
             <template data-page-designer-region-component-types='["Content.nonCritical"]'></template>
         `;
         Object.defineProperty(document, 'readyState', { configurable: true, value: 'loading' });
@@ -112,12 +112,12 @@ describe('server-rendered Page Designer registry components', () => {
 
     it('does not observe markers appended after the initial scan', async () => {
         document.body.innerHTML = `
-            <template data-page-designer-component-type="Content.initial"></template>
+            <template data-pdct="Content.initial"></template>
         `;
 
         await registerServerRenderedComponentTypes(document);
         const lateMarker = document.createElement('template');
-        lateMarker.dataset.pageDesignerComponentType = 'Content.late';
+        lateMarker.dataset.pdct = 'Content.late';
         document.body.append(lateMarker);
         await Promise.resolve();
 

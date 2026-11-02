@@ -17,7 +17,7 @@ import { render, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, test, vi } from 'vitest';
 import {
-    CriticalComponentHydrationMarker,
+    ComponentHydrationMarker,
     CriticalRegionProvider,
     useIsInCriticalRegion,
     useWasServerRendered,
@@ -25,9 +25,7 @@ import {
 
 function Probe() {
     return (
-        <span
-            data-testid="critical-region"
-            data-server-rendered={String(useWasServerRendered('probe', 'Content.probe'))}>
+        <span data-testid="critical-region" data-server-rendered={String(useWasServerRendered('probe'))}>
             {String(useIsInCriticalRegion())}
         </span>
     );
@@ -61,48 +59,34 @@ describe('CriticalRegionContext', () => {
         expect(html).toContain('data-server-rendered="true"');
     });
 
-    test('recognizes an SSR instance marker without a registration attribute', () => {
+    test.each([
+        ['inside', true],
+        ['outside', false],
+    ])('recognizes an SSR instance marker by its ID %s a critical region', (_, critical) => {
         const marker = document.createElement('template');
-        marker.id = 'page-designer-critical-component-probe%3AContent.probe';
+        marker.id = 'pdc-probe';
         document.body.append(marker);
 
         render(
-            <CriticalRegionProvider>
+            critical ? (
+                <CriticalRegionProvider>
+                    <Probe />
+                </CriticalRegionProvider>
+            ) : (
                 <Probe />
-            </CriticalRegionProvider>
+            )
         );
 
         expect(screen.getByTestId('critical-region')).toHaveAttribute('data-server-rendered', 'true');
         marker.remove();
     });
 
-    test('serializes the exact critical component type when pre-hydration registration is required', () => {
-        const { container } = render(
-            <CriticalComponentHydrationMarker
-                componentId="hero-1"
-                componentTypeId="Content.hero"
-                requiresRegistration
-            />
-        );
+    test('serializes the exact component instance and type', () => {
+        const { container } = render(<ComponentHydrationMarker componentId="hero-1" componentTypeId="Content.hero" />);
 
-        const marker = container.querySelector<HTMLElement>('[data-page-designer-component-type]');
-        expect(marker?.id).toBe('page-designer-critical-component-hero-1%3AContent.hero');
-        expect(marker?.dataset.pageDesignerComponentType).toBe('Content.hero');
-    });
-
-    test('retains instance identity without requesting pre-hydration registration', () => {
-        const { container } = render(
-            <CriticalComponentHydrationMarker
-                componentId="carousel-1"
-                componentTypeId="Layout.heroCarousel"
-                requiresRegistration={false}
-            />
-        );
-
-        expect(container.querySelector('template')?.id).toBe(
-            'page-designer-critical-component-carousel-1%3ALayout.heroCarousel'
-        );
-        expect(container.querySelector('[data-page-designer-component-type]')).toBeNull();
+        const marker = container.querySelector<HTMLElement>('[data-pdct]');
+        expect(marker?.id).toBe('pdc-hero-1');
+        expect(marker?.dataset.pdct).toBe('Content.hero');
     });
 
     test('defaults to non-critical outside a provider', () => {

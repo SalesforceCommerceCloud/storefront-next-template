@@ -134,7 +134,8 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
             }
         );
 
-    // Fetch header embedded component data (non-blocking, streamed to client, should be blocking once data is available from KVS to avoid layout shift)
+    // Fetch header embedded component data. The announcement renders above all page content in a critical region,
+    // which suspends the shell until this resolves: a banner streamed in later would push the page down.
     const headerComponentPromise = fetchEmbeddedComponent('header');
 
     // Fetch mega-menu embedded component data — populates per-category dropdown panel content slots
@@ -197,7 +198,8 @@ export default function DefaultLayout({
             <WishlistMergeToast />
             <Header
                 announcementSlot={
-                    <EmbeddedComponentRegion component={refHeaderComponent.current} regionId="announcement" />
+                    // Keep this region outside any Suspense boundary, so it blocks the shell until it resolves.
+                    <EmbeddedComponentRegion component={refHeaderComponent.current} regionId="announcement" critical />
                 }>
                 <ResponsiveNavigationMenu
                     resolve={refRoot.current}
