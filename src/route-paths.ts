@@ -175,6 +175,7 @@ export const resourceRoutes = {
     passkeyStatus: '/resource/passkey-status',
     turnstileSession: '/resource/turnstile-session',
     cimulateTokenBridge: '/resource/cimulate-token-bridge',
+    productUrlMapping: '/resource/product-url-mapping',
     passkeyDeleteCredential: '/action/passkey-delete-credential',
     passkeyStartAuthentication: '/action/passkey-start-authentication',
     passkeyFinishAuthentication: '/action/passkey-finish-authentication',
