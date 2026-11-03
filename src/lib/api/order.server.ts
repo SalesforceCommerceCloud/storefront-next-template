@@ -390,6 +390,66 @@ export async function fetchCustomerOrders(
     }
 }
 
+/**
+ * Fetches the shopper's most recent order for display in the Last Order card.
+ *
+ * Omits OMS enrichment (return/cancel status is not shown in the card) and caps the
+ * product image batch to `imageLimit + 1` items — the +1 detects overflow without
+ * fetching images for tiles that will never be rendered.
+ *
+ * Unlike {@link fetchCustomerOrders}, errors propagate to the caller rather than being
+ * swallowed, so the resource route can return the correct HTTP status on SCAPI failure.
+ *
+ * @param context - React Router loader context
+ * @param customerId - Customer ID from auth session
+ * @param options.imageLimit - Max product images to fetch (pass MAX_VISIBLE_TILES from LastOrderCard)
+ * @returns The most recent Order, or null if the shopper has no order history
+ */
+export async function fetchLastOrder(
+    context: LoaderFunctionArgs['context'],
+    customerId: string,
+    options: { imageLimit: number }
+): Promise<Order | null> {
+    const clients = createApiClients(context);
+    const currency = (context.get(siteContext) as SiteContext).currency;
+
+    const { data } = await clients.shopperCustomers.getCustomerOrders({
+        params: {
+            path: { customerId },
+            query: { offset: 0, limit: 1 },
+        },
+    });
+
+    const rawOrder = data?.data?.[0];
+    if (!rawOrder) return null;
+
+    const uniqueProductIds = [
+        ...new Set(
+            (rawOrder.productItems ?? [])
+                .map((item) => item.productId)
+                .filter((id): id is string => typeof id === 'string' && id.length > 0)
+        ),
+    ];
+
+    const imageFetchIds = uniqueProductIds.slice(0, options.imageLimit);
+    const productsById: OrderProductDataById = {};
+
+    if (imageFetchIds.length > 0) {
+        try {
+            const { data: productsData } = await clients.shopperProducts.getProducts({
+                params: { query: { ids: imageFetchIds, expand: ['images'], currency } },
+            });
+            (productsData?.data ?? []).forEach((product) => {
+                productsById[product.id] = product;
+            });
+        } catch {
+            // Non-fatal: render without images
+        }
+    }
+
+    return transformOrderForList(rawOrder, productsById);
+}
+
 // Number of recent orders to scan when building the ordered-products list.
 const ORDERS_SCAN_LIMIT = 20;
 

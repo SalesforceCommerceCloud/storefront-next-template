@@ -22,8 +22,8 @@ import { routes, routeHref } from '@/route-paths';
 import { formatCurrency } from '@/lib/currency';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 
-/** Maximum product image tiles shown before the overflow "+N" counter. */
-const MAX_VISIBLE_TILES = 9;
+export { MAX_VISIBLE_TILES } from './constants';
+import { MAX_VISIBLE_TILES } from './constants';
 
 export interface LastOrderCardProps {
     order: Order;
@@ -118,5 +118,7 @@ export function LastOrderCard({ order, onAddAllToCart, isAddingToCart = false }:
         </div>
     );
 }
+
+export { LastOrderCardSkeleton } from './skeleton';
 
 export default LastOrderCard;

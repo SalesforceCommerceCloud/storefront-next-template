@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { LastOrderCard } from '../index';
+import { LastOrderCard, LastOrderCardSkeleton } from '../index';
 import type { Order } from '@/components/account/order-list';
 import { ConfigWrapper, mockSiteObject, mockLocale } from '@/test-utils/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
@@ -125,4 +125,9 @@ export const Reordering: Story = {
         order: twentyOneItemOrder,
         isAddingToCart: true,
     },
+};
+
+/** Skeleton shown while the last-order resource fetch is in flight. */
+export const Loading: Story = {
+    render: () => <LastOrderCardSkeleton />,
 };

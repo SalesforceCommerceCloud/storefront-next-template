@@ -169,6 +169,7 @@ export const resourceRoutes = {
     shippingDestination: '/resource/shipping-destination',
     categoryProducts: '/resource/category-products',
     orderedProducts: '/resource/ordered-products',
+    lastOrder: '/resource/last-order',
     stores: '/resource/stores',
     analyticsProxy: '/resource/analytics-proxy',
     apiClient: '/resource/api/client/:resource',

@@ -23,6 +23,7 @@ import {
     transformOrderForList,
     fetchCustomerOrders,
     fetchOrderedProductIds,
+    fetchLastOrder,
 } from './order.server';
 
 vi.mock('@/lib/api-clients.server', () => ({
@@ -1057,5 +1058,149 @@ describe('fetchOrderedProductIds', () => {
     test('rethrows ApiError with status 401', async () => {
         mockGetCustomerOrders.mockRejectedValue(makeApiError(401));
         await expect(fetchOrderedProductIds(createTestContext(), 'c001')).rejects.toThrow();
+    });
+});
+
+describe('fetchLastOrder', () => {
+    const mockGetCustomerOrders = vi.fn();
+    const mockGetProducts = vi.fn();
+    const mockClients = {
+        shopperCustomers: { getCustomerOrders: mockGetCustomerOrders },
+        shopperProducts: { getProducts: mockGetProducts },
+    };
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.mocked(createApiClients).mockReturnValue(mockClients as never);
+    });
+
+    test('returns null when shopper has no orders', async () => {
+        mockGetCustomerOrders.mockResolvedValue({ data: { data: [] } });
+        const result = await fetchLastOrder(createTestContext({ currency: 'USD' }), 'c001', { imageLimit: 9 });
+        expect(result).toBeNull();
+        expect(mockGetProducts).not.toHaveBeenCalled();
+    });
+
+    test('requests only the single most recent order (limit: 1, no oms expand)', async () => {
+        mockGetCustomerOrders.mockResolvedValue({ data: { data: [] } });
+        await fetchLastOrder(createTestContext({ currency: 'USD' }), 'c001', { imageLimit: 9 });
+        expect(mockGetCustomerOrders).toHaveBeenCalledWith({
+            params: {
+                path: { customerId: 'c001' },
+                query: { offset: 0, limit: 1 },
+            },
+        });
+    });
+
+    test('happy path: returns a transformed Order with images', async () => {
+        mockGetCustomerOrders.mockResolvedValue({
+            data: {
+                data: [
+                    {
+                        orderNo: 'ORD-42',
+                        creationDate: '2026-09-01T10:00:00Z',
+                        status: 'new',
+                        orderTotal: 100,
+                        currency: 'USD',
+                        productItems: [{ productId: 'prod-1', quantity: 2, itemId: 'item-1' }],
+                    },
+                ],
+            },
+        });
+        mockGetProducts.mockResolvedValue({
+            data: {
+                data: [
+                    {
+                        id: 'prod-1',
+                        name: 'Apple',
+                        imageGroups: [
+                            {
+                                viewType: 'small',
+                                images: [{ link: 'https://cdn.example.com/apple.jpg', alt: 'Apple' }],
+                            },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        const result = await fetchLastOrder(createTestContext({ currency: 'USD' }), 'c001', { imageLimit: 9 });
+
+        expect(result).not.toBeNull();
+        expect(result?.orderNo).toBe('ORD-42');
+        expect(result?.productItems?.[0]).toMatchObject({
+            productId: 'prod-1',
+            imageUrl: 'https://cdn.example.com/apple.jpg',
+        });
+    });
+
+    test('deduplicates product IDs before fetching images', async () => {
+        mockGetCustomerOrders.mockResolvedValue({
+            data: {
+                data: [
+                    {
+                        orderNo: 'ORD-1',
+                        productItems: [
+                            { productId: 'p1', quantity: 1, itemId: 'i1' },
+                            { productId: 'p1', quantity: 1, itemId: 'i2' },
+                            { productId: 'p2', quantity: 1, itemId: 'i3' },
+                        ],
+                    },
+                ],
+            },
+        });
+        mockGetProducts.mockResolvedValue({ data: { data: [] } });
+
+        await fetchLastOrder(createTestContext({ currency: 'USD' }), 'c001', { imageLimit: 9 });
+
+        expect(mockGetProducts).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({
+                    query: expect.objectContaining({ ids: ['p1', 'p2'] }),
+                }),
+            })
+        );
+    });
+
+    test('caps image fetch at imageLimit', async () => {
+        const manyItems = Array.from({ length: 15 }, (_, i) => ({
+            productId: `p${i}`,
+            quantity: 1,
+            itemId: `item${i}`,
+        }));
+        mockGetCustomerOrders.mockResolvedValue({ data: { data: [{ orderNo: 'ORD-1', productItems: manyItems }] } });
+        mockGetProducts.mockResolvedValue({ data: { data: [] } });
+
+        await fetchLastOrder(createTestContext({ currency: 'USD' }), 'c001', { imageLimit: 9 });
+
+        const calledIds = vi.mocked(mockGetProducts).mock.calls[0][0].params.query.ids as string[];
+        expect(calledIds).toHaveLength(9);
+    });
+
+    test('returns order without images when getProducts throws (non-fatal)', async () => {
+        mockGetCustomerOrders.mockResolvedValue({
+            data: {
+                data: [
+                    {
+                        orderNo: 'ORD-1',
+                        productItems: [{ productId: 'p1', quantity: 1, itemId: 'i1' }],
+                    },
+                ],
+            },
+        });
+        mockGetProducts.mockRejectedValue(new Error('Products API down'));
+
+        const result = await fetchLastOrder(createTestContext({ currency: 'USD' }), 'c001', { imageLimit: 9 });
+
+        expect(result).not.toBeNull();
+        expect(result?.orderNo).toBe('ORD-1');
+        expect(result?.productItems?.[0]?.imageUrl).toBeUndefined();
+    });
+
+    test('propagates errors from getCustomerOrders', async () => {
+        mockGetCustomerOrders.mockRejectedValue(new Error('SCAPI error'));
+        await expect(fetchLastOrder(createTestContext({ currency: 'USD' }), 'c001', { imageLimit: 9 })).rejects.toThrow(
+            'SCAPI error'
+        );
     });
 });

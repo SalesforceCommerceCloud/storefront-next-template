@@ -74,6 +74,9 @@ const EXCLUDED_COMPONENTS = new Set([
     // Lightweight skeleton fallback extracted into its own file so React.lazy() can keep the
     // full section out of the eager bundle. Same convention as other *-skeleton excludes above.
     'customer-preferences/components/interests-preferences-section/skeleton',
+    // Skeleton extracted to its own file to avoid a circular import with index.tsx (which
+    // re-exports it). The Loading story in index.stories.tsx covers the visual skeleton state.
+    'last-order-card/skeleton',
     // Extension UITarget wrappers — thin Suspense/Await wrappers that pull deferred data
     // from `useRouteLoaderData`. Underlying section components have their own stories.
     'customer-preferences/components/target/preferences-target',

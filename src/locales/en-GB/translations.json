@@ -908,7 +908,8 @@
             "addAllToCart": "Add all to cart",
             "addingToCart": "Adding…",
             "viewInMyAccount": "View in My Account",
-            "overflow": "+{{count}}"
+            "overflow": "+{{count}}",
+            "loadingAriaLabel": "Loading last order"
         },
         "overview": {
             "welcomeBack": "Welcome back, {{name}}!",
