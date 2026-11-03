@@ -188,7 +188,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
-    "@salesforce/mrt-utilities": "0.3.0",
+    "@salesforce/mrt-utilities": "0.3.4",
     "jiti": "^2.6.1",
     "openapi-fetch": "0.15.0",
     "zod": "4.1.13"

@@ -29,6 +29,7 @@ const {
     mockRequireMrtCredentials,
     mockGenerateMetadata,
     mockUploadCartridges,
+    mockGetActiveCodeVersion,
     mockGetMrtBackendContext,
     mockCreateBundleV2,
     mockUploadBundleScapi,
@@ -51,6 +52,7 @@ const {
     mockRequireMrtCredentials: vi.fn(),
     mockGenerateMetadata: vi.fn(() => Promise.resolve()),
     mockUploadCartridges: vi.fn(() => Promise.resolve()),
+    mockGetActiveCodeVersion: vi.fn(() => Promise.resolve<{ id: string } | undefined>({ id: 'active-version' })),
     mockGetMrtBackendContext: vi.fn(),
     mockCreateBundleV2: vi.fn(() => Promise.resolve({ message: 'Test', archive: Buffer.from(''), rootDir: 'bld' })),
     mockUploadBundleScapi: vi.fn(() =>
@@ -111,6 +113,7 @@ vi.mock('../cartridge-services/generate-cartridge', () => ({
 
 vi.mock('@salesforce/b2c-tooling-sdk/operations/code', () => ({
     uploadCartridges: mockUploadCartridges,
+    createScriptsBackend: vi.fn(() => ({ getActiveCodeVersion: mockGetActiveCodeVersion })),
 }));
 
 vi.mock('@salesforce/b2c-tooling-sdk/cli', () => {
@@ -743,22 +746,107 @@ describe('push command', () => {
         expect(mockUploadCartridges).not.toHaveBeenCalled();
     });
 
-    it('should skip cartridge deployment when code version is missing', async () => {
+    function cartridgeConfig(
+        overrides: { codeVersion?: string; basicAuth?: boolean; oauth?: boolean; authMethods?: string[] } = {}
+    ) {
+        const { codeVersion, basicAuth = true, oauth = false, authMethods } = overrides;
+        const instance = { config: { codeVersion } };
+        return {
+            instance,
+            resolvedConfig: {
+                hasB2CInstanceConfig: () => true,
+                hasBasicAuthConfig: () => basicAuth,
+                hasOAuthConfig: () => oauth,
+                values: { codeVersion, authMethods },
+                createB2CInstance: vi.fn(() => instance),
+            },
+        };
+    }
+
+    const originalIsTTY = process.stdin.isTTY;
+
+    function setInteractive(interactive: boolean) {
+        Object.defineProperty(process.stdin, 'isTTY', { value: interactive, configurable: true });
+        vi.stubEnv('CI', interactive ? '' : 'true');
+    }
+
+    afterEach(() => {
+        Object.defineProperty(process.stdin, 'isTTY', { value: originalIsTTY, configurable: true });
+        vi.unstubAllEnvs();
+    });
+
+    it('should discover the active code version when none is configured', async () => {
         const cmd = new Push([], {} as never);
-        const warnSpy = vi.spyOn(cmd as any, 'warn').mockImplementation(() => {});
+        vi.spyOn(cmd as any, 'warn').mockImplementation(() => {});
         vi.spyOn(cmd as any, 'log').mockImplementation(() => {});
 
-        (cmd as any).resolvedConfig = {
-            hasB2CInstanceConfig: () => true,
-            values: {
-                codeVersion: undefined,
-            },
-            createB2CInstance: vi.fn(() => ({})),
-        };
+        const { instance, resolvedConfig } = cartridgeConfig();
+        (cmd as any).resolvedConfig = resolvedConfig;
 
         await (cmd as any).generateAndDeployCartridge('/test/project');
 
-        expect(warnSpy).toHaveBeenCalledWith('Code version not configured, skipping cartridge deployment');
+        expect(mockGetActiveCodeVersion).toHaveBeenCalled();
+        expect(instance.config.codeVersion).toBe('active-version');
+        expect(mockUploadCartridges).toHaveBeenCalledWith(instance, expect.any(Array), expect.anything());
+    });
+
+    it('should skip cartridge deployment when no active code version is found', async () => {
+        const cmd = new Push([], {} as never);
+        const warnSpy = vi.spyOn(cmd as any, 'warn').mockImplementation(() => {});
+        vi.spyOn(cmd as any, 'log').mockImplementation(() => {});
+        mockGetActiveCodeVersion.mockResolvedValueOnce(undefined);
+
+        (cmd as any).resolvedConfig = cartridgeConfig().resolvedConfig;
+
+        await (cmd as any).generateAndDeployCartridge('/test/project');
+
+        expect(warnSpy).toHaveBeenCalledWith('No active code version found, skipping cartridge deployment');
+        expect(mockUploadCartridges).not.toHaveBeenCalled();
+    });
+
+    it('should use browser sign-in for WebDAV when interactive without credentials', async () => {
+        const cmd = new Push([], {} as never);
+        vi.spyOn(cmd as any, 'warn').mockImplementation(() => {});
+        vi.spyOn(cmd as any, 'log').mockImplementation(() => {});
+        setInteractive(true);
+
+        const { instance, resolvedConfig } = cartridgeConfig({ codeVersion: 'v1', basicAuth: false });
+        (cmd as any).resolvedConfig = resolvedConfig;
+
+        await (cmd as any).generateAndDeployCartridge('/test/project');
+
+        expect(resolvedConfig.createB2CInstance).toHaveBeenCalledWith({ defaultWebDavClient: true });
+        expect(mockUploadCartridges).toHaveBeenCalledWith(instance, expect.any(Array), expect.anything());
+    });
+
+    it('should skip cartridge deployment without credentials in CI', async () => {
+        const cmd = new Push([], {} as never);
+        const warnSpy = vi.spyOn(cmd as any, 'warn').mockImplementation(() => {});
+        vi.spyOn(cmd as any, 'log').mockImplementation(() => {});
+        setInteractive(false);
+
+        const { resolvedConfig } = cartridgeConfig({ codeVersion: 'v1', basicAuth: false });
+        (cmd as any).resolvedConfig = resolvedConfig;
+
+        await (cmd as any).generateAndDeployCartridge('/test/project');
+
+        expect(warnSpy).toHaveBeenCalledWith('WebDAV credentials not configured, skipping cartridge deployment');
+        expect(resolvedConfig.createB2CInstance).not.toHaveBeenCalled();
+        expect(mockUploadCartridges).not.toHaveBeenCalled();
+    });
+
+    it('should skip browser sign-in when auth methods exclude user', async () => {
+        const cmd = new Push([], {} as never);
+        const warnSpy = vi.spyOn(cmd as any, 'warn').mockImplementation(() => {});
+        vi.spyOn(cmd as any, 'log').mockImplementation(() => {});
+        setInteractive(true);
+
+        const { resolvedConfig } = cartridgeConfig({ codeVersion: 'v1', basicAuth: false, authMethods: ['basic'] });
+        (cmd as any).resolvedConfig = resolvedConfig;
+
+        await (cmd as any).generateAndDeployCartridge('/test/project');
+
+        expect(warnSpy).toHaveBeenCalledWith('WebDAV credentials not configured, skipping cartridge deployment');
         expect(mockUploadCartridges).not.toHaveBeenCalled();
     });
 
@@ -767,28 +855,27 @@ describe('push command', () => {
         vi.spyOn(cmd as any, 'warn').mockImplementation(() => {});
         vi.spyOn(cmd as any, 'log').mockImplementation(() => {});
 
-        const instance = { id: 'instance' };
-        (cmd as any).resolvedConfig = {
-            hasB2CInstanceConfig: () => true,
-            values: {
-                codeVersion: 'test-version',
-            },
-            createB2CInstance: vi.fn(() => instance),
-        };
+        const { instance, resolvedConfig } = cartridgeConfig({ codeVersion: 'test-version' });
+        (cmd as any).resolvedConfig = resolvedConfig;
 
         await (cmd as any).generateAndDeployCartridge('/test/project');
 
+        expect(mockGetActiveCodeVersion).not.toHaveBeenCalled();
         expect(mockGenerateMetadata).toHaveBeenCalledWith(
             '/test/project',
             path.join('/test/project', 'cartridges', 'app_storefrontnext_base', 'cartridge', 'experience')
         );
-        expect(mockUploadCartridges).toHaveBeenCalledWith(instance, [
-            {
-                name: 'app_storefrontnext_base',
-                src: path.join('/test/project', 'cartridges', 'app_storefrontnext_base'),
-                dest: 'app_storefrontnext_base',
-            },
-        ]);
+        expect(mockUploadCartridges).toHaveBeenCalledWith(
+            instance,
+            [
+                {
+                    name: 'app_storefrontnext_base',
+                    src: path.join('/test/project', 'cartridges', 'app_storefrontnext_base'),
+                    dest: 'app_storefrontnext_base',
+                },
+            ],
+            { ignoreDirs: undefined }
+        );
     });
 
     it('should create metadata directory when it is missing', async () => {

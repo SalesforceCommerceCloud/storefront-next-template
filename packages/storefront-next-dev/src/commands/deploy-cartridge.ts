@@ -17,7 +17,6 @@
 import { Flags } from '@oclif/core';
 import { CartridgeCommand } from '@salesforce/b2c-tooling-sdk/cli';
 import {
-    createScriptsBackend,
     uploadCartridges,
     deleteCartridges,
     reloadCodeVersion,
@@ -39,10 +38,23 @@ import { CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR } from '../config
  * Additional flags:
  * - --delete: Delete existing cartridges before upload
  * - --reload/-r: Reload (re-activate) code version after deploy (requires OAuth)
+ * - --cartridge-ignore-dirs: Directory names to skip inside cartridges, replacing the SDK default
+ *   (node_modules, .git, coverage, .cache, tmp, temp)
+ *
+ * Environment variables:
+ * - SFCC_CARTRIDGE_IGNORE_DIRS (optional): comma-separated equivalent of --cartridge-ignore-dirs,
+ *   e.g. `node_modules,.git`. Also settable as `cartridge-ignore-dirs` in dw.json.
+ * - SFCC_DEFAULT_CLIENT (optional): `true` is equivalent to --default-client (inherited from the SDK),
+ *   which ignores any configured API client and uses browser sign-in.
+ *
+ * With only a server configured (no WebDAV access key or API client), or with --default-client,
+ * uploads sign in to Account Manager in a browser and the user's Business Manager role authorizes
+ * WebDAV access. --default-client cannot be combined with --reload, which needs an API client.
  *
  * Code version discovery and reload use SCAPI (scopes `sfcc.scripts` / `sfcc.scripts.rw`) when
  * SFCC_SHORTCODE and SFCC_TENANT_ID are set with client-credentials auth, falling back to OCAPI.
  * Override with --api-backend (env: SFCC_API_BACKEND): auto (default), scapi, or ocapi.
+ * Without an API client, the active code version is read over WebDAV; reload still needs one.
  */
 export default class Deploy extends CartridgeCommand<typeof Deploy> {
     static description = 'Deploy cartridges to B2C Commerce Cloud instance';
@@ -70,13 +82,20 @@ export default class Deploy extends CartridgeCommand<typeof Deploy> {
             description: 'Delete existing cartridges before upload',
             default: false,
         }),
+        'cartridge-ignore-dirs': Flags.string({
+            description:
+                'Directory names to skip inside cartridges, replacing the default list (node_modules,.git,coverage,.cache,tmp,temp); pass an empty value to skip nothing (env: SFCC_CARTRIDGE_IGNORE_DIRS)',
+            multiple: true,
+            multipleNonGreedy: true,
+            delimiter: ',',
+        }),
     };
 
     private _scriptsBackend?: ScriptsBackend;
 
-    /** SCAPI-first code version backend with OCAPI fallback, honoring --api-backend. */
+    /** SCAPI-first code version backend with OCAPI fallback (or WebDAV without an API client), honoring --api-backend. */
     protected get scriptsBackend(): ScriptsBackend {
-        this._scriptsBackend ??= createScriptsBackend({ instance: this.instance });
+        this._scriptsBackend ??= this.createScriptsBackend();
         return this._scriptsBackend;
     }
 
@@ -104,16 +123,10 @@ export default class Deploy extends CartridgeCommand<typeof Deploy> {
 
         let version = this.resolvedConfig.values.codeVersion;
 
-        // OAuth is only required if:
-        // 1. No code version specified (need to auto-discover the active version)
-        // 2. --reload flag is set (need to reload the code version)
-        const needsOAuth = !version || flags.reload;
-        if (needsOAuth && !this.hasOAuthCredentials()) {
-            const reason = version
-                ? 'The --reload flag requires OAuth credentials to reload the code version via SCAPI or OCAPI.'
-                : 'No code version specified. OAuth credentials are required to auto-discover the active code version.';
+        // Reloading needs an API client. Without one, the active version is still found over WebDAV.
+        if (flags.reload && !this.hasOAuthCredentials()) {
             this.error(
-                `${reason}\n\nProvide --code-version to use basic auth only, or configure OAuth credentials (--client-id and --client-secret).`
+                'The --reload flag requires OAuth credentials to reload the code version via SCAPI or OCAPI.\n\nDeploy without --reload to use WebDAV only, or configure OAuth credentials (--client-id and --client-secret).'
             );
         }
 
@@ -154,7 +167,9 @@ export default class Deploy extends CartridgeCommand<typeof Deploy> {
         }
 
         // Deploy using SDK - this.instance is provided by InstanceCommand
-        await uploadCartridges(this.instance, cartridges);
+        await uploadCartridges(this.instance, cartridges, {
+            ignoreDirs: this.resolvedConfig.values.cartridgeIgnoreDirs,
+        });
 
         // Optionally reload code version
         if (flags.reload) {

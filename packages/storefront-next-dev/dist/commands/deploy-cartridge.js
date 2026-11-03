@@ -3,7 +3,7 @@ import { Flags } from "@oclif/core";
 import path from "path";
 import fs from "fs-extra";
 import { CartridgeCommand } from "@salesforce/b2c-tooling-sdk/cli";
-import { createScriptsBackend, deleteCartridges, reloadCodeVersion, uploadCartridges } from "@salesforce/b2c-tooling-sdk/operations/code";
+import { deleteCartridges, reloadCodeVersion, uploadCartridges } from "@salesforce/b2c-tooling-sdk/operations/code";
 
 //#region src/commands/deploy-cartridge.ts
 /**
@@ -18,10 +18,23 @@ import { createScriptsBackend, deleteCartridges, reloadCodeVersion, uploadCartri
 * Additional flags:
 * - --delete: Delete existing cartridges before upload
 * - --reload/-r: Reload (re-activate) code version after deploy (requires OAuth)
+* - --cartridge-ignore-dirs: Directory names to skip inside cartridges, replacing the SDK default
+*   (node_modules, .git, coverage, .cache, tmp, temp)
+*
+* Environment variables:
+* - SFCC_CARTRIDGE_IGNORE_DIRS (optional): comma-separated equivalent of --cartridge-ignore-dirs,
+*   e.g. `node_modules,.git`. Also settable as `cartridge-ignore-dirs` in dw.json.
+* - SFCC_DEFAULT_CLIENT (optional): `true` is equivalent to --default-client (inherited from the SDK),
+*   which ignores any configured API client and uses browser sign-in.
+*
+* With only a server configured (no WebDAV access key or API client), or with --default-client,
+* uploads sign in to Account Manager in a browser and the user's Business Manager role authorizes
+* WebDAV access. --default-client cannot be combined with --reload, which needs an API client.
 *
 * Code version discovery and reload use SCAPI (scopes `sfcc.scripts` / `sfcc.scripts.rw`) when
 * SFCC_SHORTCODE and SFCC_TENANT_ID are set with client-credentials auth, falling back to OCAPI.
 * Override with --api-backend (env: SFCC_API_BACKEND): auto (default), scapi, or ocapi.
+* Without an API client, the active code version is read over WebDAV; reload still needs one.
 */
 var Deploy = class Deploy extends CartridgeCommand {
 	static description = "Deploy cartridges to B2C Commerce Cloud instance";
@@ -46,12 +59,18 @@ var Deploy = class Deploy extends CartridgeCommand {
 		delete: Flags.boolean({
 			description: "Delete existing cartridges before upload",
 			default: false
+		}),
+		"cartridge-ignore-dirs": Flags.string({
+			description: "Directory names to skip inside cartridges, replacing the default list (node_modules,.git,coverage,.cache,tmp,temp); pass an empty value to skip nothing (env: SFCC_CARTRIDGE_IGNORE_DIRS)",
+			multiple: true,
+			multipleNonGreedy: true,
+			delimiter: ","
 		})
 	};
 	_scriptsBackend;
-	/** SCAPI-first code version backend with OCAPI fallback, honoring --api-backend. */
+	/** SCAPI-first code version backend with OCAPI fallback (or WebDAV without an API client), honoring --api-backend. */
 	get scriptsBackend() {
-		this._scriptsBackend ??= createScriptsBackend({ instance: this.instance });
+		this._scriptsBackend ??= this.createScriptsBackend();
 		return this._scriptsBackend;
 	}
 	async run() {
@@ -64,10 +83,7 @@ var Deploy = class Deploy extends CartridgeCommand {
 		this.requireServer();
 		this.requireWebDavCredentials();
 		let version = this.resolvedConfig.values.codeVersion;
-		if ((!version || flags.reload) && !this.hasOAuthCredentials()) {
-			const reason = version ? "The --reload flag requires OAuth credentials to reload the code version via SCAPI or OCAPI." : "No code version specified. OAuth credentials are required to auto-discover the active code version.";
-			this.error(`${reason}\n\nProvide --code-version to use basic auth only, or configure OAuth credentials (--client-id and --client-secret).`);
-		}
+		if (flags.reload && !this.hasOAuthCredentials()) this.error("The --reload flag requires OAuth credentials to reload the code version via SCAPI or OCAPI.\n\nDeploy without --reload to use WebDAV only, or configure OAuth credentials (--client-id and --client-secret).");
 		if (!version) {
 			this.warn("No code version specified, discovering active code version...");
 			let activeVersion;
@@ -88,7 +104,7 @@ var Deploy = class Deploy extends CartridgeCommand {
 			this.log("Deleting existing cartridges...");
 			await deleteCartridges(this.instance, cartridges);
 		}
-		await uploadCartridges(this.instance, cartridges);
+		await uploadCartridges(this.instance, cartridges, { ignoreDirs: this.resolvedConfig.values.cartridgeIgnoreDirs });
 		if (flags.reload) try {
 			await reloadCodeVersion(this.scriptsBackend, version);
 			this.log("Code version reloaded.");

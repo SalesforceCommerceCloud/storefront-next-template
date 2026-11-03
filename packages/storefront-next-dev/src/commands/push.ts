@@ -29,7 +29,11 @@ import {
 import { getDefaultBuildDir, getDefaultMessage } from '../utils';
 import { BUNDLE_VERSIONS, withLegacyMrtShortFlags, type BundleVersion } from '../flags';
 import { generateMetadata } from '../cartridge-services/generate-cartridge';
-import { uploadCartridges, type CartridgeMapping } from '@salesforce/b2c-tooling-sdk/operations/code';
+import {
+    createScriptsBackend,
+    uploadCartridges,
+    type CartridgeMapping,
+} from '@salesforce/b2c-tooling-sdk/operations/code';
 import {
     createBundleV2,
     createDeployment,
@@ -355,6 +359,21 @@ export default class Push extends MrtCommand<typeof Push> {
     }
 
     /**
+     * Whether WebDAV can fall back to an Account Manager browser login (built-in public client)
+     * when neither a WebDAV access key nor an API client is configured. Only for interactive
+     * terminals, since the login waits for the browser; never in CI.
+     *
+     * Environment variables:
+     * - `CI` (optional): when set (e.g. `true`), disables the browser login.
+     * - `SFCC_AUTH_METHODS` (optional): when set, must include `user` (e.g. `basic,user`).
+     */
+    private canUseBrowserLoginForWebDav(): boolean {
+        if (!process.stdin.isTTY || process.env.CI) return false;
+        const authMethods = this.resolvedConfig.values.authMethods;
+        return !authMethods || authMethods.includes('user');
+    }
+
+    /**
      * Generate and deploy cartridge metadata to B2C instance.
      * This is a pre-MRT-push step that ensures Page Designer metadata is current.
      */
@@ -379,12 +398,27 @@ export default class Push extends MrtCommand<typeof Push> {
                 return;
             }
 
-            if (!this.resolvedConfig.values.codeVersion) {
-                this.warn('Code version not configured, skipping cartridge deployment');
-                return;
+            const browserLogin = this.canUseBrowserLoginForWebDav();
+            if (!this.resolvedConfig.hasBasicAuthConfig() && !this.resolvedConfig.hasOAuthConfig()) {
+                if (!browserLogin) {
+                    this.warn('WebDAV credentials not configured, skipping cartridge deployment');
+                    return;
+                }
+                this.log('No WebDAV credentials configured, using Account Manager browser sign-in...');
             }
 
-            const instance = this.resolvedConfig.createB2CInstance();
+            const instance = this.resolvedConfig.createB2CInstance({ defaultWebDavClient: browserLogin });
+            if (!instance.config.codeVersion) {
+                // SCAPI/OCAPI with an API client, otherwise read from WebDAV
+                const activeVersion = await createScriptsBackend({ instance }).getActiveCodeVersion();
+                if (!activeVersion?.id) {
+                    this.warn('No active code version found, skipping cartridge deployment');
+                    return;
+                }
+                instance.config.codeVersion = activeVersion.id;
+                this.log(`Using active code version "${activeVersion.id}"`);
+            }
+
             const cartridgeSrc = path.join(projectDirectory, CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_NAME);
             const cartridges: CartridgeMapping[] = [
                 {
@@ -394,7 +428,9 @@ export default class Push extends MrtCommand<typeof Push> {
                 },
             ];
 
-            await uploadCartridges(instance, cartridges);
+            await uploadCartridges(instance, cartridges, {
+                ignoreDirs: this.resolvedConfig.values.cartridgeIgnoreDirs,
+            });
             this.log('Cartridge deployed successfully!');
         } catch (cartridgeError) {
             // Don't fail the push if cartridge generation/deployment fails

@@ -221,8 +221,8 @@ importers:
         specifier: 7.18.2
         version: 7.18.2(@react-router/dev@7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0))(typescript@5.9.2)
       '@salesforce/b2c-cli':
-        specifier: 2.5.2
-        version: 2.5.2(@types/node@24.3.0)(typescript@5.9.2)
+        specifier: 2.11.0
+        version: 2.11.0(@types/node@24.3.0)(typescript@5.9.2)
       '@storybook/addon-a11y':
         specifier: 10.2.19
         version: 10.2.19(storybook@10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3))
@@ -513,8 +513,8 @@ importers:
         specifier: 7.18.2
         version: 7.18.2(express@5.1.0)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.2)
       '@salesforce/b2c-tooling-sdk':
-        specifier: 2.6.1
-        version: 2.6.1(@oclif/core@4.14.0)(typescript@5.9.2)
+        specifier: 2.11.0
+        version: 2.11.0(@oclif/core@4.14.0)(typescript@5.9.2)
       '@salesforce/storefront-next-runtime':
         specifier: workspace:^
         version: link:../storefront-next-runtime
@@ -700,8 +700,8 @@ importers:
         specifier: ^1.9.0
         version: 1.10.0
       '@salesforce/mrt-utilities':
-        specifier: 0.3.0
-        version: 0.3.0(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.1.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
+        specifier: 0.3.4
+        version: 0.3.4(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.1.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
       jiti:
         specifier: ^2.6.1
         version: 2.7.0
@@ -3590,13 +3590,13 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@salesforce/b2c-cli@2.5.2':
-    resolution: {integrity: sha512-+I38v0cE3KNKVqPg+KAJVVGmwu44nPGC7Jyi6OnW3fDyhRswYm+bcZED587F2uGJ/JoRwDikCR3qEvLbVM7Rig==}
+  '@salesforce/b2c-cli@2.11.0':
+    resolution: {integrity: sha512-/3aVY3XGh4BtZ4OgCBwGnUs946PgfP7239qoiKq60+yJw9CwAZgOaZ6nVTfjORmBFDRMMkvBB8OzQlfRjTGrUQ==}
     engines: {node: '>=22.16.0'}
     hasBin: true
 
-  '@salesforce/b2c-tooling-sdk@2.6.1':
-    resolution: {integrity: sha512-bD3EYKxjwJaYf8+s2kBnbGOqAp5r6OpkUqmj3erxqaxf/kR523BM6hfVI7tr+gtR3nAxbmMR+jmDqBy8aV9mjA==}
+  '@salesforce/b2c-tooling-sdk@2.11.0':
+    resolution: {integrity: sha512-Ma5q8xQfomW/lTIp45kuK4vTo4/JTF6SfZHcSL+5fiU/DVzDdH/Fi2vKlWeb7ss/LuaA0XUESCGtHnduHKCtRw==}
     engines: {node: '>=22.16.0'}
     peerDependencies:
       '@oclif/core': ^4
@@ -3610,8 +3610,8 @@ packages:
     resolution: {integrity: sha512-3q+D9S++fK623Uxei0lGpffbc8/nCOQvA0xzPW2nlI7lgOSh91w+Cy/6HTPc5QxM0ce3cIEMLtvAxnR8QU9qpA==}
     engines: {node: '>=18'}
 
-  '@salesforce/mrt-utilities@0.3.0':
-    resolution: {integrity: sha512-Ww54O2kIDXfpvgOeUdpVZH/W7fdGCrV26ELV6hsnCLMyALz///XIpp5b+0vF9R9qs0ocW2/7ZtPDdcL532aD9A==}
+  '@salesforce/mrt-utilities@0.3.4':
+    resolution: {integrity: sha512-TpbNtssQk0JcRw3mSDqm18U/p+tReNHmOvpy3tJ4UUAuUhu/u6jaEOKhcX03Gb5dK8z8T1vSghUGeQkk7XXVhA==}
     engines: {node: '>=22.16.0'}
     peerDependencies:
       express: ^4.0.0 || ^5.0.0
@@ -4585,8 +4585,8 @@ packages:
     resolution: {integrity: sha512-0qWUglt9JEqLFr3w1I1pbrChn1grhaiAR2ocX1PP/flRmxgtwTzPFFFnfIlD6aMOLQZgSuCRlidD70lvx8yhzg==}
     engines: {node: '>=14'}
 
-  ansis@4.4.0:
-    resolution: {integrity: sha512-9k3v7xcHwgdO/DruxGIg4HtjvlAZlcnsX/mzqUb1t3NkYnl9kK2UJ+Gq0io+vQf7iT//BD/HB/NBkUR1LWxoeA==}
+  ansis@4.5.0:
+    resolution: {integrity: sha512-KwIVkfFfJSSzBmZhDGuTmkhWqTdyB5oNVzzznBJbBZ5bZtHiqSrcugRF0RKJKT4Ss3d7ZrcjnlFVDlQNmtWfWw==}
     engines: {node: '>=14'}
 
   any-promise@1.3.0:
@@ -7750,8 +7750,8 @@ packages:
       encoding:
         optional: true
 
-  node-forge@1.4.0:
-    resolution: {integrity: sha512-LarFH0+6VfriEhqMMcLX2F7SwSXeWwnEAJEsYm5QKWchiVYVvJyV9v7UDvUv+w5HO23ZpQTXDv/GxdDdMyOuoQ==}
+  node-forge@1.4.1:
+    resolution: {integrity: sha512-w5/MfWaeMrpR/5ba6fZyAUTLSuE6aYz7H/3cYrqwZEmf5eQS3IaaLgJt4MBv7HglGFWmV22K8h4U18RJQmw/ow==}
     engines: {node: '>= 6.13.0'}
 
   node-int64@0.4.0:
@@ -13098,7 +13098,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
 
-  '@salesforce/b2c-cli@2.5.2(@types/node@24.3.0)(typescript@5.9.2)':
+  '@salesforce/b2c-cli@2.11.0(@types/node@24.3.0)(typescript@5.9.2)':
     dependencies:
       '@inquirer/prompts': 8.2.0(@types/node@24.3.0)
       '@oclif/core': 4.8.0
@@ -13108,7 +13108,7 @@ snapshots:
       '@oclif/plugin-plugins': 5.4.53
       '@oclif/plugin-version': 2.2.36
       '@oclif/plugin-warn-if-update-available': 3.1.52
-      '@salesforce/b2c-tooling-sdk': 2.6.1(@oclif/core@4.8.0)(typescript@5.9.2)
+      '@salesforce/b2c-tooling-sdk': 2.11.0(@oclif/core@4.8.0)(typescript@5.9.2)
       cliui: 9.0.1
       glob: 13.0.0
       marked: 15.0.12
@@ -13122,7 +13122,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@salesforce/b2c-tooling-sdk@2.6.1(@oclif/core@4.14.0)(typescript@5.9.2)':
+  '@salesforce/b2c-tooling-sdk@2.11.0(@oclif/core@4.14.0)(typescript@5.9.2)':
     dependencies:
       '@vscode/debugadapter': 1.68.0
       chokidar: 5.0.0
@@ -13136,7 +13136,7 @@ snapshots:
       jszip: 3.10.1
       minimatch: 10.2.5
       minisearch: 7.2.0
-      node-forge: 1.4.0
+      node-forge: 1.4.1
       open: 11.0.0
       openapi-fetch: 0.15.0
       pino: 10.1.0
@@ -13153,7 +13153,7 @@ snapshots:
       - react-native-b4a
       - typescript
 
-  '@salesforce/b2c-tooling-sdk@2.6.1(@oclif/core@4.8.0)(typescript@5.9.2)':
+  '@salesforce/b2c-tooling-sdk@2.11.0(@oclif/core@4.8.0)(typescript@5.9.2)':
     dependencies:
       '@vscode/debugadapter': 1.68.0
       chokidar: 5.0.0
@@ -13167,7 +13167,7 @@ snapshots:
       jszip: 3.10.1
       minimatch: 10.2.5
       minisearch: 7.2.0
-      node-forge: 1.4.0
+      node-forge: 1.4.1
       open: 11.0.0
       openapi-fetch: 0.15.0
       pino: 10.1.0
@@ -13189,7 +13189,7 @@ snapshots:
       headers-polyfill: 4.0.3
       openapi-fetch: 0.8.2
 
-  '@salesforce/mrt-utilities@0.3.0(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.1.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)':
+  '@salesforce/mrt-utilities@0.3.4(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.1.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)':
     dependencies:
       '@aws-sdk/client-cloudwatch': 3.1049.0
       '@aws-sdk/client-dynamodb': 3.1049.0
@@ -14222,7 +14222,7 @@ snapshots:
 
   ansis@3.17.0: {}
 
-  ansis@4.4.0: {}
+  ansis@4.5.0: {}
 
   any-promise@1.3.0: {}
 
@@ -18239,7 +18239,7 @@ snapshots:
     dependencies:
       whatwg-url: 5.0.0
 
-  node-forge@1.4.0: {}
+  node-forge@1.4.1: {}
 
   node-int64@0.4.0: {}
 
@@ -20036,7 +20036,7 @@ snapshots:
 
   tsdown@0.15.12(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(typescript@5.9.2):
     dependencies:
-      ansis: 4.4.0
+      ansis: 4.5.0
       cac: 6.7.14
       chokidar: 4.0.3
       debug: 4.4.3(supports-color@10.2.2)

@@ -65,7 +65,6 @@ vi.mock('fs-extra', () => ({
 vi.mock('@salesforce/b2c-tooling-sdk/operations/code', () => ({
     uploadCartridges: mockUploadCartridges,
     deleteCartridges: mockDeleteCartridges,
-    createScriptsBackend: mockCreateScriptsBackend,
     reloadCodeVersion: mockReloadCodeVersion,
 }));
 
@@ -86,6 +85,9 @@ vi.mock('@salesforce/b2c-tooling-sdk/cli', () => {
         requireWebDavCredentials() {}
         hasOAuthCredentials() {
             return true;
+        }
+        createScriptsBackend() {
+            return mockCreateScriptsBackend();
         }
         // oxlint-disable-next-line @typescript-eslint/require-await
         async findCartridgesWithProviders() {
@@ -132,7 +134,21 @@ describe('deploy-cartridge command', () => {
 
         const findSpy = vi.spyOn(cmd as any, 'findCartridgesWithProviders');
         expect(findSpy).toHaveBeenCalledWith(path.join('/test/project', 'cartridges'));
-        expect(mockUploadCartridges).toHaveBeenCalledWith(expect.anything(), defaultCartridges);
+        expect(mockUploadCartridges).toHaveBeenCalledWith(expect.anything(), defaultCartridges, {
+            ignoreDirs: undefined,
+        });
+    });
+
+    it('should pass configured cartridge ignore dirs to the upload', async () => {
+        const cmd = createCommand();
+        (cmd as any).resolvedConfig = {
+            values: { codeVersion: 'test-version', cartridgeIgnoreDirs: ['node_modules'] },
+        };
+        await cmd.run();
+
+        expect(mockUploadCartridges).toHaveBeenCalledWith(expect.anything(), defaultCartridges, {
+            ignoreDirs: ['node_modules'],
+        });
     });
 
     it('should error when no cartridges are found', async () => {
@@ -257,7 +273,7 @@ describe('deploy-cartridge command', () => {
         const cmd = createCommand({ reload: true });
         await cmd.run();
 
-        expect(mockCreateScriptsBackend).toHaveBeenCalledWith({ instance: expect.anything() });
+        expect(mockCreateScriptsBackend).toHaveBeenCalled();
         expect(mockReloadCodeVersion).toHaveBeenCalledWith(mockScriptsBackend, 'test-version');
     });
 
@@ -289,15 +305,16 @@ describe('deploy-cartridge command', () => {
         expect((cmd as any).instance.config.codeVersion).toBe('discovered-version');
     });
 
-    it('should error when no code version and no OAuth credentials', async () => {
+    it('should auto-discover active code version over WebDAV without OAuth credentials', async () => {
         const cmd = createCommand();
         (cmd as any).resolvedConfig = { values: { codeVersion: undefined } };
         vi.spyOn(cmd as any, 'hasOAuthCredentials').mockReturnValue(false);
-        vi.spyOn(cmd as any, 'error').mockImplementation((msg: any) => {
-            throw new Error(msg);
-        });
 
-        await expect(cmd.run()).rejects.toThrow('OAuth credentials are required to auto-discover');
+        await cmd.run();
+
+        expect(mockGetActiveCodeVersion).toHaveBeenCalled();
+        expect(mockUploadCartridges).toHaveBeenCalled();
+        expect((cmd as any).instance.config.codeVersion).toBe('discovered-version');
     });
 
     it('should error when --reload is set without OAuth credentials', async () => {
