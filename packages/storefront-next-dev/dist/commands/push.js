@@ -1,3 +1,4 @@
+import "../package.js";
 import "../logger.js";
 import "../logger2.js";
 import { n as getDefaultBuildDir, r as getDefaultMessage } from "../utils.js";

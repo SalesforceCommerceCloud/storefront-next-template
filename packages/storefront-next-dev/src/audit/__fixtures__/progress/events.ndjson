@@ -1,0 +1,29 @@
+{"type":"run.start","runId":"11111111-1111-4111-8111-111111111111","startedAt":"2026-09-27T16:14:00.000Z","target":{"url":"https://northwind-outfitters.example/","commit":"a3f91c2","env":"staging-03"},"plan":[{"id":"prep","title":"Resolve entry pages","detail":"Read the sitemap and choose representative PLP and PDP URLs"},{"id":"home","title":"Lighthouse · Home","detail":"/ · mobile · median of 3 runs"},{"id":"plp","title":"Lighthouse · Category / PLP","detail":"/c/womens-apparel · mobile · median of 3 runs"},{"id":"pdp","title":"Lighthouse · Product / PDP","detail":"/p/25693571M · mobile · median of 3 runs"},{"id":"rules","title":"Evaluate audit rules","detail":"Rules across categories, checked against the deployed site and the repo"},{"id":"ai","title":"AI code analysis","detail":"Trace server loaders, middleware and the bundle graph"},{"id":"compile","title":"Compile report","detail":"Score the performance budget, rank fixes, write the report"}],"at":"2026-09-27T16:14:00.000Z"}
+{"type":"stage.start","stageId":"prep","at":"2026-09-27T16:14:00.500Z"}
+{"type":"log","level":"info","message":"Audit started · northwind-outfitters · staging-03","at":"2026-09-27T16:14:00.600Z"}
+{"type":"log","level":"info","message":"GET /robots.txt → 200","at":"2026-09-27T16:14:02.000Z"}
+{"type":"log","level":"ok","message":"PLP selected: /c/womens-apparel","at":"2026-09-27T16:14:05.000Z"}
+{"type":"stage.complete","stageId":"prep","summary":"3 entry pages selected","at":"2026-09-27T16:14:06.000Z"}
+{"type":"stage.start","stageId":"home","at":"2026-09-27T16:14:06.100Z"}
+{"type":"page.start","pageId":"home","label":"home","url":"https://northwind-outfitters.example/","at":"2026-09-27T16:14:06.200Z"}
+{"type":"page.complete","pageId":"home","score":62,"metrics":[{"key":"LCP","value":"3.4s","bad":true},{"key":"TBT","value":"610ms","bad":true},{"key":"CLS","value":"0.04"},{"key":"TTFB","value":"0.9s","bad":true}],"at":"2026-09-27T16:18:06.000Z"}
+{"type":"stage.complete","stageId":"home","at":"2026-09-27T16:18:06.100Z"}
+{"type":"finding","id":"f1","severity":"low","title":"Analytics vendor script blocks main thread for 210ms","category":"performance","source":"Lighthouse · Home","at":"2026-09-27T16:18:06.200Z"}
+{"type":"stage.start","stageId":"plp","at":"2026-09-27T16:18:06.300Z"}
+{"type":"page.start","pageId":"plp","label":"plp","url":"https://northwind-outfitters.example/c/womens-apparel","at":"2026-09-27T16:18:06.400Z"}
+{"type":"page.complete","pageId":"plp","score":41,"metrics":[{"key":"LCP","value":"4.8s","bad":true},{"key":"TBT","value":"980ms","bad":true},{"key":"CLS","value":"0.21","bad":true},{"key":"TTFB","value":"1.3s","bad":true}],"at":"2026-09-27T16:22:40.000Z"}
+{"type":"stage.complete","stageId":"plp","at":"2026-09-27T16:22:40.100Z"}
+{"type":"finding","id":"f2","severity":"medium","title":"Product grid tiles have no intrinsic size","category":"accessibility","source":"Lighthouse · PLP","at":"2026-09-27T16:22:40.200Z"}
+{"type":"stage.start","stageId":"pdp","at":"2026-09-27T16:22:40.300Z"}
+{"type":"page.start","pageId":"pdp","label":"pdp","url":"https://northwind-outfitters.example/p/25693571M","at":"2026-09-27T16:22:40.400Z"}
+{"type":"page.complete","pageId":"pdp","score":38,"metrics":[{"key":"LCP","value":"5.4s","bad":true},{"key":"TBT","value":"1,240ms","bad":true},{"key":"CLS","value":"0.18","bad":true},{"key":"TTFB","value":"1.8s","bad":true}],"at":"2026-09-27T16:27:10.000Z"}
+{"type":"stage.complete","stageId":"pdp","at":"2026-09-27T16:27:10.100Z"}
+{"type":"finding","id":"f3","severity":"medium","title":"LCP image not preloaded and served unoptimized","category":"performance","source":"Lighthouse · PDP","at":"2026-09-27T16:27:10.200Z"}
+{"type":"stage.start","stageId":"rules","at":"2026-09-27T16:27:11.000Z"}
+{"type":"rules.progress","evaluated":16,"total":84,"category":"security","categoryEvaluated":16,"categoryTotal":16,"at":"2026-09-27T16:28:00.000Z"}
+{"type":"finding","id":"f4","severity":"critical","title":"Content Security Policy header absent","category":"security","source":"Header scan","at":"2026-09-27T16:28:01.000Z"}
+{"type":"finding","id":"f5","severity":"medium","title":"Session cookie missing SameSite and Secure","category":"security","source":"Config scan","at":"2026-09-27T16:28:20.000Z"}
+{"type":"rules.progress","evaluated":34,"total":84,"category":"performance","categoryEvaluated":18,"categoryTotal":18,"at":"2026-09-27T16:29:30.000Z"}
+{"type":"log","level":"info","message":"Evaluating SEO rules (14)","at":"2026-09-27T16:29:35.000Z"}
+{"type":"rules.progress","evaluated":42,"total":84,"category":"seo","categoryEvaluated":8,"categoryTotal":14,"at":"2026-09-27T16:30:00.000Z"}
+{"type":"finding","id":"f6","severity":"medium","title":"Canonical tags missing on filtered PLP URLs","category":"seo","source":"Crawl","at":"2026-09-27T16:30:05.000Z"}

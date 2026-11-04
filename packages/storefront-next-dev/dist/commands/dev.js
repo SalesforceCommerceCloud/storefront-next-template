@@ -1,3 +1,4 @@
+import "../package.js";
 import { i as printShutdownMessage, n as printServerConfig, r as printServerInfo } from "../logger.js";
 import "../logger2.js";
 import { i as loadProjectConfig, n as initBasePathEnv, r as getCommerceCloudApiUrl, t as createServer$2 } from "../server.js";

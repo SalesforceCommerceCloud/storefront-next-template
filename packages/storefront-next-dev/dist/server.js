@@ -630,12 +630,12 @@ const HEALTH_ENDPOINT_PATH = "/sfdc-health";
 * console.log(metadata?.version);
 * ```
 */
-function readPackageMetadata(path$1) {
-	if (!existsSync(path$1)) return null;
+function readPackageMetadata(path$2) {
+	if (!existsSync(path$2)) return null;
 	try {
-		return JSON.parse(readFileSync(path$1, "utf8"));
+		return JSON.parse(readFileSync(path$2, "utf8"));
 	} catch (error) {
-		logger.debug(`Health check: failed to parse package.json at ${path$1}`, error);
+		logger.debug(`Health check: failed to parse package.json at ${path$2}`, error);
 		return null;
 	}
 }
@@ -731,8 +731,8 @@ async function createServer(options) {
 	} else {
 		const possiblePaths = RELATIVE_MIDDLEWARE_REGISTRY_BUILT_PATHS.map((p) => resolve(projectDirectory, p));
 		let builtRegistryPath = null;
-		for (const path$1 of possiblePaths) if (existsSync(path$1)) {
-			builtRegistryPath = path$1;
+		for (const path$2 of possiblePaths) if (existsSync(path$2)) {
+			builtRegistryPath = path$2;
 			break;
 		}
 		if (builtRegistryPath) registry = await import(pathToFileURL(builtRegistryPath).href);

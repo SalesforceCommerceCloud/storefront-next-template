@@ -1,0 +1,123 @@
+/*
+ * Design tokens — the single source of truth for every custom style.
+ *
+ * The dashboard is built on the Salesforce Lightning Design System. Anything
+ * SLDS ships as a component or utility class is used as-is; the few bespoke
+ * visuals (severity tones, budget matrix, score ring, charts) resolve their
+ * values through the semantic aliases below, and every alias points at an SLDS
+ * global styling hook (--slds-g-*). No raw color, size or spacing literal is
+ * allowed anywhere else in the app — re-theme here, and only here.
+ */
+:root {
+  /* Surfaces & structure */
+  --audit-color-canvas: var(--slds-g-color-neutral-base-95);
+  --audit-color-surface: var(--slds-g-color-surface-container-1);
+  --audit-color-surface-alt: var(--slds-g-color-surface-container-2);
+  --audit-color-surface-hover: var(--slds-g-color-brand-base-95);
+  --audit-color-divider: var(--slds-g-color-neutral-base-90);
+  --audit-color-border: var(--slds-g-color-border-1);
+  --audit-color-border-strong: var(--slds-g-color-border-2);
+
+  /* Text */
+  --audit-color-text: var(--slds-g-color-on-surface-3);
+  --audit-color-text-body: var(--slds-g-color-on-surface-2);
+  --audit-color-text-weak: var(--slds-g-color-on-surface-1);
+  --audit-color-text-faint: var(--slds-g-color-neutral-base-65);
+  --audit-color-on-solid: var(--slds-g-color-on-accent-1);
+
+  /* Brand */
+  --audit-color-brand: var(--slds-g-color-brand-base-50);
+  --audit-color-brand-strong: var(--slds-g-color-brand-base-30);
+  --audit-color-brand-container: var(--slds-g-color-brand-base-95);
+  --audit-color-brand-border: var(--slds-g-color-brand-base-80);
+
+  /* Inverse surfaces — evidence code blocks and the live activity log */
+  --audit-color-inverse-surface: var(--slds-g-color-surface-container-inverse-2);
+  --audit-color-inverse-text: var(--slds-g-color-neutral-base-95);
+  --audit-color-inverse-text-weak: var(--slds-g-color-neutral-base-60);
+  --audit-color-inverse-divider: var(--slds-g-color-neutral-100-opacity-10);
+
+  /*
+   * Tones — one quartet per severity/status. Components never pick a color
+   * directly; they take an `audit-tone_<name>` class (app.css) which binds
+   * these four values to --audit-tone-*.
+   */
+  --audit-critical-solid: var(--slds-g-color-error-base-40);
+  --audit-critical-text: var(--slds-g-color-error-base-40);
+  --audit-critical-container: var(--slds-g-color-error-base-95);
+  --audit-critical-border: var(--slds-g-color-error-base-80);
+
+  --audit-high-solid: var(--slds-g-color-warning-base-60);
+  --audit-high-text: var(--slds-g-color-warning-base-40);
+  --audit-high-container: var(--slds-g-color-warning-base-95);
+  --audit-high-border: var(--slds-g-color-warning-base-80);
+
+  --audit-medium-solid: var(--slds-g-color-brand-base-50);
+  --audit-medium-text: var(--slds-g-color-brand-base-40);
+  --audit-medium-container: var(--slds-g-color-brand-base-95);
+  --audit-medium-border: var(--slds-g-color-brand-base-80);
+
+  --audit-low-solid: var(--slds-g-color-neutral-base-60);
+  --audit-low-text: var(--slds-g-color-neutral-base-40);
+  --audit-low-container: var(--slds-g-color-neutral-base-95);
+  --audit-low-border: var(--slds-g-color-neutral-base-80);
+
+  --audit-info-solid: var(--slds-g-color-neutral-base-80);
+  --audit-info-text: var(--slds-g-color-neutral-base-40);
+  --audit-info-container: var(--slds-g-color-neutral-base-100);
+  --audit-info-border: var(--slds-g-color-neutral-base-80);
+
+  --audit-pass-solid: var(--slds-g-color-success-base-50);
+  --audit-pass-text: var(--slds-g-color-success-base-50);
+  --audit-pass-container: var(--slds-g-color-success-base-95);
+  --audit-pass-border: var(--slds-g-color-success-base-80);
+
+  /* Data-viz */
+  --audit-viz-track: var(--slds-g-color-neutral-base-90);
+
+  /* Data-viz — server request waterfall */
+  --audit-viz-blocking: var(--slds-g-color-brand-base-50);
+  --audit-viz-streamed: var(--slds-g-color-brand-base-90);
+  --audit-viz-suggested: var(--audit-high-solid);
+  --audit-viz-shell: var(--slds-g-color-neutral-base-30);
+
+  /* Activity log levels (on the inverse surface) */
+  --audit-log-info: var(--slds-g-color-neutral-base-80);
+  --audit-log-ok: var(--slds-g-color-success-base-80);
+  --audit-log-warn: var(--slds-g-color-warning-base-80);
+  --audit-log-find: var(--slds-g-color-error-base-80);
+  --audit-log-time: var(--slds-g-color-neutral-base-60);
+
+  /* Sizing */
+  --audit-size-dot: var(--slds-g-sizing-3);
+  --audit-size-bar: var(--slds-g-sizing-3);
+  --audit-size-bar-thin: var(--slds-g-sizing-2);
+  --audit-size-score-sm: var(--slds-g-sizing-10);
+  --audit-size-score-lg: var(--slds-g-sizing-12);
+  --audit-size-score-stroke: var(--slds-g-sizing-2);
+  --audit-size-mascot: var(--slds-g-sizing-9);
+  --audit-size-label-column: var(--slds-g-sizing-12);
+  --audit-size-waterfall-call: var(--slds-g-sizing-14);
+  --audit-size-waterfall-source: var(--slds-g-sizing-14);
+  --audit-size-waterfall-track: var(--slds-g-sizing-15);
+  --audit-size-waterfall-row: var(--slds-g-sizing-9);
+  --audit-size-marker: var(--slds-g-sizing-5);
+  --audit-size-swatch: var(--slds-g-sizing-6);
+  --audit-size-tile-min: var(--slds-g-sizing-14);
+  --audit-size-page-tile-min: var(--slds-g-sizing-15);
+  --audit-size-log: var(--slds-g-sizing-15);
+  --audit-size-embed: var(--slds-g-sizing-16);
+
+  /* Table column widths */
+  --audit-size-col-narrow: var(--slds-g-sizing-10);
+  --audit-size-col-severity: var(--slds-g-sizing-13);
+  --audit-size-col-meta: var(--slds-g-sizing-13);
+  --audit-size-col-source: var(--slds-g-sizing-14);
+  --audit-size-severity-badge: var(--slds-g-sizing-12);
+
+  /* Motion */
+  --audit-duration: var(--slds-g-duration-promptly);
+  --audit-duration-pulse: var(--slds-g-duration-paused);
+  /* SLDS ships no opacity hook; this is the one raw effect value. */
+  --audit-opacity-faded: 0.3;
+}

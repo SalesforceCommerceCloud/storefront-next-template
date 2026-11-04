@@ -1,3 +1,4 @@
+import "../package.js";
 import "../logger.js";
 import { t as prepareForLocalDev } from "../local-dev-setup.js";
 import { i as commonFlags } from "../flags.js";

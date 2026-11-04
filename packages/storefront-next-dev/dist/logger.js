@@ -1,11 +1,8 @@
+import { t as version } from "./package.js";
 import os from "os";
 import chalk from "chalk";
 import { createRequire } from "module";
 
-//#region package.json
-var version = "1.5.0-dev";
-
-//#endregion
 //#region src/utils/logger.ts
 /**
 * Get the local network IPv4 address

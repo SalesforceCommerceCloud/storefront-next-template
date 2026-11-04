@@ -8,6 +8,8 @@
         "**/src/dashboard/components/ui/**",
         "**/.shadcn-baseline/**",
         "**/src/lib/page-designer/static-registry.ts",
+        "**/src/audit/__fixtures__/*/**",
+        "**/src/audit/__fixtures__/*.json",
         ".claude/**",
         "**/lighthouserc.cjs",
         "**/generate-config.cjs",

@@ -1,0 +1,69 @@
+{
+  "version": 2,
+  "observations": [
+    {
+      "runId": "mobile-cold-1",
+      "runKind": "measurement",
+      "formFactor": "mobile",
+      "cacheState": "cold",
+      "scriptIndex": 0,
+      "scriptId": "1",
+      "url": "https://example.com/",
+      "body": {
+        "status": "captured",
+        "sha256": "67c0739945630dc380e0d961bbafa79bd4ef58696fc4384396a3b0f66db7d3dd"
+      },
+      "sourceMap": {
+        "status": "missing"
+      }
+    },
+    {
+      "runId": "mobile-cold-1",
+      "runKind": "measurement",
+      "formFactor": "mobile",
+      "cacheState": "cold",
+      "scriptIndex": 1,
+      "scriptId": "2",
+      "url": "https://example.com/",
+      "body": {
+        "status": "captured",
+        "sha256": "52d7d4ef297185e9da7967f761c8cd4e65420985293a1973090ce25be10b7e16"
+      },
+      "sourceMap": {
+        "status": "missing"
+      }
+    },
+    {
+      "runId": "mobile-cold-1",
+      "runKind": "measurement",
+      "formFactor": "mobile",
+      "cacheState": "cold",
+      "scriptIndex": 2,
+      "scriptId": "3",
+      "url": "https://example.com/",
+      "body": {
+        "status": "captured",
+        "sha256": "5f5b6ddca17c485871d5b4a921991ca5985618321c24cc6c791a022373ce57e0"
+      },
+      "sourceMap": {
+        "status": "missing"
+      }
+    },
+    {
+      "runId": "mobile-cold-1",
+      "runKind": "measurement",
+      "formFactor": "mobile",
+      "cacheState": "cold",
+      "scriptIndex": 3,
+      "scriptId": "4",
+      "url": "https://example.com/assets/entry.client-Be9z2OkY.js",
+      "body": {
+        "status": "captured",
+        "sha256": "35c146f76e129477c64061bc84511e1090f3d4d8059713e6663dd4b35b1f7642"
+      },
+      "sourceMap": {
+        "status": "missing"
+      }
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "1.0",
+  "run": { "id": "fixture", "generatedAt": "2026-09-16T00:00:00.000Z", "toolVersion": "0.2.0" },
+  "project": { "name": "fixture-storefront" },
+  "pages": [
+    {
+      "label": "home",
+      "url": "https://shop.example.com/",
+      "playhouse": {
+        "archiveDir": "/fixtures/playhouse/home", "version": "1.4.0", "lighthouseVersion": "13.0.0",
+        "artifacts": {
+          "summary.json": { "cells": [{"formFactor":"mobile","cacheState":"cold","medianRun":{"score":92,"lcp":2100,"tbt":80,"cls":0.04,"ttfb":480},"pageInfo":{"domElements":420,"documentSize":{"transferSize":18000,"resourceSize":64000}}}], "runs": [] },
+          "report-mobile-cold.html": { "available": true }
+        }
+      }
+    },
+    {
+      "label": "plp",
+      "url": "https://shop.example.com/c/womens-shoes",
+      "playhouse": {
+        "archiveDir": "/fixtures/playhouse/plp", "version": "1.4.0", "lighthouseVersion": "13.0.0",
+        "artifacts": {
+          "summary.json": { "cells": [{"formFactor":"mobile","cacheState":"cold","medianRun":{"score":68,"lcp":4200,"tbt":320,"cls":0.08,"ttfb":900},"pageInfo":{"domElements":980,"documentSize":{"transferSize":36000,"resourceSize":128000}}}], "runs": [] },
+          "summary-lcp.json": { "cells": [{"formFactor":"mobile","cacheState":"cold","median":{"runId":"mobile-cold-1","lcp":4200,"fcp":1900,"breakdown":{"ttfb":900,"loadDelay":700,"loadDuration":300,"renderDelay":2300},"element":null,"discovery":null,"resource":null,"timeline":[]},"p90":{"runId":"mobile-cold-2","lcp":4500,"fcp":2000,"breakdown":{"ttfb":950,"loadDelay":750,"loadDuration":300,"renderDelay":2500},"element":null,"discovery":null,"resource":null,"timeline":[]},"delta":{"lcp":300,"perSubpart":{"ttfb":50,"loadDelay":50,"loadDuration":0,"renderDelay":200},"sameElement":true},"others":[]}] },
+          "opportunities.json": { "schemaVersion":1,"rules":[],"ruleset":{"id":"playhouse-default","version":"1.0.0","lighthouseVersion":"13.0.0"},"cells":[{"formFactor":"mobile","cacheState":"cold","representativeRunId":"mobile-cold-1","findings":[{"id":"unused-javascript","title":"Reduce unused JavaScript","status":"triggered","severity":"medium","explanation":"Grid and filter scripts ship unused bytes.","resources":[{"kind":"url","label":"listing.js","url":"https://shop.example.com/listing.js","transferSize":260000,"totalBytes":260000,"wastedBytes":90000}]}]}],"coverage":{"triggered":1,"passed":0,"notApplicable":0,"notEvaluable":0} },
+          "network-mobile-cold.json": { "formFactor":"mobile","cacheState":"cold","document":{"url":"https://shop.example.com/c/womens-shoes","protocol":"h2","statusCode":200,"remoteIPAddress":"203.0.113.10","remotePort":443,"securityState":"secure"},"tls":{"protocol":"TLS 1.3","cipher":"AES_128_GCM","keyExchange":null,"keyExchangeGroup":"X25519","subjectName":"shop.example.com","issuer":"Example CA","validFrom":0,"validTo":0,"encryptedClientHello":false,"certificateTransparencyCompliance":"compliant"},"handshake":{"dnsMs":20,"tcpMs":30,"tlsMs":45,"waitMs":900},"connections":{"totalResponses":22,"fresh":6,"reused":16,"distinctRemoteIps":3,"protocols":["h2"]} },
+          "diagnostics-mobile-cold.json": { "formFactor":"mobile","cacheState":"cold","sourceStatus":{"consoleMessages":"captured","inspectorIssues":"captured","devtoolsLog":"captured"},"summary":{"consoleErrors":0,"consoleWarnings":2,"inspectorIssues":0,"networkFailures":0,"canceledRequests":0},"console":[],"issues":[],"networkFailures":[],"canceledRequests":[] },
+          "report-mobile-cold.html": { "available": true }
+        }
+      }
+    },
+    {
+      "label": "pdp",
+      "url": "https://shop.example.com/products/red-shoe",
+      "playhouse": {
+        "archiveDir": "/fixtures/playhouse/pdp", "version": "1.4.0", "lighthouseVersion": "13.0.0",
+        "artifacts": {
+          "summary.json": { "cells": [{"formFactor":"mobile","cacheState":"cold","medianRun":{"score":58,"lcp":3200,"tbt":420,"cls":0.18,"ttfb":1100},"pageInfo":{"domElements":1260,"documentSize":{"transferSize":42000,"resourceSize":151000}}}], "runs": [] },
+          "summary-lcp.json": { "cells": [{"formFactor":"mobile","cacheState":"cold","median":{"runId":"mobile-cold-1","lcp":3200,"fcp":1600,"breakdown":{"ttfb":1100,"loadDelay":500,"loadDuration":0,"renderDelay":1600},"element":null,"discovery":null,"resource":null,"timeline":[]},"p90":{"runId":"mobile-cold-2","lcp":3500,"fcp":1700,"breakdown":{"ttfb":1200,"loadDelay":500,"loadDuration":0,"renderDelay":1800},"element":null,"discovery":null,"resource":null,"timeline":[]},"delta":{"lcp":300,"perSubpart":{"ttfb":100,"loadDelay":0,"loadDuration":0,"renderDelay":200},"sameElement":true},"others":[]}] },
+          "summary-tbt.json": { "cells": [{"formFactor":"mobile","cacheState":"cold","runId":"mobile-cold-1","tbt":420,"tbtScore":0.42,"contributors":{"longTasks":[],"bootup":[{"url":"https://shop.example.com/main.js","total":420}],"thirdParty":[]},"trace":{"functions":[],"scripts":[],"longTasks":[],"lastLongTaskMs":1180}}] },
+          "summary-third-party.json": { "cells": [{"formFactor":"mobile","cacheState":"cold","runId":"mobile-cold-1","impact":{"entities":[{"entity":"analytics.example","category":"analytics","transferSize":87000,"mainThreadTime":180,"requestCount":1,"urls":[{"url":"https://analytics.example/tag.js","transferSize":87000,"mainThreadTime":180}]}],"categories":[{"category":"analytics","entityCount":1,"requestCount":1,"transferSize":87000,"mainThreadTime":180}],"totals":{"requestCount":1,"transferSize":87000,"mainThreadTime":180}}}] },
+          "opportunities.json": { "schemaVersion":1,"rules":[],"ruleset":{"id":"playhouse-default","version":"1.0.0","lighthouseVersion":"13.0.0"},"cells":[{"formFactor":"mobile","cacheState":"cold","representativeRunId":"mobile-cold-1","findings":[{"id":"unused-javascript","title":"Reduce unused JavaScript","status":"triggered","severity":"high","explanation":"Measured unused bytes in main.js.","resources":[{"kind":"url","label":"main.js","url":"https://shop.example.com/main.js","transferSize":410000,"totalBytes":410000,"wastedBytes":170000}]},{"id":"render-blocking-resources","title":"Eliminate render-blocking resources","status":"triggered","severity":"medium","explanation":"main.js blocks first paint.","resources":[{"kind":"url","label":"main.js","url":"https://shop.example.com/main.js","transferSize":410000}]}]}],"coverage":{"triggered":2,"passed":0,"notApplicable":0,"notEvaluable":0} },
+          "network-mobile-cold.json": { "formFactor":"mobile","cacheState":"cold","document":{"url":"https://shop.example.com/products/red-shoe","protocol":"h2","statusCode":200,"remoteIPAddress":"203.0.113.10","remotePort":443,"securityState":"secure"},"tls":{"protocol":"TLS 1.3","cipher":"AES_128_GCM","keyExchange":null,"keyExchangeGroup":"X25519","subjectName":"shop.example.com","issuer":"Example CA","validFrom":0,"validTo":0,"encryptedClientHello":false,"certificateTransparencyCompliance":"compliant"},"handshake":{"dnsMs":20,"tcpMs":30,"tlsMs":45,"waitMs":1100},"connections":{"totalResponses":18,"fresh":4,"reused":14,"distinctRemoteIps":3,"protocols":["h2"]} },
+          "diagnostics-mobile-cold.json": { "formFactor":"mobile","cacheState":"cold","sourceStatus":{"consoleMessages":"captured","inspectorIssues":"captured","devtoolsLog":"captured"},"summary":{"consoleErrors":0,"consoleWarnings":1,"inspectorIssues":0,"networkFailures":0,"canceledRequests":0},"console":[],"issues":[],"networkFailures":[],"canceledRequests":[] },
+          "report-mobile-cold.html": { "available": true }
+        }
+      }
+    }
+  ],
+  "catalog": {
+    "categories": [
+      { "id": "performance", "title": "Performance", "ruleIds": ["performance/lcp-budget", "performance/server-request-waterfall"] },
+      { "id": "accessibility", "title": "Accessibility", "ruleIds": ["accessibility/accessible-name"] }
+    ],
+    "ruleIds": ["performance/lcp-budget", "performance/server-request-waterfall", "accessibility/accessible-name"]
+  },
+  "evaluations": [
+    {
+      "ruleId": "performance/lcp-budget", "disposition": "finding", "title": "Slow product-page LCP", "severity": "high",
+      "summary": "The representative product-page LCP exceeds the launch target.", "remediation": "Reduce the measured render-delay subpart and recapture.",
+      "evidence": [{ "type": "playhouse", "page": "pdp", "artifact": "summary-lcp.json", "pointer": "/cells/2", "value": 1600 }]
+    },
+    {
+      "ruleId": "performance/server-request-waterfall", "disposition": "finding", "title": "Server Request Waterfall", "severity": "high",
+      "summary": "Three PDP calls wait on getProduct before the shell, and each has an opportunity. The PLP promotions call is chained because it needs the category.", "remediation": "Start inventory alongside getProduct, return badges from getProduct with a SCAPI hook, and stream reviews. Keep critical data awaited.",
+      "evidence": [{ "type": "source", "file": "src/routes/_app.product.$productId.tsx", "line": 196 }],
+      "waterfall": { "pages": [
+        {
+          "page": "plp", "route": "src/routes/_app.category.$categoryId.tsx",
+          "summary": "Parallel calls after auth, plus a promotions call that needs the category and stays awaited for the above-the-fold banner.",
+          "steps": [
+            {"id": "sites-config", "kind": "middleware", "label": "sitesConfigMiddleware · DAL read", "service": "data-store", "source": {"file": "src/middlewares/sites-config.server.ts", "line": 89}, "after": [], "blocking": true},
+            {"id": "auth", "kind": "middleware", "label": "auth · SLAS guest login", "service": "slas", "source": {"file": "src/middlewares/auth.server.ts", "line": 965}, "after": ["sites-config"], "blocking": true, "conditional": "only without a valid access token"},
+            {"id": "root-category", "kind": "api", "label": "getCategory(root)", "service": "scapi", "source": {"file": "src/routes/_app.tsx", "line": 69}, "after": ["auth"], "blocking": false},
+            {"id": "subcategories", "kind": "api", "label": "getCategories(children)", "service": "scapi", "source": {"file": "src/routes/_app.tsx", "line": 75}, "after": ["root-category"], "blocking": false},
+            {"id": "get-category", "kind": "api", "label": "getCategory", "service": "scapi", "source": {"file": "src/routes/_app.category.$categoryId.tsx", "line": 168}, "after": ["auth"], "blocking": true},
+            {"id": "critical-search", "kind": "api", "label": "productSearch (critical)", "service": "scapi", "source": {"file": "src/routes/_app.category.$categoryId.tsx", "line": 169}, "after": ["auth"], "blocking": true},
+            {"id": "get-pages", "kind": "api", "label": "getPages(plp)", "service": "scapi", "source": {"file": "src/routes/_app.category.$categoryId.tsx", "line": 176}, "after": ["auth"], "blocking": true},
+            {"id": "get-promotions", "kind": "api", "label": "GET /custom/promotions", "service": "other", "source": {"file": "src/routes/_app.category.$categoryId.tsx", "line": 162}, "after": ["get-category"], "blocking": true, "critical": true, "note": "Needs the promotion ids configured on the category and renders the banner above the fold, so the chain is necessary and should stay awaited."},
+            {"id": "rest-search", "kind": "api", "label": "productSearch (non-critical)", "service": "scapi", "source": {"file": "src/routes/_app.category.$categoryId.tsx", "line": 197}, "after": ["critical-search"], "blocking": false},
+            {"id": "render", "kind": "render", "label": "Shell render", "source": {"file": "src/entry.server.tsx", "line": 68}, "after": ["get-promotions", "critical-search", "get-pages"], "blocking": true}
+          ]
+        },
+        {
+          "page": "pdp", "route": "src/routes/_app.product.$productId.tsx",
+          "summary": "Auth, then getProduct, then three chained calls: inventory only needs the product id, badges could come back with the product, and reviews are below the fold.",
+          "steps": [
+            {"id": "sites-config", "kind": "middleware", "label": "sitesConfigMiddleware · DAL read", "service": "data-store", "source": {"file": "src/middlewares/sites-config.server.ts", "line": 89}, "after": [], "blocking": true},
+            {"id": "auth", "kind": "middleware", "label": "auth · SLAS guest login", "service": "slas", "source": {"file": "src/middlewares/auth.server.ts", "line": 965}, "after": ["sites-config"], "blocking": true, "conditional": "only without a valid access token"},
+            {"id": "root-category", "kind": "api", "label": "getCategory(root)", "service": "scapi", "source": {"file": "src/routes/_app.tsx", "line": 69}, "after": ["auth"], "blocking": false},
+            {"id": "subcategories", "kind": "api", "label": "getCategories(children)", "service": "scapi", "source": {"file": "src/routes/_app.tsx", "line": 75}, "after": ["root-category"], "blocking": false},
+            {"id": "get-product", "kind": "api", "label": "shopperProducts.getProduct", "service": "scapi", "source": {"file": "src/routes/_app.product.$productId.tsx", "line": 172}, "after": ["auth"], "blocking": true, "critical": true},
+            {"id": "get-inventory", "kind": "api", "label": "GET /inventory/{id}", "service": "other", "source": {"file": "src/routes/_app.product.$productId.tsx", "line": 196}, "after": ["get-product"], "blocking": true, "critical": true, "opportunity": "parallelize", "note": "Only needs params.productId, so it can start alongside getProduct instead of after it."},
+            {"id": "get-badges", "kind": "api", "label": "GET /custom/badges", "service": "other", "source": {"file": "src/lib/badges.server.ts", "line": 18}, "after": ["get-product"], "blocking": true, "critical": true, "opportunity": "scapi-hook", "note": "Badges come from product custom attributes; a modifyGETResponse SCAPI hook on getProduct can return them in the same call."},
+            {"id": "get-reviews", "kind": "api", "label": "GET /reviews/{id}", "service": "other", "source": {"file": "src/lib/reviews.server.ts", "line": 41}, "after": ["get-inventory"], "blocking": true, "critical": false, "opportunity": "stream", "note": "Reviews render below the fold; return the promise un-awaited so they stream after the shell."},
+            {"id": "get-pages", "kind": "api", "label": "shopperExperience.getPages(pdp)", "service": "scapi", "source": {"file": "src/routes/_app.product.$productId.tsx", "line": 230}, "after": ["get-product"], "blocking": false},
+            {"id": "render", "kind": "render", "label": "Shell render", "source": {"file": "src/entry.server.tsx", "line": 68}, "after": ["get-reviews", "get-badges"], "blocking": true}
+          ]
+        }
+      ] }
+    },
+    {
+      "ruleId": "accessibility/accessible-name", "disposition": "finding", "title": "Missing accessible name", "severity": "medium",
+      "summary": "The hero control has no accessible name.", "remediation": "Provide a visible label or accessible name.",
+      "evidence": [{ "type": "source", "file": "src/components/Hero.tsx", "line": 17, "excerpt": "<button><Icon /></button>" }]
+    }
+  ],
+  "observations": [{ "title": "Manual checkout review", "category": "accessibility", "summary": "Checkout keyboard behavior requires a human review.", "evidence": [{"type":"manual","description":"Keyboard walkthrough","location":"checkout shipping step"}] }],
+  "coverage": [
+    { "page": "checkout", "status": "partial", "note": "Checkout was not captured; manual review remains." }
+  ],
+  "summary": { "guidance": "go-with-fixes", "narrative": "Resolve the measured LCP and accessible-name findings before launch." }
+}

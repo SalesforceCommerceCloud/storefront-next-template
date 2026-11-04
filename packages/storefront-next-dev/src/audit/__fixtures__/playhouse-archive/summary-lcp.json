@@ -1,0 +1,23 @@
+{
+  "cells": [
+    {
+      "formFactor": "mobile",
+      "cacheState": "cold",
+      "median": {
+        "runId": "mobile-cold-1",
+        "lcp": 2100,
+        "breakdown": {
+          "ttfb": 600,
+          "loadDelay": 200,
+          "loadDuration": 200,
+          "renderDelay": 100
+        },
+        "element": "img",
+        "discovery": "preload",
+        "resource": {
+          "url": "https://example.com/dw/image/v2/AAAA_PRD/on/demandware.static/-/Sites-catalog/default/images/hero.webp?sw=1200&q=70"
+        }
+      }
+    }
+  ]
+}

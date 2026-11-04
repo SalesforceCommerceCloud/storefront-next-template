@@ -1,0 +1,653 @@
+/*
+ * App styles — only for what SLDS has no class for. Every value resolves to a
+ * token from tokens.css (or an --slds-g-* hook directly); data-driven geometry
+ * arrives as unitless custom properties (--audit-share 0–1, --audit-weight)
+ * set by lib/tone.ts. Class names follow SLDS BEM: block__element_modifier.
+ */
+
+/* ── Tones ─────────────────────────────────────────────────────────────── */
+.audit-tone_critical {
+  --audit-tone-solid: var(--audit-critical-solid);
+  --audit-tone-text: var(--audit-critical-text);
+  --audit-tone-container: var(--audit-critical-container);
+  --audit-tone-border: var(--audit-critical-border);
+}
+.audit-tone_high {
+  --audit-tone-solid: var(--audit-high-solid);
+  --audit-tone-text: var(--audit-high-text);
+  --audit-tone-container: var(--audit-high-container);
+  --audit-tone-border: var(--audit-high-border);
+}
+.audit-tone_medium {
+  --audit-tone-solid: var(--audit-medium-solid);
+  --audit-tone-text: var(--audit-medium-text);
+  --audit-tone-container: var(--audit-medium-container);
+  --audit-tone-border: var(--audit-medium-border);
+}
+.audit-tone_low {
+  --audit-tone-solid: var(--audit-low-solid);
+  --audit-tone-text: var(--audit-low-text);
+  --audit-tone-container: var(--audit-low-container);
+  --audit-tone-border: var(--audit-low-border);
+}
+.audit-tone_info {
+  --audit-tone-solid: var(--audit-info-solid);
+  --audit-tone-text: var(--audit-info-text);
+  --audit-tone-container: var(--audit-info-container);
+  --audit-tone-border: var(--audit-info-border);
+}
+.audit-tone_pass {
+  --audit-tone-solid: var(--audit-pass-solid);
+  --audit-tone-text: var(--audit-pass-text);
+  --audit-tone-container: var(--audit-pass-container);
+  --audit-tone-border: var(--audit-pass-border);
+}
+
+.audit-tone-text {
+  color: var(--audit-tone-text);
+}
+.audit-highlight {
+  color: var(--audit-tone-text);
+  font-weight: var(--slds-g-font-weight-bold);
+}
+
+/* ── Shell ─────────────────────────────────────────────────────────────── */
+.audit-app {
+  min-height: 100vh;
+  background: var(--audit-color-canvas);
+}
+.audit-page {
+  padding: var(--slds-g-spacing-4) var(--slds-g-spacing-5) var(--slds-g-spacing-8);
+}
+/* Feedback button: lines up with the page's right edge and fits inside the context bar. */
+.audit-feedback {
+  align-items: center;
+  padding-right: var(--slds-g-spacing-5);
+}
+.audit-feedback .slds-button {
+  line-height: 1.75rem;
+}
+.audit-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* ── Layout helpers ────────────────────────────────────────────────────── */
+.audit-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--slds-g-spacing-4);
+}
+/* SLDS spaces adjacent cards with a margin; the stack's gap already does. */
+.audit-stack > .slds-card + .slds-card {
+  margin-top: 0;
+}
+.audit-gap_x-small {
+  gap: var(--slds-g-spacing-2);
+}
+.audit-gap_small {
+  gap: var(--slds-g-spacing-3);
+}
+.audit-gap_large {
+  gap: var(--slds-g-spacing-5);
+}
+.audit-row-stretch > .slds-col {
+  display: flex;
+  margin-bottom: var(--slds-g-spacing-4);
+}
+/* slds-wrap sets align-items: flex-start; side-by-side cards share a height. */
+.audit-row-stretch {
+  align-items: stretch;
+  margin-bottom: calc(-1 * var(--slds-g-spacing-4));
+}
+.audit-fill {
+  flex: 1;
+  margin: 0;
+}
+/* Prose takes the width of its container: the dashboard's cards and columns
+ * already set the layout, and a reading-length cap here left text in a narrow
+ * column beside full-width content. */
+.audit-prose {
+  color: var(--audit-color-text-body);
+}
+
+/* SLDS fixes popovers at one width; a fit popover grows to its widest
+ * unwrappable content (a table), and prose beside it wraps to that width. */
+.slds-popover:has(> .audit-popover__body_fit) {
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--slds-g-spacing-4));
+}
+.audit-popover__body_fit > * {
+  width: min-content;
+  max-width: 100%;
+}
+
+/* ── Badges ────────────────────────────────────────────────────────────── */
+.slds-badge.audit-badge {
+  background: var(--audit-tone-container);
+  color: var(--audit-tone-text);
+  border: var(--slds-g-sizing-border-1) solid var(--audit-tone-border);
+}
+.slds-badge.audit-badge_ai {
+  background: var(--audit-color-brand-container);
+  color: var(--audit-color-brand-strong);
+  border-color: var(--audit-color-brand-border);
+}
+.audit-badge__icon {
+  fill: currentColor;
+}
+.slds-badge.audit-badge_live {
+  background: var(--audit-color-brand-container);
+  color: var(--audit-color-brand-strong);
+}
+.audit-badge_live .audit-live {
+  color: inherit;
+}
+
+/* ── Score ring ────────────────────────────────────────────────────────── */
+.audit-score {
+  --audit-score-size: var(--audit-size-score-sm);
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--audit-score-size);
+  height: var(--audit-score-size);
+  border-radius: var(--slds-g-radius-border-circle);
+  background: conic-gradient(
+    var(--audit-tone-solid) calc(var(--audit-share, 0) * 1turn),
+    var(--audit-viz-track) 0
+  );
+}
+.audit-score::before {
+  content: '';
+  position: absolute;
+  inset: var(--audit-size-score-stroke);
+  border-radius: inherit;
+  background: var(--audit-color-surface);
+}
+.audit-score_large {
+  --audit-score-size: var(--audit-size-score-lg);
+}
+.audit-score__value {
+  position: relative;
+  font-family: var(--slds-g-font-family-monospace);
+  font-weight: var(--slds-g-font-weight-bold);
+  color: var(--audit-tone-text);
+}
+.audit-score_large .audit-score__value {
+  font-size: var(--slds-g-font-scale-4);
+}
+
+/* ── Stats ─────────────────────────────────────────────────────────────── */
+.audit-stat__value {
+  font-family: var(--slds-g-font-family-monospace);
+  font-weight: var(--slds-g-font-weight-bold);
+  color: var(--audit-color-text);
+}
+.audit-stat__value_toned {
+  color: var(--audit-tone-text);
+}
+.audit-metric-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--slds-g-spacing-4);
+}
+.audit-metric-row__item {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-top: var(--slds-g-spacing-1);
+  border-top: var(--slds-g-sizing-border-2) solid var(--audit-color-divider);
+}
+/* A count that asks the reader to act: its tone colors the rule, value and icon. */
+.audit-metric-row__item_attention {
+  border-top-color: var(--audit-tone-solid);
+}
+.audit-metric-row__item_attention .audit-stat__value {
+  color: var(--audit-tone-text);
+}
+.audit-metric-row__item_attention .slds-icon {
+  fill: var(--audit-tone-solid);
+}
+
+/* ── Tiles ─────────────────────────────────────────────────────────────── */
+.audit-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--audit-size-tile-min), 1fr));
+  gap: var(--slds-g-spacing-3);
+}
+.audit-tile-grid_wide {
+  grid-template-columns: repeat(auto-fit, minmax(var(--audit-size-page-tile-min), 1fr));
+}
+.audit-tile-grid_compact {
+  grid-template-columns: repeat(auto-fill, minmax(var(--audit-size-col-severity), 1fr));
+  gap: var(--slds-g-spacing-2) var(--slds-g-spacing-4);
+}
+.audit-tile {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  box-shadow: var(--slds-g-shadow-1);
+  transition: box-shadow var(--audit-duration), border-color var(--audit-duration);
+}
+button.audit-tile {
+  cursor: pointer;
+}
+button.audit-tile:hover {
+  box-shadow: var(--slds-g-shadow-2);
+}
+.audit-tile_selected,
+.audit-tile_selected:hover {
+  border-color: var(--audit-color-brand);
+  box-shadow: inset 0 0 0 var(--slds-g-sizing-border-1) var(--audit-color-brand), var(--slds-g-shadow-2);
+}
+.audit-tile__footer {
+  margin-top: auto;
+  padding-top: var(--slds-g-spacing-2);
+}
+
+/* ── Bars ──────────────────────────────────────────────────────────────── */
+.audit-segments {
+  display: flex;
+  gap: var(--slds-g-sizing-1);
+  height: var(--audit-size-bar);
+  border-radius: var(--slds-g-radius-border-1);
+  overflow: hidden;
+  background: var(--audit-viz-track);
+}
+.audit-segments__item {
+  flex: var(--audit-weight) 1 0;
+  background: var(--audit-tone-solid);
+}
+.audit-meter {
+  height: var(--audit-size-bar);
+  border-radius: var(--slds-g-radius-border-1);
+  overflow: hidden;
+  background: var(--audit-viz-track);
+}
+.audit-meter_thin {
+  height: var(--audit-size-bar-thin);
+}
+.audit-meter__fill {
+  height: 100%;
+  width: calc(var(--audit-share, 0) * 100%);
+  background: var(--audit-tone-solid);
+  transition: width var(--audit-duration);
+}
+
+/* Server request waterfall — columns are round trips deep, not durations */
+.audit-explainer {
+  padding: var(--slds-g-spacing-3) var(--slds-g-spacing-4);
+  border-radius: var(--slds-g-radius-border-2);
+  background: var(--audit-color-surface-alt);
+  color: var(--audit-color-text-body);
+}
+.audit-waterfall__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--slds-g-spacing-2) var(--slds-g-spacing-4);
+  margin-bottom: var(--slds-g-spacing-2);
+}
+.audit-waterfall {
+  overflow-x: auto;
+  border-top: var(--slds-g-sizing-border-1) solid var(--audit-color-divider);
+}
+.audit-waterfall > ul {
+  list-style: none;
+}
+.audit-waterfall__row {
+  display: grid;
+  grid-template-columns: var(--audit-size-waterfall-call) var(--audit-size-waterfall-source) minmax(var(--audit-size-waterfall-track), 1fr);
+  align-items: center;
+  column-gap: var(--slds-g-spacing-4);
+  min-height: var(--audit-size-waterfall-row);
+  padding: var(--slds-g-spacing-1) var(--slds-g-spacing-2);
+  border-bottom: var(--slds-g-sizing-border-1) solid var(--audit-color-divider);
+  transition: background var(--audit-duration);
+}
+.audit-waterfall > ul > .audit-waterfall__row:hover {
+  background: var(--audit-color-surface-alt);
+}
+.audit-waterfall__head {
+  min-height: auto;
+  padding-block: var(--slds-g-spacing-2);
+  color: var(--audit-color-text-weak);
+  font-size: var(--slds-g-font-scale-neg-1);
+}
+.audit-waterfall__head .audit-waterfall__track {
+  text-align: center;
+}
+.audit-waterfall__call {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-family: var(--slds-g-font-family-monospace);
+  font-size: var(--slds-g-font-scale-neg-1);
+  color: var(--audit-color-text);
+}
+.audit-waterfall__name {
+  display: flex;
+  align-items: center;
+  gap: var(--slds-g-spacing-2);
+  min-width: 0;
+}
+.audit-waterfall__condition {
+  font-family: var(--slds-g-font-family);
+  color: var(--audit-color-text-weak);
+}
+.audit-waterfall__source {
+  font-family: var(--slds-g-font-family-monospace);
+  font-size: var(--slds-g-font-scale-neg-1);
+  color: var(--audit-color-text-weak);
+}
+/* One cell per round trip; only the header marks where each one starts. */
+.audit-waterfall__track {
+  display: grid;
+  grid-template-columns: repeat(var(--audit-columns), minmax(0, 1fr));
+  align-self: stretch;
+  align-items: center;
+  column-gap: var(--slds-g-spacing-1);
+}
+.audit-waterfall__head .audit-waterfall__track {
+  background: linear-gradient(to right, var(--audit-color-divider) var(--slds-g-sizing-border-1), transparent var(--slds-g-sizing-border-1))
+    0 0 / calc(100% / var(--audit-columns)) 100%;
+}
+.audit-waterfall__bar {
+  grid-column: var(--audit-column);
+  height: var(--audit-size-bar);
+  margin-inline: var(--slds-g-spacing-1);
+  border-radius: var(--slds-g-radius-border-pill);
+  background: var(--audit-viz-blocking);
+}
+.audit-waterfall__bar_streamed {
+  background: var(--audit-viz-streamed);
+}
+.audit-waterfall__bar_suggested {
+  background: var(--audit-viz-suggested);
+}
+.audit-waterfall__bar_shell {
+  background: var(--audit-viz-shell);
+}
+.audit-waterfall__swatch {
+  display: inline-block;
+  width: var(--audit-size-swatch);
+  margin: 0 var(--slds-g-spacing-1) 0 0;
+  vertical-align: middle;
+}
+/* Ties a row in the chart to its entry in the suggestions list. */
+.audit-waterfall__marker {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--audit-size-marker);
+  height: var(--audit-size-marker);
+  border-radius: var(--slds-g-radius-border-circle);
+  background: var(--audit-color-surface-alt);
+  color: var(--audit-color-text);
+  font-family: var(--slds-g-font-family);
+  font-size: var(--slds-g-font-scale-neg-2);
+  font-weight: var(--slds-g-font-weight-bold);
+}
+.audit-suggestions {
+  list-style: none;
+  margin-top: var(--slds-g-spacing-2);
+  border-top: var(--slds-g-sizing-border-1) solid var(--audit-color-divider);
+}
+.audit-suggestions__item {
+  display: flex;
+  gap: var(--slds-g-spacing-3);
+  padding: var(--slds-g-spacing-3) var(--slds-g-spacing-2);
+  border-bottom: var(--slds-g-sizing-border-1) solid var(--audit-color-divider);
+}
+.audit-suggestions__item .audit-waterfall__marker {
+  margin-top: var(--slds-g-spacing-1);
+}
+.audit-suggestions__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--slds-g-spacing-1);
+  min-width: 0;
+}
+.audit-verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--slds-g-spacing-3);
+  padding: var(--slds-g-spacing-3);
+  border-radius: var(--slds-g-radius-border-2);
+  border-left: var(--slds-g-sizing-border-3) solid var(--audit-tone-solid);
+  background: var(--audit-tone-container);
+}
+.audit-verdict .slds-icon {
+  fill: var(--audit-tone-solid);
+}
+/* ── Performance budget matrix ─────────────────────────────────────────── */
+.audit-budget {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: var(--slds-g-spacing-1);
+  table-layout: fixed;
+}
+.audit-budget th {
+  text-align: left;
+  font-weight: inherit;
+}
+.audit-budget__metric {
+  width: var(--audit-size-label-column);
+}
+.audit-budget__cell {
+  display: flex;
+  flex-direction: column;
+  padding: var(--slds-g-spacing-2);
+  border-radius: var(--slds-g-radius-border-2);
+  border-left: var(--slds-g-sizing-border-3) solid var(--audit-tone-solid);
+  background: var(--audit-tone-container);
+}
+.audit-budget__value {
+  font-family: var(--slds-g-font-family-monospace);
+  font-weight: var(--slds-g-font-weight-bold);
+  color: var(--audit-tone-text);
+}
+.audit-legend th,
+.audit-legend td {
+  white-space: nowrap;
+}
+
+/* ── Findings table ────────────────────────────────────────────────────── */
+.audit-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--slds-g-spacing-3);
+}
+.audit-filters > * {
+  min-width: var(--audit-size-col-source);
+}
+.audit-col_toggle,
+.audit-col_rank {
+  width: var(--audit-size-col-narrow);
+}
+.audit-col_severity {
+  width: var(--audit-size-col-severity);
+}
+.audit-col_meta {
+  width: var(--audit-size-col-meta);
+}
+.audit-col_source {
+  width: var(--audit-size-col-source);
+}
+.audit-row-title {
+  min-width: 0;
+  color: var(--audit-color-text);
+  font-weight: var(--slds-g-font-weight-bold);
+  text-align: left;
+  line-height: inherit;
+}
+.audit-row-title:hover {
+  color: var(--audit-color-brand);
+}
+.slds-table .audit-row_open > * {
+  background: var(--audit-color-surface-hover);
+}
+.slds-table .audit-detail-row > td {
+  background: var(--audit-color-surface-alt);
+}
+.audit-code {
+  margin-top: var(--slds-g-spacing-1);
+  padding: var(--slds-g-spacing-2) var(--slds-g-spacing-3);
+  border-radius: var(--slds-g-radius-border-2);
+  background: var(--audit-color-inverse-surface);
+  color: var(--audit-color-inverse-text);
+  font-family: var(--slds-g-font-family-monospace);
+  font-size: var(--slds-g-font-scale-neg-1);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ── Launch readiness card ─────────────────────────────────────────────── */
+.audit-mascot {
+  width: var(--audit-size-mascot);
+  height: auto;
+}
+
+/* ── Lighthouse embed ──────────────────────────────────────────────────── */
+.audit-embed {
+  display: block;
+  width: 100%;
+  height: var(--audit-size-embed);
+  border: var(--slds-g-sizing-border-1) solid var(--audit-color-border);
+  border-radius: var(--slds-g-radius-border-2);
+  background: var(--audit-color-surface);
+}
+.audit-embed_empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--slds-g-spacing-2);
+  height: auto;
+  padding: var(--slds-g-spacing-8) var(--slds-g-spacing-4);
+  border-style: dashed;
+  background: var(--audit-color-surface-alt);
+}
+
+/* ── Live progress ─────────────────────────────────────────────────────── */
+.audit-step {
+  padding: var(--slds-g-spacing-3) var(--slds-g-spacing-4);
+}
+.audit-step_active {
+  background: var(--audit-color-surface-hover);
+  box-shadow: inset var(--slds-g-sizing-border-3) 0 0 var(--audit-color-brand);
+}
+.audit-step__icon {
+  display: grid;
+  place-items: center;
+  width: var(--slds-g-sizing-6);
+  height: var(--slds-g-sizing-6);
+}
+.audit-step__spinner {
+  position: relative;
+  display: block;
+  width: var(--slds-g-sizing-5);
+  height: var(--slds-g-sizing-5);
+}
+/* The inline spinner still renders inside an overlay container; neutralize it
+ * so the dots center in the step's icon slot. */
+.audit-step__spinner .slds-spinner_container {
+  background: transparent;
+}
+.audit-step__pending {
+  display: block;
+  width: var(--slds-g-sizing-5);
+  height: var(--slds-g-sizing-5);
+  border: var(--slds-g-sizing-border-2) solid var(--audit-color-border-strong);
+  border-radius: var(--slds-g-radius-border-circle);
+}
+
+/* Latest findings: a fixed badge column keeps every title on one left edge,
+ * and rows share the card header's inset. */
+.slds-item.audit-feed-item {
+  padding-inline: var(--slds-g-spacing-4);
+}
+.audit-feed-item__severity {
+  width: var(--audit-size-severity-badge);
+}
+
+.audit-live {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--slds-g-spacing-1);
+  color: var(--audit-pass-text);
+}
+.audit-live::before {
+  content: '';
+  width: var(--audit-size-dot);
+  height: var(--audit-size-dot);
+  border-radius: var(--slds-g-radius-border-circle);
+  background: currentColor;
+  animation: audit-pulse var(--audit-duration-pulse) ease-in-out infinite alternate;
+}
+.audit-live_done {
+  color: var(--audit-color-text-weak);
+}
+.audit-live_done::before {
+  animation: none;
+}
+@keyframes audit-pulse {
+  to {
+    opacity: var(--audit-opacity-faded);
+  }
+}
+
+.audit-log {
+  height: var(--audit-size-log);
+  overflow-y: auto;
+  margin: 0 var(--slds-g-spacing-4);
+  padding: var(--slds-g-spacing-2) var(--slds-g-spacing-3);
+  border-radius: var(--slds-g-radius-border-2);
+  background: var(--audit-color-inverse-surface);
+}
+.audit-log__list {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--slds-g-spacing-1);
+  min-height: 100%;
+}
+.audit-log__line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--slds-g-spacing-3);
+  font-family: var(--slds-g-font-family-monospace);
+  font-size: var(--slds-g-font-scale-neg-1);
+}
+.audit-log__time {
+  color: var(--audit-log-time);
+}
+.audit-log__message {
+  overflow-wrap: anywhere;
+}
+.audit-log__message_info {
+  color: var(--audit-log-info);
+}
+.audit-log__message_ok {
+  color: var(--audit-log-ok);
+}
+.audit-log__message_warn {
+  color: var(--audit-log-warn);
+}
+.audit-log__message_find {
+  color: var(--audit-log-find);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audit-live::before,
+  .audit-meter__fill,
+  .audit-tile {
+    animation: none;
+    transition: none;
+  }
+}

@@ -1,3 +1,4 @@
+import "../package.js";
 import { t as logger } from "../logger.js";
 import "../logger2.js";
 import { Command, Flags } from "@oclif/core";

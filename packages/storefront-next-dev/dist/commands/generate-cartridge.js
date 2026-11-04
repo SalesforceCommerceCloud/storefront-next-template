@@ -1,3 +1,4 @@
+import "../package.js";
 import "../logger.js";
 import "../logger2.js";
 import "../format-with-project-biome.js";

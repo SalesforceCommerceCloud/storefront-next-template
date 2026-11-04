@@ -22,10 +22,15 @@ import { visualizer } from 'rollup-plugin-visualizer';
  * Env vars:
  * - BUNDLES_SIZE_ANALYZE: when truthy, generates the visualizer report and opens it (any value)
  *   Example: BUNDLES_SIZE_ANALYZE=true
+ * - BUNDLES_SIZE_OPEN: set to `false` to generate the report without opening it in a browser
+ *   Example: BUNDLES_SIZE_ANALYZE=true BUNDLES_SIZE_OPEN=false
  */
 export function bundleVisualizer() {
     return perEnvironmentPlugin('bundle-visualizer', (env) => {
         if (!process.env.BUNDLES_SIZE_ANALYZE) return;
-        return visualizer({ filename: `./build/${env.name}-bundle-size.html`, open: true });
+        return visualizer({
+            filename: `./build/${env.name}-bundle-size.html`,
+            open: process.env.BUNDLES_SIZE_OPEN !== 'false',
+        });
     });
 }

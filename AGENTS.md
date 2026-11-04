@@ -98,7 +98,7 @@ pnpm storybook:test --type=interaction --static --reuse-build # Test an existing
 
 **Bundle size with treemap:**
 ```bash
-cross-env BUNDLES_SIZE_ANALYZE=true pnpm build    # Interactive treemap (build/client-bundle-size.html)
+cross-env BUNDLES_SIZE_ANALYZE=true pnpm build    # Interactive treemap (build/client-bundle-size.html); add BUNDLES_SIZE_OPEN=false to skip opening it
 ```
 
 **Cartridge deploy with clean wipe:**

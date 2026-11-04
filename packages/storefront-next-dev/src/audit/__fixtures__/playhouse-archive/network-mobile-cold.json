@@ -1,0 +1,1 @@
+{"formFactor":"mobile","cacheState":"cold","document":{"url":"https://example.com","protocol":"h2","statusCode":200,"remoteIPAddress":null,"remotePort":443,"securityState":"secure"},"tls":null,"handshake":{"dnsMs":20,"tcpMs":30,"tlsMs":45,"waitMs":480},"connections":{"totalResponses":3,"fresh":1,"reused":2,"distinctRemoteIps":1,"protocols":["h2"]}}

@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "lib": ["ES2023", "DOM", "DOM.Iterable"],
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "jsx": "react-jsx",
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "noEmit": true,
+        "verbatimModuleSyntax": true,
+        "skipLibCheck": true,
+        "types": ["vite/client"]
+    },
+    "include": [
+        "src",
+        "vite.config.ts",
+        // Ambient `declare module` typings for design-system-react (it ships no package "types").
+        "../../../node_modules/@salesforce/design-system-react/module/components/**/*.d.ts"
+    ]
+}

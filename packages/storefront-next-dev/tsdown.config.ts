@@ -1,4 +1,18 @@
+import { globSync } from 'node:fs';
 import { defineConfig } from 'tsdown';
+
+// Site audit rule scripts, imported by `audit prepare` at runtime from beside their rule Markdown.
+const auditRuleScripts = Object.fromEntries(
+    globSync('src/audit/catalog/categories/*/rules/*.ts', { exclude: ['**/*.test.ts'] }).map((file) => [
+        file.replace(/^src[\\/]/, '').replace(/\.ts$/, ''),
+        file,
+    ])
+);
+// The catalog Markdown and the rule-evaluation contract, read at runtime.
+const auditMarkdown = globSync(['src/audit/catalog/**/*.md', 'src/audit/instructions/*.md']).map((file) => ({
+    from: file,
+    to: file.replace(/^src/, 'dist'),
+}));
 
 /**
  * Build configurations for @salesforce/storefront-next-dev:
@@ -172,6 +186,13 @@ export default defineConfig([
             'commands/scapi/remove': 'src/commands/scapi/remove.ts',
             // Locales commands
             'commands/locales/aggregate-extensions': 'src/commands/locales/aggregate-extensions.ts',
+            // Site audit commands
+            'commands/audit/prepare': 'src/commands/audit/prepare.ts',
+            'commands/audit/finalize': 'src/commands/audit/finalize.ts',
+            'commands/audit/serve': 'src/commands/audit/serve.ts',
+            'commands/audit/progress': 'src/commands/audit/progress.ts',
+            'commands/audit/catalog': 'src/commands/audit/catalog.ts',
+            ...auditRuleScripts,
             // oclif hooks
             'hooks/init': 'src/hooks/init.ts',
             'hooks/operation-lifecycle': 'src/hooks/operation-lifecycle.ts',
@@ -187,6 +208,7 @@ export default defineConfig([
                 from: 'src/extensibility/templates',
                 to: 'dist/extensibility/templates',
             },
+            ...auditMarkdown,
         ],
         clean: false,
         external: [/node_modules/],
