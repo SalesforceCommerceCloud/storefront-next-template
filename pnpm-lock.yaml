@@ -13,7 +13,7 @@ overrides:
   esbuild: 0.28.1
   rollup: 4.62.2
   serialize-javascript: 7.0.6
-  '@xmldom/xmldom': 0.9.10
+  '@xmldom/xmldom': 0.9.12
   http-proxy-middleware: 3.0.6
   undici: 7.29.0
   fast-uri: 3.1.4
@@ -4456,10 +4456,9 @@ packages:
       detox: '>=20.33.0'
       expect: 29.x.x || 28.x.x || ^27.2.5
 
-  '@xmldom/xmldom@0.9.10':
-    resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
+  '@xmldom/xmldom@0.9.12':
+    resolution: {integrity: sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==}
     engines: {node: '>=14.6'}
-    deprecated: this version has critical issues, please update to the latest version
 
   '@zeit/schemas@2.36.0':
     resolution: {integrity: sha512-7kjMwcChYEzMKjeex9ZFXkt1AyNov9R5HZtjBKVsmVpw7pa7ZtlCGvCBC2vnnXctaYN+aRI61HjIqeetZW5ROg==}
@@ -14108,7 +14107,7 @@ snapshots:
       expect: 30.5.2
     optional: true
 
-  '@xmldom/xmldom@0.9.10': {}
+  '@xmldom/xmldom@0.9.12': {}
 
   '@zeit/schemas@2.36.0': {}
 
@@ -14941,7 +14940,7 @@ snapshots:
       '@cucumber/cucumber-expressions': 18.1.0
       '@cucumber/gherkin': 35.1.0
       '@cucumber/messages': 29.0.1
-      '@xmldom/xmldom': 0.9.10
+      '@xmldom/xmldom': 0.9.12
       acorn: 8.15.0
       arrify: 3.0.0
       axios: 1.18.0(debug@4.4.3)
