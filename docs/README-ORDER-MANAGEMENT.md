@@ -22,6 +22,27 @@ On orgs without SOM, the expand tokens are silently ignored (OAS degrade contrac
 **Help Center:**  
 [Order Management Help](https://help.salesforce.com/articleView?id=sf.order_management.htm&type=5)
 
+## Order Status Badges
+
+Order history and Order Details display cancellation first, then returns, then active item-level OMS fulfillment. Without usable fulfillment data, the raw B2C order status takes precedence over the raw OMS order status.
+
+| Active item states | Badge |
+|---|---|
+| Ordered | Ordered |
+| Allocated, partially fulfilled, reshipped, or ordered + allocated | In Progress |
+| Allocated + shipped/fulfilled, or fulfilled + missing/unknown | Partially Shipped |
+| Shipped, fulfilled, or fulfilled + shipped | Shipped |
+| Shipped/fulfilled + delivered | Part Order Delivered |
+| Delivered | Delivered |
+
+Cancelled lines and cancelled units are excluded from fulfillment. Missing, blank, or unknown active item statuses prevent a complete shipped/delivered badge; unresolved-only data uses the raw-status fallback. Cancellation recognizes either spelling (`canceled`/`cancelled`) or finite counters showing all ordered units cancelled. Return status remains returned-first: any returned units take precedence over in-flight returns.
+
+Badges use item-level data on both pages; see [History shipment expansion](#history-shipment-expansion) for the API limitation.
+
+### History shipment expansion
+
+History requests `expand=oms`; Details requests `expand=oms,oms_shipments`. In the tested Commerce API environment, History rejects `oms_shipments` with HTTP 400 (`Invalid Expand Parameter`), while Details accepts it. Badges therefore do not aggregate shipment records or add per-order Details requests to History. Delivered shipment records alone do not advance the item-derived badge to Delivered.
+
 ## Order Returns
 
 Shoppers can request item-level returns for eligible items. The Return Items dialog renders a selection UI (checkboxes, quantity steppers, reason dropdown), validates the request, and submits it to OMS via the [`action.return-order.ts`](../src/routes/action.return-order.ts) server action.
@@ -204,12 +225,12 @@ When a line carries OMS per-unit quantities (`quantityOrdered`, `quantityCancele
 |--------|---------|
 | `DELIVERED` | All active units have been delivered |
 | `PART_ORDER_DELIVERED` | Some (not all) active units have been delivered |
-| `SHIPPED` | All active units have been shipped (none delivered) |
-| `PARTIALLY_SHIPPED` | Some active units have been shipped (none delivered) |
-| `IN_PROGRESS` | At least one unit is in progress (allocated, fulfilled, processing); none shipped or delivered |
+| `SHIPPED` | All active units are shipped, in transit, or fully fulfilled (none delivered) |
+| `PARTIALLY_SHIPPED` | Some active units are shipped/in transit/fulfilled; others remain active (none delivered) |
+| `IN_PROGRESS` | At least one unit is in progress (allocated, partially fulfilled, reshipped, processing) or unresolved; none shipped or delivered |
 | `ORDERED` | All active units are ordered (created, approved, new, open, placed); none in progress, shipped, or delivered |
 
-Unknown item statuses default to `IN_PROGRESS` (never a terminal state like "Delivered") so an unexpected value never reads as completed.
+Salesforce Order Management uses full `fulfilled` to mean shipped, not delivered. Merchants integrating another OMS must adapt the exported `ITEM_FULFILLMENT_STATUS_MAP` in [`status.ts`](../src/lib/order/status.ts) to that system's status semantics. `partially_fulfilled` does not establish the shipped quantity in this item-only aggregation, so it remains in progress; `reshipped` also remains in progress. Missing, blank, and unknown active statuses prevent complete shipment/delivery; unresolved-only data uses the raw-status fallback. This item-level matrix does not aggregate shipment records or require additional per-order requests; see [History shipment expansion](#history-shipment-expansion).
 
 ## Refunds (Out of Scope)
 

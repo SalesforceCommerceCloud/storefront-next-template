@@ -19,6 +19,7 @@ import { action } from 'storybook/actions';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import { mockLocale, mockSiteObject } from '@/test-utils/config';
 import { OrderListItem, type OrderListItemData } from '../index';
+import type { OrderFulfillmentStatusType } from '@/lib/order/status';
 import heroNewArrivals from '/images/hero-02.webp';
 
 const baseOrder: OrderListItemData = {
@@ -50,6 +51,8 @@ const meta: Meta<typeof OrderListItem> = {
     argTypes: {
         order: { control: 'object' },
         maxThumbnails: { control: { type: 'number', min: 1, max: 20 } },
+        onViewDetails: { table: { disable: true } },
+        className: { table: { disable: true } },
     },
     args: {
         order: baseOrder,
@@ -72,6 +75,27 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+/** One representative fulfillment badge with a control for the six display states. */
+export const WithFulfillmentStatus: StoryObj<
+    React.ComponentProps<typeof OrderListItem> & {
+        fulfillmentStatus: OrderFulfillmentStatusType;
+    }
+> = {
+    args: { fulfillmentStatus: 'PARTIALLY_SHIPPED' },
+    argTypes: {
+        fulfillmentStatus: {
+            control: 'select',
+            options: ['ORDERED', 'IN_PROGRESS', 'PARTIALLY_SHIPPED', 'SHIPPED', 'PART_ORDER_DELIVERED', 'DELIVERED'],
+            description: 'Active fulfillment state, displayed after cancellation and return statuses.',
+            table: { category: 'Synthetic (data shape)' },
+        },
+        order: { table: { disable: true } },
+    },
+    render: ({ fulfillmentStatus, ...args }) => (
+        <OrderListItem {...args} order={{ ...baseOrder, status: 'new', statusLabel: 'New', fulfillmentStatus }} />
+    ),
+};
 
 export const WithPickupLocation: Story = {
     args: {

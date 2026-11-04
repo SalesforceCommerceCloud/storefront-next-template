@@ -20,7 +20,7 @@ import { siteContext, type SiteContext } from '@salesforce/storefront-next-runti
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
 import { getLogger } from '@/lib/logger.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
-import { getOrderReturnStatus, resolveOrderStatus } from '@/lib/order/status';
+import { getOrderFulfillmentStatus, getOrderReturnStatus, resolveOrderStatus } from '@/lib/order/status';
 import { isOrderCancelled } from '@/lib/order-management/cancel';
 import type { Order } from '@/components/account/order-list';
 import type { ProductExpand } from '@/lib/api/products.server';
@@ -248,6 +248,8 @@ export function transformOrderForList(
     scapiOrder: ShopperCustomers.schemas['Order'],
     productsById?: OrderProductDataById
 ): Order {
+    // Derive from the full OMS payload before reducing items to display-only fields.
+    const fulfillmentStatus = getOrderFulfillmentStatus(scapiOrder);
     const itemCount = scapiOrder.productItems?.reduce((acc, item) => acc + (item.quantity ?? 1), 0) ?? 0;
 
     const productItems = scapiOrder.productItems?.map((item) => {
@@ -285,6 +287,7 @@ export function transformOrderForList(
         // (present only when the list request expands 'oms'). undefined when not applicable.
         cancelStatus: isOrderCancelled(scapiOrder) ? ('cancelled' as const) : undefined,
         returnStatus: getOrderReturnStatus(scapiOrder),
+        fulfillmentStatus,
         total: scapiOrder.orderTotal ?? 0,
         currency: scapiOrder.currency,
         itemCount,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { ShopperOrders } from '@/scapi';
-import { isOrderCancelled } from '@/lib/order-management/cancel';
+import { isItemCancelled, isOrderCancelled } from '@/lib/order-management/cancel';
 
 /**
  * Order and shipping status labels and badge styles for account order UI.
@@ -49,8 +49,7 @@ export type OrderReturnStatusLabelKey =
 
 /**
  * Order-level FULFILLMENT display statuses, aggregated from item-level `omsData.status`
- * per the Shopper Agent Order Level Status Matrix. Mirrors PWA Kit's
- * `getOrderDisplayStatus`. These describe the fulfillment lifecycle after checkout
+ * per the audited OMS item-status matrix. These describe the fulfillment lifecycle after checkout
  * and before any return activity; when a cancel/return derivation applies it takes
  * precedence over any fulfillment state.
  */
@@ -94,7 +93,7 @@ export interface OrderFulfillmentStatusConfig {
 
 /**
  * Shared badge shells for SCAPI order status; unknown statuses use neutral `bg-muted` in components.
- * Palette diverges slightly from PWA Kit's `order-status-badge` on the UX team's guidance:
+ * Palette follows the UX team's guidance:
  * green for terminal successes (created/new/completed/replaced), red/critical for
  * cancelled/failed, gray/muted for complete-return states, and blue/info for in-progress
  * return states so shoppers can distinguish an in-flight return from one that has fully settled.
@@ -163,7 +162,8 @@ const SHIPPING_STATUS_CONFIG: Record<ShippingStatusType, ShippingStatusConfig> =
 };
 
 function normalizeScapiStatusToken(status: string): string {
-    return status.toLowerCase().replace(/\s+/g, '_');
+    const normalized = status.trim().toLowerCase().replace(/\s+/g, '_');
+    return normalized === 'canceled' ? 'cancelled' : normalized;
 }
 
 function lookupStatusConfig<K extends string, C>(map: Record<K, C>, status: string | undefined): C | undefined {
@@ -299,7 +299,7 @@ function statusToReturnBucket(status: string | undefined): ReturnUnitBucket {
  * units are excluded from the active total so a fully-returned-but-partly-cancelled
  * order still reads `RETURN_COMPLETE`), `quantityReturned` units are returned,
  * `quantityReturnInitiated − quantityReturned` are in-flight returns, and the rest
- * take the line's `status`. This mirrors PWA Kit and lets a single line with
+ * take the line's `status`. This lets a single line with
  * quantity > 1 report a partial return. When quantities are absent the line falls
  * back to one unit categorized by its `status` string, preserving the original
  * one-entry-per-line behavior.
@@ -379,9 +379,8 @@ export function getOrderReturnStatusConfig(
 }
 
 /**
- * Fulfillment badge shells. Mirrors PWA Kit's `OrderStatusBadge`, which renders every
- * non-cancel/non-return fulfillment state in a single green badge (colorScheme='green').
- * SFN uses the same `success` shell so the badge palette stays consistent with PWA.
+ * Fulfillment badge shells use the green `success` style for every
+ * non-cancel/non-return fulfillment state.
  */
 const FULFILLMENT_STATUS_CONFIG: Record<OrderFulfillmentStatusType, OrderFulfillmentStatusConfig> = {
     ORDERED: {
@@ -412,17 +411,20 @@ const FULFILLMENT_STATUS_CONFIG: Record<OrderFulfillmentStatusType, OrderFulfill
 };
 
 /** Canonical item-level fulfillment buckets that raw OMS item statuses normalize into. */
-type ItemFulfillmentBucket = 'ordered' | 'in_progress' | 'shipped' | 'delivered' | 'cancelled';
+type ItemFulfillmentBucket = 'ordered' | 'in_progress' | 'shipped' | 'delivered' | 'cancelled' | 'unresolved';
 
 /**
  * Case-insensitive exact-match map from a raw OMS item `omsData.status` string to a
- * canonical fulfillment bucket. Mirrors PWA Kit's `STATUS_MAP` (`app/utils/order-status-utils.js`)
- * so both platforms bucket the same raw values identically.
+ * canonical fulfillment bucket. Exported for merchant integration customization.
  *
- * `allocated`/`fulfilled` are intentionally IN_PROGRESS (upstream fulfillment-order milestones,
- * not customer-visible "Delivered").
+ * Salesforce Order Management uses full `fulfilled` to mean shipped, not delivered.
+ * Other OMS integrations must adapt this map to their own status semantics.
+ * `partially_fulfilled` does not establish the shipped quantity in this item-only
+ * aggregation, so it remains in progress.
+ * `allocated`, `partially_fulfilled`, and `reshipped`
+ * remain in progress without evidence of complete shipment.
  */
-const ITEM_FULFILLMENT_STATUS_MAP: Record<string, ItemFulfillmentBucket> = {
+export const ITEM_FULFILLMENT_STATUS_MAP: Record<string, ItemFulfillmentBucket> = {
     ordered: 'ordered',
     created: 'ordered',
     approved: 'ordered',
@@ -433,7 +435,11 @@ const ITEM_FULFILLMENT_STATUS_MAP: Record<string, ItemFulfillmentBucket> = {
     'in progress': 'in_progress',
     processing: 'in_progress',
     allocated: 'in_progress',
-    fulfilled: 'in_progress',
+    fulfilled: 'shipped',
+    paid: 'in_progress',
+    reshipped: 'in_progress',
+    partially_allocated: 'in_progress',
+    partially_fulfilled: 'in_progress',
     shipped: 'shipped',
     in_transit: 'shipped',
     'in transit': 'shipped',
@@ -444,24 +450,24 @@ const ITEM_FULFILLMENT_STATUS_MAP: Record<string, ItemFulfillmentBucket> = {
 
 /**
  * Return states are handled separately by {@link getOrderReturnStatus}. The fulfillment
- * aggregation excludes these buckets rather than mapping them to `in_progress` (which would
- * happen via the unknown-status fallback otherwise).
+ * aggregation excludes these buckets rather than treating them as unresolved fulfillment.
  */
 const ITEM_RETURN_STATUSES = new Set(['returned', 'return_initiated', 'return initiated', 'return requested']);
 
 /**
  * Maps a raw item-level `omsData.status` string to a canonical fulfillment bucket.
  * Return states (`returned`/`return_initiated`) are treated as "not fulfillment" and yield
- * `undefined` so the caller excludes them from aggregation. Unknown but present statuses
- * default to `in_progress` (mirrors PWA Kit's `STATUS_MAP[s] ?? ITEM_BUCKET.IN_PROGRESS`)
- * so an unexpected value never reads as a terminal state like "Delivered".
+ * `undefined` so the caller excludes them from aggregation. Missing, blank and unknown
+ * statuses stay unresolved so they cannot imply complete shipment or delivery.
  */
 function bucketForItemStatus(status: string | undefined): ItemFulfillmentBucket | undefined {
-    if (status == null) return undefined;
+    if (status == null) return 'unresolved';
     const normalized = status.trim().toLowerCase();
-    if (!normalized) return undefined;
+    if (!normalized) return 'unresolved';
     if (ITEM_RETURN_STATUSES.has(normalized)) return undefined;
-    return ITEM_FULFILLMENT_STATUS_MAP[normalized] ?? 'in_progress';
+    return Object.hasOwn(ITEM_FULFILLMENT_STATUS_MAP, normalized)
+        ? ITEM_FULFILLMENT_STATUS_MAP[normalized]
+        : 'unresolved';
 }
 
 /**
@@ -481,11 +487,14 @@ type FulfillmentStatusOrderShape = {
     }[];
 };
 
+/** Preserves fractional OMS fulfillment quantities; missing/non-finite counters use status-only fallback. */
+function toFulfillmentQuantity(value: number | undefined): number | null {
+    return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : null;
+}
+
 /**
  * Derives the order-level FULFILLMENT display status by aggregating per-unit
- * fulfillment buckets across all line items. Mirrors PWA Kit's `getOrderDisplayStatus`
- * (`app/utils/order-status-utils.js`) so both platforms produce the same terminal
- * state for the same underlying data.
+ * fulfillment buckets across all line items using the audited OMS item-status matrix.
  *
  * When a line carries OMS per-unit quantities it is expanded into individual units:
  * cancelled units drop out, returned / return-initiated units are excluded from
@@ -493,11 +502,9 @@ type FulfillmentStatusOrderShape = {
  * and the remaining units take the line's fulfillment bucket. When quantities are
  * absent, the whole line contributes a single unit categorized by its status string.
  *
- * Returns `undefined` when:
- * - no item carries a usable `omsData.status`, OR
- * - the caller has already resolved cancel/return states (fulfillment is not the
- *   right badge in those cases — check {@link getOrderCancelStatusConfig} and
- *   {@link getOrderReturnStatus} first).
+ * Unresolved active units prevent terminal statuses. At least one recognized active
+ * fulfillment state is required; otherwise returns `undefined` for raw-status fallback.
+ * Callers resolve cancellation and returns before fulfillment.
  */
 export function getOrderFulfillmentStatus(order: FulfillmentStatusOrderShape): OrderFulfillmentStatusType | undefined {
     const items = order.productItems ?? [];
@@ -506,40 +513,37 @@ export function getOrderFulfillmentStatus(order: FulfillmentStatusOrderShape): O
     // Only the distinct set of active fulfillment buckets matters — per-unit counts never
     // change the outcome (`all`/`some` below test bucket membership, not quantities).
     const buckets = new Set<ItemFulfillmentBucket>();
-    let anyStatusPresent = false;
+    let recognizedActiveStatus = false;
 
     for (const item of items) {
         const oms = item.omsData;
-        if (oms?.status != null && oms.status.trim() !== '') {
-            anyStatusPresent = true;
-        }
+        if (isItemCancelled(item)) continue;
         const bucket = bucketForItemStatus(oms?.status);
-        // Return-state and status-less items don't contribute to fulfillment aggregation.
+        // Return-state items don't contribute to fulfillment aggregation.
         if (bucket === undefined) continue;
 
-        const ordered = toUnitCount(oms?.quantityOrdered);
+        const ordered = toFulfillmentQuantity(oms?.quantityOrdered);
 
         // No usable quantity breakdown → categorize the line by its status string.
         if (ordered == null) {
             if (bucket === 'cancelled') continue;
             buckets.add(bucket);
+            if (bucket !== 'unresolved') recognizedActiveStatus = true;
             continue;
         }
 
-        const canceled = toUnitCount(oms?.quantityCanceled) ?? 0;
+        const canceled = toFulfillmentQuantity(oms?.quantityCanceled) ?? 0;
         // `quantityReturnInitiated` is cumulative (it already counts fully-returned units),
         // so subtracting it once removes every unit currently in any return flow.
-        const returnInitiated = toUnitCount(oms?.quantityReturnInitiated) ?? 0;
+        const returnInitiated = toFulfillmentQuantity(oms?.quantityReturnInitiated) ?? 0;
         // Units still in the line's fulfillment state (not cancelled, not in any return flow).
         const remaining = Math.max(0, ordered - canceled - returnInitiated);
         if (remaining === 0) continue;
         buckets.add(bucket);
+        if (bucket !== 'unresolved') recognizedActiveStatus = true;
     }
 
-    // No item carried a status at all → nothing to show. When all statuses were present but
-    // resolved to return/cancelled states, the caller's cancel/return derivations render the
-    // right badge instead of this one.
-    if (!anyStatusPresent || buckets.size === 0) return undefined;
+    if (!recognizedActiveStatus) return undefined;
 
     const all = (bucket: ItemFulfillmentBucket) => buckets.size === 1 && buckets.has(bucket);
     const some = (bucket: ItemFulfillmentBucket) => buckets.has(bucket);
@@ -550,10 +554,7 @@ export function getOrderFulfillmentStatus(order: FulfillmentStatusOrderShape): O
     if (all('shipped')) return 'SHIPPED';
     if (some('shipped')) return 'PARTIALLY_SHIPPED';
 
-    // Any in-progress unit reads as in progress. Unknown raw statuses already resolved to
-    // `in_progress` via {@link bucketForItemStatus}'s fallback, mirroring PWA's
-    // `STATUS_MAP[s] ?? ITEM_BUCKET.IN_PROGRESS` behavior.
-    if (some('in_progress')) return 'IN_PROGRESS';
+    if (some('in_progress') || some('unresolved')) return 'IN_PROGRESS';
 
     return 'ORDERED';
 }
@@ -583,16 +584,23 @@ const CANCEL_STATUS_CONFIG: OrderCancelStatusConfig = {
 };
 
 /**
- * Returns the "Cancelled" badge config when every product item is in OMS
- * `canceled` state. Delegates to {@link isOrderCancelled} for the single
- * source-of-truth predicate. The SCAPI order-level `status` field stays stale
+ * Returns the "Cancelled" badge config for raw cancellation or when every product
+ * item is cancelled by OMS status or counters. Delegates item aggregation to
+ * {@link isOrderCancelled}. The SCAPI order-level `status` field can stay stale
  * ("new" / "created") even after all items are cancelled via OMS, so this
  * item-level derivation is necessary for the badge to reflect reality.
  */
 export function getOrderCancelStatusConfig(
-    order: Parameters<typeof isOrderCancelled>[0]
+    order:
+        | (NonNullable<Parameters<typeof isOrderCancelled>[0]> & { status?: string; omsData?: { status?: string } })
+        | null
+        | undefined
 ): OrderCancelStatusConfig | undefined {
-    return isOrderCancelled(order) ? CANCEL_STATUS_CONFIG : undefined;
+    if (order == null) return undefined;
+    return getOrderStatusConfig(resolveOrderStatus(order))?.labelKey === 'orders.status.cancelled' ||
+        isOrderCancelled(order)
+        ? CANCEL_STATUS_CONFIG
+        : undefined;
 }
 
 /**

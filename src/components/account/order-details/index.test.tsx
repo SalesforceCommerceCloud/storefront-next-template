@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router';
 import { OrderDetails } from './index';
@@ -115,6 +115,85 @@ function OrderDetailsWithProviders({
 }
 
 describe('OrderDetails', () => {
+    test.each([
+        [['ordered'], 'Ordered'],
+        [['allocated'], 'In Progress'],
+        [['allocated', 'shipped'], 'Partially Shipped'],
+        [['shipped'], 'Shipped'],
+        [['fulfilled'], 'Shipped'],
+        [['fulfilled', 'fulfilled'], 'Shipped'],
+        [['  FuLfIlLeD  '], 'Shipped'],
+        [['fulfilled', 'allocated'], 'Partially Shipped'],
+        [['fulfilled', 'future_state'], 'Partially Shipped'],
+        [['fulfilled', undefined], 'Partially Shipped'],
+        [['fulfilled', 'shipped'], 'Shipped'],
+        [['fulfilled', 'delivered'], 'Part Order Delivered'],
+        [['fulfilled', 'canceled'], 'Shipped'],
+        [['shipped', 'delivered'], 'Part Order Delivered'],
+        [['delivered'], 'Delivered'],
+    ] as const)('shows fulfillment badge for %s', (statuses, label) => {
+        render(
+            <OrderDetailsWithProviders
+                order={
+                    {
+                        ...defaultOrder,
+                        productItems: statuses.map((status, i) => ({
+                            ...defaultOrder.productItems?.[0],
+                            itemId: String(i),
+                            omsData: { status },
+                        })),
+                    } as unknown as ShopperOrders.schemas['Order']
+                }
+            />
+        );
+        expect(screen.getByTestId('order-status-badge').textContent).toBe(label);
+    });
+
+    test('raw cancellation outranks fulfilled items', () => {
+        render(
+            <OrderDetailsWithProviders
+                order={
+                    {
+                        ...defaultOrder,
+                        status: 'cancelled',
+                        productItems: [{ ...defaultOrder.productItems?.[0], omsData: { status: 'fulfilled' } }],
+                    } as unknown as ShopperOrders.schemas['Order']
+                }
+            />
+        );
+        expect(screen.getByTestId('order-cancel-status-badge')).toHaveTextContent(t('account:orders.status.cancelled'));
+        expect(screen.queryByTestId('order-status-badge')).not.toBeInTheDocument();
+    });
+
+    test.each([' cancelled ', ' CANCELED '])('raw %s outranks stale delivered items', (status) => {
+        render(
+            <OrderDetailsWithProviders
+                order={
+                    {
+                        ...defaultOrder,
+                        status,
+                        productItems: [{ ...defaultOrder.productItems?.[0], omsData: { status: 'delivered' } }],
+                    } as unknown as ShopperOrders.schemas['Order']
+                }
+            />
+        );
+        expect(screen.getByTestId('order-cancel-status-badge')).toHaveTextContent(t('account:orders.status.cancelled'));
+    });
+
+    test('unresolved-only enrichment keeps B2C status ahead of OMS fallback', () => {
+        render(
+            <OrderDetailsWithProviders
+                order={
+                    {
+                        ...defaultOrder,
+                        omsData: { status: 'Allocated' },
+                        productItems: [{ ...defaultOrder.productItems?.[0], omsData: { status: 'future_state' } }],
+                    } as unknown as ShopperOrders.schemas['Order']
+                }
+            />
+        );
+        expect(screen.getByTestId('order-status-badge')).toHaveTextContent('New');
+    });
     const renderOrderDetails = (order = defaultOrder) => render(<OrderDetailsWithProviders order={order} />);
 
     test('renders order details section', () => {
@@ -168,8 +247,11 @@ describe('OrderDetails', () => {
         it.each([
             [['returned'], 'Return Complete', 'muted'],
             [['returned', 'ordered'], 'Partial Return Complete', 'muted'],
+            [['returned', 'fulfilled'], 'Partial Return Complete', 'muted'],
+            [['returned', 'return_initiated', 'fulfilled'], 'Partial Return Complete', 'muted'],
             [['return_initiated'], 'Return Initiated', 'info'],
             [['return_initiated', 'ordered'], 'Partial Return Initiated', 'info'],
+            [['return_initiated', 'fulfilled'], 'Partial Return Initiated', 'info'],
         ] as const)('renders %s as the "%s" return badge instead of the raw status', (statuses, expectedLabel, shell) => {
             const order = {
                 ...defaultOrder,
@@ -215,7 +297,7 @@ describe('OrderDetails', () => {
             omsData: { status: 'cancelled' },
         } as unknown as ShopperOrders.schemas['Order'];
         renderOrderDetails(order);
-        expect(screen.getByTestId('order-status-badge')).toHaveTextContent(t('account:orders.status.cancelled'));
+        expect(screen.getByTestId('order-cancel-status-badge')).toHaveTextContent(t('account:orders.status.cancelled'));
     });
 
     test('order-status badge prefers ECOM status over OMS status when both are present', () => {
@@ -586,6 +668,27 @@ describe('OrderDetails', () => {
             renderWith({ order: cancelledOrder });
             expect(screen.getByTestId('order-cancel-status-badge')).toBeInTheDocument();
             expect(screen.queryByTestId('order-status-badge')).not.toBeInTheDocument();
+        });
+
+        test.each([
+            { status: ' CANCELLED ', quantityOrdered: 1, quantityAvailableToCancel: 1 },
+            { status: 'allocated', quantityOrdered: 1, quantityCanceled: 1, quantityAvailableToCancel: 1 },
+        ])('cancel action consumer disables an already cancelled order (%s)', async (omsData) => {
+            renderWith({
+                order: {
+                    ...cancellableOrder,
+                    productItems: [{ ...defaultOrder.productItems?.[0], omsData }],
+                } as unknown as ShopperOrders.schemas['Order'],
+                customerId: 'cust-123',
+                omsMetaData: Promise.resolve({ omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] }),
+            });
+            const button = await screen.findByRole('button', { name: t('account:orders.cancelOrder') });
+            expect(button).toHaveAttribute('aria-disabled', 'true');
+            expect(button).toHaveAccessibleDescription(t('account:orders.cancelUnavailable'));
+            expect(screen.getByText(t('account:orders.cancelUnavailable'))).toBeInTheDocument();
+            fireEvent.click(button);
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+            expect(screen.getByTestId('order-cancel-status-badge')).toBeInTheDocument();
         });
     });
 

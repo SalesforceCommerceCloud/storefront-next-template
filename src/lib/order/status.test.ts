@@ -46,6 +46,10 @@ describe('order-status', () => {
     test('normalizes status (lowercase, spaces to underscores)', () => {
         expect(getOrderStatusConfig('COMPLETED')?.labelKey).toBe('orders.status.completed');
         expect(getOrderStatusConfig('REPLACED')?.labelKey).toBe('orders.status.replaced');
+        expect(getOrderStatusConfig(' CANCELED ')?.labelKey).toBe('orders.status.cancelled');
+        expect(getOrderCancelStatusConfig({ status: ' CANCELLED ', productItems: [item('delivered')] })?.labelKey).toBe(
+            'orders.status.cancelled'
+        );
     });
 
     test('returns undefined for non-SCAPI order status strings', () => {
@@ -67,16 +71,14 @@ describe('order-status', () => {
         expect(getOrderStatusConfig('new')?.icon).toBeUndefined();
     });
 
-    test('assigns PWA-aligned badge classes to each SCAPI status', () => {
-        // Green (success) for non-cancelled, non-return states — including `created`/`new` which
-        // PWA Kit renders as green. Distinguished from `completed`/`replaced` by the absence of
-        // the check icon, not by color.
+    test('assigns badge classes to each SCAPI status', () => {
+        // Green (success) for created/new/completed/replaced. The check icon
+        // distinguishes completed/replaced from created/new.
         expect(getOrderStatusConfig('created')?.className).toContain('bg-status-positive');
         expect(getOrderStatusConfig('new')?.className).toContain('bg-status-positive');
         expect(getOrderStatusConfig('completed')?.className).toContain('bg-status-positive');
         expect(getOrderStatusConfig('replaced')?.className).toContain('bg-status-positive');
-        // Red (critical) for cancelled + failed. `failed` diverges from PWA (which greens it) —
-        // SFN keeps the red-with-x styling because `failed` is a genuine terminal error state.
+        // Red (critical) for cancelled + failed.
         expect(getOrderStatusConfig('cancelled')?.className).toContain('bg-status-critical');
         expect(getOrderStatusConfig('failed')?.className).toContain('bg-status-critical');
     });
@@ -320,6 +322,10 @@ describe('order-status', () => {
     });
 
     describe('cancel status', () => {
+        test.each([null, undefined])('returns undefined for nullable input %s', (order) => {
+            expect(getOrderCancelStatusConfig(order)).toBeUndefined();
+        });
+
         test('returns cancelled badge when all items have canceled status', () => {
             const config = getOrderCancelStatusConfig({
                 productItems: [{ omsData: { status: 'canceled' } }, { omsData: { status: 'canceled' } }],
@@ -355,8 +361,7 @@ describe('order-status', () => {
     });
 
     describe('fulfillment display status', () => {
-        // Mirrors the PWA Kit `getOrderDisplayStatus` matrix (see
-        // packages/template-retail-react-app/app/utils/order-status-utils.js).
+        // Audited OMS item-status matrix used by order history and details.
 
         test('all items ordered/created/approved → ORDERED', () => {
             for (const raw of ['ordered', 'created', 'approved', 'new', 'open', 'placed']) {
@@ -364,10 +369,99 @@ describe('order-status', () => {
             }
         });
 
-        test('all items in_progress/processing/allocated/fulfilled → IN_PROGRESS', () => {
-            for (const raw of ['in_progress', 'processing', 'allocated', 'fulfilled']) {
+        test('all items in_progress/processing/allocated → IN_PROGRESS', () => {
+            for (const raw of ['in_progress', 'processing', 'allocated']) {
                 expect(getOrderFulfillmentStatus({ productItems: [item(raw)] })).toBe('IN_PROGRESS');
             }
+        });
+
+        test.each([
+            [['fulfilled'], 'SHIPPED'],
+            [['fulfilled', 'fulfilled'], 'SHIPPED'],
+            [['  FuLfIlLeD  '], 'SHIPPED'],
+            [['fulfilled', 'allocated'], 'PARTIALLY_SHIPPED'],
+            [['fulfilled', 'future_state'], 'PARTIALLY_SHIPPED'],
+            [['fulfilled', undefined], 'PARTIALLY_SHIPPED'],
+            [['fulfilled', 'shipped'], 'SHIPPED'],
+            [['fulfilled', 'delivered'], 'PART_ORDER_DELIVERED'],
+            [['fulfilled', 'canceled', 'cancelled'], 'SHIPPED'],
+            [['fulfilled', 'returned', 'return_initiated'], 'SHIPPED'],
+        ] as const)('fulfilled matrix %s → %s', (statuses, expected) => {
+            expect(getOrderFulfillmentStatus({ productItems: statuses.map(item) })).toBe(expected);
+        });
+
+        test('fulfilled units respect cancellation and cumulative return counters', () => {
+            expect(
+                getOrderFulfillmentStatus({
+                    productItems: [
+                        {
+                            omsData: {
+                                status: 'fulfilled',
+                                quantityOrdered: 3,
+                                quantityCanceled: 1,
+                                quantityReturnInitiated: 1,
+                                quantityReturned: 1,
+                            },
+                        },
+                    ],
+                })
+            ).toBe('SHIPPED');
+            expect(
+                getOrderFulfillmentStatus({
+                    productItems: [
+                        {
+                            omsData: {
+                                status: 'fulfilled',
+                                quantityOrdered: 2,
+                                quantityCanceled: 1,
+                                quantityReturnInitiated: 1,
+                            },
+                        },
+                    ],
+                })
+            ).toBeUndefined();
+        });
+
+        test.each([
+            'paid',
+            'reshipped',
+            'partially_allocated',
+            'partially_fulfilled',
+        ])('known OMS enum %s conservatively resolves to IN_PROGRESS', (status) => {
+            expect(getOrderFulfillmentStatus({ productItems: [item(status)] })).toBe('IN_PROGRESS');
+            expect(getOrderFulfillmentStatus({ productItems: [item(`  ${status.toUpperCase()}  `)] })).toBe(
+                'IN_PROGRESS'
+            );
+            expect(getOrderFulfillmentStatus({ productItems: [item('shipped'), item(status)] })).toBe(
+                'PARTIALLY_SHIPPED'
+            );
+            expect(getOrderFulfillmentStatus({ productItems: [item('delivered'), item(status)] })).toBe(
+                'PART_ORDER_DELIVERED'
+            );
+        });
+
+        test.each([
+            { quantityOrdered: 0.5 },
+            { quantityOrdered: 1.5, quantityCanceled: 1 },
+            { quantityOrdered: 1.5, quantityReturnInitiated: 1 },
+        ])('fractional unresolved remainder %j prevents terminal fulfillment', (quantities) => {
+            const unresolved = { omsData: { status: 'future_state', ...quantities } };
+            expect(getOrderFulfillmentStatus({ productItems: [item('delivered'), unresolved] })).toBe(
+                'PART_ORDER_DELIVERED'
+            );
+            expect(getOrderFulfillmentStatus({ productItems: [item('shipped'), unresolved] })).toBe(
+                'PARTIALLY_SHIPPED'
+            );
+        });
+
+        test.each([
+            { quantityOrdered: 0.5, quantityCanceled: 0.5 },
+            { quantityOrdered: 0.5, quantityReturnInitiated: 0.5 },
+            { quantityOrdered: 1, quantityCanceled: 0.5, quantityReturnInitiated: 0.5 },
+        ])('fractional excluded quantities %j leave no active fulfillment', (quantities) => {
+            expect(
+                getOrderFulfillmentStatus({ productItems: [{ omsData: { status: 'ordered', ...quantities } }] })
+            ).toBeUndefined();
         });
 
         test('all items shipped → SHIPPED', () => {
@@ -403,8 +497,65 @@ describe('order-status', () => {
             expect(getOrderFulfillmentStatus({ productItems: [item('canceled'), item('cancelled')] })).toBeUndefined();
         });
 
-        test('unknown status counts as in-progress (someUnknown branch)', () => {
-            expect(getOrderFulfillmentStatus({ productItems: [item('some_future_state')] })).toBe('IN_PROGRESS');
+        test.each([
+            'some_future_state',
+            'constructor',
+            'toString',
+        ])('unknown-only %s preserves raw fallback', (status) => {
+            expect(getOrderFulfillmentStatus({ productItems: [item(status)] })).toBeUndefined();
+        });
+
+        test.each([undefined, '', '   ', 'future_state'])('unresolved %s lines prevent terminal badges', (raw) => {
+            expect(getOrderFulfillmentStatus({ productItems: [item('delivered'), item(raw)] })).toBe(
+                'PART_ORDER_DELIVERED'
+            );
+            expect(getOrderFulfillmentStatus({ productItems: [item('shipped'), item(raw)] })).toBe('PARTIALLY_SHIPPED');
+            expect(getOrderFulfillmentStatus({ productItems: [item('ordered'), item(raw)] })).toBe('IN_PROGRESS');
+            expect(getOrderFulfillmentStatus({ productItems: [item(raw)] })).toBeUndefined();
+        });
+
+        test('recognized states must belong to active units', () => {
+            expect(
+                getOrderFulfillmentStatus({
+                    productItems: [
+                        { omsData: { status: 'delivered', quantityOrdered: 2, quantityCanceled: 2 } },
+                        item('unknown'),
+                    ],
+                })
+            ).toBeUndefined();
+        });
+
+        test.each([' canceled ', ' CANCELLED '])('excludes %s lines with and without counters', (status) => {
+            for (const counters of [{}, { quantityOrdered: 2, quantityCanceled: 0 }]) {
+                expect(
+                    getOrderFulfillmentStatus({
+                        productItems: [{ omsData: { status, ...counters } }, item('delivered')],
+                    })
+                ).toBe('DELIVERED');
+            }
+        });
+
+        test('partial cancelled units leave remaining fulfillment active', () => {
+            expect(
+                getOrderFulfillmentStatus({
+                    productItems: [
+                        { omsData: { status: 'ordered', quantityOrdered: 3, quantityCanceled: 2 } },
+                        item('shipped'),
+                    ],
+                })
+            ).toBe('PARTIALLY_SHIPPED');
+        });
+
+        test.each([
+            [['ordered'], 'ORDERED'],
+            [['allocated'], 'IN_PROGRESS'],
+            [['ordered', 'allocated'], 'IN_PROGRESS'],
+            [['allocated', 'shipped'], 'PARTIALLY_SHIPPED'],
+            [['shipped'], 'SHIPPED'],
+            [['shipped', 'delivered'], 'PART_ORDER_DELIVERED'],
+            [['delivered'], 'DELIVERED'],
+        ] as const)('matrix %s → %s', (statuses, expected) => {
+            expect(getOrderFulfillmentStatus({ productItems: statuses.map(item) })).toBe(expected);
         });
 
         test('empty productItems → undefined', () => {
@@ -470,7 +621,7 @@ describe('order-status', () => {
                 'orders.fulfillmentStatus.partOrderDelivered'
             );
             expect(getOrderFulfillmentStatusConfig('DELIVERED')?.labelKey).toBe('orders.fulfillmentStatus.delivered');
-            // All fulfillment states render in the green (success) shell to match PWA Kit.
+            // All fulfillment states render in the green (success) shell.
             for (const status of [
                 'ORDERED',
                 'IN_PROGRESS',

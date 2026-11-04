@@ -308,6 +308,54 @@ describe('fetchOrderWithProducts', () => {
 });
 
 describe('transformOrderForList', () => {
+    test.each([
+        [['ordered'], 'ORDERED'],
+        [['allocated'], 'IN_PROGRESS'],
+        [['allocated', 'shipped'], 'PARTIALLY_SHIPPED'],
+        [['shipped'], 'SHIPPED'],
+        [['fulfilled'], 'SHIPPED'],
+        [['fulfilled', 'fulfilled'], 'SHIPPED'],
+        [['  FuLfIlLeD  '], 'SHIPPED'],
+        [['fulfilled', 'allocated'], 'PARTIALLY_SHIPPED'],
+        [['fulfilled', 'future_state'], 'PARTIALLY_SHIPPED'],
+        [['fulfilled', undefined], 'PARTIALLY_SHIPPED'],
+        [['fulfilled', 'shipped'], 'SHIPPED'],
+        [['fulfilled', 'delivered'], 'PART_ORDER_DELIVERED'],
+        [['fulfilled', 'canceled'], 'SHIPPED'],
+        [['shipped', 'delivered'], 'PART_ORDER_DELIVERED'],
+        [['delivered'], 'DELIVERED'],
+    ] as const)('projects fulfillment from original OMS items %s', (statuses, expected) => {
+        const result = transformOrderForList({
+            status: 'new',
+            productItems: statuses.map((status) => ({
+                productId: status ?? 'missing',
+                quantity: 1,
+                omsData: { status },
+            })),
+        } as unknown as ShopperCustomers.schemas['Order']);
+        expect(result.fulfillmentStatus).toBe(expected);
+        expect(result.status).toBe('new');
+        expect(result.productItems?.[0]).not.toHaveProperty('omsData');
+    });
+
+    test('unresolved-only enrichment leaves fulfillment unset and preserves B2C-first fallback', () => {
+        const result = transformOrderForList({
+            status: 'completed',
+            omsData: { status: 'Allocated' },
+            productItems: [{ omsData: { status: 'future_state' } }],
+        } as unknown as ShopperCustomers.schemas['Order']);
+        expect(result.fulfillmentStatus).toBeUndefined();
+        expect(result.status).toBe('completed');
+    });
+
+    test('projects quantity-derived cancellation without stale fulfillment', () => {
+        const result = transformOrderForList({
+            status: 'new',
+            productItems: [{ omsData: { status: 'delivered', quantityOrdered: 2, quantityCanceled: 2 } }],
+        } as unknown as ShopperCustomers.schemas['Order']);
+        expect(result.cancelStatus).toBe('cancelled');
+        expect(result.fulfillmentStatus).toBeUndefined();
+    });
     test('transforms SCAPI order to display format without product images', () => {
         const scapiOrder: ShopperCustomers.schemas['Order'] = {
             orderNo: 'ORD-123',
