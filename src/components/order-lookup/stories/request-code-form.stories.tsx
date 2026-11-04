@@ -65,7 +65,10 @@ function WithTurnstileMock({ Story }: { Story: ComponentType }) {
     return (
         <div className="w-full max-w-md p-6 bg-background border rounded-none">
             <h1 className="text-2xl font-bold text-foreground mb-1">Order Lookup</h1>
-            <p className="text-sm text-muted-foreground mb-6">Enter the order number and email used at checkout.</p>
+            <p className="text-sm text-muted-foreground mb-6">
+                Enter your order number and the email address you used for the order. If you have an account, sign in to
+                view your orders.
+            </p>
             <Story />
         </div>
     );
@@ -80,7 +83,7 @@ async function fillForm(canvas: ReturnType<typeof within>) {
 
 async function fillAndSubmit(canvas: ReturnType<typeof within>) {
     await fillForm(canvas);
-    const submitButton = canvas.getByRole('button', { name: /find my order/i });
+    const submitButton = canvas.getByRole('button', { name: /find order/i });
     await waitFor(() => expect(submitButton).not.toBeDisabled());
     await userEvent.click(submitButton);
 }
@@ -142,7 +145,7 @@ export const Default: Story = {
         await expect(canvas.getByLabelText('Order Number')).toBeInTheDocument();
         await expect(canvas.getByLabelText('Email Address')).toBeInTheDocument();
         await expect(canvas.getByTestId('turnstile-widget')).toBeInTheDocument();
-        await expect(canvas.getByRole('button', { name: /find my order/i })).toBeInTheDocument();
+        await expect(canvas.getByRole('button', { name: /find order/i })).toBeInTheDocument();
     },
 };
 
@@ -162,9 +165,9 @@ export const Submitting: Story = {
 
         await fillAndSubmit(canvas);
 
-        const submitButton = canvas.getByRole('button', { name: /find my order/i });
+        const submitButton = canvas.getByRole('button', { name: /find order/i });
         await waitFor(() => expect(submitButton).toBeDisabled());
-        await expect(submitButton).toHaveTextContent('Find My Order...');
+        await expect(submitButton).toHaveTextContent('Find Order...');
     },
 };
 
@@ -230,7 +233,7 @@ export const CodeSentState: Story = {
         await fillAndSubmit(canvas);
 
         await expect(
-            await canvas.findByText(/We've sent a verification code to test@example.com/i)
+            await canvas.findByText(/Enter the verification code that we sent to test@example.com/i)
         ).toBeInTheDocument();
         await expect(canvas.getByRole('button', { name: /resend code/i })).toBeInTheDocument();
     },
@@ -251,7 +254,7 @@ export const TurnstileDisabled: Story = {
         await expect(canvas.getByLabelText('Order Number')).toBeInTheDocument();
         await expect(canvas.getByLabelText('Email Address')).toBeInTheDocument();
         await expect(canvas.queryByTestId('turnstile-widget')).not.toBeInTheDocument();
-        await expect(canvas.getByRole('button', { name: /find my order/i })).toBeInTheDocument();
+        await expect(canvas.getByRole('button', { name: /find order/i })).toBeInTheDocument();
     },
 };
 

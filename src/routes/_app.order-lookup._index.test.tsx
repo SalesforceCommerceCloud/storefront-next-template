@@ -83,7 +83,8 @@ vi.mock('react-i18next', () => ({
         t: (key: string, params?: Record<string, unknown>) => {
             const translations: Record<string, string> = {
                 'guestOrderLookup.title': 'Order Lookup',
-                'guestOrderLookup.description': 'Enter the order number and email used at checkout.',
+                'guestOrderLookup.description':
+                    'Enter your order number and the email address you used for the order. If you have an account, sign in to view your orders.',
             };
             return params?.defaultValue || translations[key] || key;
         },
@@ -210,7 +211,10 @@ describe('OrderLookupEntryPage component', () => {
 
         const seoMeta = screen.getByTestId('seo-meta');
         expect(seoMeta).toHaveAttribute('data-title', 'Order Lookup');
-        expect(seoMeta).toHaveAttribute('data-description', 'Enter the order number and email used at checkout.');
+        expect(seoMeta).toHaveAttribute(
+            'data-description',
+            'Enter your order number and the email address you used for the order. If you have an account, sign in to view your orders.'
+        );
         expect(seoMeta).toHaveAttribute('data-no-index', 'true');
     });
 

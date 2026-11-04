@@ -2084,7 +2084,7 @@
     "orderLookup": {
         "results": {
             "title": "Verify Your Email",
-            "description": "We've sent a verification code to {{email}}. Please enter it below.",
+            "description": "Enter the verification code that we sent to {{email}}.",
             "loading": "Loading your order...",
             "errors": {
                 "lookupFailed": "Unable to retrieve your order. Please try again later."
@@ -2117,12 +2117,12 @@
     "guestOrderLookup": {
         "footerLinkLabel": "Order Lookup",
         "title": "Order Lookup",
-        "description": "Enter the order number and email used at checkout.",
+        "description": "Enter your order number and the email address you used for the order. If you have an account, sign in to view your orders.",
         "orderNumberLabel": "Order Number",
         "emailLabel": "Email Address",
-        "submitRequestCode": "Find My Order",
+        "submitRequestCode": "Find Order",
         "enterCodeTitle": "Verify Your Email",
-        "enterCodeDescription": "We've sent a verification code to {{email}}. Please enter it below.",
+        "enterCodeDescription": "Enter the verification code that we sent to {{email}}.",
         "codeLabel": "Verification Code",
         "submitVerify": "View Order",
         "resend": "Resend Code",

@@ -101,7 +101,8 @@ export default function OrderLookupEntryPage(): ReactElement {
             <SeoMeta
                 title={t('guestOrderLookup.title', { defaultValue: 'Order Lookup' })}
                 description={t('guestOrderLookup.description', {
-                    defaultValue: 'Enter the order number and email used at checkout.',
+                    defaultValue:
+                        'Enter your order number and the email address you used for the order. If you have an account, sign in to view your orders.',
                 })}
                 noIndex
             />
@@ -114,7 +115,8 @@ export default function OrderLookupEntryPage(): ReactElement {
                         </h1>
                         <p className="text-muted-foreground">
                             {t('guestOrderLookup.description', {
-                                defaultValue: 'Enter the order number and email used at checkout.',
+                                defaultValue:
+                                    'Enter your order number and the email address you used for the order. If you have an account, sign in to view your orders.',
                             })}
                         </p>
                     </div>

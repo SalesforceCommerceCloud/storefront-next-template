@@ -66,7 +66,7 @@ vi.mock('react-i18next', () => ({
                 errorTurnstileFailed: 'Verification failed. Please try again.',
                 errorScapiUnsupported: 'Guest order lookup is not available. Please contact support.',
                 cooldownActive: `Please wait ${String(params?.seconds ?? 60)} seconds before requesting a new code.`,
-                enterCodeDescription: `We've sent a verification code to ${String(params?.email ?? 'your email')}. Please enter it below.`,
+                enterCodeDescription: `Enter the verification code that we sent to ${String(params?.email ?? 'your email')}.`,
                 resend: 'Resend Code',
                 // OrderLookupErrorMessage (rendered inside RequestCodeForm) uses colon-syntax multi-namespace keys
                 'guestOrderLookup:errorInvalidInput': 'Please check your order number and email address.',
@@ -198,7 +198,9 @@ describe('RequestCodeForm', () => {
         rerender(<RequestCodeForm />);
 
         await waitFor(() => {
-            expect(screen.getByText(/We've sent a verification code to test@example.com/i)).toBeInTheDocument();
+            expect(
+                screen.getByText(/Enter the verification code that we sent to test@example.com/i)
+            ).toBeInTheDocument();
             expect(screen.getByRole('button', { name: /resend code/i })).toBeInTheDocument();
         });
     });
@@ -243,7 +245,9 @@ describe('RequestCodeForm', () => {
 
         // Should show code-sent state (enumeration defense: no distinction for not-found)
         await waitFor(() => {
-            expect(screen.getByText(/We've sent a verification code to test@example.com/i)).toBeInTheDocument();
+            expect(
+                screen.getByText(/Enter the verification code that we sent to test@example.com/i)
+            ).toBeInTheDocument();
         });
     });
 
