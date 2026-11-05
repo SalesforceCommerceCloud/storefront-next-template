@@ -34,10 +34,10 @@ A full audit of three pages takes about 30 minutes. Tell the user that before yo
 2. **SDK version.** The `sfnext audit` commands ship in `@salesforce/storefront-next-dev` **1.4.1** and later. Check:
 
    ```bash
-   pnpm exec sfnext audit --help
+   pnpm exec sfnext audit prepare --help
    ```
 
-   It prints the five audit commands (`prepare`, `serve`, `progress`, `finalize`, `catalog`). `audit` may be missing from the top-level `sfnext --help` list, so don't use that list as the test. If it prints `Command audit not found`, or `pnpm exec sfnext --version` reports an older version, stop and tell the user the audit needs `@salesforce/storefront-next-dev` 1.4.1 or later. Upgrading changes `package.json` and the lockfile and can bring other SDK changes, so it is the user's decision: point them to `docs/COMPATIBILITY.md` in the project, and run an upgrade only if they ask you to. If `node_modules` is missing, run step 3's install first and check again.
+   The five audit commands are `prepare`, `serve`, `progress`, `finalize` and `catalog`. They are intentionally hidden from the parent `sfnext audit --help` and top-level `sfnext --help` lists, so use `prepare --help` as the availability check. If it prints `Command audit:prepare not found`, or `pnpm exec sfnext --version` reports an older version, stop and tell the user the audit needs `@salesforce/storefront-next-dev` 1.4.1 or later. Upgrading changes `package.json` and the lockfile and can bring other SDK changes, so it is the user's decision: point them to `docs/COMPATIBILITY.md` in the project, and run an upgrade only if they ask you to. If `node_modules` is missing, run step 3's install first and check again.
 3. **Workspace ignored by git.** Run `git check-ignore -q .site-audit`. If it isn't ignored (projects created before 1.4.1), tell the user to add `.site-audit/` to `.gitignore`; don't edit it yourself.
 
 ## 2. Find the pages

@@ -16,6 +16,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { createRoutesStub } from 'react-router';
 import type { ShopperCustomers, ShopperProducts } from '@/scapi';
 import { loader } from './_app.account.wishlist';
 import { fetchProductsForWishlist } from '@/lib/api/wishlist.server';
@@ -840,7 +841,10 @@ describe('WishlistSkeleton Component', () => {
             productsByProductId: pendingPromise,
         };
 
-        const { container } = render(<AccountWishlist loaderData={loaderData as any} />);
+        const Stub = createRoutesStub([
+            { path: '/', Component: () => <AccountWishlist loaderData={loaderData as any} /> },
+        ]);
+        const { container } = render(<Stub />);
 
         // Should show the Wishlist page title from translation while loading
         const heading = screen.getByRole('heading', { level: 1 });

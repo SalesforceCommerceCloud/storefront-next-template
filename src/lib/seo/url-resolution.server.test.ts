@@ -241,6 +241,41 @@ describe('resolveCategoryRoute', () => {
     });
 });
 
+describe("the '*' SEO route entry", () => {
+    const withDefault: SeoRoutesConfig = { RefArch: seoRoutes.RefArch, '*': seoRoutes.SlugStore };
+    const routeOptions = (pathname: string, siteId = 'Unlisted', config: SeoRoutesConfig = withDefault) => ({
+        url: new URL(`https://example.com/${siteId}/en-US${pathname}`),
+        urlPrefix: '/:siteId/:localeId',
+        siteId,
+        seoRoutes: config,
+    });
+
+    test('resolves product, category, and content routes for a site without its own entry', () => {
+        expect(resolveProductRoute(routeOptions('/product/mens/PROD-1'))).toEqual({ productId: 'PROD-1' });
+        expect(resolveCategoryRoute(routeOptions('/catalog/skin%20care/day'))).toEqual({
+            categoryLookup: 'skin care/day',
+            routeRefinement: 'cgslug=skin care/day',
+            slugPath: 'skin care/day',
+        });
+        expect(resolveContentRoute(routeOptions('/stories/content/about'))).toEqual({
+            type: 'content',
+            resourceId: 'about',
+            slugSegments: [],
+        });
+    });
+
+    test("prefers a site's own entry over the '*' entry", () => {
+        expect(resolveProductRoute(routeOptions('/p/PROD-1', 'RefArch'))).toEqual({ productId: 'PROD-1' });
+        expect(resolveProductRoute(routeOptions('/product/PROD-1', 'RefArch'))).toBeNull();
+    });
+
+    test("does not resolve a site that has neither its own entry nor a '*' entry", () => {
+        expect(resolveProductRoute(routeOptions('/p/PROD-1', 'Unlisted', seoRoutes))).toBeNull();
+        expect(resolveCategoryRoute(routeOptions('/c/womens', 'Unlisted', seoRoutes))).toBeNull();
+        expect(resolveContentRoute(routeOptions('/cms/content/about', 'Unlisted', seoRoutes))).toBeNull();
+    });
+});
+
 describe('configured SEO routes with an MRT base path', () => {
     beforeEach(() => {
         vi.stubGlobal('window', undefined);

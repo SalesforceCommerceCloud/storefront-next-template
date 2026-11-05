@@ -18,7 +18,7 @@ import type React from 'react';
 
 vi.mock('@/hooks/use-analytics', () => ({
     useAnalytics: () => ({
-        trackViewSearchSuggestions: vi.fn(),
+        trackViewSearchSuggestions: vi.fn().mockResolvedValue(true),
         trackClickSearchSuggestion: vi.fn(),
     }),
 }));

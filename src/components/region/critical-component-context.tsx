@@ -17,8 +17,8 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 
 const CriticalRegionContext = createContext(false);
 
-function getMarkerId(componentId: string, componentTypeId: string): string {
-    return `page-designer-critical-component-${encodeURIComponent(`${componentId}:${componentTypeId}`)}`;
+function getMarkerId(componentId: string): string {
+    return `pdc-${encodeURIComponent(componentId)}`;
 }
 
 export function CriticalRegionProvider({ children }: { children: ReactNode }) {
@@ -30,31 +30,27 @@ export function useIsInCriticalRegion(): boolean {
     return useContext(CriticalRegionContext);
 }
 
+/** Whether this component instance is in the server HTML being hydrated, as identified by its marker. */
 // oxlint-disable-next-line react-refresh/only-export-components
-export function useWasServerRendered(componentId: string, componentTypeId: string): boolean {
-    const isInCriticalRegion = useIsInCriticalRegion();
-    const markerId = getMarkerId(componentId, componentTypeId);
+export function useWasServerRendered(componentId: string): boolean {
+    const markerId = getMarkerId(componentId);
     const [serverMarkerId] = useState(() => {
-        if (!isInCriticalRegion) return undefined;
         if (import.meta.env.SSR) return markerId;
         return typeof document !== 'undefined' && document.getElementById(markerId) ? markerId : undefined;
     });
     return serverMarkerId === markerId;
 }
 
-export function CriticalComponentHydrationMarker({
+/**
+ * Inert marker for a server-rendered component instance. Its ID identifies the instance during hydration, and its
+ * type lets the client entry register the component before hydration, so the component renders in the first pass.
+ */
+export function ComponentHydrationMarker({
     componentId,
     componentTypeId,
-    requiresRegistration,
 }: {
     componentId: string;
     componentTypeId: string;
-    requiresRegistration: boolean;
 }) {
-    return (
-        <template
-            id={getMarkerId(componentId, componentTypeId)}
-            data-page-designer-component-type={requiresRegistration ? componentTypeId : undefined}
-        />
-    );
+    return <template id={getMarkerId(componentId)} data-pdct={componentTypeId} />;
 }

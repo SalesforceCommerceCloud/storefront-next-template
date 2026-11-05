@@ -30,11 +30,7 @@ import { emitPageDesignerResourceHints } from '@/lib/page-designer/critical-regi
 const logger = createLogger();
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import { useComponentDataById } from './component-data-context';
-import {
-    CriticalComponentHydrationMarker,
-    useIsInCriticalRegion,
-    useWasServerRendered,
-} from './critical-component-context';
+import { ComponentHydrationMarker, useIsInCriticalRegion, useWasServerRendered } from './critical-component-context';
 import type { ComponentType } from './index';
 
 export interface ComponentProps {
@@ -129,8 +125,8 @@ export const Component = memo(function Component({ component, className, regionI
     // Get this component's data promise from context by its ID
     const dataPromise = useComponentDataById(component.id);
     const isInCriticalRegion = useIsInCriticalRegion();
-    const wasServerRendered = useWasServerRendered(component.id, component.typeId);
-    const requiresRegistration = !(dataPromise instanceof Promise);
+    const wasServerRendered = useWasServerRendered(component.id);
+    const hasDeferredData = dataPromise instanceof Promise;
     const FallbackComponent = registry.getFallback(component.typeId);
 
     // Emit hints only for component wrappers that the server actually reaches. In particular,
@@ -177,7 +173,7 @@ export const Component = memo(function Component({ component, className, regionI
     // render tree suspends. A local Suspense boundary would flush the empty component fallback and
     // move its SSR content into a script-dependent hidden streaming segment instead.
     const componentContent =
-        isInCriticalRegion && wasServerRendered && requiresRegistration ? (
+        isInCriticalRegion && wasServerRendered && !hasDeferredData ? (
             content
         ) : (
             <Suspense fallback={fallback}>{content}</Suspense>
@@ -185,12 +181,10 @@ export const Component = memo(function Component({ component, className, regionI
 
     return (
         <>
+            {/* Every server-rendered component marks its type, so the client entry registers it before hydration
+                and the component hydrates in the first pass instead of suspending on its module. */}
             {wasServerRendered && (
-                <CriticalComponentHydrationMarker
-                    componentId={component.id}
-                    componentTypeId={component.typeId}
-                    requiresRegistration={requiresRegistration}
-                />
+                <ComponentHydrationMarker componentId={component.id} componentTypeId={component.typeId} />
             )}
             <ComponentErrorBoundary
                 key={`${component.id}:${component.typeId}`}

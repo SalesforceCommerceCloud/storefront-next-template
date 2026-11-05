@@ -19,10 +19,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderToPipeableStream } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Region, type ComponentType } from './index';
+import { EmbeddedComponentRegion } from './embedded-component-region';
 import type { ShopperExperience } from '@/scapi';
+import type { ComponentWithComponentData } from '@/lib/page-designer/component-loader.server';
 import { registry } from '@/lib/page-designer/registry';
 import { registerServerRenderedComponentTypes } from '@/lib/page-designer/registry-components';
-import HeroCarousel from '@/components/hero-carousel';
+import HeroCarousel, { HeroCarouselPlain } from '@/components/hero-carousel';
+import AuthProvider, { useAuth } from '@/providers/auth';
+import { getUserTypeCookieName } from '@/lib/auth/user-type-hint';
 
 // `Region` reads `config.features.livePreview` at the top level, so an SSR render without a
 // `ConfigProvider` in the tree throws. Force a stable config while leaving the module's other
@@ -40,8 +44,9 @@ interface StreamedRender {
     errors: unknown[];
 }
 
-const criticalComponentMarkerId = (componentId: string, componentTypeId: string) =>
-    `page-designer-critical-component-${encodeURIComponent(`${componentId}:${componentTypeId}`)}`;
+const SITE_ID = 'RefArchGlobal';
+
+const componentMarkerId = (componentId: string) => `pdc-${encodeURIComponent(componentId)}`;
 
 function deferred<T>() {
     let resolve!: (value: T) => void;
@@ -191,6 +196,7 @@ describe('Page Designer region streaming SSR', () => {
 
         expect(shell).not.toContain('NON_CRITICAL_CONTENT');
         expect(shell).toContain('<!--$?-->');
+        expect(shell).toContain('data-pdct="Content.nonCritical"');
 
         nestedModule.resolve({ default: () => <div>NON_CRITICAL_CONTENT</div> });
         const html = await streamed.completed;
@@ -224,8 +230,9 @@ describe('Page Designer region streaming SSR', () => {
 
         expect(shell).not.toContain('CRITICAL_DATA_CONTENT');
         expect(shell).toContain('<!--$?-->');
-        expect(shell).toContain(criticalComponentMarkerId('critical-data', 'Content.criticalWithData'));
-        expect(shell).not.toContain('data-page-designer-component-type');
+        expect(shell).toContain(componentMarkerId('critical-data'));
+        // The data stays local, but the type still registers before hydration.
+        expect(shell).toContain('data-pdct="Content.criticalWithData"');
 
         componentData.resolve('resolved');
         const html = await streamed.completed;
@@ -283,7 +290,7 @@ describe('Page Designer region streaming SSR', () => {
         container.innerHTML = serverHtml;
         document.body.append(container);
         const serverNode = container.querySelector('[data-testid="initial-critical-content"]');
-        const markerId = criticalComponentMarkerId('initial-hydration', 'Content.initialHydration');
+        const markerId = componentMarkerId('initial-hydration');
         const serverMarker = document.getElementById(markerId);
         expect(serverNode).not.toBeNull();
         expect(serverMarker).not.toBeNull();
@@ -356,20 +363,20 @@ describe('Page Designer region streaming SSR', () => {
         await serverRender.shellReady;
         const container = document.createElement('div');
         const serverHtml = await serverRender.completed;
-        expect(serverHtml).toContain('data-page-designer-component-type="Layout.heroCarousel"');
-        expect(serverHtml).toContain('data-page-designer-component-type="Content.hero"');
+        expect(serverHtml).toContain('data-pdct="Layout.heroCarousel"');
+        expect(serverHtml).toContain('data-pdct="Content.hero"');
         container.innerHTML = serverHtml;
         expect(serverRender.errors).toEqual([]);
         document.body.append(container);
 
         const markerIds = [
-            criticalComponentMarkerId('hero-carousel', 'Layout.heroCarousel'),
-            criticalComponentMarkerId('hero-one', 'Content.hero'),
-            criticalComponentMarkerId('hero-two', 'Content.hero'),
+            componentMarkerId('hero-carousel'),
+            componentMarkerId('hero-one'),
+            componentMarkerId('hero-two'),
         ];
         const serverMarkers = markerIds.map((id) => document.getElementById(id));
         expect(serverMarkers.every(Boolean)).toBe(true);
-        expect(serverMarkers.map((marker) => marker?.dataset.pageDesignerComponentType)).toEqual([
+        expect(serverMarkers.map((marker) => marker?.dataset.pdct)).toEqual([
             'Layout.heroCarousel',
             'Content.hero',
             'Content.hero',
@@ -379,7 +386,7 @@ describe('Page Designer region streaming SSR', () => {
         registry.registerImporter('Content.hero', () => Promise.resolve({ default: Hero }));
         registry.registerImporter('Layout.heroCarousel', () => Promise.resolve({ default: HeroCarousel }));
         await registerServerRenderedComponentTypes(container);
-        expect(serverMarkers.map((marker) => marker?.dataset.pageDesignerComponentType)).toEqual([
+        expect(serverMarkers.map((marker) => marker?.dataset.pdct)).toEqual([
             'Layout.heroCarousel',
             'Content.hero',
             'Content.hero',
@@ -393,7 +400,7 @@ describe('Page Designer region streaming SSR', () => {
 
         markerIds.forEach((id, index) => {
             expect(document.getElementById(id)).toBe(serverMarkers[index]);
-            expect(document.getElementById(id)?.dataset.pageDesignerComponentType).toBe(
+            expect(document.getElementById(id)?.dataset.pdct).toBe(
                 index === 0 ? 'Layout.heroCarousel' : 'Content.hero'
             );
         });
@@ -446,7 +453,7 @@ describe('Page Designer region streaming SSR', () => {
         expect(container).toHaveTextContent('CONDITIONAL_LAYOUT_ONLY');
         expect(container.querySelector('[data-testid="conditional-component-fallback"]')).toBeNull();
         expect(conditionalChildImporter).not.toHaveBeenCalled();
-        const childMarkerId = criticalComponentMarkerId('conditional-child', 'Content.conditionalChild');
+        const childMarkerId = componentMarkerId('conditional-child');
         expect(document.getElementById(childMarkerId)).toBeNull();
 
         await registerServerRenderedComponentTypes(container);
@@ -468,5 +475,225 @@ describe('Page Designer region streaming SSR', () => {
 
         act(() => root.unmount());
         container.remove();
+    });
+
+    it('keeps server-rendered Hero Carousel slides in place through the carousel render after hydration', async () => {
+        const Hero: FC<{ component?: ComponentType }> = ({ component: hero }) => (
+            <div data-testid={`hero-${hero?.id}`}>{String(hero?.data?.title)}</div>
+        );
+        await register('Content.hero', Hero);
+        const carousel = {
+            id: 'hero-carousel',
+            typeId: 'Layout.heroCarousel',
+            regions: [
+                {
+                    id: 'slides',
+                    components: [
+                        { id: 'hero-one', typeId: 'Content.hero', data: { title: 'Hero one' } },
+                        { id: 'hero-two', typeId: 'Content.hero', data: { title: 'Hero two' } },
+                    ],
+                },
+            ],
+        } as unknown as ComponentType;
+        const tree = (
+            <div data-testid="hero-carousel-root">
+                <HeroCarouselPlain component={carousel} />
+            </div>
+        );
+
+        const serverRender = renderStreaming(tree);
+        await serverRender.shellReady;
+        const container = document.createElement('div');
+        container.innerHTML = await serverRender.completed;
+        document.body.append(container);
+        const serverHero = container.querySelector('[data-testid="hero-hero-one"]');
+        expect(serverHero).not.toBeNull();
+
+        registry.clear();
+        const importHero = vi.fn(() => Promise.resolve({ default: Hero }));
+        registry.registerImporter('Content.hero', importHero);
+        await registerServerRenderedComponentTypes(container);
+        expect(importHero).toHaveBeenCalledOnce();
+        vi.stubEnv('SSR', false);
+        const onRecoverableError = vi.fn();
+        const root = hydrateRoot(container, tree, { onRecoverableError });
+        try {
+            await act(() => Promise.resolve());
+            expect(container.querySelector('[data-testid="hero-hero-one"]')).toBe(serverHero);
+            expect(onRecoverableError).not.toHaveBeenCalled();
+        } finally {
+            act(() => root.unmount());
+            container.remove();
+        }
+    });
+
+    const setUserTypeCookie = (userType: string) => {
+        document.cookie = `${getUserTypeCookieName(SITE_ID)}=${btoa(JSON.stringify(userType))}; path=/`;
+    };
+    const clearUserTypeCookie = () => {
+        document.cookie = `${getUserTypeCookieName(SITE_ID)}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    };
+    const GuestAuthProvider = ({ children }: { children: ReactNode }) => (
+        <AuthProvider value={{ userType: 'guest' }} siteId={SITE_ID}>
+            {children}
+        </AuthProvider>
+    );
+
+    // A critical embedded region is part of the server shell and hydrates with it, so even a real context change right
+    // after hydration (a registered shopper on a page cached for guests) has no hydrating boundary to reach.
+    it('renders a critical embedded region in the shell and keeps it through a context change', async () => {
+        let bannerMounts = 0;
+        const Banner: FC = () => {
+            useEffect(() => {
+                bannerMounts += 1;
+            }, []);
+            return <div data-testid="critical-banner">CRITICAL_BANNER</div>;
+        };
+        const serverModule = deferred<{ default: FC }>();
+        const serverImporter = vi.fn(() => serverModule.promise);
+        registry.registerImporter('Content.criticalBanner', serverImporter);
+        const header = {
+            id: 'header',
+            typeId: 'header',
+            regions: [{ id: 'announcement', components: [component('banner', 'Content.criticalBanner')] }],
+        } as unknown as ComponentWithComponentData;
+        const probeRenders = { count: 0 };
+        const Probe: FC = () => {
+            probeRenders.count += 1;
+            return <span data-testid="user-type">{useAuth()?.userType}</span>;
+        };
+        const tree = (
+            <div data-testid="critical-embedded-root">
+                <GuestAuthProvider>
+                    <Probe />
+                    <header>
+                        <EmbeddedComponentRegion component={header} regionId="announcement" critical />
+                    </header>
+                </GuestAuthProvider>
+            </div>
+        );
+
+        const serverRender = renderStreaming(tree);
+        let didReachShell = false;
+        void serverRender.shellReady.then(() => {
+            didReachShell = true;
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        expect(serverImporter).toHaveBeenCalledOnce();
+        expect(didReachShell).toBe(false);
+
+        serverModule.resolve({ default: Banner });
+        await serverRender.shellReady;
+        const serverHtml = await serverRender.completed;
+        expect(serverHtml).toContain('CRITICAL_BANNER');
+        expect(serverHtml).not.toContain('<!--$?-->');
+        expect(serverHtml).toContain('data-pdct="Content.criticalBanner"');
+        expect(serverRender.errors).toEqual([]);
+
+        const container = document.createElement('div');
+        container.innerHTML = serverHtml;
+        document.body.append(container);
+        const serverBanner = container.querySelector('[data-testid="critical-banner"]');
+        const markerId = componentMarkerId('banner');
+        const serverMarker = document.getElementById(markerId);
+        expect(serverBanner).not.toBeNull();
+        expect(serverMarker).not.toBeNull();
+
+        let root: ReturnType<typeof hydrateRoot> | undefined;
+        try {
+            registry.clear();
+            const clientImporter = vi.fn(() => Promise.resolve({ default: Banner }));
+            registry.registerImporter('Content.criticalBanner', clientImporter);
+            await registerServerRenderedComponentTypes(container);
+            expect(clientImporter).toHaveBeenCalledOnce();
+
+            setUserTypeCookie('registered');
+            vi.stubEnv('SSR', false);
+            const onRecoverableError = vi.fn();
+            probeRenders.count = 0;
+            root = hydrateRoot(container, tree, { onRecoverableError });
+            await act(() => Promise.resolve());
+
+            // The context value changed after hydration...
+            expect(container.querySelector('[data-testid="user-type"]')).toHaveTextContent('registered');
+            expect(probeRenders.count).toBe(2);
+            // ...and the banner kept its server DOM.
+            expect(container.querySelector('[data-testid="critical-banner"]')).toBe(serverBanner);
+            expect(document.getElementById(markerId)).toBe(serverMarker);
+            expect(bannerMounts).toBe(1);
+            expect(onRecoverableError).not.toHaveBeenCalled();
+        } finally {
+            act(() => root?.unmount());
+            container.remove();
+            clearUserTypeCookie();
+        }
+    });
+
+    // The layout loader streams the header promise. With no boundary above it, the critical region holds the shell
+    // until the header resolves, and hydration waits for the client copy of the promise in place.
+    it('blocks the shell on a pending critical embedded component and hydrates it in place', async () => {
+        const Banner: FC = () => <div data-testid="streamed-banner">STREAMED_BANNER</div>;
+        await register('Content.streamedBanner', Banner);
+        const header = {
+            id: 'header',
+            typeId: 'header',
+            regions: [{ id: 'announcement', components: [component('streamed', 'Content.streamedBanner')] }],
+        } as unknown as ComponentWithComponentData;
+        const tree = (pending: Promise<ComponentWithComponentData | null>) => (
+            <div data-testid="streamed-embedded-root">
+                <header>
+                    <EmbeddedComponentRegion component={pending} regionId="announcement" critical />
+                </header>
+                <main>PAGE_CONTENT</main>
+            </div>
+        );
+
+        const serverHeader = deferred<ComponentWithComponentData | null>();
+        const serverRender = renderStreaming(tree(serverHeader.promise));
+        let didReachShell = false;
+        void serverRender.shellReady.then(() => {
+            didReachShell = true;
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        expect(didReachShell).toBe(false);
+        expect(serverRender.read()).toBe('');
+
+        serverHeader.resolve(header);
+        await serverRender.shellReady;
+        const serverHtml = await serverRender.completed;
+        expect(serverHtml.indexOf('STREAMED_BANNER')).toBeGreaterThan(-1);
+        expect(serverHtml.indexOf('STREAMED_BANNER')).toBeLessThan(serverHtml.indexOf('PAGE_CONTENT'));
+        expect(serverHtml).not.toContain('<!--$?-->');
+        expect(serverHtml).not.toContain('<div hidden id="S:');
+        expect(serverRender.errors).toEqual([]);
+
+        const container = document.createElement('div');
+        container.innerHTML = serverHtml;
+        document.body.append(container);
+        const serverBanner = container.querySelector('[data-testid="streamed-banner"]');
+        const serverPage = container.querySelector('main');
+        expect(serverBanner).not.toBeNull();
+
+        let root: ReturnType<typeof hydrateRoot> | undefined;
+        try {
+            await registerServerRenderedComponentTypes(container);
+            vi.stubEnv('SSR', false);
+            const onRecoverableError = vi.fn();
+            const clientHeader = deferred<ComponentWithComponentData | null>();
+            root = hydrateRoot(container, tree(clientHeader.promise), { onRecoverableError });
+            await act(() => Promise.resolve());
+            expect(container.querySelector('[data-testid="streamed-banner"]')).toBe(serverBanner);
+
+            await act(async () => {
+                clientHeader.resolve(header);
+                await clientHeader.promise;
+            });
+            expect(container.querySelector('[data-testid="streamed-banner"]')).toBe(serverBanner);
+            expect(container.querySelector('main')).toBe(serverPage);
+            expect(onRecoverableError).not.toHaveBeenCalled();
+        } finally {
+            act(() => root?.unmount());
+            container.remove();
+        }
     });
 });

@@ -648,7 +648,7 @@ export default defineConfig<Config>(
                     // We omit /action because we don't want to trigger viewPage events for actions
                     // like modifying the quanity of an item in the cart
                     // We omit /oauth2 and /resource because these do not correspond to pages
-                    // We omit /search, /category, /product, and /checkout because they are tracked with
+                    // We omit /search, /c, /p, /category, /product, and /checkout because they are tracked with
                     // different events (viewSearch, viewCategory, viewProduct, and beginCheckout) triggered
                     // on the search, category, product, and checkout pages respectively
                     pageViewsBlocklist: [
@@ -657,7 +657,9 @@ export default defineConfig<Config>(
                         '/resource',
                         '/search',
                         '/category',
+                        '/c',
                         '/product',
+                        '/p',
                         '/checkout',
                     ],
                     // Time in milliseconds before a ViewPage tracked path can be tracked again

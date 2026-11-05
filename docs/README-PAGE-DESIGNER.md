@@ -196,7 +196,7 @@ Every Page Designer component is wrapped by an internal `Component` wrapper that
 
 ### What the Wrapper Does
 
-1. **Module Loading** - Loads component code on demand, or uses the module prepared by a critical region
+1. **Module Loading** - Uses the module registered before hydration for server-rendered components, or loads component code on demand
 2. **Data Resolution** - Retrieves and resolves data promises via `<Await>`
 3. **Suspense Boundaries** - Keeps deferred data and non-critical or client-only module suspension local to the affected component
 4. **Design Metadata** - Injects Page Designer metadata
@@ -209,8 +209,8 @@ Every Page Designer component is wrapped by an internal `Component` wrapper that
 export const Component = memo(function Component({ component, regionId }) {
     const dataPromise = useComponentDataById(component.id);
     const isInCriticalRegion = useIsInCriticalRegion();
-    const wasServerRendered = useWasServerRendered(component.id, component.typeId);
-    const requiresRegistration = !(dataPromise instanceof Promise);
+    const wasServerRendered = useWasServerRendered(component.id);
+    const hasDeferredData = dataPromise instanceof Promise;
     const FallbackComponent = registry.getFallback(component.typeId);
     const fallback = FallbackComponent ? <FallbackComponent {...component.data} /> : <div />;
 
@@ -224,18 +224,14 @@ export const Component = memo(function Component({ component, regionId }) {
 
     // Only an exact component instance emitted by critical SSR, without deferred data,
     // omits the local boundary so its module and render tree block the server shell.
-    const componentContent = isInCriticalRegion && wasServerRendered && requiresRegistration
+    const componentContent = isInCriticalRegion && wasServerRendered && !hasDeferredData
         ? content
         : <Suspense fallback={fallback}>{content}</Suspense>;
 
     return (
         <>
             {wasServerRendered && (
-                <CriticalComponentHydrationMarker
-                    componentId={component.id}
-                    componentTypeId={component.typeId}
-                    requiresRegistration={requiresRegistration}
-                />
+                <ComponentHydrationMarker componentId={component.id} componentTypeId={component.typeId} />
             )}
             <ComponentErrorBoundary fallback={fallback}>
                 {componentContent}
@@ -245,9 +241,9 @@ export const Component = memo(function Component({ component, regionId }) {
 });
 ```
 
-The component marker is inert and records that this exact component ID and type ID participated in critical SSR.
-Components mounted later in the same critical region do not find such a marker and therefore keep their local boundary.
-Only a marker for a component without deferred data also carries the registration attribute read before hydration.
+The component marker is inert and records that this exact component ID participated in SSR. It also
+carries the type that the client entry registers before hydration. Components mounted later do not find such a marker
+and therefore keep their local boundary.
 
 ### What This Means for You
 
@@ -399,7 +395,24 @@ A critical region:
 - Lets module and render-tree suspension from components without deferred data reach the nearest outer boundary, blocking the initial shell instead of rendering `fallbackElement` or a component fallback.
 - Keeps each component's asynchronous loader data inside its existing local `<Suspense>` boundary. `critical` does not make all component data blocking.
 
-Every component wrapper actually reached during SSR emits its own production resource hints. Use `critical` sparingly because preparing above-the-fold components and blocking on their render trees delays the initial shell. The prop is intentionally unavailable in component mode; nested regions inherit critical status from their containing page region.
+Every component wrapper actually reached during SSR emits its own production resource hints. Use `critical` sparingly because preparing above-the-fold components and blocking on their render trees delays the initial shell. Nested regions inherit critical status from their containing region.
+
+#### Critical Embedded Components
+
+An embedded component rendered above the page, such as the header announcement, can be critical too. Stream it from the loader and set `critical` on its region:
+
+```tsx
+export function loader(args: Route.LoaderArgs) {
+    return {
+        header: fetchComponentWithComponentData(args, { componentId: 'header' }),
+        megaMenu: fetchComponentWithComponentData(args, { componentId: 'mega-menu' }),
+    };
+}
+
+<EmbeddedComponentRegion component={loaderData.header} regionId="announcement" critical />
+```
+
+A critical embedded region has no `<Suspense>` boundary of its own, so its pending component promise suspends the nearest outer boundary. Render it outside any `<Suspense>` boundary: the promise then blocks the shell until it resolves, and React starts hydration only after that. Once resolved, the rules of a critical page region apply. The template's `_app` layout renders the header announcement this way, because a streamed banner pushes the page down when it arrives.
 
 The Storefront Next Vite plugin must generate the Page Designer preload manifest. The template enables this in `vite-plugins/storefront-next.ts`:
 
@@ -422,7 +435,7 @@ import appStylesHref from '@/styles/app.css?url';
 export const links: Route.LinksFunction = () => [createStorefrontStylesheetLink(appStylesHref)];
 ```
 
-Keep static registry initialization at entry startup so importers exist before component registration begins. The template calls `initializeRegistry()` from `entry.server.tsx` during server module initialization and synchronously from `entry.client.tsx` before scanning critical component markers; do not move it into the `App` render function.
+Keep static registry initialization at entry startup so importers exist before component registration begins. The template calls `initializeRegistry()` from `entry.server.tsx` during server module initialization and synchronously from `entry.client.tsx` before scanning component markers; do not move it into the `App` render function.
 
 Resource hints are based on the finalized production client bundle. Development uses an empty resource manifest, while component modules continue to load through the registry normally.
 
@@ -431,33 +444,31 @@ Resource hints are based on the finalized production client bundle. Development 
 The server and browser have separate component registries. A component can therefore exist in SSR markup before its concrete browser export is registered. Storefront Next combines three mechanisms to keep that markup stable without registering speculative payload branches:
 
 1. Every component wrapper actually reached during SSR emits resource hints for its own module and styles. Conditional components whose wrappers are never reached emit no hints.
-2. Every critical component actually emitted by SSR writes an inert `<template>` marker containing its exact component ID and type ID. Components without deferred data additionally expose their type through a registration attribute. Before hydration, the client registers only the unique types carrying that attribute; during hydration, the marker ID identifies every actual SSR instance independently of whether it needs registration.
-3. Non-critical components, components with deferred data, and components mounted later on the client resolve their concrete exports inside a component-local Suspense boundary. Their modules register on demand without replacing the parent region.
+2. Every component actually emitted by SSR writes an inert `<template>` marker containing its exact component ID, and exposes its type through a registration attribute. Before hydration, the client registers the unique types carrying that attribute, so every server-rendered component renders in the first hydration pass instead of suspending on its module. During hydration, the marker ID identifies every actual SSR instance.
+3. Components mounted later on the client, and components streamed in after the client entry runs, resolve their concrete exports inside a component-local Suspense boundary. Their modules register on demand without replacing the parent region.
 
 There is no page-wide owner and a page may contain any number of critical regions.
 
 #### Exact Component Discovery
 
-The declared recursive region payload is deliberately not serialized for client registration: it can contain nested components that a layout conditionally omitted from the actual render tree. Instead, every exact critical component instance emits a marker only when its wrapper is reached during SSR. A component without deferred data also marks its type for pre-hydration registration:
+The declared recursive region payload is deliberately not serialized for client registration: it can contain nested components that a layout conditionally omitted from the actual render tree. Instead, every exact component instance emits a marker only when its wrapper is reached during SSR, and marks its type for pre-hydration registration:
 
 ```html
-<template
-    id="page-designer-critical-component-hero-1%3AContent.hero"
-    data-page-designer-component-type="Content.hero">
-</template>
+<template id="pdc-hero-1" data-pdct="Content.hero"></template>
 ```
 
-The marker ID combines the component ID and component type ID. The component wrapper reads it during hydration to
-preserve the same boundary structure as the server. The type ID prevents an instance whose ID is reused with a different
-type from being mistaken for the server-rendered component. The data attribute lets the client registry read the type
-directly instead of parsing the encoded ID. Duplicate types are registered once in DOM discovery order.
+The marker ID is `pdc-` plus the component ID. The component wrapper reads it during hydration to preserve the same
+boundary structure as the server. The `data-pdct` attribute (page designer component type) lets the client registry
+read the type directly. Duplicate types are registered once in DOM discovery order.
 
-Critical components with deferred data emit the same ID marker, but omit
-`data-page-designer-component-type` because they retain their local Suspense boundary on both server and client.
-This distinction matters for layout parents with an actual data loader: the parent remains identifiable as
-server-rendered even when deferred data keeps it out of the registration barrier, while its concrete children can
-independently request pre-hydration registration. Non-critical components emit no critical marker and register on
-demand.
+Each marker adds to the HTML, and most are unused once hydration finishes. The client cannot tell the server to stop
+emitting markers for content that streams in later. In a local build of the template's Home page, the 28 markers are
+2.5 KB of HTML (0.7 KB gzipped).
+
+Components with deferred data and components outside a critical region keep their local Suspense boundary on both
+server and client, but still register before hydration, so none of them waits for its module while hydrating. A boundary
+that still waits for its data can lose its server HTML if an update reaches it right after hydration, such as a carousel
+measuring its slides. React then replaces the server HTML with the fallback.
 
 Only an actual server `loader` export creates an entry in the page's component-data map. A `clientLoader` or configured
 visual `fallback` is not server data and must not create a resolved `Promise<undefined>`: doing so would incorrectly
@@ -473,11 +484,11 @@ Resource hints and registry loading are complementary:
 
 A module preload does not populate the application registry. The generated manifest therefore describes only the resource graph needed for hints; it contains no byte budgets, size estimates, compression settings, or schema version. Producer and consumer are built and deployed together, so mixed manifest schemas are not supported.
 
-The client entry initializes generated importers and scans the exact critical component markers already present. Their unique imports run concurrently, and hydration waits only for those boundary-free critical types to settle. Registration runs in parallel with i18n initialization and does not wait for `DOMContentLoaded`. All other types rely on the component-local Suspense path.
+The client entry initializes generated importers and scans the exact component markers already present. Their unique imports run concurrently, and hydration waits for those types to settle. Registration runs in parallel with i18n initialization and does not wait for `DOMContentLoaded`. All other types rely on the component-local Suspense path.
 
 Concurrent requests for one type share the same in-flight promise. A rejected registration becomes a stable error rather than a loop of newly rejected promises. The local `ComponentErrorBoundary` contains browser failures to the affected component; SSR consumes a terminal registration error so a later request can retry.
 
-This keeps the hydration barrier proportional to the critical SSR output rather than the complete recursive Page Designer payload. Measure critical module evaluation and its effect on long tasks and TBT alongside LCP and hydration stability.
+This keeps the hydration barrier proportional to the actual SSR output rather than the complete recursive Page Designer payload. The resource hints already fetch these modules while the HTML streams, so the barrier mostly adds module evaluation. Measure it and its effect on long tasks and TBT alongside LCP and hydration stability.
 
 ### Component Mode (Nested Regions)
 
@@ -502,6 +513,7 @@ export default function Grid({ component }) {
 **Characteristics:**
 - Accepts `component` prop (synchronous only)
 - Region lookup is synchronous. Children with deferred data and children mounted only on the client retain their component-local `<Suspense>` boundary; an exact child emitted during critical SSR without deferred data inherits the shell-blocking behavior.
+- With `critical`, starts a critical subtree where no critical region contains it, such as in an embedded component
 - Inherits `ComponentDataProvider` from parent
 - No `PageDesignerPageMetadataProvider` (nested context)
 - Better performance (no async overhead)
@@ -520,11 +532,11 @@ TypeScript enforces correct usage:
 // ✅ Valid: component mode
 <Region component={component} regionId="main" />
 
+// ✅ Valid: critical component mode, for a component outside any critical region
+<Region component={embeddedComponent} regionId="announcement" critical />
+
 // ❌ Compile Error: can't pass both
 <Region page={pagePromise} component={component} regionId="main" />
-
-// ❌ Compile Error: critical is page-mode only
-<Region component={component} regionId="main" critical />
 
 // ❌ Compile Error: must pass one or the other
 <Region regionId="main" />
@@ -995,7 +1007,7 @@ This UUID is automatically extracted and provided in the `designMetadata` prop b
 
 ### 1. Lazy Loading and Code Splitting
 
-Components are automatically lazy-loaded via the component registry. Direct modules in each actually rendered critical region are instead loaded and registered before entering the initial SSR shell; nested regions prepare their children only when rendered. A critical component without deferred data renders inline and its render tree can delay that shell. Components with deferred data remain granular inside their local boundaries. Ensure:
+Components are automatically lazy-loaded via the component registry. Direct modules in each actually rendered critical region are instead loaded and registered before entering the initial SSR shell; nested regions prepare their children only when rendered. A critical component without deferred data renders inline and its render tree can delay that shell. Components with deferred data remain granular inside their local boundaries. The client entry also loads every server-rendered component type before hydrating, and hydration waits for those modules, so keep each component module small. Ensure:
 
 ```tsx
 // ✅ Good: Component in its own module
@@ -1288,7 +1300,7 @@ User Request
 7. React Rendering
     - Critical page regions prepare direct children as each region is actually rendered
     - Critical component instances without deferred data render inline and block that shell if their render tree suspends
-    - Non-critical component modules load on demand through their local Suspense boundary
+    - Server-rendered components of any region already have their module registered before hydration; components mounted later load on demand through their local Suspense boundary
     - Deferred component data remains inside a component-local Suspense boundary, including in critical regions
     - Production SSR emits module hints and ordered styles only for component wrappers it actually reaches
     - Await resolves data promises

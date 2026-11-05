@@ -124,12 +124,13 @@ vi.mock('@/components/toast', () => ({
 }));
 
 const mockAnalytics = {
-    trackCheckoutStart: vi.fn(),
-    trackCheckoutStep: vi.fn(),
+    trackCheckoutStart: vi.fn().mockResolvedValue(true),
+    trackCheckoutStep: vi.fn().mockResolvedValue(true),
 };
 // Mirror production useAnalytics(): return a fresh object every call so effect deps that
 // incorrectly include `analytics` will cancel/reschedule idle ticks on re-render.
 const mockUseAnalytics = vi.fn(() => ({
+    consentKey: '["analytics"]',
     trackCheckoutStart: mockAnalytics.trackCheckoutStart,
     trackCheckoutStep: mockAnalytics.trackCheckoutStep,
 }));
@@ -432,9 +433,10 @@ describe('CheckoutFormPage', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        mockAnalytics.trackCheckoutStart.mockReset();
-        mockAnalytics.trackCheckoutStep.mockReset();
+        mockAnalytics.trackCheckoutStart.mockReset().mockResolvedValue(true);
+        mockAnalytics.trackCheckoutStep.mockReset().mockResolvedValue(true);
         mockUseAnalytics.mockImplementation(() => ({
+            consentKey: '["analytics"]',
             trackCheckoutStart: mockAnalytics.trackCheckoutStart,
             trackCheckoutStep: mockAnalytics.trackCheckoutStep,
         }));
@@ -523,11 +525,14 @@ describe('CheckoutFormPage', () => {
             await renderCheckoutPage();
 
             await waitFor(() => {
-                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledWith({
-                    stepName: 'CONTACT_INFO',
-                    stepNumber: defaultSteps.CONTACT_INFO,
-                    basket: expect.objectContaining({ basketId: 'test-basket' }),
-                });
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledWith(
+                    {
+                        stepName: 'CONTACT_INFO',
+                        stepNumber: defaultSteps.CONTACT_INFO,
+                        basket: expect.objectContaining({ basketId: 'test-basket' }),
+                    },
+                    expect.any(AbortSignal)
+                );
             });
         });
     });
@@ -879,23 +884,94 @@ describe('CheckoutFormPage', () => {
     });
 
     describe('Analytics tracking edge cases', () => {
+        test('aborts pending checkout tracking on step/cart/consent changes and unmount', async () => {
+            mockAnalytics.trackCheckoutStart.mockImplementation(() => new Promise(() => {}));
+            mockAnalytics.trackCheckoutStep.mockImplementation(() => new Promise(() => {}));
+            const { rerender, unmount } = await renderCheckoutPage();
+            await waitFor(() => expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalledTimes(1));
+            const firstSignal = mockAnalytics.trackCheckoutStart.mock.calls[0][1] as AbortSignal;
+            expect(firstSignal.aborted).toBe(false);
+            expect(mockAnalytics.trackCheckoutStep.mock.calls[0][1]).toBe(firstSignal);
+
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PAYMENT }));
+            rerender(<CheckoutFormPage {...defaultProps} />);
+            expect(firstSignal.aborted).toBe(true);
+            await waitFor(() => expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalledTimes(2));
+            const stepSignal = mockAnalytics.trackCheckoutStart.mock.calls[1][1] as AbortSignal;
+
+            mockUseBasket.mockReturnValue({
+                basketId: 'test-basket',
+                productItems: [{ itemId: 'item1', productId: 'product1', quantity: 2 }],
+            });
+            rerender(<CheckoutFormPage {...defaultProps} />);
+            expect(stepSignal.aborted).toBe(true);
+            await waitFor(() => expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalledTimes(3));
+            const cartSignal = mockAnalytics.trackCheckoutStart.mock.calls[2][1] as AbortSignal;
+
+            mockUseAnalytics.mockImplementation(() => ({
+                consentKey: '[]',
+                trackCheckoutStart: mockAnalytics.trackCheckoutStart,
+                trackCheckoutStep: mockAnalytics.trackCheckoutStep,
+            }));
+            rerender(<CheckoutFormPage {...defaultProps} />);
+            expect(cartSignal.aborted).toBe(true);
+            await waitFor(() => expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalledTimes(4));
+            const lastSignal = mockAnalytics.trackCheckoutStart.mock.calls[3][1] as AbortSignal;
+            unmount();
+            expect(lastSignal.aborted).toBe(true);
+        });
+
+        test('retries skipped handoffs on consent change but deduplicates true handoffs', async () => {
+            mockAnalytics.trackCheckoutStart.mockResolvedValueOnce(false);
+            mockAnalytics.trackCheckoutStep.mockResolvedValueOnce(false);
+            const { rerender } = await renderCheckoutPage();
+            await waitFor(() => expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledTimes(1));
+            mockUseAnalytics.mockImplementation(() => ({
+                consentKey: '["analytics","marketing"]',
+                trackCheckoutStart: mockAnalytics.trackCheckoutStart,
+                trackCheckoutStep: mockAnalytics.trackCheckoutStep,
+            }));
+            rerender(<CheckoutFormPage {...defaultProps} />);
+            await waitFor(() => expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledTimes(2));
+            expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalledTimes(2);
+            mockUseBasket.mockReturnValue({
+                basketId: 'test-basket',
+                productItems: [{ itemId: 'item1', productId: 'product1', quantity: 2 }],
+            });
+            // Intercept any idle fallback scheduled by the cart update before asserting deduplication.
+            vi.useFakeTimers();
+            try {
+                rerender(<CheckoutFormPage {...defaultProps} />);
+                await act(async () => {
+                    await vi.runAllTimersAsync();
+                });
+                expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalledTimes(2);
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledTimes(2);
+            } finally {
+                vi.useRealTimers();
+            }
+        });
+
         test('tracks checkout start on initial mount', async () => {
             await renderCheckoutPage();
 
             await waitFor(() => {
                 expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalledTimes(1);
-                expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalledWith({
-                    basket: expect.objectContaining({
-                        basketId: 'test-basket',
-                        productItems: expect.arrayContaining([
-                            expect.objectContaining({
-                                itemId: 'item1',
-                                productId: 'product1',
-                                quantity: 1,
-                            }),
-                        ]),
-                    }),
-                });
+                expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalledWith(
+                    {
+                        basket: expect.objectContaining({
+                            basketId: 'test-basket',
+                            productItems: expect.arrayContaining([
+                                expect.objectContaining({
+                                    itemId: 'item1',
+                                    productId: 'product1',
+                                    quantity: 1,
+                                }),
+                            ]),
+                        }),
+                    },
+                    expect.any(AbortSignal)
+                );
             });
         });
 
@@ -917,11 +993,14 @@ describe('CheckoutFormPage', () => {
 
             // Initial step tracking
             await waitFor(() => {
-                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledWith({
-                    stepName: 'CONTACT_INFO',
-                    stepNumber: defaultSteps.CONTACT_INFO,
-                    basket: expect.objectContaining({ basketId: 'test-basket' }),
-                });
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledWith(
+                    {
+                        stepName: 'CONTACT_INFO',
+                        stepNumber: defaultSteps.CONTACT_INFO,
+                        basket: expect.objectContaining({ basketId: 'test-basket' }),
+                    },
+                    expect.any(AbortSignal)
+                );
             });
 
             // Update step
@@ -936,11 +1015,14 @@ describe('CheckoutFormPage', () => {
             });
 
             await waitFor(() => {
-                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledWith({
-                    stepName: 'SHIPPING_ADDRESS',
-                    stepNumber: defaultSteps.SHIPPING_ADDRESS,
-                    basket: expect.objectContaining({ basketId: 'test-basket' }),
-                });
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledWith(
+                    {
+                        stepName: 'SHIPPING_ADDRESS',
+                        stepNumber: defaultSteps.SHIPPING_ADDRESS,
+                        basket: expect.objectContaining({ basketId: 'test-basket' }),
+                    },
+                    expect.any(AbortSignal)
+                );
             });
         });
 
@@ -984,6 +1066,7 @@ describe('CheckoutFormPage', () => {
             vi.useFakeTimers();
             try {
                 mockUseAnalytics.mockImplementation(() => ({
+                    consentKey: '["analytics"]',
                     trackCheckoutStart: mockAnalytics.trackCheckoutStart,
                     trackCheckoutStep: mockAnalytics.trackCheckoutStep,
                 }));
@@ -1078,10 +1161,7 @@ describe('CheckoutFormPage', () => {
             }
         });
 
-        test('queues first step when step changes before idle tick fires', async () => {
-            // Regression: CheckoutProvider advances CONTACT_INFO → computedStep in the same flush
-            // after mount. Cancelling the in-flight idle tick on that step change used to drop the
-            // first trackCheckoutStep. Queued observations must survive until idle drains them.
+        test('tracks only the current step when step changes before idle tick fires', async () => {
             vi.useFakeTimers();
             try {
                 const { rerender } = await renderCheckoutPage();
@@ -1099,17 +1179,16 @@ describe('CheckoutFormPage', () => {
                     vi.runAllTimers();
                 });
 
-                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledTimes(2);
-                expect(mockAnalytics.trackCheckoutStep).toHaveBeenNthCalledWith(1, {
-                    stepName: 'CONTACT_INFO',
-                    stepNumber: defaultSteps.CONTACT_INFO,
-                    basket: expect.objectContaining({ basketId: 'test-basket' }),
-                });
-                expect(mockAnalytics.trackCheckoutStep).toHaveBeenNthCalledWith(2, {
-                    stepName: 'SHIPPING_ADDRESS',
-                    stepNumber: defaultSteps.SHIPPING_ADDRESS,
-                    basket: expect.objectContaining({ basketId: 'test-basket' }),
-                });
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledTimes(1);
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenNthCalledWith(
+                    1,
+                    {
+                        stepName: 'SHIPPING_ADDRESS',
+                        stepNumber: defaultSteps.SHIPPING_ADDRESS,
+                        basket: expect.objectContaining({ basketId: 'test-basket' }),
+                    },
+                    expect.any(AbortSignal)
+                );
             } finally {
                 vi.useRealTimers();
             }

@@ -21,6 +21,8 @@ import type { ShopperOrders } from '@/scapi';
 import {
     formatStatusFallbackLabel,
     getOrderCancelStatusConfig,
+    getOrderFulfillmentStatus,
+    getOrderFulfillmentStatusConfig,
     getOrderReturnStatus,
     getOrderReturnStatusConfig,
     getOrderStatusConfig,
@@ -42,7 +44,7 @@ export type OrderStatusHeaderProps = {
 /**
  * Order Details title + order-number + status-badge cascade, shared between the
  * registered-account and guest order-lookup Order Details pages. Badge precedence:
- * cancel (item-level all-cancelled) → return (aggregated from items) → raw status → nothing.
+ * cancellation → return (aggregated from items) → fulfillment → raw status → nothing.
  *
  * The raw-status badge uses the shared `resolveOrderStatus` (ECOM-first, OMS as fallback) so
  * this badge and the order-history list badge can never disagree for the same order. An
@@ -58,7 +60,8 @@ export function OrderStatusHeader({ order, headingRef }: OrderStatusHeaderProps)
         ? getOrderReturnStatusConfig(getOrderReturnStatus(order))
         : undefined;
     const orderStatus = resolveOrderStatus(order);
-    const orderStatusConfig = getOrderStatusConfig(orderStatus);
+    const orderStatusConfig =
+        getOrderFulfillmentStatusConfig(getOrderFulfillmentStatus(order)) ?? getOrderStatusConfig(orderStatus);
     const orderStatusLabelFallback = formatStatusFallbackLabel(orderStatus);
     const showOrderStatusBadge =
         cancelStatusConfig || returnStatusConfig || orderStatusConfig || orderStatusLabelFallback;

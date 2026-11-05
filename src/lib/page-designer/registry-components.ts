@@ -15,7 +15,7 @@
  */
 import { registry } from './registry';
 
-const COMPONENT_SELECTOR = '[data-page-designer-component-type]';
+const COMPONENT_SELECTOR = '[data-pdct]';
 
 /** Load and register concrete component exports in first-occurrence order. */
 export async function registerComponentTypes(typeIds: Iterable<string>, targetRegistry = registry): Promise<void> {
@@ -35,19 +35,19 @@ export async function registerComponentTypes(typeIds: Iterable<string>, targetRe
 }
 
 /**
- * Read the exact critical, boundary-free component instances already present in
- * the SSR DOM and return their unique types in DOM order.
+ * Read the exact server-rendered component instances already present in the DOM
+ * and return their unique types in DOM order.
  */
 export function getServerRenderedComponentTypeIds(root: ParentNode): string[] {
     const typeIds = new Set<string>();
     for (const marker of root.querySelectorAll<HTMLElement>(COMPONENT_SELECTOR)) {
-        const typeId = marker.dataset.pageDesignerComponentType;
+        const typeId = marker.dataset.pdct;
         if (typeId) typeIds.add(typeId);
     }
     return [...typeIds];
 }
 
-/** Register the boundary-free critical component types present in the initial SSR DOM. */
+/** Register the component types present in the initial SSR DOM, so they render in the first hydration pass. */
 export function registerServerRenderedComponentTypes(root: ParentNode): Promise<void> {
     return registerComponentTypes(getServerRenderedComponentTypeIds(root));
 }

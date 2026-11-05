@@ -58,10 +58,33 @@ export function isCancellable(order: Partial<OrderLike>): boolean {
 }
 
 /** Minimal shape needed to check cancel state — accepts both full OrderLike and partial test fixtures. */
-type OrderWithOmsStatus = { productItems?: { omsData?: { status?: string } }[] };
+type ItemWithOmsCancelState = {
+    omsData?: { status?: string; quantityOrdered?: number; quantityCanceled?: number };
+};
+type OrderWithOmsStatus = { productItems?: ItemWithOmsCancelState[] };
+
+/** A cancelled line is identified by its status or a complete, finite quantity breakdown. */
+export function isItemCancelled(item: ItemWithOmsCancelState): boolean {
+    const oms = item?.omsData;
+    const status = oms?.status?.trim().toLowerCase();
+    if (status === 'canceled' || status === 'cancelled') {
+        return true;
+    }
+    const ordered = oms?.quantityOrdered;
+    const canceled = oms?.quantityCanceled;
+    return (
+        typeof ordered === 'number' &&
+        Number.isFinite(ordered) &&
+        ordered > 0 &&
+        typeof canceled === 'number' &&
+        Number.isFinite(canceled) &&
+        canceled >= 0 &&
+        canceled >= ordered
+    );
+}
 
 /**
- * True when every product item is in OMS canceled state. Guards against
+ * True when every product item is cancelled by OMS status or quantity counters. Guards against
  * `[].every()` vacuous truth by requiring at least one item.
  * Normalizes status comparison (trim + lowercase) for payload resilience.
  */
@@ -69,5 +92,5 @@ export function isOrderCancelled(order: OrderWithOmsStatus | null | undefined): 
     if (!order?.productItems?.length) {
         return false;
     }
-    return order.productItems.every((item) => item?.omsData?.status?.trim().toLowerCase() === 'canceled');
+    return order.productItems.every(isItemCancelled);
 }

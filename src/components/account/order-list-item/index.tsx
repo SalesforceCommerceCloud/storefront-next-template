@@ -27,9 +27,11 @@ import { cn } from '@/lib/utils';
 import {
     ORDER_STATUS_BADGE_CLASS,
     formatStatusFallbackLabel,
+    getOrderFulfillmentStatusConfig,
     getOrderReturnStatusConfig,
     getOrderStatusConfig,
     type OrderReturnStatusType,
+    type OrderFulfillmentStatusType,
 } from '@/lib/order/status';
 import { routes, routeHref } from '@/route-paths';
 
@@ -78,6 +80,8 @@ export interface OrderListItemData {
      * `status`, which stays stale after a return. See `getOrderReturnStatus`.
      */
     returnStatus?: OrderReturnStatusType;
+    /** Derived active fulfillment state; used after cancellation and returns. */
+    fulfillmentStatus?: OrderFulfillmentStatusType;
     itemCount: number;
     productItems?: OrderProductItem[];
     pickupLocation?: PickupLocation;
@@ -117,7 +121,7 @@ function formatOrderDate(dateString: string, locale: string, invalidDateLabel: s
 }
 
 /**
- * Cancel status → Return status → known SCAPI status → raw fallback label.
+ * Cancel status → Return status → Fulfillment status → known SCAPI status → raw fallback label.
  * Mirrors PWA Kit's `OrderStatusBadge` precedence — the raw `status` field already
  * falls back through `Order.status ?? Order.omsData?.status` in the loader.
  */
@@ -126,14 +130,16 @@ function OrderStatusBadge({
     label,
     cancelStatus,
     returnStatus,
+    fulfillmentStatus,
 }: {
     status: string;
     label?: string;
     cancelStatus?: 'cancelled';
     returnStatus?: OrderReturnStatusType;
+    fulfillmentStatus?: OrderFulfillmentStatusType;
 }): ReactNode {
     const { t } = useTranslation('account');
-    if (cancelStatus) {
+    if (cancelStatus || getOrderStatusConfig(status)?.labelKey === 'orders.status.cancelled') {
         return (
             <Badge
                 data-testid="order-cancel-status-badge"
@@ -142,7 +148,7 @@ function OrderStatusBadge({
                     'border-transparent bg-status-critical/20 text-status-critical-foreground'
                 )}>
                 <X data-testid="order-status-icon" className="mr-1 inline size-3.5" aria-hidden />
-                {t('orders.status.cancelled')}
+                {cancelStatus ? t('orders.status.cancelled') : (label ?? t('orders.status.cancelled'))}
             </Badge>
         );
     }
@@ -151,6 +157,17 @@ function OrderStatusBadge({
         return (
             <Badge data-testid="order-return-status-badge" className={cn(BADGE_BASE_CLASSES, returnConfig.className)}>
                 {t(returnConfig.labelKey)}
+            </Badge>
+        );
+    }
+    const fulfillmentConfig = getOrderFulfillmentStatusConfig(fulfillmentStatus);
+    if (fulfillmentConfig) {
+        return (
+            <Badge data-testid="order-status-badge" className={cn(BADGE_BASE_CLASSES, fulfillmentConfig.className)}>
+                {fulfillmentConfig.icon === 'check' ? (
+                    <Check data-testid="order-status-icon" className="mr-1 size-3.5" aria-hidden />
+                ) : null}
+                {t(fulfillmentConfig.labelKey)}
             </Badge>
         );
     }
@@ -358,6 +375,7 @@ export function OrderListItem({
                             label={order.statusLabel}
                             cancelStatus={order.cancelStatus}
                             returnStatus={order.returnStatus}
+                            fulfillmentStatus={order.fulfillmentStatus}
                         />
                     </div>
 

@@ -15,9 +15,10 @@
  */
 
 import 'reflect-metadata';
+import { StrictMode } from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { MemoryRouter } from 'react-router';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { ApiError, type ShopperExperience, type ShopperProducts, type ShopperSearch } from '@/scapi';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import CategoryPage, { loader, ProductListingPageMetadata, shouldRevalidate } from './_app.c.$';
@@ -30,11 +31,14 @@ import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import type { AppConfig } from '@/types/config';
 import { getRegionDefinition } from '@/lib/decorators/region-definition';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
+import { mockSiteObject } from '@/test-utils/config';
 import { generateCategorySchema } from '@/utils/category-schema';
 import { useAnalytics } from '@/hooks/use-analytics';
 import type { Route } from './+types/_app.c.$';
 
 const mockAttemptRouteSeoFallback = vi.hoisted(() => vi.fn());
+const mockNavigation = vi.hoisted(() => vi.fn(() => ({ state: 'idle', location: undefined })));
 
 vi.mock('@/lib/seo/route-fallback.server', () => ({
     attemptRouteSeoFallback: mockAttemptRouteSeoFallback,
@@ -44,7 +48,7 @@ vi.mock('react-router', async (importOriginal) => {
     const actual = await importOriginal<typeof import('react-router')>();
     return {
         ...actual,
-        useNavigation: () => ({ state: 'idle', location: undefined }),
+        useNavigation: mockNavigation,
         // CategoryJsonLd reads `nonce` from the root loader. Tests render the page
         // outside a real data router, so stub the lookup with a deterministic value.
         useRouteLoaderData: (id: string) => (id === 'root' ? { nonce: undefined } : undefined),
@@ -332,7 +336,10 @@ describe('CategoryPage', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        mockNavigation.mockReturnValue({ state: 'idle', location: undefined });
+        mockTrackViewCategory.mockReset().mockResolvedValue(true);
         vi.mocked(useAnalytics).mockReturnValue({
+            consentKey: 'accepted',
             trackViewCategory: mockTrackViewCategory,
             trackClickProductInCategory: mockTrackClickProductInCategory,
         } as never);
@@ -1893,9 +1900,75 @@ describe('CategoryPage', () => {
     });
 
     describe('Analytics Integration', () => {
+        const flush = (callback: () => unknown) =>
+            act(async () => {
+                await callback();
+            });
+        const createAnalyticsData = (): CategoryPageData => ({
+            category: mockCategory,
+            searchResultCritical: mockSearchResult,
+            searchResultNonCritical: Promise.resolve({ ...mockSearchResult, hits: [] }),
+            page: { ...createMockPage(), componentData: {} },
+            categoryId: 'electronics',
+            refine: ['cgid=electronics'],
+            currency: 'USD',
+            locale: 'en-US',
+            pageUrl: 'http://localhost/c/electronics',
+            categorySchema: Promise.resolve(null),
+            seoPagination: null,
+            initialCount: 2,
+        });
+        const renderAnalyticsPage = (loaderData: CategoryPageData) => (
+            <MemoryRouter initialEntries={['/c/electronics']}>
+                <AllProvidersWrapper>
+                    <CategoryPage loaderData={loaderData} />
+                </AllProvidersWrapper>
+            </MemoryRouter>
+        );
+
         beforeEach(() => {
             mockTrackViewCategory.mockClear();
             mockTrackClickProductInCategory.mockClear();
+        });
+
+        test('recovers a consent-skipped current category once, including zero-result views', async () => {
+            const loaderData = createAnalyticsData();
+            loaderData.searchResultCritical = { ...mockSearchResult, hits: [], total: 0 };
+            let consentKey = 'unknown';
+            vi.mocked(useAnalytics).mockImplementation(
+                () =>
+                    ({
+                        consentKey,
+                        trackViewCategory: mockTrackViewCategory,
+                        trackClickProductInCategory: mockTrackClickProductInCategory,
+                    }) as never
+            );
+            mockTrackViewCategory.mockResolvedValueOnce(false);
+            let view!: ReturnType<typeof render>;
+            await flush(() => {
+                view = render(renderAnalyticsPage(loaderData));
+            });
+            const { rerender } = view;
+            await waitFor(() => expect(mockTrackViewCategory).toHaveBeenCalledTimes(1));
+
+            consentKey = 'accepted';
+            await flush(() => rerender(renderAnalyticsPage(loaderData)));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(2);
+            expect(mockTrackViewCategory.mock.calls[1][0]).toEqual(
+                expect.objectContaining({
+                    category: mockCategory,
+                    searchResults: [],
+                    total: 0,
+                    offset: 0,
+                    limit: 10,
+                })
+            );
+
+            consentKey = 'declined';
+            await flush(() => rerender(renderAnalyticsPage(loaderData)));
+            consentKey = 'accepted';
+            await flush(() => rerender(renderAnalyticsPage(loaderData)));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(2);
         });
 
         test('should call trackClickProductInCategory when product is clicked', async () => {
@@ -1936,6 +2009,463 @@ describe('CategoryPage', () => {
             });
         });
 
+        test('recovers displayed batches in handoff order after the initial category without navigation pageviews', async () => {
+            const loaderData = createAnalyticsData();
+            let consentKey = 'unknown';
+            vi.mocked(useAnalytics).mockImplementation(
+                () =>
+                    ({
+                        consentKey,
+                        trackViewCategory: mockTrackViewCategory,
+                        trackClickProductInCategory: mockTrackClickProductInCategory,
+                    }) as never
+            );
+            mockTrackViewCategory.mockResolvedValueOnce(false);
+            let view!: ReturnType<typeof render>;
+            await flush(() => {
+                view = render(renderAnalyticsPage(loaderData));
+            });
+            const onLoad = mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad;
+            const first = { hits: [{ productId: 'product-3' }], offset: 2, limit: 1, total: 25 };
+            const second = { hits: [{ productId: 'product-4' }], offset: 3, limit: 1, total: 25 };
+            await flush(() => {
+                onLoad(first);
+                onLoad(second);
+            });
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(1);
+            let handoff!: (tracked: boolean) => void;
+            mockTrackViewCategory.mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((resolve) => {
+                        handoff = resolve;
+                    })
+            );
+            consentKey = 'accepted';
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(2);
+            let batchHandoff!: (tracked: boolean) => void;
+            mockTrackViewCategory.mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((resolve) => {
+                        batchHandoff = resolve;
+                    })
+            );
+            await flush(() => handoff(true));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(3);
+            await flush(() => batchHandoff(true));
+            expect(mockTrackViewCategory.mock.calls.slice(1).map(([data]) => [data.offset, data.isNavigation])).toEqual(
+                [
+                    [0, undefined],
+                    [2, false],
+                    [3, false],
+                ]
+            );
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(4);
+        });
+
+        test('aborts pending handoff when navigation starts and does not send retained batches', async () => {
+            const loaderData = createAnalyticsData();
+            let handoff!: (tracked: boolean) => void;
+            mockTrackViewCategory.mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((resolve) => {
+                        handoff = resolve;
+                    })
+            );
+            let view!: ReturnType<typeof render>;
+            await flush(() => {
+                view = render(renderAnalyticsPage(loaderData));
+            });
+            const signal = mockTrackViewCategory.mock.calls[0][1] as AbortSignal;
+            mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad({
+                hits: [{ productId: 'product-3' }],
+                offset: 2,
+                limit: 1,
+                total: 25,
+            });
+            mockNavigation.mockReturnValue({
+                state: 'loading',
+                location: { pathname: '/p/product-1', search: '', hash: '' },
+            } as never);
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            expect(signal.aborted).toBe(true);
+            await flush(() => handoff(false));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(1);
+        });
+
+        test('keeps pending work through analytics identity changes and uses the latest callback', async () => {
+            const loaderData = createAnalyticsData();
+            let resolveResults!: (result: ShopperSearch.schemas['ProductSearchResult']) => void;
+            loaderData.searchResultNonCritical = new Promise((resolve) => {
+                resolveResults = resolve;
+            });
+            let view!: ReturnType<typeof render>;
+            await flush(() => {
+                view = render(renderAnalyticsPage(loaderData));
+            });
+            const latest = vi.fn().mockResolvedValue(true);
+            vi.mocked(useAnalytics).mockReturnValue({
+                consentKey: 'accepted',
+                trackViewCategory: latest,
+                trackClickProductInCategory: mockTrackClickProductInCategory,
+            } as never);
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            await flush(() => resolveResults({ ...mockSearchResult, hits: [] }));
+            expect(mockTrackViewCategory).not.toHaveBeenCalled();
+            expect(latest).toHaveBeenCalledTimes(1);
+            const signal = latest.mock.calls[0][1] as AbortSignal;
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            expect(signal.aborted).toBe(false);
+            expect(latest).toHaveBeenCalledTimes(1);
+        });
+
+        test('drops deferred obsolete criteria and their batches instead of recovering historical views', async () => {
+            const loaderData = createAnalyticsData();
+            let resolveResults!: (result: ShopperSearch.schemas['ProductSearchResult']) => void;
+            loaderData.searchResultNonCritical = new Promise((resolve) => {
+                resolveResults = resolve;
+            });
+            const router = createMemoryRouter(
+                [
+                    {
+                        path: '*',
+                        element: (
+                            <AllProvidersWrapper>
+                                <CategoryPage loaderData={loaderData} />
+                            </AllProvidersWrapper>
+                        ),
+                    },
+                ],
+                { initialEntries: ['/c/electronics'] }
+            );
+            await flush(() => {
+                render(<RouterProvider router={router} />);
+            });
+            const staleOnLoad = mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad;
+            staleOnLoad({ hits: [{ productId: 'obsolete' }], offset: 2, limit: 1, total: 25 });
+            await act(async () => router.navigate('/c/electronics?sort=price-low-to-high'));
+            await flush(() => {
+                staleOnLoad({ hits: [{ productId: 'late-obsolete' }], offset: 3, limit: 1, total: 25 });
+                resolveResults({ ...mockSearchResult, hits: [] });
+            });
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(1);
+            expect(mockTrackViewCategory.mock.calls[0][0].offset).toBe(0);
+        });
+
+        test('does not repeat a category handoff when only the filters panel URL changes', async () => {
+            const loaderData = createAnalyticsData();
+            const router = createMemoryRouter(
+                [
+                    {
+                        path: '*',
+                        element: (
+                            <AllProvidersWrapper>
+                                <CategoryPage loaderData={loaderData} />
+                            </AllProvidersWrapper>
+                        ),
+                    },
+                ],
+                { initialEntries: ['/c/electronics'] }
+            );
+            await flush(() => {
+                render(<RouterProvider router={router} />);
+            });
+            await flush(() => router.navigate('/c/electronics?filters=open'));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(1);
+        });
+
+        test('recovers pre-consent Load More batches after a hash change without resetting the displayed grid', async () => {
+            const loaderData = createAnalyticsData();
+            let consentKey = 'unknown';
+            vi.mocked(useAnalytics).mockImplementation(
+                () =>
+                    ({
+                        consentKey,
+                        trackViewCategory: mockTrackViewCategory,
+                        trackClickProductInCategory: mockTrackClickProductInCategory,
+                    }) as never
+            );
+            mockTrackViewCategory.mockImplementation(() => Promise.resolve(consentKey === 'accepted'));
+            const router = createMemoryRouter(
+                [
+                    {
+                        path: '*',
+                        element: (
+                            <AllProvidersWrapper>
+                                <CategoryPage loaderData={loaderData} />
+                            </AllProvidersWrapper>
+                        ),
+                    },
+                ],
+                { initialEntries: ['/c/electronics'] }
+            );
+            await flush(() => {
+                render(<RouterProvider router={router} />);
+            });
+            const onLoad = mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad;
+            await flush(() => onLoad({ hits: [{ productId: 'product-3' }], offset: 2, limit: 1, total: 25 }));
+            await flush(() => router.navigate('/c/electronics#products'));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(1);
+            consentKey = 'accepted';
+            await flush(() => router.navigate('/c/electronics?filters=open#products'));
+            expect(mockTrackViewCategory.mock.calls.slice(1).map(([data]) => [data.offset, data.isNavigation])).toEqual(
+                [
+                    [0, undefined],
+                    [2, false],
+                ]
+            );
+            await flush(() => router.navigate('/c/electronics#more'));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(3);
+        });
+
+        test('keeps a pending handoff active through hash navigation and then sends its displayed batch', async () => {
+            const loaderData = createAnalyticsData();
+            let handoff!: (tracked: boolean) => void;
+            mockTrackViewCategory.mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((resolve) => {
+                        handoff = resolve;
+                    })
+            );
+            const router = createMemoryRouter(
+                [
+                    {
+                        path: '*',
+                        element: (
+                            <AllProvidersWrapper>
+                                <CategoryPage loaderData={loaderData} />
+                            </AllProvidersWrapper>
+                        ),
+                    },
+                ],
+                { initialEntries: ['/c/electronics'] }
+            );
+            await flush(() => {
+                render(<RouterProvider router={router} />);
+            });
+            const signal = mockTrackViewCategory.mock.calls[0][1] as AbortSignal;
+            await flush(() =>
+                mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad({
+                    hits: [{ productId: 'product-3' }],
+                    offset: 2,
+                    limit: 1,
+                    total: 25,
+                })
+            );
+            mockNavigation.mockReturnValue({
+                state: 'loading',
+                location: { pathname: '/c/electronics', search: '', hash: '#products' },
+            } as never);
+            await flush(() => router.navigate('/c/electronics#products'));
+            expect(signal.aborted).toBe(false);
+            await flush(() => handoff(true));
+            expect(mockTrackViewCategory.mock.calls.map(([data]) => [data.offset, data.isNavigation])).toEqual([
+                [0, undefined],
+                [2, false],
+            ]);
+        });
+
+        test('starts a fresh category grid and recovery when the site changes under unchanged criteria', async () => {
+            const loaderData = createAnalyticsData();
+            const page = (siteId: string) => (
+                <MemoryRouter initialEntries={['/c/electronics']}>
+                    <AllProvidersWrapper>
+                        <SiteProvider
+                            site={{ ...mockSiteObject, id: siteId }}
+                            locale={mockSiteObject.supportedLocales[0]}
+                            language="en-US"
+                            currency="USD">
+                            <CategoryPage loaderData={loaderData} />
+                        </SiteProvider>
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+            mockTrackViewCategory.mockResolvedValueOnce(false);
+            let view!: ReturnType<typeof render>;
+            await flush(() => {
+                view = render(page('first-site'));
+            });
+            await flush(() =>
+                mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad({
+                    hits: [{ productId: 'old-site-product' }],
+                    offset: 2,
+                    limit: 1,
+                    total: 25,
+                })
+            );
+            await flush(() => view.rerender(page('second-site')));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(2);
+            expect(mockTrackViewCategory.mock.calls[1][0].offset).toBe(0);
+        });
+
+        test('cancels deferred tracking on unmount even under Strict Mode', async () => {
+            const loaderData = createAnalyticsData();
+            let resolveResults!: (result: ShopperSearch.schemas['ProductSearchResult']) => void;
+            loaderData.searchResultNonCritical = new Promise((resolve) => {
+                resolveResults = resolve;
+            });
+            let view!: ReturnType<typeof render>;
+            await flush(() => {
+                view = render(<StrictMode>{renderAnalyticsPage(loaderData)}</StrictMode>);
+            });
+            const onLoad = mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad;
+            onLoad({ hits: [{ productId: 'obsolete' }], offset: 2, limit: 1, total: 25 });
+            view.unmount();
+            await flush(() => {
+                onLoad({ hits: [{ productId: 'late-unmounted' }], offset: 3, limit: 1, total: 25 });
+                resolveResults(mockSearchResult);
+            });
+            expect(mockTrackViewCategory).not.toHaveBeenCalled();
+        });
+
+        test.each([
+            'initialCount',
+            'offset',
+        ] as const)('drops retained batches when the load-more lifecycle resets on %s', async (field) => {
+            const loaderData = createAnalyticsData();
+            let consentKey = 'unknown';
+            vi.mocked(useAnalytics).mockImplementation(
+                () =>
+                    ({
+                        consentKey,
+                        trackViewCategory: mockTrackViewCategory,
+                        trackClickProductInCategory: mockTrackClickProductInCategory,
+                    }) as never
+            );
+            mockTrackViewCategory.mockImplementation(() => Promise.resolve(consentKey === 'accepted'));
+            let view!: ReturnType<typeof render>;
+            await flush(() => {
+                view = render(renderAnalyticsPage(loaderData));
+            });
+            const oldOnLoad = mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad;
+            await flush(() => oldOnLoad({ hits: [{ productId: 'discarded' }], offset: 2, limit: 1, total: 25 }));
+            const nextData = { ...loaderData, [field]: 4 };
+            await flush(() => view.rerender(renderAnalyticsPage(nextData)));
+            await flush(() => oldOnLoad({ hits: [{ productId: 'late-discarded' }], offset: 3, limit: 1, total: 25 }));
+            consentKey = 'accepted';
+            mockTrackViewCategory.mockClear();
+            await flush(() => view.rerender(renderAnalyticsPage(nextData)));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(1);
+            expect(mockTrackViewCategory.mock.calls[0][0].searchResults).toEqual(mockSearchResult.hits);
+        });
+
+        test('retains a batch arriving during navigation and recovers it when navigation is cancelled', async () => {
+            const loaderData = createAnalyticsData();
+            let consentKey = 'unknown';
+            vi.mocked(useAnalytics).mockImplementation(
+                () =>
+                    ({
+                        consentKey,
+                        trackViewCategory: mockTrackViewCategory,
+                        trackClickProductInCategory: mockTrackClickProductInCategory,
+                    }) as never
+            );
+            mockTrackViewCategory.mockImplementation(() => Promise.resolve(consentKey === 'accepted'));
+            let view!: ReturnType<typeof render>;
+            await flush(() => {
+                view = render(renderAnalyticsPage(loaderData));
+            });
+            const onLoad = mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad;
+            mockNavigation.mockReturnValue({
+                state: 'loading',
+                location: { pathname: '/p/product-1', search: '', hash: '' },
+            } as never);
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            await flush(() => onLoad({ hits: [{ productId: 'still-displayed' }], offset: 2, limit: 1, total: 25 }));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(1);
+            consentKey = 'accepted';
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(1);
+            mockNavigation.mockReturnValue({ state: 'idle', location: undefined });
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            expect(mockTrackViewCategory.mock.calls.slice(1).map(([data]) => [data.offset, data.isNavigation])).toEqual(
+                [
+                    [0, undefined],
+                    [2, false],
+                ]
+            );
+            expect(mockTrackViewCategory.mock.calls[2][0].searchResults).toEqual([{ productId: 'still-displayed' }]);
+        });
+
+        test('cancels pending handoff on withdrawal and recovers skipped batches without repeating the initial view', async () => {
+            const loaderData = createAnalyticsData();
+            let consentKey = 'accepted';
+            vi.mocked(useAnalytics).mockImplementation(
+                () =>
+                    ({
+                        consentKey,
+                        trackViewCategory: mockTrackViewCategory,
+                        trackClickProductInCategory: mockTrackClickProductInCategory,
+                    }) as never
+            );
+            let view!: ReturnType<typeof render>;
+            await flush(() => {
+                view = render(renderAnalyticsPage(loaderData));
+            });
+            let handoff!: (tracked: boolean) => void;
+            mockTrackViewCategory.mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((resolve) => {
+                        handoff = resolve;
+                    })
+            );
+            await flush(() =>
+                mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad({
+                    hits: [{ productId: 'product-3' }],
+                    offset: 2,
+                    limit: 1,
+                    total: 25,
+                })
+            );
+            const signal = mockTrackViewCategory.mock.calls[1][1] as AbortSignal;
+            mockTrackViewCategory.mockResolvedValueOnce(false);
+            consentKey = 'declined';
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            expect(signal.aborted).toBe(true);
+            await flush(() => handoff(false));
+            consentKey = 'accepted';
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            expect(mockTrackViewCategory.mock.calls.map(([data]) => [data.offset, data.isNavigation])).toEqual([
+                [0, undefined],
+                [2, false],
+                [2, false],
+                [2, false],
+            ]);
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(4);
+        });
+
+        test('a late cancelled attempt cannot erase a newer successful category handoff', async () => {
+            const loaderData = createAnalyticsData();
+            let consentKey = 'unknown';
+            vi.mocked(useAnalytics).mockImplementation(
+                () =>
+                    ({
+                        consentKey,
+                        trackViewCategory: mockTrackViewCategory,
+                        trackClickProductInCategory: mockTrackClickProductInCategory,
+                    }) as never
+            );
+            let cancelled!: (tracked: boolean) => void;
+            mockTrackViewCategory.mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((resolve) => {
+                        cancelled = resolve;
+                    })
+            );
+            let view!: ReturnType<typeof render>;
+            await flush(() => {
+                view = render(renderAnalyticsPage(loaderData));
+            });
+            consentKey = 'accepted';
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            await flush(() => cancelled(false));
+            consentKey = 'declined';
+            await flush(() => view.rerender(renderAnalyticsPage(loaderData)));
+            expect(mockTrackViewCategory).toHaveBeenCalledTimes(2);
+        });
+
         test('should track product impressions after loading more products', async () => {
             const loaderData: CategoryPageData = {
                 category: mockCategory,
@@ -1973,16 +2503,19 @@ describe('CategoryPage', () => {
             });
 
             await waitFor(() =>
-                expect(mockTrackViewCategory).toHaveBeenCalledWith({
-                    category: mockCategory,
-                    isNavigation: false,
-                    searchResults: [loadedProduct],
-                    sort: 'best-matches',
-                    refinements: {},
-                    offset: 24,
-                    limit: 1,
-                    total: 25,
-                })
+                expect(mockTrackViewCategory).toHaveBeenCalledWith(
+                    {
+                        category: mockCategory,
+                        isNavigation: false,
+                        searchResults: [loadedProduct],
+                        sort: 'best-matches',
+                        refinements: {},
+                        offset: 24,
+                        limit: 1,
+                        total: 25,
+                    },
+                    expect.any(AbortSignal)
+                )
             );
         });
 
@@ -1991,8 +2524,8 @@ describe('CategoryPage', () => {
             const searchResultNonCritical = new Promise<ShopperSearch.schemas['ProductSearchResult']>((resolve) => {
                 resolveNonCritical = resolve;
             });
-            let resolveInitialTracking: () => void;
-            const initialTracking = new Promise<void>((resolve) => {
+            let resolveInitialTracking: (tracked: boolean) => void;
+            const initialTracking = new Promise<boolean>((resolve) => {
                 resolveInitialTracking = resolve;
             });
             mockTrackViewCategory.mockReturnValueOnce(initialTracking);
@@ -2039,7 +2572,7 @@ describe('CategoryPage', () => {
             expect(mockTrackViewCategory.mock.calls[0][0].offset).toBe(0);
 
             await act(async () => {
-                resolveInitialTracking();
+                resolveInitialTracking(true);
                 await initialTracking;
             });
 

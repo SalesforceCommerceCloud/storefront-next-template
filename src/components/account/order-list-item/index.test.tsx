@@ -71,6 +71,59 @@ const mockOrderWithPickup: OrderListItemData = {
 };
 
 describe('OrderListItem', () => {
+    it.each([
+        ['ORDERED', 'Ordered'],
+        ['IN_PROGRESS', 'In Progress'],
+        ['PARTIALLY_SHIPPED', 'Partially Shipped'],
+        ['SHIPPED', 'Shipped'],
+        ['PART_ORDER_DELIVERED', 'Part Order Delivered'],
+        ['DELIVERED', 'Delivered'],
+    ] as const)('renders fulfillment %s over stale raw label', (fulfillmentStatus, label) => {
+        renderWithProviders(<OrderListItem order={{ ...mockOrder, fulfillmentStatus }} />);
+        expect(screen.getByText(label)).toBeInTheDocument();
+        expect(screen.queryByText('Created')).not.toBeInTheDocument();
+        if (fulfillmentStatus === 'DELIVERED')
+            expect(screen.getByTestId('order-status-icon')).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it.each([' cancelled ', ' CANCELED '])('raw %s outranks stale fulfillment and return', (status) => {
+        renderWithProviders(
+            <OrderListItem
+                order={{
+                    ...mockOrder,
+                    status,
+                    statusLabel: undefined,
+                    fulfillmentStatus: 'DELIVERED',
+                    returnStatus: 'RETURN_COMPLETE',
+                }}
+            />
+        );
+        expect(screen.getByTestId('order-cancel-status-badge')).toHaveTextContent('Canceled');
+    });
+
+    it('return status outranks fulfillment', () => {
+        renderWithProviders(
+            <OrderListItem order={{ ...mockOrder, fulfillmentStatus: 'DELIVERED', returnStatus: 'RETURN_COMPLETE' }} />
+        );
+        expect(screen.getByTestId('order-return-status-badge')).toHaveTextContent('Return Complete');
+        expect(screen.queryByText('Delivered')).not.toBeInTheDocument();
+    });
+
+    it('projected cancellation outranks return and fulfillment', () => {
+        renderWithProviders(
+            <OrderListItem
+                order={{
+                    ...mockOrder,
+                    cancelStatus: 'cancelled',
+                    returnStatus: 'RETURN_COMPLETE',
+                    fulfillmentStatus: 'DELIVERED',
+                }}
+            />
+        );
+        expect(screen.getByTestId('order-cancel-status-badge')).toHaveTextContent('Canceled');
+        expect(screen.queryByTestId('order-return-status-badge')).not.toBeInTheDocument();
+        expect(screen.queryByText('Delivered')).not.toBeInTheDocument();
+    });
     describe('rendering', () => {
         it('renders order date, total, and item count', () => {
             renderWithProviders(<OrderListItem order={mockOrder} />);

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { useEffect, useRef } from 'react';
+import { useLocation, useNavigation } from 'react-router';
 import { useAnalytics } from '@/hooks/use-analytics';
 
 /**
  * Analytics component for wishlist page views.
- * Tracks `wishlist_viewed` event when the component mounts.
+ * Tracks the current wishlist view, retrying when consent becomes available.
  *
  * Non-visual component (returns null). Follows the `PageViewTracker` pattern:
  * lazy-loads, waits for auth, respects consent, silently fails on error.
@@ -26,20 +27,25 @@ import { useAnalytics } from '@/hooks/use-analytics';
  * Mount once per route (guest `/wishlist` and registered `/account/wishlist`).
  */
 export function WishlistPageAnalytics() {
-    const { trackWishlistViewed } = useAnalytics();
-    const hasTrackedRef = useRef(false);
+    const analytics = useAnalytics();
+    const location = useLocation();
+    const navigation = useNavigation();
+    const viewKey = JSON.stringify([location.key, location.pathname, location.search]);
+    const lastTrackedRef = useRef<string | null>(null);
+    const analyticsRef = useRef(analytics);
+    analyticsRef.current = analytics;
 
     useEffect(() => {
-        // Only track once per mount to prevent duplicate events on re-renders
-        if (hasTrackedRef.current) {
-            return;
-        }
-        hasTrackedRef.current = true;
-
-        void trackWishlistViewed();
-        // Intentionally omit trackWishlistViewed from deps to prevent re-tracking on function reference changes
-        // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        if (navigation.state !== 'idle' || lastTrackedRef.current === viewKey) return;
+        const controller = new AbortController();
+        void analyticsRef.current
+            .trackWishlistViewed(controller.signal)
+            .then((handedOff) => {
+                if (handedOff && !controller.signal.aborted) lastTrackedRef.current = viewKey;
+            })
+            .catch(() => undefined);
+        return () => controller.abort();
+    }, [analytics.consentKey, navigation.state, viewKey]);
 
     return null;
 }

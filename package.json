@@ -1,13 +1,13 @@
 {
     "name": "template-retail-rsc-app",
-    "version": "2026.10.0",
+    "version": "2026.11.0-alpha.0",
     "description": "Standalone Salesforce Commerce Cloud storefront (fashion).",
     "private": true,
     "type": "module",
     "storefrontNext": {
-        "templateRelease": "October 2026",
-        "templateVersion": "2026.10.0",
-        "minSdkVersion": "1.4.0"
+        "templateRelease": "November 2026",
+        "templateVersion": "2026.11.0",
+        "minSdkVersion": "1.5.0-alpha.0"
     },
     "scripts": {
         "dev": "pnpm locales:aggregate-extensions && pnpm config:aggregate-extensions && cross-env NODE_OPTIONS=--conditions=dev-data-store sfnext dev",
@@ -67,8 +67,8 @@
         "@radix-ui/react-switch": "1.2.2",
         "@radix-ui/react-tooltip": "1.2.8",
         "@react-router/node": "7.18.2",
-        "@salesforce/storefront-next-dev": "1.4.0",
-        "@salesforce/storefront-next-runtime": "1.4.0",
+        "@salesforce/storefront-next-dev": "1.5.0-alpha.0",
+        "@salesforce/storefront-next-runtime": "1.5.0-alpha.0",
         "@vis.gl/react-google-maps": "1.7.1",
         "class-variance-authority": "0.7.1",
         "clsx": "2.1.1",
@@ -108,7 +108,7 @@
         "@react-router/dev": "7.18.2",
         "@react-router/express": "7.18.2",
         "@react-router/fs-routes": "7.18.2",
-        "@salesforce/b2c-cli": "2.5.2",
+        "@salesforce/b2c-cli": "2.11.0",
         "@storybook/addon-a11y": "10.2.19",
         "@storybook/addon-docs": "10.2.19",
         "@storybook/addon-vitest": "10.2.19",
@@ -173,7 +173,7 @@
             "@xmldom/xmldom": "0.9.10",
             "http-proxy-middleware": "3.0.6",
             "undici": "7.29.0",
-            "fast-uri": "3.1.4",
+            "fast-uri": "3.1.9",
             "lodash": "4.18.1",
             "minimatch": "10.2.5",
             "picomatch": "4.0.4",

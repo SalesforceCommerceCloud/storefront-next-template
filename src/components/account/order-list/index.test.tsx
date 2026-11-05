@@ -19,6 +19,8 @@ import { vi, describe, test, expect } from 'vitest';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { mockAltSiteObject } from '@/test-utils/config';
 import { OrderList, OrderListHeader, OrderListBody, type Order } from './index';
+import { transformOrderForList } from '@/lib/api/order.server';
+import type { ShopperCustomers } from '@/scapi';
 
 const { t } = getTranslation();
 
@@ -80,6 +82,54 @@ const testOrders: Order[] = [
 ];
 
 describe('OrderList Component', () => {
+    test.each([
+        [['fulfilled'], 'Shipped'],
+        [['fulfilled', 'fulfilled'], 'Shipped'],
+        [['  FuLfIlLeD  '], 'Shipped'],
+        [['fulfilled', 'allocated'], 'Partially Shipped'],
+        [['fulfilled', 'future_state'], 'Partially Shipped'],
+        [['fulfilled', undefined], 'Partially Shipped'],
+        [['fulfilled', 'shipped'], 'Shipped'],
+        [['fulfilled', 'delivered'], 'Part Order Delivered'],
+        [['fulfilled', 'canceled'], 'Shipped'],
+        [['fulfilled', 'returned'], 'Partial Return Complete'],
+        [['fulfilled', 'return_initiated'], 'Partial Return Initiated'],
+        [['fulfilled', 'returned', 'return_initiated'], 'Partial Return Complete'],
+    ] as const)('renders projected OMS history %s as %s', (statuses, label) => {
+        const order = transformOrderForList({
+            orderNo: 'OMS-HISTORY',
+            creationDate: '2026-11-04T10:00:00Z',
+            status: 'new',
+            currency: 'USD',
+            productItems: statuses.map((status, i) => ({
+                productId: `prod-${i}`,
+                quantity: 1,
+                omsData: { status },
+            })),
+        } as unknown as ShopperCustomers.schemas['Order']);
+
+        render(<OrderListBody orders={[order]} />);
+        expect(screen.getByText(label)).toBeInTheDocument();
+        expect(screen.queryByText('New')).not.toBeInTheDocument();
+    });
+
+    test('raw cancellation outranks fulfilled history projection', () => {
+        const order = transformOrderForList({
+            orderNo: 'OMS-CANCELLED',
+            creationDate: '2026-11-04T10:00:00Z',
+            status: 'cancelled',
+            productItems: [{ productId: 'prod-1', quantity: 1, omsData: { status: 'fulfilled' } }],
+        } as unknown as ShopperCustomers.schemas['Order']);
+        render(<OrderListBody orders={[order]} />);
+        expect(screen.getByTestId('order-cancel-status-badge')).toHaveTextContent('Canceled');
+        expect(screen.queryByText('Shipped')).not.toBeInTheDocument();
+    });
+
+    test('threads projected fulfillment through toOrderListItemData', () => {
+        render(<OrderListBody orders={[{ ...testOrders[0], fulfillmentStatus: 'PARTIALLY_SHIPPED' }]} />);
+        expect(screen.getByText('Partially Shipped')).toBeInTheDocument();
+        expect(screen.queryByText('Completed')).not.toBeInTheDocument();
+    });
     const renderOrderList = (props: Partial<React.ComponentProps<typeof OrderList>> = {}) => {
         const defaultProps = {
             title: 'Order History',

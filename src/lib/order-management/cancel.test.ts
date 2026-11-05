@@ -231,6 +231,31 @@ describe('isCancellable', () => {
 });
 
 describe('isOrderCancelled', () => {
+    it.each([' canceled ', ' CANCELLED '])('normalizes %s', (status) => {
+        expect(isOrderCancelled({ productItems: [{ omsData: { status } }] })).toBe(true);
+    });
+
+    it.each([2, 3])('recognizes full cancellation from counters (%s canceled)', (quantityCanceled) => {
+        expect(
+            isOrderCancelled({
+                productItems: [{ omsData: { status: 'allocated', quantityOrdered: 2, quantityCanceled } }],
+            })
+        ).toBe(true);
+    });
+
+    it.each([
+        [undefined, undefined],
+        [0, 0],
+        [NaN, 2],
+        [Infinity, Infinity],
+        [2, Infinity],
+        [2, NaN],
+        [2, -1],
+        [2, 1],
+    ])('rejects unusable or partial cancellation counters %s/%s', (quantityOrdered, quantityCanceled) => {
+        expect(isOrderCancelled({ productItems: [{ omsData: { quantityOrdered, quantityCanceled } }] })).toBe(false);
+    });
+
     it('returns true when all items have canceled status', () => {
         const order: OrderLike = {
             productItems: [

@@ -111,12 +111,10 @@ export async function handlePasswordlessCallback({ request, context }: ActionFun
 export function handlePasswordlessLanding({ request }: LoaderFunctionArgs) {
     const url = new URL(request.url);
     const token = url.searchParams.get('token') || '';
-    const email = url.searchParams.get('email') || '';
     const redirectUrl = url.searchParams.get('redirectUrl') || '';
 
     const params = new URLSearchParams();
     params.set('token', token);
-    params.set('email', email);
     if (redirectUrl) params.set('returnUrl', redirectUrl);
 
     return redirect(`${routes.login}?${params.toString()}`);

@@ -377,7 +377,7 @@ describe('passwordless-login', () => {
     });
 
     describe('handlePasswordlessLanding', () => {
-        it('should pass through token and email to /login', () => {
+        it('should pass through token without email to /login', () => {
             const mockRequest = {
                 url: 'https://example.com/passwordless-landing?token=valid-token&email=user%40example.com',
             } as any;
@@ -392,7 +392,7 @@ describe('passwordless-login', () => {
                 pattern: {} as any,
             });
 
-            expect(mockRedirect).toHaveBeenCalledWith('/login?token=valid-token&email=user%40example.com');
+            expect(mockRedirect).toHaveBeenCalledWith('/login?token=valid-token');
             expect(result).toBe('redirect-response');
         });
 
@@ -411,9 +411,7 @@ describe('passwordless-login', () => {
                 pattern: {} as any,
             });
 
-            expect(mockRedirect).toHaveBeenCalledWith(
-                '/login?token=valid-token&email=user%40example.com&returnUrl=%2Fdashboard'
-            );
+            expect(mockRedirect).toHaveBeenCalledWith('/login?token=valid-token&returnUrl=%2Fdashboard');
             expect(result).toBe('redirect-response');
         });
 
@@ -432,7 +430,7 @@ describe('passwordless-login', () => {
                 pattern: {} as any,
             });
 
-            expect(mockRedirect).toHaveBeenCalledWith('/login?token=&email=');
+            expect(mockRedirect).toHaveBeenCalledWith('/login?token=');
             expect(result).toBe('redirect-response');
         });
     });

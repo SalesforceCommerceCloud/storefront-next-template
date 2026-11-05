@@ -160,6 +160,34 @@ describe('resource mappings', () => {
         });
     });
 
+    test("builds destinations from the '*' entry for a site without its own entry", () => {
+        const unlisted = options({
+            seoUrlContext: { siteId: 'Unlisted', seoRoutes: { RefArch: seoRoutes.RefArch, '*': seoRoutes.SlugStore } },
+            destinationPrefix: '/Unlisted/en-US',
+        });
+
+        expect(resolveUrlMapping({ resourceType: 'PRODUCT', resourceId: 'red dress' }, unlisted)).toEqual({
+            type: 'redirect',
+            status: 302,
+            location: '/products/red%20dress',
+        });
+        expect(
+            resolveUrlMapping(
+                {
+                    resourceType: 'CONTENT_ASSET',
+                    resourceSubType: 'PAGE_DESIGNER_CONTENT_ASSET',
+                    resourceId: 'landing',
+                    destinationUrl: '/Unlisted/en-US/stories/page/campaigns/landing',
+                    statusCode: 301,
+                },
+                unlisted
+            )
+        ).toEqual({ type: 'redirect', status: 301, location: '/stories/page/campaigns/landing' });
+        expect(resolveUrlMapping({ resourceType: 'CATEGORY', resourceId: 'internal-mens-clothing' }, unlisted)).toEqual(
+            { type: 'rejected' }
+        );
+    });
+
     test('rejects a slug-path category without destination hierarchy', () => {
         expect(
             resolveUrlMapping(

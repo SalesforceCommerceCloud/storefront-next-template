@@ -25,7 +25,7 @@ const meta: Meta<typeof OrderStatusHeader> = {
         docs: {
             description: {
                 component:
-                    'Order Details title + order-number + status-badge cascade, shared between the registered-account and guest order-lookup Order Details pages. Badge precedence: cancel (item-level all-cancelled) → return (aggregated from items) → raw status → nothing. An unrecognized/unmapped raw status falls back to a neutral (muted) badge rather than implying success.',
+                    'Order Details title + order-number + status-badge cascade, shared between the registered-account and guest order-lookup Order Details pages. Badge precedence: cancellation → return → fulfillment → raw status → nothing. An unrecognized/unmapped raw status falls back to a neutral (muted) badge rather than implying success.',
             },
         },
     },
@@ -51,6 +51,20 @@ export const New: Story = {
 export const Completed: Story = {
     args: {
         order: { orderNo: 'INO002', status: 'completed' } as Partial<ShopperOrders.schemas['Order']>,
+    },
+};
+
+/** Mixed active states exercise partial shipment rather than the stale raw "New" badge. */
+export const Fulfillment: Story = {
+    args: {
+        order: {
+            orderNo: 'INO007',
+            status: 'new',
+            productItems: [
+                { itemId: 'allocated', quantity: 1, omsData: { status: 'allocated', quantityOrdered: 1 } },
+                { itemId: 'shipped', quantity: 1, omsData: { status: 'shipped', quantityOrdered: 1 } },
+            ],
+        } as unknown as Partial<ShopperOrders.schemas['Order']>,
     },
 };
 

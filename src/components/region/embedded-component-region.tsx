@@ -37,10 +37,17 @@ export interface EmbeddedComponentRegionProps extends HTMLAttributes<HTMLDivElem
      * mirroring `<Region page={...}>` — once the component resolves, each
      * inner `<Component>` shows its own registry fallback for per-component
      * data via the typeId-driven lookup, so an outer fallback is rarely needed.
+     * Ignored by a critical region, which has no boundary of its own.
      */
     fallbackElement?: ReactNode;
     /** Rendered when the promise rejects or the component resolves to null. */
     errorElement?: ReactNode;
+    /**
+     * Renders the region in the initial shell and hydrates its components like those of a critical page region.
+     * A pending component suspends the nearest outer boundary, so render the region outside any `<Suspense>`
+     * boundary to block the shell until it resolves.
+     */
+    critical?: boolean;
 }
 
 /**
@@ -56,9 +63,12 @@ export interface EmbeddedComponentRegionProps extends HTMLAttributes<HTMLDivElem
  *    fallback via the `<Component>` wrapper, so this layer doesn't reach into
  *    the registry itself.
  *
+ * Set `critical` for content that must be in the initial HTML, such as a banner above the page. The loader streams
+ * the component promise; outside any `<Suspense>` boundary it blocks the shell until it resolves.
+ *
  * @example
  * ```tsx
- * <EmbeddedComponentRegion component={loaderData.headerComponent} regionId="announcement" />
+ * <EmbeddedComponentRegion component={loaderData.headerComponent} regionId="announcement" critical />
  * ```
  */
 export function EmbeddedComponentRegion({
@@ -66,6 +76,7 @@ export function EmbeddedComponentRegion({
     regionId,
     fallbackElement = <></>,
     errorElement,
+    critical,
     ...rest
 }: EmbeddedComponentRegionProps) {
     if (component === undefined) return null;
@@ -84,6 +95,7 @@ export function EmbeddedComponentRegion({
                     component={resolved as ComponentType}
                     regionId={regionId}
                     errorElement={errorElement}
+                    critical={critical}
                     {...rest}
                 />
             </EmbeddedSubtreeProvider>
@@ -99,13 +111,13 @@ export function EmbeddedComponentRegion({
     };
 
     if (component instanceof Promise) {
-        return (
-            <Suspense fallback={fallbackElement}>
-                <Await resolve={component} errorElement={errorElement}>
-                    {renderResolved}
-                </Await>
-            </Suspense>
+        const awaited = (
+            <Await resolve={component} errorElement={errorElement}>
+                {renderResolved}
+            </Await>
         );
+        // A critical region has no boundary of its own, so a pending component blocks the nearest outer one.
+        return critical ? awaited : <Suspense fallback={fallbackElement}>{awaited}</Suspense>;
     }
 
     return renderResolved(component);

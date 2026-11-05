@@ -361,8 +361,9 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
 // Mock functions from useAnalytics to avoid tracking consent dependency chain
 vi.mock('@/hooks/use-analytics', () => ({
     useAnalytics: vi.fn(() => ({
-        trackCheckoutStart: vi.fn(),
-        trackCheckoutStep: vi.fn(),
+        consentKey: '["analytics"]',
+        trackCheckoutStart: vi.fn().mockResolvedValue(true),
+        trackCheckoutStep: vi.fn().mockResolvedValue(true),
     })),
 }));
 

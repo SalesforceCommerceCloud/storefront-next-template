@@ -25,18 +25,24 @@ import { shouldRevalidate as sharedShouldRevalidate } from '@/lib/revalidation/r
 import { createLoaderArgs, createTestContext } from '@/lib/test-utils';
 import { fetchSearchProducts } from '@/lib/api/search.server';
 import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
-import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config';
 import type { AppConfig } from '@/types/config';
 import { getRegionDefinition } from '@/lib/decorators/region-definition';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import { useAnalytics } from '@/hooks/use-analytics';
 import type { Route } from './+types/_app.search';
 
+const mockNavigation = vi.hoisted(() =>
+    vi.fn<() => { state: string; location?: { pathname: string; search: string; hash: string } }>(() => ({
+        state: 'idle',
+    }))
+);
+
 vi.mock('react-router', async (importOriginal) => {
     const actual = await importOriginal<typeof import('react-router')>();
     return {
         ...actual,
-        useNavigation: () => ({ state: 'idle', location: undefined }),
+        useNavigation: mockNavigation,
     };
 });
 
@@ -222,6 +228,7 @@ vi.mock('@/middlewares/auth.server', () => ({
 // Mock analytics with controllable mock functions
 const mockTrackViewSearch = vi.fn();
 const mockTrackClickProductInSearch = vi.fn();
+let mockConsentKey = 'accepted';
 let uuidCounter = 0;
 Object.defineProperty(globalThis.crypto, 'randomUUID', {
     value: vi.fn(() => `search-result-${++uuidCounter}` as `${string}-${string}-${string}-${string}-${string}`),
@@ -230,6 +237,7 @@ Object.defineProperty(globalThis.crypto, 'randomUUID', {
 
 vi.mock('@/hooks/use-analytics', () => ({
     useAnalytics: vi.fn(() => ({
+        consentKey: mockConsentKey,
         trackViewSearch: mockTrackViewSearch,
         trackClickProductInSearch: mockTrackClickProductInSearch,
     })),
@@ -286,8 +294,12 @@ describe('SearchPage', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        mockNavigation.mockReturnValue({ state: 'idle' });
+        mockConsentKey = 'accepted';
+        mockTrackViewSearch.mockReset().mockResolvedValue(true);
         uuidCounter = 0;
         (getConfig as any).mockReturnValue(mockConfig);
+        vi.mocked(useConfig).mockReturnValue(mockConfig);
         (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
         (fetchPageWithComponentData as any).mockResolvedValue({
             ...createMockPage(),
@@ -1387,9 +1399,354 @@ describe('SearchPage', () => {
     });
 
     describe('Analytics Integration', () => {
+        const recoveryData: SearchPageData = {
+            searchTerm: 'shoes',
+            searchResultCritical: mockSearchResult,
+            searchResultNonCritical: Promise.resolve({ ...mockSearchResult, hits: [] }),
+            page: { ...createMockPage(), componentData: {} },
+            currency: 'USD',
+            locale: 'en-US',
+            refine: [],
+            pageUrl: 'http://localhost/search?q=shoes',
+        };
+
         beforeEach(() => {
             mockTrackViewSearch.mockClear();
             mockTrackClickProductInSearch.mockClear();
+        });
+
+        function searchView(loaderData = recoveryData) {
+            return (
+                <MemoryRouter initialEntries={['/search?q=shoes']}>
+                    <AllProvidersWrapper>
+                        <SearchPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+        }
+
+        test('recovers the unchanged search after consent without consuming a skipped execution', async () => {
+            mockConsentKey = 'unknown';
+            mockTrackViewSearch.mockResolvedValueOnce(false);
+            const { rerender } = render(searchView());
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+
+            mockConsentKey = 'accepted';
+            rerender(searchView());
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+            expect(mockTrackViewSearch.mock.calls[1][0]).toEqual(
+                expect.objectContaining({ searchResultId: 'search-result-1', startsSearchExecution: true })
+            );
+
+            mockConsentKey = 'other-consent';
+            rerender(searchView());
+            await act(() => Promise.resolve());
+            expect(mockTrackViewSearch).toHaveBeenCalledTimes(2);
+        });
+
+        test.each([
+            '/product/shoes',
+            '/search?q=boots',
+            '/search?q=shoes#next',
+        ])('cancels analytics while navigation to %s is pending', async (destination) => {
+            mockTrackViewSearch.mockReturnValueOnce(new Promise<boolean>(() => {}));
+            const { rerender } = render(searchView());
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            const signal = mockTrackViewSearch.mock.calls[0][1] as AbortSignal;
+            const url = new URL(destination, 'http://localhost');
+            mockNavigation.mockReturnValue({ state: 'loading', location: url });
+            rerender(searchView());
+            expect(signal.aborted).toBe(true);
+            mockConsentKey = 'changed';
+            rerender(searchView());
+            await act(() => Promise.resolve());
+            expect(mockTrackViewSearch).toHaveBeenCalledTimes(1);
+        });
+
+        test('does not cancel analytics for a pending client-only filters change', async () => {
+            mockTrackViewSearch.mockReturnValueOnce(new Promise<boolean>(() => {}));
+            const { rerender } = render(searchView());
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            const signal = mockTrackViewSearch.mock.calls[0][1] as AbortSignal;
+            mockNavigation.mockReturnValue({
+                state: 'loading',
+                location: new URL('http://localhost/search?q=shoes&filters=open'),
+            });
+            rerender(searchView());
+            expect(signal.aborted).toBe(false);
+            expect(mockTrackViewSearch).toHaveBeenCalledTimes(1);
+        });
+
+        test('does not dispatch deferred results while meaningful navigation is pending', async () => {
+            let resolveResults!: (result: ShopperSearch.schemas['ProductSearchResult']) => void;
+            const loaderData = {
+                ...recoveryData,
+                searchResultNonCritical: new Promise<ShopperSearch.schemas['ProductSearchResult']>(
+                    (resolve) => (resolveResults = resolve)
+                ),
+            };
+            const { rerender } = render(searchView(loaderData));
+            mockNavigation.mockReturnValue({ state: 'loading', location: new URL('http://localhost/search?q=boots') });
+            rerender(searchView(loaderData));
+            await act(() => {
+                resolveResults(mockSearchResult);
+                return Promise.resolve();
+            });
+            expect(mockTrackViewSearch).not.toHaveBeenCalled();
+        });
+
+        test('recovers only the current page and preserves the execution across preconsent pagination and page size', async () => {
+            mockConsentKey = 'unknown';
+            mockTrackViewSearch.mockResolvedValue(false);
+            const router = createMemoryRouter(
+                [{ path: '*', element: <SearchAnalyticsHarness loaderData={recoveryData} /> }],
+                { initialEntries: ['/search?q=shoes'] }
+            );
+            const { rerender } = render(<RouterProvider router={router} />);
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            await act(() => router.navigate('/search?q=shoes&offset=10'));
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+
+            vi.mocked(useConfig).mockReturnValue({
+                ...mockConfig,
+                search: { products: { hits: { limit: 20, critical: 2 } } },
+            } as AppConfig);
+            rerender(<RouterProvider router={router} />);
+            await act(() => router.navigate('/search?q=shoes&offset=20'));
+            await waitFor(() => expect(mockTrackViewSearch.mock.lastCall?.[0].offset).toBe(20));
+            const skippedCalls = mockTrackViewSearch.mock.calls.length;
+
+            mockConsentKey = 'accepted';
+            mockTrackViewSearch.mockResolvedValue(true);
+            rerender(<RouterProvider router={router} />);
+            await act(() => router.navigate('/search?q=shoes&offset=20&filters=open'));
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(skippedCalls + 1));
+            expect(mockTrackViewSearch.mock.lastCall?.[0]).toEqual(
+                expect.objectContaining({
+                    searchResultId: 'search-result-1',
+                    startsSearchExecution: true,
+                    offset: 20,
+                    limit: 20,
+                    total: 25,
+                    searchResults: mockSearchResult.hits,
+                })
+            );
+            expect(mockTrackViewSearch.mock.calls.every(([data]) => data.searchResultId === 'search-result-1')).toBe(
+                true
+            );
+        });
+
+        test.each(['withdrawal', 'criteria', 'unmount'])('aborts a pending analytics handoff on %s', async (change) => {
+            let finish!: (handedOff: boolean) => void;
+            mockTrackViewSearch.mockReturnValueOnce(new Promise<boolean>((resolve) => (finish = resolve)));
+            const { rerender, unmount } = render(searchView());
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            const signal = mockTrackViewSearch.mock.calls[0][1] as AbortSignal;
+            expect(signal).toBeInstanceOf(AbortSignal);
+            expect(signal.aborted).toBe(false);
+
+            // A fresh analytics object with unchanged effective consent must not cancel pending work.
+            rerender(searchView());
+            await act(() => Promise.resolve());
+            expect(signal.aborted).toBe(false);
+            expect(mockTrackViewSearch).toHaveBeenCalledTimes(1);
+
+            mockTrackViewSearch.mockResolvedValue(false);
+            const nextData = change === 'criteria' ? { ...recoveryData, searchTerm: 'boots' } : recoveryData;
+            if (change === 'unmount') {
+                unmount();
+            } else {
+                mockConsentKey = 'declined';
+                rerender(searchView(nextData));
+                await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+            }
+            expect(signal.aborted).toBe(true);
+            await act(() => {
+                finish(change === 'criteria');
+                return Promise.resolve();
+            });
+
+            if (change !== 'unmount') {
+                mockConsentKey = 'accepted';
+                mockTrackViewSearch.mockResolvedValue(true);
+                rerender(searchView(nextData));
+                await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(3));
+                expect(mockTrackViewSearch.mock.lastCall?.[0]).toEqual(
+                    expect.objectContaining({
+                        searchResultId: change === 'criteria' ? 'search-result-2' : 'search-result-1',
+                        startsSearchExecution: true,
+                    })
+                );
+            } else {
+                expect(mockTrackViewSearch).toHaveBeenCalledTimes(1);
+            }
+        });
+
+        test.each(['navigation', 'unmount'])('drops deferred results after %s', async (change) => {
+            let resolveResults!: (result: ShopperSearch.schemas['ProductSearchResult']) => void;
+            const staleData = {
+                ...recoveryData,
+                searchResultNonCritical: new Promise<ShopperSearch.schemas['ProductSearchResult']>(
+                    (resolve) => (resolveResults = resolve)
+                ),
+            };
+            const { rerender, unmount } = render(searchView(staleData));
+            expect(mockTrackViewSearch).not.toHaveBeenCalled();
+            if (change === 'unmount') {
+                unmount();
+            } else {
+                rerender(searchView({ ...recoveryData, searchTerm: 'boots' }));
+                await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            }
+            await act(() => {
+                resolveResults(mockSearchResult);
+                return Promise.resolve();
+            });
+            expect(mockTrackViewSearch).toHaveBeenCalledTimes(change === 'unmount' ? 0 : 1);
+            if (change === 'navigation') {
+                expect(mockTrackViewSearch.mock.lastCall?.[0]).toEqual(
+                    expect.objectContaining({ searchInputText: 'boots', startsSearchExecution: true })
+                );
+            }
+        });
+
+        test('cancels the previous page while analytics is waiting and starts only the current page', async () => {
+            let finish!: (handedOff: boolean) => void;
+            mockTrackViewSearch.mockReturnValueOnce(new Promise<boolean>((resolve) => (finish = resolve)));
+            const router = createMemoryRouter(
+                [{ path: '*', element: <SearchAnalyticsHarness loaderData={recoveryData} /> }],
+                { initialEntries: ['/search?q=shoes'] }
+            );
+            render(<RouterProvider router={router} />);
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            const signal = mockTrackViewSearch.mock.calls[0][1] as AbortSignal;
+            await act(() => router.navigate('/search?q=shoes&offset=10'));
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+            expect(signal.aborted).toBe(true);
+            expect(mockTrackViewSearch.mock.lastCall?.[0]).toEqual(
+                expect.objectContaining({ searchResultId: 'search-result-1', offset: 10, startsSearchExecution: true })
+            );
+            await act(() => {
+                finish(true);
+                return Promise.resolve();
+            });
+            await act(() => router.navigate('/search?q=shoes&offset=20'));
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(3));
+            expect(mockTrackViewSearch.mock.lastCall?.[0]).toEqual(
+                expect.objectContaining({ searchResultId: 'search-result-1', offset: 20, startsSearchExecution: false })
+            );
+        });
+
+        test('consumes a true handoff after withdrawal without repeating the view or initial Search', async () => {
+            let finish!: (handedOff: boolean) => void;
+            mockTrackViewSearch.mockReturnValueOnce(new Promise<boolean>((resolve) => (finish = resolve)));
+            const router = createMemoryRouter(
+                [{ path: '*', element: <SearchAnalyticsHarness loaderData={recoveryData} /> }],
+                { initialEntries: ['/search?q=shoes'] }
+            );
+            const { rerender } = render(<RouterProvider router={router} />);
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            const signal = mockTrackViewSearch.mock.calls[0][1] as AbortSignal;
+            mockConsentKey = 'declined';
+            mockTrackViewSearch.mockResolvedValue(false);
+            await act(() => router.navigate('/search?q=shoes&filters=open'));
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+            expect(signal.aborted).toBe(true);
+            await act(() => {
+                finish(true);
+                return Promise.resolve();
+            });
+
+            mockConsentKey = 'accepted';
+            mockTrackViewSearch.mockResolvedValue(true);
+            rerender(<RouterProvider router={router} />);
+            await act(() => router.navigate('/search?q=shoes&filters=closed'));
+            expect(mockTrackViewSearch).toHaveBeenCalledTimes(2);
+            await act(() => router.navigate('/search?q=shoes&offset=10'));
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(3));
+            expect(mockTrackViewSearch.mock.lastCall?.[0]).toEqual(
+                expect.objectContaining({ searchResultId: 'search-result-1', offset: 10, startsSearchExecution: false })
+            );
+        });
+
+        test('counts an earlier page handoff without consuming the current skipped page', async () => {
+            let finish!: (handedOff: boolean) => void;
+            mockTrackViewSearch.mockReturnValueOnce(new Promise<boolean>((resolve) => (finish = resolve)));
+            const router = createMemoryRouter(
+                [{ path: '*', element: <SearchAnalyticsHarness loaderData={recoveryData} /> }],
+                { initialEntries: ['/search?q=shoes'] }
+            );
+            render(<RouterProvider router={router} />);
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            mockConsentKey = 'declined';
+            mockTrackViewSearch.mockResolvedValue(false);
+            await act(() => router.navigate('/search?q=shoes&offset=10'));
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+            await act(() => {
+                finish(true);
+                return Promise.resolve();
+            });
+            mockConsentKey = 'accepted';
+            mockTrackViewSearch.mockResolvedValue(true);
+            await act(() => router.navigate('/search?q=shoes&offset=10&filters=open'));
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(3));
+            expect(mockTrackViewSearch.mock.lastCall?.[0]).toEqual(
+                expect.objectContaining({ searchResultId: 'search-result-1', offset: 10, startsSearchExecution: false })
+            );
+        });
+
+        test('uses current consent when deferred results resolve after withdrawal', async () => {
+            let resolveResults!: (result: ShopperSearch.schemas['ProductSearchResult']) => void;
+            const loaderData = {
+                ...recoveryData,
+                searchResultNonCritical: new Promise<ShopperSearch.schemas['ProductSearchResult']>(
+                    (resolve) => (resolveResults = resolve)
+                ),
+            };
+            const { rerender } = render(searchView(loaderData));
+            mockConsentKey = 'declined';
+            mockTrackViewSearch.mockResolvedValue(false);
+            rerender(searchView(loaderData));
+            await act(() => {
+                resolveResults({ ...mockSearchResult, hits: [] });
+                return Promise.resolve();
+            });
+            expect(mockTrackViewSearch).toHaveBeenCalledTimes(1);
+            expect((mockTrackViewSearch.mock.calls[0][1] as AbortSignal).aborted).toBe(false);
+
+            mockConsentKey = 'accepted';
+            mockTrackViewSearch.mockResolvedValue(true);
+            rerender(searchView(loaderData));
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+            expect(mockTrackViewSearch.mock.lastCall?.[0]).toEqual(
+                expect.objectContaining({ searchResultId: 'search-result-1', startsSearchExecution: true })
+            );
+        });
+
+        test('recovers zero results once under Strict Mode without replacing the Search Result ID', async () => {
+            const emptyData = {
+                ...recoveryData,
+                searchResultCritical: { ...mockSearchResult, total: 0, hits: [] },
+            };
+            mockConsentKey = 'unknown';
+            mockTrackViewSearch.mockResolvedValue(false);
+            const { rerender } = render(<React.StrictMode>{searchView(emptyData)}</React.StrictMode>);
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            mockConsentKey = 'accepted';
+            mockTrackViewSearch.mockResolvedValue(true);
+            rerender(<React.StrictMode>{searchView(emptyData)}</React.StrictMode>);
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+            expect(mockTrackViewSearch.mock.lastCall?.[0]).toEqual(
+                expect.objectContaining({
+                    searchResultId: 'search-result-1',
+                    startsSearchExecution: true,
+                    total: 0,
+                    searchResults: [],
+                })
+            );
+            rerender(<React.StrictMode>{searchView(emptyData)}</React.StrictMode>);
+            await act(() => Promise.resolve());
+            expect(mockTrackViewSearch).toHaveBeenCalledTimes(2);
         });
 
         test('should reuse one Search Result ID across pagination and start the execution once', async () => {

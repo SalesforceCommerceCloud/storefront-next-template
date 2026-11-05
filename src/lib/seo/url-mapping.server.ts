@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 import type { ShopperSeo } from '@/scapi';
-import { createCategoryUrl, createContentUrl, createProductUrl, type SeoUrlContext } from '@/route-paths';
+import {
+    createCategoryUrl,
+    createContentUrl,
+    createProductUrl,
+    findSiteSeoRoutes,
+    type SeoUrlContext,
+} from '@/route-paths';
 import { appendSuffix, findLegacyRoute, type LegacyRoute } from '@/middlewares/legacy-routes';
 import type { SeoFallbackSitePolicy } from '@/types/config';
 import { parseRfc3339Timestamp } from '@/lib/rfc3339';
@@ -193,7 +199,7 @@ function resourceDestinationSegments(pathname: string, options: ResolveUrlMappin
 }
 
 function stripStandaloneContentGrammar(segments: string[], { seoUrlContext }: ResolveUrlMappingOptions): string[] {
-    const contentPrefix = seoUrlContext.seoRoutes?.[seoUrlContext.siteId]?.content?.prefix;
+    const contentPrefix = findSiteSeoRoutes(seoUrlContext)?.content?.prefix;
     if (!contentPrefix || segments[0]?.toLowerCase() !== contentPrefix.toLowerCase()) return segments;
 
     const discriminator = segments[1]?.toLowerCase();
@@ -341,7 +347,7 @@ export function resolveUrlMapping(
         if (!sameOrigin || !mapping.resourceId) return rejected();
         const segments = rawDestination ? resourceDestinationSegments(destination.pathname, options) : [];
         if (!segments || (rawDestination && segments.length === 0)) return rejected();
-        const categoryMode = options.seoUrlContext.seoRoutes?.[options.seoUrlContext.siteId]?.category.mode;
+        const categoryMode = findSiteSeoRoutes(options.seoUrlContext)?.category.mode;
         const finalSegment = segments.at(-1);
         const hasIdSuffix = finalSegment === mapping.resourceId || finalSegment === `${mapping.resourceId}.html`;
         if (!rawDestination && mapping.resourceType === 'CATEGORY' && categoryMode === 'slug-path') return rejected();
