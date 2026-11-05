@@ -212,16 +212,10 @@
                       "type": "string"
                     },
                     "value": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "boolean"
-                        }
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean"
                       ]
                     }
                   },
@@ -563,16 +557,10 @@
                       "type": "string"
                     },
                     "value": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "boolean"
-                        }
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean"
                       ]
                     }
                   },
@@ -711,23 +699,15 @@
                   "type": "object",
                   "properties": {
                     "analyze": {
-                      "anyOf": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "null"
-                        }
+                      "type": [
+                        "number",
+                        "null"
                       ]
                     },
                     "plain": {
-                      "anyOf": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "null"
-                        }
+                      "type": [
+                        "number",
+                        "null"
                       ]
                     }
                   },
@@ -738,13 +718,9 @@
                   "additionalProperties": false
                 },
                 "visualizer": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
+                  "type": [
+                    "string",
+                    "null"
                   ]
                 },
                 "chunks": {
@@ -832,13 +808,9 @@
                 "type": "string"
               },
               "observedLoadMs": {
-                "anyOf": [
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "null"
-                  }
+                "type": [
+                  "number",
+                  "null"
                 ]
               },
               "live": {
