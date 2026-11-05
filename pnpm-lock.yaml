@@ -285,7 +285,7 @@ importers:
         version: 4.1.11(vitest@4.1.11)
       chromatic:
         specifier: ^18.0.1
-        version: 18.13.9
+        version: 18.14.0
       compression:
         specifier: 1.8.2
         version: 1.8.2
@@ -5242,8 +5242,8 @@ packages:
       '@chromatic-com/playwright':
         optional: true
 
-  chromatic@18.13.9:
-    resolution: {integrity: sha512-ZOHNPl0PsrJqEYl9mxOXrOWrGyJL7rmDLHQojf0zoxFrurneI1uW81BOI7PYHv6yeyV8NKCif2arYHGAmCR3LQ==}
+  chromatic@18.14.0:
+    resolution: {integrity: sha512-9frJbg8g5AkM4Dhr7LP8ul3jiaX5K2rMUYFGeLE3OaWUhZ99l/2lE8jrRAUc4TW6ZFkcWJfGoCX7jNwXUgLlIg==}
     engines: {node: '>=22.0.0'}
     hasBin: true
     peerDependencies:
@@ -5933,8 +5933,8 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.473:
-    resolution: {integrity: sha512-9njcRQK+6FOXNAWw5g+h2RPiyazqo5RFMVJ39ZMHjDHUNnnFlhnOGV7O0WmJetODDx19ES5p+FLi+KCVFQGugw==}
+  electron-to-chromium@1.5.474:
+    resolution: {integrity: sha512-t1DE2RM6wtco58TQ47NcKw0CXw4fT3gWQvj49kkNBzMrUX3m9Sq/SoKcjEfwa9vvQ6sKYlqi/g05vG2tKLWH4w==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -6798,8 +6798,8 @@ packages:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
     engines: {node: '>=8'}
 
-  is-core-module@2.17.0:
-    resolution: {integrity: sha512-J/vG0zBCbIKOQFfufSwyXdMrsohyJIUNkrnmo6WZGzoM7tr/lsbfW5b2BvisL6zsyMzK9UxV9L6c7AoFbyXHOA==}
+  is-core-module@2.18.0:
+    resolution: {integrity: sha512-qyax9fgaKOEC4qK8WZn7Q4IcoZC9RC1O1fFxRcRTq/oMMkWT/uXpqpXa12kzWR409zAt1drYN9N9BO26UmBCmw==}
     engines: {node: '>= 0.4'}
 
   is-docker@2.2.1:
@@ -9012,8 +9012,8 @@ packages:
     resolution: {integrity: sha512-zepuGL0ulf+nt+XaFrlKeaiTJeyPFPLLY62+ncq1/VTHBdt3HsfXOH60priZ6tnXQozdGcDeIF5JVTanvIcYWQ==}
     engines: {node: '>=10'}
 
-  resolve@1.22.13:
-    resolution: {integrity: sha512-Dj/cW9zBV2aRj6XzCxuGIs3ESZKv02jixne3q6jFZYZ3/Tg09gHHviSMDL4kObh9pqSahdRHEnDoaP2gn8YLhA==}
+  resolve@1.22.14:
+    resolution: {integrity: sha512-1ZjYvR9sbkiwC5+9QHetqW5HmA2pHRMaoupD01t2HlYnV/vydC2zPwLixhsMieSWVZt0JJRg5LVIk0Ow1D/TrA==}
     engines: {node: '>= 0.4'}
     hasBin: true
 
@@ -13983,7 +13983,7 @@ snapshots:
       react: 19.2.3
       react-docgen: 8.0.4
       react-dom: 19.2.3(react@19.2.3)
-      resolve: 1.22.13
+      resolve: 1.22.14
       storybook: 10.2.19(@testing-library/dom@10.4.1)(prettier@3.9.10)(react@19.2.3)
       tsconfig-paths: 4.2.0
       vite: 7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)
@@ -15125,7 +15125,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.35
       caniuse-lite: 1.0.30001820
-      electron-to-chromium: 1.5.473
+      electron-to-chromium: 1.5.474
       node-releases: 2.0.63
       update-browserslist-db: 1.3.4(browserslist@4.29.5)
 
@@ -15344,7 +15344,7 @@ snapshots:
 
   chromatic@12.2.0: {}
 
-  chromatic@18.13.9:
+  chromatic@18.14.0:
     dependencies:
       semver: 7.8.6
 
@@ -16121,7 +16121,7 @@ snapshots:
 
   ejs@6.0.1: {}
 
-  electron-to-chromium@1.5.473: {}
+  electron-to-chromium@1.5.474: {}
 
   embla-carousel-react@8.6.0(react@19.2.3):
     dependencies:
@@ -17137,7 +17137,7 @@ snapshots:
     dependencies:
       binary-extensions: 2.3.0
 
-  is-core-module@2.17.0:
+  is-core-module@2.18.0:
     dependencies:
       hasown: 2.0.4
 
@@ -17698,7 +17698,7 @@ snapshots:
       jest-pnp-resolver: 1.2.3(jest-resolve@29.7.0)
       jest-util: 29.7.0
       jest-validate: 29.7.0
-      resolve: 1.22.13
+      resolve: 1.22.14
       resolve.exports: 2.0.4
       slash: 3.0.0
 
@@ -19667,7 +19667,7 @@ snapshots:
       '@types/doctrine': 0.0.9
       '@types/resolve': 1.20.6
       doctrine: 3.0.0
-      resolve: 1.22.13
+      resolve: 1.22.14
       strip-indent: 4.1.1
     transitivePeerDependencies:
       - supports-color
@@ -19871,7 +19871,7 @@ snapshots:
 
   rechoir@0.6.2:
     dependencies:
-      resolve: 1.22.13
+      resolve: 1.22.14
 
   redent@3.0.0:
     dependencies:
@@ -19945,10 +19945,10 @@ snapshots:
 
   resolve.exports@2.0.4: {}
 
-  resolve@1.22.13:
+  resolve@1.22.14:
     dependencies:
       es-errors: 1.3.0
-      is-core-module: 2.17.0
+      is-core-module: 2.18.0
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 

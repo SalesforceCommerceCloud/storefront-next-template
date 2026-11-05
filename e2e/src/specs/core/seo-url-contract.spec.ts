@@ -46,8 +46,9 @@ for (const testCase of canonicalCases) {
 }
 
 Scenario('stale SEO paths converge in one redirect', async () => {
-    // A slug-path category needs an actual Business Manager URL mapping to make a stale slug resolvable.
-    // Config-only CI legs use __NONE__ when no deterministic stale category URL exists in their fixture.
+    // Config-only CI legs pass __NONE__ for the stale category path when their fixture has no stale category
+    // URL known to redirect. A slug-path category additionally needs a Business Manager URL mapping before a
+    // stale slug can resolve at all.
     const redirectCases = [
         {
             name: 'product',
