@@ -26,6 +26,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizations/{organizationId}/page-meta-tags/{scope}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get resolved Page Meta Tags for a scope.
+         * @description Resolves the Page Meta Tags for one of five scopes (`home`, `product_detail`, `product_listing`, `content_detail`, `content_listing`), identified by the `scope` path parameter, against the identified context object and locale.
+         *
+         *     Each non-`home` scope requires a context query parameter: `product_detail` requires `productId`, `product_listing` requires `categoryId`, `content_detail` requires `contentId`, and `content_listing` requires `folderId`. The `content_detail` scope serves both standard content assets and Page Designer pages (keyed on the page's backing content ID). The context parameters are optional at the contract level and their scope-specific requiredness is enforced by the business logic layer.
+         *
+         *     Gated behind the PageMetaTagsCustomPagesCft feature toggle; while the toggle is off, the page-meta-tags surface is treated as an absent resource and every request returns a 404. A 404 is also returned when the scope's context object (product, category, content asset, or folder) does not exist. When the context object exists but has no Page Meta Tag rule assigned or matched, a 200 is returned with an empty `data` array.
+         */
+        get: operations["getPageMetaTags"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -182,6 +206,50 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /**
+         * @description The id (SKU) of the product.
+         * @example apple-ipod-classic
+         */
+        ProductId: string;
+        /** @description Document representing a Page Meta Tag object. */
+        PageMetaTag: {
+            /**
+             * @description The ID of the Page Meta Tag.
+             * @example title
+             */
+            id?: string;
+            /**
+             * @description The resolved, locale-specific content of the Page Meta Tag, produced by evaluating the site's Page Meta Tag rule set for the requested scope, context object, and locale.
+             * @example Buy the Long Sleeve Covered Placket Blouse for USD 61.99.
+             */
+            value?: string;
+            /**
+             * @description The kind of Page Meta Tag, indicating how the storefront should render the value.
+             *     Documented values are `name`, `property`, `title`, and `jsonld`:
+             *       * `name` — render as `<meta name="...">`.
+             *       * `property` — render as `<meta property="...">` (e.g. Open Graph tags).
+             *       * `title` — render as the HTML `<title>` element.
+             *       * `jsonld` — JSON-LD structured data, intended for rendering inside `<script type="application/ld+json">`.
+             *     The field may be absent when the kind cannot be determined. Clients should treat unknown values as opaque so additional kinds can be introduced without breaking the contract.
+             * @example name
+             */
+            type?: string;
+        };
+        /**
+         * @description The resolved set of Page Meta Tags for a (scope, context object, locale) triple.
+         *     The tag set is small and bounded, so the result is not paginated: it exposes the resolved
+         *     tags directly as `data`, with no `limit`/`offset`/`total` pagination controls. `data` may be
+         *     empty when the context object exists but has no Page Meta Tag rule assigned or matched.
+         */
+        PageMetaTagsResult: {
+            /**
+             * @description The locale the Page Meta Tags were resolved for, following the standard SCAPI `locale` convention (or the site default when no locale is supplied).
+             * @example en-US
+             */
+            locale: string;
+            /** @description The resolved Page Meta Tags. May be empty when the context object exists but has no Page Meta Tag rule assigned or matched. */
+            data: components["schemas"]["PageMetaTag"][];
+        };
     };
     responses: never;
     parameters: {
@@ -201,24 +269,29 @@ export interface components {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale: components["schemas"]["LocaleCode"];
         /**
+         * @description The Page Meta Tag scope to resolve. Determines which context object the tags are resolved against and which context query parameter is required:
+         *       * `home` — the storefront home page. No context parameter.
+         *       * `product_detail` — a product-detail (PDP) page. Requires `productId`.
+         *       * `product_listing` — a product-listing (PLP / category) page. Requires `categoryId`.
+         *       * `content_detail` — a content-detail page (standard content asset or Page Designer page). Requires `contentId`.
+         *       * `content_listing` — a content-listing (folder) page. Requires `folderId`.
+         */
+        scope: "home" | "product_detail" | "product_listing" | "content_detail" | "content_listing";
+        /** @description The identifier (SKU) of the product whose Page Meta Tags are requested. Optional at the contract level; required for the `product_detail` scope, which is enforced by the business logic layer. */
+        productId: components["schemas"]["ProductId"];
+        /** @description The identifier of the category whose product-listing Page Meta Tags are requested. Optional at the contract level; required for the `product_listing` scope, which is enforced by the business logic layer. */
+        categoryId: string;
+        /** @description The identifier of the content asset whose Page Meta Tags are requested. Serves both standard content assets and Page Designer pages (keyed on the page's backing content ID). Optional at the contract level; required for the `content_detail` scope, which is enforced by the business logic layer. */
+        contentId: string;
+        /** @description The identifier of the content folder whose content-listing Page Meta Tags are requested. Optional at the contract level; required for the `content_listing` scope, which is enforced by the business logic layer. */
+        folderId: string;
+        /**
          * @description A unique shopper identifier (USID) for tracking client context.
          *     Used with endpoints secured with ShopperClientContextToken.
          *     This header is required for all endpoints secured with ShopperClientContextToken.
          */
         sfdcUsid: string;
-        /**
-         * @description Do Not Track header for privacy preferences.
-         *     Used with endpoints secured with ShopperClientContextToken.
-         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-         */
-        sfdcDwDnt: "0" | "1";
-        /**
-         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-         *
-         *     When set to `none`, the server skips applying personalization to the response.
-         *
-         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-         */
+        /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
         personalized: "none";
         /**
          * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
@@ -245,13 +318,7 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
-                /**
-                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-                 *
-                 *     When set to `none`, the server skips applying personalization to the response.
-                 *
-                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-                 */
+                /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
                 personalized?: components["parameters"]["personalized"];
             };
             header?: {
@@ -261,12 +328,6 @@ export interface operations {
                  *     This header is required for all endpoints secured with ShopperClientContextToken.
                  */
                 sfdc_usid?: components["parameters"]["sfdcUsid"];
-                /**
-                 * @description Do Not Track header for privacy preferences.
-                 *     Used with endpoints secured with ShopperClientContextToken.
-                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-                 */
-                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
                 /**
                  * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
                  *     passed in from a trusted backend application.
@@ -312,6 +373,95 @@ export interface operations {
                 };
             };
             /** @description No mapping information for the requested URL exists because there's no corresponding URL rule in Business Manager. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPageMetaTags: {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+                /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
+                locale?: components["parameters"]["locale"];
+                /** @description The identifier (SKU) of the product whose Page Meta Tags are requested. Optional at the contract level; required for the `product_detail` scope, which is enforced by the business logic layer. */
+                productId?: components["parameters"]["productId"];
+                /** @description The identifier of the category whose product-listing Page Meta Tags are requested. Optional at the contract level; required for the `product_listing` scope, which is enforced by the business logic layer. */
+                categoryId?: components["parameters"]["categoryId"];
+                /** @description The identifier of the content asset whose Page Meta Tags are requested. Serves both standard content assets and Page Designer pages (keyed on the page's backing content ID). Optional at the contract level; required for the `content_detail` scope, which is enforced by the business logic layer. */
+                contentId?: components["parameters"]["contentId"];
+                /** @description The identifier of the content folder whose content-listing Page Meta Tags are requested. Optional at the contract level; required for the `content_listing` scope, which is enforced by the business logic layer. */
+                folderId?: components["parameters"]["folderId"];
+                /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
+                personalized?: components["parameters"]["personalized"];
+            };
+            header?: {
+                /**
+                 * @description A unique shopper identifier (USID) for tracking client context.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     This header is required for all endpoints secured with ShopperClientContextToken.
+                 */
+                sfdc_usid?: components["parameters"]["sfdcUsid"];
+                /**
+                 * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+                 *     passed in from a trusted backend application.
+                 */
+                sfdc_shopper_context?: components["parameters"]["sfdcShopperContext"];
+            };
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /**
+                 * @description The Page Meta Tag scope to resolve. Determines which context object the tags are resolved against and which context query parameter is required:
+                 *       * `home` — the storefront home page. No context parameter.
+                 *       * `product_detail` — a product-detail (PDP) page. Requires `productId`.
+                 *       * `product_listing` — a product-listing (PLP / category) page. Requires `categoryId`.
+                 *       * `content_detail` — a content-detail page (standard content asset or Page Designer page). Requires `contentId`.
+                 *       * `content_listing` — a content-listing (folder) page. Requires `folderId`.
+                 */
+                scope: components["parameters"]["scope"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Returns the resolved Page Meta Tags for the requested scope and context object. The `data` array may be empty when the context object exists but has no Page Meta Tag rule assigned or matched. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageMetaTagsResult"];
+                };
+            };
+            /** @description The context query parameter required for the requested scope is missing (`productId` for `product_detail`, `categoryId` for `product_listing`, `contentId` for `content_detail`, or `folderId` for `content_listing`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The user making the call isn't authorized to make this request. For example, the correct scope wasn't added to an SLAS API Client or the access token is invalid or missing. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Returned in either of two cases: the context object identified by the scope's context parameter does not exist (unknown `productId`, `categoryId`, `contentId`, or `folderId`), or the page-meta-tags surface is not enabled for this site because the PageMetaTagsCustomPagesCft feature toggle is off (the surface is treated as an absent resource). A context object that exists but has no Page Meta Tag rule assigned or matched is not a 404 — it returns a 200 with an empty `data` array. */
             404: {
                 headers: {
                     [name: string]: unknown;

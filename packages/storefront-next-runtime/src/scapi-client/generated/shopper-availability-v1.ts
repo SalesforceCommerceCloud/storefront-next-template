@@ -195,19 +195,7 @@ export interface components {
          *     This header is required for all endpoints secured with ShopperClientContextToken.
          */
         sfdcUsid: string;
-        /**
-         * @description Do Not Track header for privacy preferences.
-         *     Used with endpoints secured with ShopperClientContextToken.
-         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-         */
-        sfdcDwDnt: "0" | "1";
-        /**
-         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-         *
-         *     When set to `none`, the server skips applying personalization to the response.
-         *
-         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-         */
+        /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
         personalized: "none";
         /**
          * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
@@ -242,13 +230,7 @@ export interface operations {
                  * @example variations,set_products
                  */
                 expand?: components["parameters"]["expand"];
-                /**
-                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-                 *
-                 *     When set to `none`, the server skips applying personalization to the response.
-                 *
-                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-                 */
+                /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
                 personalized?: components["parameters"]["personalized"];
             };
             header?: {
@@ -258,12 +240,6 @@ export interface operations {
                  *     This header is required for all endpoints secured with ShopperClientContextToken.
                  */
                 sfdc_usid?: components["parameters"]["sfdcUsid"];
-                /**
-                 * @description Do Not Track header for privacy preferences.
-                 *     Used with endpoints secured with ShopperClientContextToken.
-                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-                 */
-                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
                 /**
                  * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
                  *     passed in from a trusted backend application.

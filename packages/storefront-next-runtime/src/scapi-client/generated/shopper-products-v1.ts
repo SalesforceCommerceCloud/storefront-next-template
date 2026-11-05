@@ -270,6 +270,39 @@ export interface components {
          * @example USD
          */
         CurrencyCode: string;
+        /** @description Localized product enrichment content for a product. */
+        ProductEnrichment: {
+            /**
+             * @description The localized product highlights.
+             * @example 800-fill warmth without bulk; Sub-zero rated
+             */
+            highlights?: string;
+            /**
+             * @description The localized frequently asked questions and answers for the product.
+             * @example Is this waterproof? Yes, 20k mm rated.
+             */
+            faq?: string;
+            /**
+             * @description The localized product use cases.
+             * @example Cold Weather; Beginner-Friendly; Gift for Hikers
+             */
+            useCases?: string;
+            /**
+             * @description The localized product certification information.
+             * @example GRS Certified; Organic; TAA Compliant
+             */
+            certifications?: string;
+            /**
+             * @description The localized product tradeoffs.
+             * @example Less breathable than an uninsulated shell
+             */
+            tradeoffs?: string;
+            /**
+             * @description The localized product fit guidance.
+             * @example Runs true to size; base layer friendly.
+             */
+            fitGuidance?: string;
+        };
         /** @description Any product that is sold, shown alone, and does not have variations such as different sizes or colors. A product has no reliance on any other product for inheritance. *A product has a SKU and can have a product option, which has a different SKU*. */
         Product: {
             /**
@@ -277,6 +310,8 @@ export interface components {
              * @example Apple
              */
             brand?: string;
+            /** @description The localized product enrichment content for the product. This property is only returned when supported and explicitly requested by the API. */
+            enrichment?: components["schemas"]["ProductEnrichment"];
             /** @description The array of all bundled products of this product. */
             bundledProducts?: components["schemas"]["BundledProduct"][];
             currency?: components["schemas"]["CurrencyCode"];
@@ -1287,15 +1322,16 @@ export interface components {
          */
         inventoryIds: components["schemas"]["InventoryId"][];
         /**
-         * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
+         * @description All expand parameters except page_meta_tags, slug, and enrichment are used for the request when no expand parameter is provided.
          *     The value "none" may be used to turn off all expand options.
          *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
          *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
          *     The primary_category expand returns the full breadcrumb path (root to leaf) for each product's primary category.
          *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
+         *     The enrichment expand returns localized product enrichment content.
          * @example prices,promotions
          */
-        expand_multiId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category" | "slug")[];
+        expand_multiId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category" | "slug" | "enrichment")[];
         /** @description The flag that indicates whether to retrieve the whole image model for the requested product. */
         allImages: boolean;
         /**
@@ -1320,15 +1356,16 @@ export interface components {
         /** @description The ID of the requested product. */
         id: components["schemas"]["ProductId"];
         /**
-         * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
+         * @description All expand parameters except page_meta_tags, slug, and enrichment are used for the request when no expand parameter is provided.
          *     The value "none" may be used to turn off all expand options.
          *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
          *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
          *     The primary_category expand returns the full breadcrumb path (root to leaf) for the product's primary category.
          *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
+         *     The enrichment expand returns localized product enrichment content.
          * @example prices,promotions
          */
-        expand_singleId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category" | "slug")[];
+        expand_singleId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category" | "slug" | "enrichment")[];
         /** @description The ID of the product whose images to retrieve. */
         productId: components["schemas"]["ProductId"];
         /**
@@ -1375,19 +1412,7 @@ export interface components {
          *     This header is required for all endpoints secured with ShopperClientContextToken.
          */
         sfdcUsid: string;
-        /**
-         * @description Do Not Track header for privacy preferences.
-         *     Used with endpoints secured with ShopperClientContextToken.
-         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-         */
-        sfdcDwDnt: "0" | "1";
-        /**
-         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-         *
-         *     When set to `none`, the server skips applying personalization to the response.
-         *
-         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-         */
+        /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
         personalized: "none";
         /**
          * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
@@ -1415,12 +1440,13 @@ export interface operations {
                  */
                 inventoryIds?: components["parameters"]["inventoryIds"];
                 /**
-                 * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
+                 * @description All expand parameters except page_meta_tags, slug, and enrichment are used for the request when no expand parameter is provided.
                  *     The value "none" may be used to turn off all expand options.
                  *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
                  *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
                  *     The primary_category expand returns the full breadcrumb path (root to leaf) for each product's primary category.
                  *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
+                 *     The enrichment expand returns localized product enrichment content.
                  * @example prices,promotions
                  */
                 expand?: components["parameters"]["expand_multiId"];
@@ -1445,13 +1471,7 @@ export interface operations {
                 locale?: components["parameters"]["locale"];
                 /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
                 currency?: components["parameters"]["currency"];
-                /**
-                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-                 *
-                 *     When set to `none`, the server skips applying personalization to the response.
-                 *
-                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-                 */
+                /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
                 personalized?: components["parameters"]["personalized"];
             };
             header?: {
@@ -1461,12 +1481,6 @@ export interface operations {
                  *     This header is required for all endpoints secured with ShopperClientContextToken.
                  */
                 sfdc_usid?: components["parameters"]["sfdcUsid"];
-                /**
-                 * @description Do Not Track header for privacy preferences.
-                 *     Used with endpoints secured with ShopperClientContextToken.
-                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-                 */
-                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
                 /**
                  * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
                  *     passed in from a trusted backend application.
@@ -1514,12 +1528,13 @@ export interface operations {
                  */
                 inventoryIds?: components["parameters"]["inventoryIds"];
                 /**
-                 * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
+                 * @description All expand parameters except page_meta_tags, slug, and enrichment are used for the request when no expand parameter is provided.
                  *     The value "none" may be used to turn off all expand options.
                  *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
                  *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
                  *     The primary_category expand returns the full breadcrumb path (root to leaf) for the product's primary category.
                  *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
+                 *     The enrichment expand returns localized product enrichment content.
                  * @example prices,promotions
                  */
                 expand?: components["parameters"]["expand_singleId"];
@@ -1544,13 +1559,7 @@ export interface operations {
                 locale?: components["parameters"]["locale"];
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
-                /**
-                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-                 *
-                 *     When set to `none`, the server skips applying personalization to the response.
-                 *
-                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-                 */
+                /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
                 personalized?: components["parameters"]["personalized"];
             };
             header?: {
@@ -1560,12 +1569,6 @@ export interface operations {
                  *     This header is required for all endpoints secured with ShopperClientContextToken.
                  */
                 sfdc_usid?: components["parameters"]["sfdcUsid"];
-                /**
-                 * @description Do Not Track header for privacy preferences.
-                 *     Used with endpoints secured with ShopperClientContextToken.
-                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-                 */
-                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
                 /**
                  * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
                  *     passed in from a trusted backend application.
@@ -1641,13 +1644,7 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
-                /**
-                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-                 *
-                 *     When set to `none`, the server skips applying personalization to the response.
-                 *
-                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-                 */
+                /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
                 personalized?: components["parameters"]["personalized"];
             };
             header?: {
@@ -1657,12 +1654,6 @@ export interface operations {
                  *     This header is required for all endpoints secured with ShopperClientContextToken.
                  */
                 sfdc_usid?: components["parameters"]["sfdcUsid"];
-                /**
-                 * @description Do Not Track header for privacy preferences.
-                 *     Used with endpoints secured with ShopperClientContextToken.
-                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-                 */
-                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
                 /**
                  * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
                  *     passed in from a trusted backend application.
@@ -1721,13 +1712,7 @@ export interface operations {
                 locale?: components["parameters"]["locale"];
                 /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
                 currency?: components["parameters"]["currency"];
-                /**
-                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-                 *
-                 *     When set to `none`, the server skips applying personalization to the response.
-                 *
-                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-                 */
+                /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
                 personalized?: components["parameters"]["personalized"];
             };
             header?: {
@@ -1737,12 +1722,6 @@ export interface operations {
                  *     This header is required for all endpoints secured with ShopperClientContextToken.
                  */
                 sfdc_usid?: components["parameters"]["sfdcUsid"];
-                /**
-                 * @description Do Not Track header for privacy preferences.
-                 *     Used with endpoints secured with ShopperClientContextToken.
-                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-                 */
-                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
                 /**
                  * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
                  *     passed in from a trusted backend application.
@@ -1804,13 +1783,7 @@ export interface operations {
                 locale?: components["parameters"]["locale"];
                 /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
                 currency?: components["parameters"]["currency"];
-                /**
-                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-                 *
-                 *     When set to `none`, the server skips applying personalization to the response.
-                 *
-                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-                 */
+                /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
                 personalized?: components["parameters"]["personalized"];
             };
             header?: {
@@ -1820,12 +1793,6 @@ export interface operations {
                  *     This header is required for all endpoints secured with ShopperClientContextToken.
                  */
                 sfdc_usid?: components["parameters"]["sfdcUsid"];
-                /**
-                 * @description Do Not Track header for privacy preferences.
-                 *     Used with endpoints secured with ShopperClientContextToken.
-                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-                 */
-                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
                 /**
                  * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
                  *     passed in from a trusted backend application.
@@ -1892,13 +1859,7 @@ export interface operations {
                 locale?: components["parameters"]["locale"];
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
-                /**
-                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-                 *
-                 *     When set to `none`, the server skips applying personalization to the response.
-                 *
-                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-                 */
+                /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
                 personalized?: components["parameters"]["personalized"];
             };
             header?: {
@@ -1908,12 +1869,6 @@ export interface operations {
                  *     This header is required for all endpoints secured with ShopperClientContextToken.
                  */
                 sfdc_usid?: components["parameters"]["sfdcUsid"];
-                /**
-                 * @description Do Not Track header for privacy preferences.
-                 *     Used with endpoints secured with ShopperClientContextToken.
-                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-                 */
-                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
                 /**
                  * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
                  *     passed in from a trusted backend application.
@@ -1961,13 +1916,7 @@ export interface operations {
                 locale?: components["parameters"]["locale"];
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
-                /**
-                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-                 *
-                 *     When set to `none`, the server skips applying personalization to the response.
-                 *
-                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
-                 */
+                /** @description Controls whether personalization is applied to the response. When set to `none`, the server skips applying personalization to the response. */
                 personalized?: components["parameters"]["personalized"];
             };
             header?: {
@@ -1977,12 +1926,6 @@ export interface operations {
                  *     This header is required for all endpoints secured with ShopperClientContextToken.
                  */
                 sfdc_usid?: components["parameters"]["sfdcUsid"];
-                /**
-                 * @description Do Not Track header for privacy preferences.
-                 *     Used with endpoints secured with ShopperClientContextToken.
-                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
-                 */
-                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
                 /**
                  * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
                  *     passed in from a trusted backend application.

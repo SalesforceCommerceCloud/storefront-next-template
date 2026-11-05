@@ -1786,26 +1786,21 @@ export interface components {
              */
             signatureCount?: string;
             /**
-             * @description The Authenticator Attestation GUID identifying the authenticator model
-             * @example 08987058-cadc-4b81-b6e1-30de50dcbe96
-             */
-            aaguid?: string;
-            /**
              * Format: date-time
-             * @description The date and time the credential was created
-             * @example 2026-06-01T10:15:30Z
+             * @description The date and time when this credential was registered
+             * @example 2024-03-15T10:30:00.000Z
              */
             createdTime?: string;
             /**
              * Format: date-time
-             * @description The date and time the credential was last used to authenticate. May undercount slightly under concurrent requests.
-             * @example 2026-06-14T08:42:10Z
+             * @description The date and time when this credential was last used for authentication
+             * @example 2024-03-20T14:45:00.000Z
              */
             lastUsed?: string;
             /**
              * Format: int32
-             * @description The number of times this credential has been used to authenticate. May undercount slightly under concurrent requests.
-             * @example 12
+             * @description The number of times this credential has been used for authentication
+             * @example 5
              */
             uses?: number;
         };
@@ -1942,7 +1937,7 @@ export interface components {
         /** @description Refresh token that was given during the access token request. */
         refresh_token: string;
         /**
-         * @description `hint=all-sessions` logs out all sessions and invalidates all refresh tokens for a shopper with the same SLAS user ID.
+         * @description `hint=all-sessions` logs out all sessions and invalidates all refresh tokens for a shopper with the same SLAS user ID. Starting in B2C Commerce 26.8, it also invalidates all access tokens issued prior to invoking logout for that shopper.
          *     This only works within the same session type. Sessions created through different authentication methods (/authorize vs. Trusted System On Behalf) are treated as separate sessions. To invalidate tokens with different SLAS User IDs, you must make explicit logout calls with each token.
          *     A shopper authenticated via both /authorize and TSOB has two separate sessions. You will need two logout calls (one per token) to fully log them out.
          *
@@ -1961,6 +1956,7 @@ export interface components {
         redirect_uri: string;
         /** @description Must be `code`. Indicates that the caller wants an authorization code. */
         response_type: "code";
+        /** @description The OAuth scopes to include in the token. */
         scope: "openid" | "offline_access" | "email";
         /** @description Value to send the client to determine the state between the authorization request and the server response. Optional, but strongly recommended. */
         state: string;
@@ -2288,7 +2284,7 @@ export interface operations {
                  */
                 channel_id?: string;
                 /**
-                 * @description `hint=all-sessions` logs out all sessions and invalidates all refresh tokens for a shopper with the same SLAS user ID.
+                 * @description `hint=all-sessions` logs out all sessions and invalidates all refresh tokens for a shopper with the same SLAS user ID. Starting in B2C Commerce 26.8, it also invalidates all access tokens issued prior to invoking logout for that shopper.
                  *     This only works within the same session type. Sessions created through different authentication methods (/authorize vs. Trusted System On Behalf) are treated as separate sessions. To invalidate tokens with different SLAS User IDs, you must make explicit logout calls with each token.
                  *     A shopper authenticated via both /authorize and TSOB has two separate sessions. You will need two logout calls (one per token) to fully log them out.
                  *
@@ -2433,6 +2429,7 @@ export interface operations {
                 response_type: components["parameters"]["response_type"];
                 /** @description The SLAS public client ID or SLAS private client ID for use with trusted-agent requests. When using a private client ID a PKCE code challenge is not required. */
                 client_id: components["parameters"]["client_id"];
+                /** @description The OAuth scopes to include in the token. */
                 scope?: components["parameters"]["scope"];
                 /** @description Value to send the client to determine the state between the authorization request and the server response. Optional, but strongly recommended. */
                 state?: components["parameters"]["state"];
