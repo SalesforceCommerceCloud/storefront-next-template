@@ -107,7 +107,7 @@ importers:
         version: 7.18.2(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.2)
       '@salesforce/storefront-next-dev':
         specifier: 1.5.0-alpha.0
-        version: 1.5.0-alpha.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@react-router/dev@7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0))(@salesforce/storefront-next-runtime@1.5.0-alpha.0(96c3b26bdeaf42c6adfba5b5e895e465))(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(@types/node@24.3.0)(body-parser@2.4.0)(http-errors@2.0.1)(react-dom@19.2.3(react@19.2.3))(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(reflect-metadata@0.2.2)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yauzl@2.10.0)
+        version: 1.5.0-alpha.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@react-router/dev@7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0))(@salesforce/storefront-next-runtime@1.5.0-alpha.0(96c3b26bdeaf42c6adfba5b5e895e465))(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(@types/node@24.3.0)(bare-buffer@3.7.1)(body-parser@2.4.0)(http-errors@2.0.1)(react-dom@19.2.3(react@19.2.3))(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(reflect-metadata@0.2.2)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yauzl@2.10.0)
       '@salesforce/storefront-next-runtime':
         specifier: 1.5.0-alpha.0
         version: 1.5.0-alpha.0(96c3b26bdeaf42c6adfba5b5e895e465)
@@ -204,7 +204,7 @@ importers:
         version: 4.1.2(storybook@10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3))
       '@lhci/cli':
         specifier: 0.15.1
-        version: 0.15.1
+        version: 0.15.1(bare-buffer@3.7.1)
       '@react-router/dev':
         specifier: 7.18.2
         version: 7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0)
@@ -216,7 +216,7 @@ importers:
         version: 7.18.2(@react-router/dev@7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0))(typescript@5.9.2)
       '@salesforce/b2c-cli':
         specifier: 2.11.0
-        version: 2.11.0(@types/node@24.3.0)(typescript@5.9.2)
+        version: 2.11.0(@types/node@24.3.0)(bare-buffer@3.7.1)(typescript@5.9.2)
       '@storybook/addon-a11y':
         specifier: 10.2.19
         version: 10.2.19(storybook@10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3))
@@ -279,7 +279,7 @@ importers:
         version: 4.1.10(vitest@4.1.10)
       chromatic:
         specifier: ^18.0.1
-        version: 18.13.9
+        version: 18.14.0
       compression:
         specifier: 1.8.1
         version: 1.8.1
@@ -592,20 +592,20 @@ packages:
     resolution: {integrity: sha512-3EwLFhZ38J4VyIP6WNtt2kUdW9dokXA9Cr4IVIFHuCpZ3H8/YFOl5JjZHisrn1fATPBmKKqXzDFvh9fUwHz6CQ==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/generator@7.29.12':
-    resolution: {integrity: sha512-2W76mhjrpQFO1lK5e8IvGYB2D0YZ7S2R1Z2BjO2ZUYuW+amcpK/z60U6ZZmzskwoa7sJ6XohP/Wg8H5KxXI/IA==}
+  '@babel/generator@7.29.13':
+    resolution: {integrity: sha512-T5FRo+RzVHvGjWOuF1Ljc44b+NXAOazodHkGUHp4I3zCkQ4/sNVJm56h1S278LMR0bY5xBhztGziSbli8zObIw==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-annotate-as-pure@7.29.7':
     resolution: {integrity: sha512-OoK6239jHPuSQOoS0kfTVKn0b/rVTk0seKq4Gd2UMLtmOVLjDC0ki3e+c90Trqv2gMfvJFqkiljrr568+qddiw==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/helper-compilation-targets@7.29.7':
-    resolution: {integrity: sha512-wem6WaBj4NaVYVdNhLPPVacES6ZJ+KBBfSkTMD3YZxbP3rm3Di85tJU5ljaUNhaOynt+Aj0xruhYuzQBt8n71g==}
+  '@babel/helper-compilation-targets@7.29.13':
+    resolution: {integrity: sha512-8WxJ4/Vmes3ghacj8VOJy3NW8eyHiFY/4thU/LSBuBE470+igjR/j1ZTNn8fV5VdNrLx6iXUwig526UdOvfP0w==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/helper-create-class-features-plugin@7.29.12':
-    resolution: {integrity: sha512-ACxGoWMV866q/QlZHeCOaQZAR5QclKsIvkAmlDemqjm6+6Bynijs1mH068BzH2N2e+wSuDmBWY87fqKfvhi1Lw==}
+  '@babel/helper-create-class-features-plugin@7.29.13':
+    resolution: {integrity: sha512-fo8/Fr44/DMV71FQjk/HA0Npmu3bo5DFoWTCW1dhUR8Vx3NFfAVeEy0TbcBpt4e+hd2QhdmWgmspHo/9iWj8RA==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': 7.29.7
@@ -622,8 +622,8 @@ packages:
     resolution: {integrity: sha512-ejHwrQQYcm9xnTivShn2IDOlIzInN34AXskvq9QicvCtEzq1Vzclu/tKF8Jq1Cg8JG2GL6/EmjgsCT7lXepE3g==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/helper-module-transforms@7.29.7':
-    resolution: {integrity: sha512-UPUVSyXbOh627KiCIGQSgwWzGeBKLkaJ9PJEdrngIwMSzxLR4jS4+f1f1jb7VzBbg8nFLaYotvVPFCTqdrmTAg==}
+  '@babel/helper-module-transforms@7.29.13':
+    resolution: {integrity: sha512-/U96wOz+SCoZ7Da/8kjDGltcNY280JPQcRNPK0Hk3PTbdpaiBDQImtC6JsbVwb1HGMr3usZQU2WsWVjhYNmRzw==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': 7.29.7
@@ -642,12 +642,12 @@ packages:
     peerDependencies:
       '@babel/core': 7.29.7
 
-  '@babel/helper-skip-transparent-expression-wrappers@7.29.7':
-    resolution: {integrity: sha512-brcMGQaVzIeUb+6/bs1Av0f8YuNNjKY2JyvfRCsFuFsdKccEQ5Ges2y74D74NZ1Rz8lKJ9ksJkfqwQFJ/iNEyQ==}
+  '@babel/helper-skip-transparent-expression-wrappers@7.29.13':
+    resolution: {integrity: sha512-Abm4rKIH0tmCayJLwcoeOkdzpYUphTbO52fHhyEBHn7S0R+ni4epNLI/8nq1L0DN2Bl0u5qmgWm2Og/z4fBb+Q==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/helper-string-parser@7.29.11':
-    resolution: {integrity: sha512-snZbO7MEDOof+hvNa97EjEY7qD7h2kwvQr5AJC3ZhQudKW5dnej6k3kP9NQV88hJwaS8vDqRLFo9rivLEhle2g==}
+  '@babel/helper-string-parser@7.29.13':
+    resolution: {integrity: sha512-fWegr+WsEsiMVW4KUNdIIzzMTZSzNiqhy0//6+2MRi2d5NFNsL/AYwBQW8eBnRbTBVRnDVzjaJEUqKaCWjMMdQ==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-validator-identifier@7.29.7':
@@ -658,12 +658,12 @@ packages:
     resolution: {integrity: sha512-N9ZErrD+yW5geCDtBqnOoxmR8+tNKiGuxKlDpuJxfsqpa2dFcexaziGAE/qoHLiDDreVNMupxGmSoNlyvsA3gw==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/helpers@7.29.10':
-    resolution: {integrity: sha512-EMCx3AGZ3WfAl6ht7AyQoPm2Lh+BGYEMdc4Q6Hf7uSCDOZFuLq44qNwL+iaim8VlyYhRAo4X43+weadK8ZB4Yg==}
+  '@babel/helpers@7.29.13':
+    resolution: {integrity: sha512-laoRpD/kO/iA4CDlgJbixHekg7oPvWALK0PQyK3Ob2I2njZRvVAD77RfWCIImtqWCq6KijoBoZK7bp/HlTWASQ==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/parser@7.29.12':
-    resolution: {integrity: sha512-WJ7JBp/Q4+z/ImydtI7jS6NVco5++632ExBemSX+Ysb+G1lCwQ5BVo3SY+jGGOcZXI4ZccbZSUSJLNBW6eEpJg==}
+  '@babel/parser@7.29.13':
+    resolution: {integrity: sha512-fJM50YYjlTiBhgdkGmC1tBpv+FMAyo4annf2X6Aks+0yRlaiVkYW/3f07xAfVVkYIoZ9fFZp+mEThUFnuybhkQ==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -788,16 +788,16 @@ packages:
     peerDependencies:
       '@babel/core': 7.29.7
 
-  '@babel/runtime@7.29.10':
-    resolution: {integrity: sha512-NpugTzbKgGrNe45Ui32cN8vCFFMxVtP/9rtfwv0nP5FRDAjvYBxJcLVpYA9mr1jxP6cnIT7x9LUzuDTbWYYNRA==}
+  '@babel/runtime@7.29.13':
+    resolution: {integrity: sha512-v+oN26xP4YIlQsbQ/CbTH1WG5m/l/DjKKZNy/Kp3f/AFvbgt7Em/D0FeMM3O2hX0YzeN2M16W8lOpyhIkfCBcQ==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.29.7':
     resolution: {integrity: sha512-puq+Gf35oI24FeN11LkoUQFqv9uwNeWpxXZi/Ji3rRIoKAzKnxRaZ+Gkj0vKS9ZCiTESfng1N9LyOyXvo+m+Gg==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/traverse@7.29.12':
-    resolution: {integrity: sha512-MscXe/NAZcOkYEsRajHZFt3ynsb22PUi6CTrp5U7+RYycR9By84mn9mFN54YgfITiqK4hFx3Ju3tZSyzfpS5ew==}
+  '@babel/traverse@7.29.13':
+    resolution: {integrity: sha512-0ve0xMlFA73dgY1oyJRY6RoW+/bncdcOQqg6jjYcVfXBK90OdLXjm9R6lmRetdZVrPjXkKIoMVBqYFPjcAlZ4Q==}
     engines: {node: '>=6.9.0'}
 
   '@babel/types@7.28.4':
@@ -4343,6 +4343,10 @@ packages:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
     engines: {node: 18 || 20 || >=22}
 
+  bare-buffer@3.7.1:
+    resolution: {integrity: sha512-cIjZnSO+y89ykVX9x96OVnA6tGORBn7vGJ/e3PCbBHMEyfMNG/ixzOS0lLa6saMlWcs69bSKjxFyDwjK152OMg==}
+    engines: {bare: '>=1.20.0'}
+
   bare-events@2.9.2:
     resolution: {integrity: sha512-AIPKioV7/Y/8KfZ3AAhjPJxLLbY49S64Ym5DakZlUg75qQiTgUq9hEJoEwa4eUezPUlXRy/i5NpsKvo9jgKmoA==}
     peerDependencies:
@@ -4377,8 +4381,8 @@ packages:
       bare-events:
         optional: true
 
-  bare-url@2.5.5:
-    resolution: {integrity: sha512-iM9qJCruvpt2rPaLsrumVDru9pogI7PHziHIa9kTNRFt8C8HuSa+kI9kFezK+NvHEFnnz71rKGZ1EAilq/3V/Q==}
+  bare-url@2.5.6:
+    resolution: {integrity: sha512-iqkXHkW65De+BT14nHLiBFbNuJ/DdMrZaVNJ1IXPctpK6b1olUJ5Qmy8QBvwROajTiGztso2n82kFEvCsNG7Rg==}
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
@@ -4646,8 +4650,8 @@ packages:
       '@chromatic-com/playwright':
         optional: true
 
-  chromatic@18.13.9:
-    resolution: {integrity: sha512-ZOHNPl0PsrJqEYl9mxOXrOWrGyJL7rmDLHQojf0zoxFrurneI1uW81BOI7PYHv6yeyV8NKCif2arYHGAmCR3LQ==}
+  chromatic@18.14.0:
+    resolution: {integrity: sha512-9frJbg8g5AkM4Dhr7LP8ul3jiaX5K2rMUYFGeLE3OaWUhZ99l/2lE8jrRAUc4TW6ZFkcWJfGoCX7jNwXUgLlIg==}
     engines: {node: '>=22.0.0'}
     hasBin: true
     peerDependencies:
@@ -5311,8 +5315,8 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.473:
-    resolution: {integrity: sha512-9njcRQK+6FOXNAWw5g+h2RPiyazqo5RFMVJ39ZMHjDHUNnnFlhnOGV7O0WmJetODDx19ES5p+FLi+KCVFQGugw==}
+  electron-to-chromium@1.5.476:
+    resolution: {integrity: sha512-LnPnRZ0esKB9NjsSIaC+mffW+5dAtBui6kbK5f9Qykblj4Q33cn6yIhuCcTVjwpvL3YJPqqQ4IlsNyriGNpyFQ==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -6143,8 +6147,8 @@ packages:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
     engines: {node: '>=8'}
 
-  is-core-module@2.17.0:
-    resolution: {integrity: sha512-J/vG0zBCbIKOQFfufSwyXdMrsohyJIUNkrnmo6WZGzoM7tr/lsbfW5b2BvisL6zsyMzK9UxV9L6c7AoFbyXHOA==}
+  is-core-module@2.18.0:
+    resolution: {integrity: sha512-qyax9fgaKOEC4qK8WZn7Q4IcoZC9RC1O1fFxRcRTq/oMMkWT/uXpqpXa12kzWR409zAt1drYN9N9BO26UmBCmw==}
     engines: {node: '>= 0.4'}
 
   is-docker@2.2.1:
@@ -8152,8 +8156,8 @@ packages:
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
 
-  resolve@1.22.13:
-    resolution: {integrity: sha512-Dj/cW9zBV2aRj6XzCxuGIs3ESZKv02jixne3q6jFZYZ3/Tg09gHHviSMDL4kObh9pqSahdRHEnDoaP2gn8YLhA==}
+  resolve@1.22.14:
+    resolution: {integrity: sha512-1ZjYvR9sbkiwC5+9QHetqW5HmA2pHRMaoupD01t2HlYnV/vydC2zPwLixhsMieSWVZt0JJRg5LVIk0Ow1D/TrA==}
     engines: {node: '>= 0.4'}
     hasBin: true
 
@@ -9828,13 +9832,13 @@ snapshots:
   '@babel/core@7.29.7':
     dependencies:
       '@babel/code-frame': 7.29.7
-      '@babel/generator': 7.29.12
-      '@babel/helper-compilation-targets': 7.29.7
-      '@babel/helper-module-transforms': 7.29.7(@babel/core@7.29.7)
-      '@babel/helpers': 7.29.10
-      '@babel/parser': 7.29.12
+      '@babel/generator': 7.29.13
+      '@babel/helper-compilation-targets': 7.29.13
+      '@babel/helper-module-transforms': 7.29.13(@babel/core@7.29.7)
+      '@babel/helpers': 7.29.13
+      '@babel/parser': 7.29.13
       '@babel/template': 7.29.7
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
       '@babel/types': 7.29.11
       '@jridgewell/remapping': 2.3.5
       convert-source-map: 2.0.0
@@ -9847,15 +9851,15 @@ snapshots:
 
   '@babel/generator@7.28.5':
     dependencies:
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       '@babel/types': 7.29.11
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
       jsesc: 3.1.0
 
-  '@babel/generator@7.29.12':
+  '@babel/generator@7.29.13':
     dependencies:
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       '@babel/types': 7.29.11
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
@@ -9865,7 +9869,7 @@ snapshots:
     dependencies:
       '@babel/types': 7.29.11
 
-  '@babel/helper-compilation-targets@7.29.7':
+  '@babel/helper-compilation-targets@7.29.13':
     dependencies:
       '@babel/compat-data': 7.29.7
       '@babel/helper-validator-option': 7.29.7
@@ -9873,15 +9877,15 @@ snapshots:
       lru-cache: 5.1.1
       semver: 6.3.2
 
-  '@babel/helper-create-class-features-plugin@7.29.12(@babel/core@7.29.7)':
+  '@babel/helper-create-class-features-plugin@7.29.13(@babel/core@7.29.7)':
     dependencies:
       '@babel/core': 7.29.7
       '@babel/helper-annotate-as-pure': 7.29.7
       '@babel/helper-member-expression-to-functions': 7.29.7
       '@babel/helper-optimise-call-expression': 7.29.7
       '@babel/helper-replace-supers': 7.29.7(@babel/core@7.29.7)
-      '@babel/helper-skip-transparent-expression-wrappers': 7.29.7
-      '@babel/traverse': 7.29.12
+      '@babel/helper-skip-transparent-expression-wrappers': 7.29.13
+      '@babel/traverse': 7.29.13
       semver: 6.3.2
     transitivePeerDependencies:
       - supports-color
@@ -9890,24 +9894,24 @@ snapshots:
 
   '@babel/helper-member-expression-to-functions@7.29.7':
     dependencies:
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
       '@babel/types': 7.29.11
     transitivePeerDependencies:
       - supports-color
 
   '@babel/helper-module-imports@7.29.7':
     dependencies:
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
       '@babel/types': 7.29.11
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/helper-module-transforms@7.29.7(@babel/core@7.29.7)':
+  '@babel/helper-module-transforms@7.29.13(@babel/core@7.29.7)':
     dependencies:
       '@babel/core': 7.29.7
       '@babel/helper-module-imports': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
     transitivePeerDependencies:
       - supports-color
 
@@ -9922,29 +9926,29 @@ snapshots:
       '@babel/core': 7.29.7
       '@babel/helper-member-expression-to-functions': 7.29.7
       '@babel/helper-optimise-call-expression': 7.29.7
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/helper-skip-transparent-expression-wrappers@7.29.7':
+  '@babel/helper-skip-transparent-expression-wrappers@7.29.13':
     dependencies:
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
       '@babel/types': 7.29.11
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/helper-string-parser@7.29.11': {}
+  '@babel/helper-string-parser@7.29.13': {}
 
   '@babel/helper-validator-identifier@7.29.7': {}
 
   '@babel/helper-validator-option@7.29.7': {}
 
-  '@babel/helpers@7.29.10':
+  '@babel/helpers@7.29.13':
     dependencies:
       '@babel/template': 7.29.7
       '@babel/types': 7.29.11
 
-  '@babel/parser@7.29.12':
+  '@babel/parser@7.29.13':
     dependencies:
       '@babel/types': 7.29.11
 
@@ -10036,7 +10040,7 @@ snapshots:
   '@babel/plugin-transform-modules-commonjs@7.29.7(@babel/core@7.29.7)':
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/helper-module-transforms': 7.29.7(@babel/core@7.29.7)
+      '@babel/helper-module-transforms': 7.29.13(@babel/core@7.29.7)
       '@babel/helper-plugin-utils': 7.29.7
     transitivePeerDependencies:
       - supports-color
@@ -10055,9 +10059,9 @@ snapshots:
     dependencies:
       '@babel/core': 7.29.7
       '@babel/helper-annotate-as-pure': 7.29.7
-      '@babel/helper-create-class-features-plugin': 7.29.12(@babel/core@7.29.7)
+      '@babel/helper-create-class-features-plugin': 7.29.13(@babel/core@7.29.7)
       '@babel/helper-plugin-utils': 7.29.7
-      '@babel/helper-skip-transparent-expression-wrappers': 7.29.7
+      '@babel/helper-skip-transparent-expression-wrappers': 7.29.13
       '@babel/plugin-syntax-typescript': 7.29.7(@babel/core@7.29.7)
     transitivePeerDependencies:
       - supports-color
@@ -10073,20 +10077,20 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/runtime@7.29.10': {}
+  '@babel/runtime@7.29.13': {}
 
   '@babel/template@7.29.7':
     dependencies:
       '@babel/code-frame': 7.29.7
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       '@babel/types': 7.29.11
 
-  '@babel/traverse@7.29.12':
+  '@babel/traverse@7.29.13':
     dependencies:
       '@babel/code-frame': 7.29.7
-      '@babel/generator': 7.29.12
+      '@babel/generator': 7.29.13
       '@babel/helper-globals': 7.29.7
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       '@babel/template': 7.29.7
       '@babel/types': 7.29.11
       debug: 4.4.3(supports-color@10.2.2)
@@ -10095,12 +10099,12 @@ snapshots:
 
   '@babel/types@7.28.4':
     dependencies:
-      '@babel/helper-string-parser': 7.29.11
+      '@babel/helper-string-parser': 7.29.13
       '@babel/helper-validator-identifier': 7.29.7
 
   '@babel/types@7.29.11':
     dependencies:
-      '@babel/helper-string-parser': 7.29.11
+      '@babel/helper-string-parser': 7.29.13
       '@babel/helper-validator-identifier': 7.29.7
 
   '@bcoe/v8-coverage@0.2.3': {}
@@ -11002,16 +11006,16 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@lhci/cli@0.15.1':
+  '@lhci/cli@0.15.1(bare-buffer@3.7.1)':
     dependencies:
-      '@lhci/utils': 0.15.1
+      '@lhci/utils': 0.15.1(bare-buffer@3.7.1)
       chrome-launcher: 0.13.4
       compression: 1.8.1
       debug: 4.4.3(supports-color@10.2.2)
       express: 4.22.3
       inquirer: 6.5.2
       isomorphic-fetch: 3.0.0
-      lighthouse: 12.6.1
+      lighthouse: 12.6.1(bare-buffer@3.7.1)
       lighthouse-logger: 1.2.0
       open: 7.4.2
       proxy-agent: 6.5.0
@@ -11028,12 +11032,12 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@lhci/utils@0.15.1':
+  '@lhci/utils@0.15.1(bare-buffer@3.7.1)':
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
       isomorphic-fetch: 3.0.0
       js-yaml: 3.15.0
-      lighthouse: 12.6.1
+      lighthouse: 12.6.1(bare-buffer@3.7.1)
       tree-kill: 1.2.2
     transitivePeerDependencies:
       - bare-abort-controller
@@ -11510,14 +11514,14 @@ snapshots:
 
   '@protobufjs/utf8@1.1.1': {}
 
-  '@puppeteer/browsers@2.13.2':
+  '@puppeteer/browsers@2.13.2(bare-buffer@3.7.1)':
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
       extract-zip: 2.0.1
       progress: 2.0.3
       proxy-agent: 6.5.0
       semver: 7.8.6
-      tar-fs: 3.1.3
+      tar-fs: 3.1.3(bare-buffer@3.7.1)
       yargs: 17.7.3
     transitivePeerDependencies:
       - bare-abort-controller
@@ -12061,7 +12065,7 @@ snapshots:
   '@react-native/codegen@0.81.6(@babel/core@7.29.7)':
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       glob: 7.2.3
       hermes-parser: 0.29.1
       invariant: 2.2.4
@@ -12128,11 +12132,11 @@ snapshots:
   '@react-router/dev@7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0)':
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/generator': 7.29.12
-      '@babel/parser': 7.29.12
+      '@babel/generator': 7.29.13
+      '@babel/parser': 7.29.13
       '@babel/plugin-syntax-jsx': 7.29.7(@babel/core@7.29.7)
       '@babel/preset-typescript': 7.29.7(@babel/core@7.29.7)
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
       '@babel/types': 7.29.11
       '@react-router/node': 7.18.2(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.2)
       '@remix-run/node-fetch-server': 0.13.3
@@ -12355,7 +12359,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
 
-  '@salesforce/b2c-cli@2.11.0(@types/node@24.3.0)(typescript@5.9.2)':
+  '@salesforce/b2c-cli@2.11.0(@types/node@24.3.0)(bare-buffer@3.7.1)(typescript@5.9.2)':
     dependencies:
       '@inquirer/prompts': 8.2.0(@types/node@24.3.0)
       '@oclif/core': 4.8.0
@@ -12365,7 +12369,7 @@ snapshots:
       '@oclif/plugin-plugins': 5.4.53
       '@oclif/plugin-version': 2.2.36
       '@oclif/plugin-warn-if-update-available': 3.1.52
-      '@salesforce/b2c-tooling-sdk': 2.11.0(@oclif/core@4.8.0)(typescript@5.9.2)
+      '@salesforce/b2c-tooling-sdk': 2.11.0(@oclif/core@4.8.0)(bare-buffer@3.7.1)(typescript@5.9.2)
       cliui: 9.0.1
       glob: 13.0.0
       marked: 15.0.12
@@ -12379,7 +12383,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@salesforce/b2c-tooling-sdk@2.11.0(@oclif/core@4.14.0)(typescript@5.9.2)':
+  '@salesforce/b2c-tooling-sdk@2.11.0(@oclif/core@4.14.0)(bare-buffer@3.7.1)(typescript@5.9.2)':
     dependencies:
       '@vscode/debugadapter': 1.68.0
       chokidar: 5.0.0
@@ -12399,7 +12403,7 @@ snapshots:
       pino: 10.1.0
       pino-pretty: 13.1.2
       protobufjs: 7.6.5
-      tar-fs: 3.1.2
+      tar-fs: 3.1.2(bare-buffer@3.7.1)
       undici: 7.29.0
       xml2js: 0.6.2
     optionalDependencies:
@@ -12410,7 +12414,7 @@ snapshots:
       - react-native-b4a
       - typescript
 
-  '@salesforce/b2c-tooling-sdk@2.11.0(@oclif/core@4.8.0)(typescript@5.9.2)':
+  '@salesforce/b2c-tooling-sdk@2.11.0(@oclif/core@4.8.0)(bare-buffer@3.7.1)(typescript@5.9.2)':
     dependencies:
       '@vscode/debugadapter': 1.68.0
       chokidar: 5.0.0
@@ -12430,7 +12434,7 @@ snapshots:
       pino: 10.1.0
       pino-pretty: 13.1.2
       protobufjs: 7.6.5
-      tar-fs: 3.1.2
+      tar-fs: 3.1.2(bare-buffer@3.7.1)
       undici: 7.29.0
       xml2js: 0.6.2
     optionalDependencies:
@@ -12501,11 +12505,11 @@ snapshots:
       - utf-8-validate
       - yauzl
 
-  '@salesforce/storefront-next-dev@1.5.0-alpha.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@react-router/dev@7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0))(@salesforce/storefront-next-runtime@1.5.0-alpha.0(96c3b26bdeaf42c6adfba5b5e895e465))(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(@types/node@24.3.0)(body-parser@2.4.0)(http-errors@2.0.1)(react-dom@19.2.3(react@19.2.3))(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(reflect-metadata@0.2.2)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yauzl@2.10.0)':
+  '@salesforce/storefront-next-dev@1.5.0-alpha.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@react-router/dev@7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0))(@salesforce/storefront-next-runtime@1.5.0-alpha.0(96c3b26bdeaf42c6adfba5b5e895e465))(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(@types/node@24.3.0)(bare-buffer@3.7.1)(body-parser@2.4.0)(http-errors@2.0.1)(react-dom@19.2.3(react@19.2.3))(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(reflect-metadata@0.2.2)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yauzl@2.10.0)':
     dependencies:
       '@babel/generator': 7.28.5
-      '@babel/parser': 7.29.12
-      '@babel/traverse': 7.29.12
+      '@babel/parser': 7.29.13
+      '@babel/traverse': 7.29.13
       '@babel/types': 7.28.4
       '@biomejs/biome': 2.5.3
       '@codegenie/serverless-express': 4.17.0
@@ -12526,11 +12530,11 @@ snapshots:
       '@opentelemetry/semantic-conventions': 1.44.0
       '@react-router/dev': 7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0)
       '@react-router/express': 7.18.2(express@5.1.0)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.2)
-      '@salesforce/b2c-tooling-sdk': 2.11.0(@oclif/core@4.14.0)(typescript@5.9.2)
+      '@salesforce/b2c-tooling-sdk': 2.11.0(@oclif/core@4.14.0)(bare-buffer@3.7.1)(typescript@5.9.2)
       '@salesforce/playhouse': 0.1.2(@opentelemetry/core@1.30.1(@opentelemetry/api@1.10.0))(yauzl@2.10.0)
       '@salesforce/storefront-next-runtime': 1.5.0-alpha.0(96c3b26bdeaf42c6adfba5b5e895e465)
       ajv: 8.20.0
-      archiver: 7.0.1
+      archiver: 7.0.1(bare-buffer@3.7.1)
       babel-dead-code-elimination: 1.0.12
       chalk: 5.6.2
       compressible: 2.0.18
@@ -12897,7 +12901,7 @@ snapshots:
       react: 19.2.3
       react-docgen: 8.0.4
       react-dom: 19.2.3(react@19.2.3)
-      resolve: 1.22.13
+      resolve: 1.22.14
       storybook: 10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3)
       tsconfig-paths: 4.2.0
       vite: 7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)
@@ -12924,7 +12928,7 @@ snapshots:
   '@storybook/test-runner@0.24.1(@types/node@24.3.0)(storybook@10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3))(ts-node@10.9.2(@swc/core@1.16.21)(@types/node@24.3.0)(typescript@5.9.2))':
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/generator': 7.29.12
+      '@babel/generator': 7.29.13
       '@babel/template': 7.29.7
       '@babel/types': 7.29.11
       '@jest/types': 30.5.1
@@ -13096,7 +13100,7 @@ snapshots:
   '@testing-library/dom@10.4.2':
     dependencies:
       '@babel/code-frame': 7.29.7
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       dom-accessibility-api: 0.5.16
@@ -13115,7 +13119,7 @@ snapshots:
 
   '@testing-library/react@16.3.0(@testing-library/dom@10.4.2)(@types/react-dom@19.1.9(@types/react@19.1.13))(@types/react@19.1.13)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       '@testing-library/dom': 10.4.2
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
@@ -13152,7 +13156,7 @@ snapshots:
 
   '@types/babel__core@7.20.5':
     dependencies:
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       '@babel/types': 7.29.11
       '@types/babel__generator': 7.27.0
       '@types/babel__template': 7.4.4
@@ -13164,7 +13168,7 @@ snapshots:
 
   '@types/babel__template@7.4.4':
     dependencies:
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       '@babel/types': 7.29.11
 
   '@types/babel__traverse@7.28.0':
@@ -13662,14 +13666,14 @@ snapshots:
       normalize-path: 3.0.0
       readable-stream: 4.8.0
 
-  archiver@7.0.1:
+  archiver@7.0.1(bare-buffer@3.7.1):
     dependencies:
       archiver-utils: 5.0.2
       async: 3.2.6
       buffer-crc32: 1.0.0
       readable-stream: 4.8.0
       readdir-glob: 1.1.3
-      tar-stream: 3.2.2
+      tar-stream: 3.2.2(bare-buffer@3.7.1)
       zip-stream: 6.0.1
     transitivePeerDependencies:
       - bare-abort-controller
@@ -13713,7 +13717,7 @@ snapshots:
 
   ast-kit@2.2.0:
     dependencies:
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       pathe: 2.0.3
 
   ast-types@0.13.4:
@@ -13761,8 +13765,8 @@ snapshots:
   babel-dead-code-elimination@1.0.12:
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/parser': 7.29.12
-      '@babel/traverse': 7.29.12
+      '@babel/parser': 7.29.13
+      '@babel/traverse': 7.29.13
       '@babel/types': 7.29.11
     transitivePeerDependencies:
       - supports-color
@@ -13866,33 +13870,39 @@ snapshots:
 
   balanced-match@4.0.4: {}
 
+  bare-buffer@3.7.1: {}
+
   bare-events@2.9.2: {}
 
-  bare-fs@4.8.4:
+  bare-fs@4.8.4(bare-buffer@3.7.1):
     dependencies:
       bare-events: 2.9.2
       bare-path: 3.1.2
-      bare-stream: 2.13.4(bare-events@2.9.2)
-      bare-url: 2.5.5
+      bare-stream: 2.13.4(bare-buffer@3.7.1)(bare-events@2.9.2)
+      bare-url: 2.5.6
       fast-fifo: 1.3.2
+    optionalDependencies:
+      bare-buffer: 3.7.1
     transitivePeerDependencies:
       - bare-abort-controller
       - react-native-b4a
 
   bare-path@3.1.2: {}
 
-  bare-stream@2.13.4(bare-events@2.9.2):
+  bare-stream@2.13.4(bare-buffer@3.7.1)(bare-events@2.9.2):
     dependencies:
       b4a: 1.9.0
       streamx: 2.28.1
       teex: 1.0.1
     optionalDependencies:
+      bare-buffer: 3.7.1
       bare-events: 2.9.2
     transitivePeerDependencies:
       - react-native-b4a
 
-  bare-url@2.5.5:
+  bare-url@2.5.6:
     dependencies:
+      bare-buffer: 3.7.1
       bare-path: 3.1.2
 
   base64-js@1.5.1: {}
@@ -13987,7 +13997,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.35
       caniuse-lite: 1.0.30001820
-      electron-to-chromium: 1.5.473
+      electron-to-chromium: 1.5.476
       node-releases: 2.0.63
       update-browserslist-db: 1.3.4(browserslist@4.29.5)
 
@@ -14202,7 +14212,7 @@ snapshots:
 
   chromatic@12.2.0: {}
 
-  chromatic@18.13.9:
+  chromatic@18.14.0:
     dependencies:
       semver: 7.8.6
 
@@ -14936,7 +14946,7 @@ snapshots:
 
   ejs@6.0.1: {}
 
-  electron-to-chromium@1.5.473: {}
+  electron-to-chromium@1.5.476: {}
 
   embla-carousel-react@8.6.0(react@19.2.3):
     dependencies:
@@ -15776,17 +15786,17 @@ snapshots:
 
   i18next-browser-languagedetector@8.2.0:
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
 
   i18next@25.5.3(typescript@5.9.2):
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
     optionalDependencies:
       typescript: 5.9.2
 
   i18next@25.7.4(typescript@5.9.2):
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
     optionalDependencies:
       typescript: 5.9.2
 
@@ -15899,7 +15909,7 @@ snapshots:
     dependencies:
       binary-extensions: 2.3.0
 
-  is-core-module@2.17.0:
+  is-core-module@2.18.0:
     dependencies:
       hasown: 2.0.4
 
@@ -16000,7 +16010,7 @@ snapshots:
   istanbul-lib-instrument@5.2.1:
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       '@istanbuljs/schema': 0.1.6
       istanbul-lib-coverage: 3.2.2
       semver: 6.3.2
@@ -16011,7 +16021,7 @@ snapshots:
   istanbul-lib-instrument@6.0.3:
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       '@istanbuljs/schema': 0.1.6
       istanbul-lib-coverage: 3.2.2
       semver: 7.8.6
@@ -16405,7 +16415,7 @@ snapshots:
   jest-snapshot@30.5.2:
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/generator': 7.29.12
+      '@babel/generator': 7.29.13
       '@babel/plugin-syntax-jsx': 7.29.7(@babel/core@7.29.7)
       '@babel/plugin-syntax-typescript': 7.29.7(@babel/core@7.29.7)
       '@babel/types': 7.29.11
@@ -16698,7 +16708,7 @@ snapshots:
 
   lighthouse-stack-packs@1.12.3: {}
 
-  lighthouse@12.6.1:
+  lighthouse@12.6.1(bare-buffer@3.7.1):
     dependencies:
       '@paulirish/trace_engine': 0.0.53
       '@sentry/node': 7.120.4
@@ -16719,7 +16729,7 @@ snapshots:
       metaviewport-parser: 0.3.0
       open: 8.4.2
       parse-cache-control: 1.0.1
-      puppeteer-core: 24.43.1
+      puppeteer-core: 24.43.1(bare-buffer@3.7.1)
       robots-parser: 3.0.1
       semver: 5.7.3
       speedline-core: 1.4.3
@@ -16924,7 +16934,7 @@ snapshots:
 
   magicast@0.5.5:
     dependencies:
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       '@babel/types': 7.29.11
       source-map-js: 1.2.2
 
@@ -17058,13 +17068,13 @@ snapshots:
 
   metro-runtime@0.83.8:
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       flow-enums-runtime: 0.0.6
     optional: true
 
   metro-source-map@0.83.8:
     dependencies:
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
       '@babel/types': 7.29.11
       flow-enums-runtime: 0.0.6
       invariant: 2.2.4
@@ -17092,9 +17102,9 @@ snapshots:
   metro-transform-plugins@0.83.8:
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/generator': 7.29.12
+      '@babel/generator': 7.29.13
       '@babel/template': 7.29.7
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
       flow-enums-runtime: 0.0.6
       nullthrows: 1.1.1
     transitivePeerDependencies:
@@ -17104,8 +17114,8 @@ snapshots:
   metro-transform-worker@0.83.8:
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/generator': 7.29.12
-      '@babel/parser': 7.29.12
+      '@babel/generator': 7.29.13
+      '@babel/parser': 7.29.13
       '@babel/types': 7.29.11
       flow-enums-runtime: 0.0.6
       metro: 0.83.8
@@ -17126,10 +17136,10 @@ snapshots:
     dependencies:
       '@babel/code-frame': 7.29.7
       '@babel/core': 7.29.7
-      '@babel/generator': 7.29.12
-      '@babel/parser': 7.29.12
+      '@babel/generator': 7.29.13
+      '@babel/parser': 7.29.13
       '@babel/template': 7.29.7
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
       '@babel/types': 7.29.11
       accepts: 2.0.0
       ci-info: 2.0.0
@@ -17736,7 +17746,7 @@ snapshots:
 
   parse-function@5.6.10:
     dependencies:
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       arrify: 2.0.1
 
   parse-json@4.0.0:
@@ -18049,9 +18059,9 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  puppeteer-core@24.43.1:
+  puppeteer-core@24.43.1(bare-buffer@3.7.1):
     dependencies:
-      '@puppeteer/browsers': 2.13.2
+      '@puppeteer/browsers': 2.13.2(bare-buffer@3.7.1)
       chromium-bidi: 14.0.0(devtools-protocol@0.0.1608973)
       debug: 4.4.3(supports-color@10.2.2)
       devtools-protocol: 0.0.1608973
@@ -18134,14 +18144,14 @@ snapshots:
   react-docgen@8.0.4:
     dependencies:
       '@babel/core': 7.29.7
-      '@babel/traverse': 7.29.12
+      '@babel/traverse': 7.29.13
       '@babel/types': 7.29.11
       '@types/babel__core': 7.20.5
       '@types/babel__traverse': 7.28.0
       '@types/doctrine': 0.0.9
       '@types/resolve': 1.20.6
       doctrine: 3.0.0
-      resolve: 1.22.13
+      resolve: 1.22.14
       strip-indent: 4.1.1
     transitivePeerDependencies:
       - supports-color
@@ -18157,7 +18167,7 @@ snapshots:
 
   react-i18next@16.0.0(i18next@25.5.3(typescript@5.9.2))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.2):
     dependencies:
-      '@babel/runtime': 7.29.10
+      '@babel/runtime': 7.29.13
       html-parse-stringify: 3.1.0
       i18next: 25.5.3(typescript@5.9.2)
       react: 19.2.3
@@ -18378,10 +18388,10 @@ snapshots:
 
   resolve-pkg-maps@1.0.0: {}
 
-  resolve@1.22.13:
+  resolve@1.22.14:
     dependencies:
       es-errors: 1.3.0
-      is-core-module: 2.17.0
+      is-core-module: 2.18.0
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 
@@ -18429,7 +18439,7 @@ snapshots:
   rolldown-plugin-dts@0.17.8(rolldown@1.0.0-beta.45(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3))(typescript@5.9.2):
     dependencies:
       '@babel/generator': 7.28.5
-      '@babel/parser': 7.29.12
+      '@babel/parser': 7.29.13
       '@babel/types': 7.29.11
       ast-kit: 2.2.0
       birpc: 2.9.0
@@ -18980,34 +18990,34 @@ snapshots:
 
   tapable@2.3.3: {}
 
-  tar-fs@3.1.2:
+  tar-fs@3.1.2(bare-buffer@3.7.1):
     dependencies:
       pump: 3.0.4
-      tar-stream: 3.2.2
+      tar-stream: 3.2.2(bare-buffer@3.7.1)
     optionalDependencies:
-      bare-fs: 4.8.4
+      bare-fs: 4.8.4(bare-buffer@3.7.1)
       bare-path: 3.1.2
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
       - react-native-b4a
 
-  tar-fs@3.1.3:
+  tar-fs@3.1.3(bare-buffer@3.7.1):
     dependencies:
       pump: 3.0.4
-      tar-stream: 3.2.2
+      tar-stream: 3.2.2(bare-buffer@3.7.1)
     optionalDependencies:
-      bare-fs: 4.8.4
+      bare-fs: 4.8.4(bare-buffer@3.7.1)
       bare-path: 3.1.2
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
       - react-native-b4a
 
-  tar-stream@3.2.2:
+  tar-stream@3.2.2(bare-buffer@3.7.1):
     dependencies:
       b4a: 1.9.0
-      bare-fs: 4.8.4
+      bare-fs: 4.8.4(bare-buffer@3.7.1)
       fast-fifo: 1.3.2
       streamx: 2.28.1
     transitivePeerDependencies:
