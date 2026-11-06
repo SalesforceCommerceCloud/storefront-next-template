@@ -642,7 +642,7 @@ exports[`ProductCarouselSkeleton stories snapshot > Default story renders and ma
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -655,11 +655,11 @@ exports[`ProductCarouselSkeleton stories snapshot > Default story renders and ma
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -669,11 +669,11 @@ exports[`ProductCarouselSkeleton stories snapshot > Default story renders and ma
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -682,7 +682,7 @@ exports[`ProductCarouselSkeleton stories snapshot > Default story renders and ma
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -1007,7 +1007,7 @@ exports[`ProductCarouselSkeleton stories snapshot > WithTitle story renders and 
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -1020,11 +1020,11 @@ exports[`ProductCarouselSkeleton stories snapshot > WithTitle story renders and 
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -1034,11 +1034,11 @@ exports[`ProductCarouselSkeleton stories snapshot > WithTitle story renders and 
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -1047,7 +1047,7 @@ exports[`ProductCarouselSkeleton stories snapshot > WithTitle story renders and 
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
