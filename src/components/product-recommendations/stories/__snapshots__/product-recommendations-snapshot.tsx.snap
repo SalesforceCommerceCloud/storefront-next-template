@@ -14,7 +14,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
         class="flex items-center justify-between"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-8 md:h-9 w-64"
+          class="bg-skeleton animate-pulse rounded-ui h-8 md:h-9 w-64"
           data-slot="skeleton"
         />
       </div>
@@ -45,7 +45,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -58,11 +58,11 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -72,11 +72,11 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -85,7 +85,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -107,7 +107,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -120,11 +120,11 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -134,11 +134,11 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -147,7 +147,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -169,7 +169,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -182,11 +182,11 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -196,11 +196,11 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -209,7 +209,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -231,7 +231,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -244,11 +244,11 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -258,11 +258,11 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -271,7 +271,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -284,7 +284,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
             class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-9 w-9"
+              class="bg-skeleton animate-pulse rounded-ui h-9 w-9"
               data-slot="skeleton"
             />
           </div>
@@ -292,7 +292,7 @@ exports[`ProductRecommendations stories snapshot > Loading story renders and mat
             class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-9 w-9"
+              class="bg-skeleton animate-pulse rounded-ui h-9 w-9"
               data-slot="skeleton"
             />
           </div>

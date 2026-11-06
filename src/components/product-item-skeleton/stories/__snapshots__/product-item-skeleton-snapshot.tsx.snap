@@ -11,7 +11,7 @@ exports[`ProductItemSkeleton stories snapshot > Default story renders and matche
       class="flex items-start"
     >
       <div
-        class="bg-accent animate-pulse rounded-ui flex-shrink-0 w-16 sm:w-20 h-16 sm:h-20 mr-4 sm:mr-6 rounded-ui"
+        class="bg-skeleton animate-pulse rounded-ui flex-shrink-0 w-16 sm:w-20 h-16 sm:h-20 mr-4 sm:mr-6 rounded-ui"
         data-slot="skeleton"
       />
       <div
@@ -21,18 +21,18 @@ exports[`ProductItemSkeleton stories snapshot > Default story renders and matche
           class="space-y-1"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-6 w-3/4"
+            class="bg-skeleton animate-pulse rounded-ui h-6 w-3/4"
             data-slot="skeleton"
           />
           <div
             class="space-y-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-1/2"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-1/2"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-1/3"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-1/3"
               data-slot="skeleton"
             />
           </div>
@@ -40,7 +40,7 @@ exports[`ProductItemSkeleton stories snapshot > Default story renders and matche
             class="sm:hidden mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-20"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
               data-slot="skeleton"
             />
           </div>
@@ -48,11 +48,11 @@ exports[`ProductItemSkeleton stories snapshot > Default story renders and matche
             class="space-y-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-8 w-24"
+              class="bg-skeleton animate-pulse rounded-ui h-8 w-24"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-16"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-16"
               data-slot="skeleton"
             />
           </div>
@@ -65,7 +65,7 @@ exports[`ProductItemSkeleton stories snapshot > Default story renders and matche
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
             data-slot="skeleton"
           />
         </div>

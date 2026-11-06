@@ -2334,22 +2334,22 @@ exports[`ProductGrid stories snapshot > Loading story renders and matches snapsh
         class="space-y-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
         <div
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-2/3"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-2/3"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-20"
             data-slot="skeleton"
           />
         </div>
@@ -2358,22 +2358,22 @@ exports[`ProductGrid stories snapshot > Loading story renders and matches snapsh
         class="space-y-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
         <div
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-2/3"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-2/3"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-20"
             data-slot="skeleton"
           />
         </div>
@@ -2382,22 +2382,22 @@ exports[`ProductGrid stories snapshot > Loading story renders and matches snapsh
         class="space-y-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
         <div
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-2/3"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-2/3"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-20"
             data-slot="skeleton"
           />
         </div>
@@ -2406,22 +2406,22 @@ exports[`ProductGrid stories snapshot > Loading story renders and matches snapsh
         class="space-y-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
         <div
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-2/3"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-2/3"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-20"
             data-slot="skeleton"
           />
         </div>
@@ -2430,22 +2430,22 @@ exports[`ProductGrid stories snapshot > Loading story renders and matches snapsh
         class="space-y-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
         <div
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-2/3"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-2/3"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-20"
             data-slot="skeleton"
           />
         </div>
@@ -2454,22 +2454,22 @@ exports[`ProductGrid stories snapshot > Loading story renders and matches snapsh
         class="space-y-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
         <div
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-2/3"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-2/3"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-20"
             data-slot="skeleton"
           />
         </div>
@@ -2478,22 +2478,22 @@ exports[`ProductGrid stories snapshot > Loading story renders and matches snapsh
         class="space-y-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
         <div
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-2/3"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-2/3"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-20"
             data-slot="skeleton"
           />
         </div>
@@ -2502,22 +2502,22 @@ exports[`ProductGrid stories snapshot > Loading story renders and matches snapsh
         class="space-y-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
         <div
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-2/3"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-2/3"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-20"
             data-slot="skeleton"
           />
         </div>

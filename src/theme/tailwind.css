@@ -33,6 +33,7 @@
     --color-muted-foreground: var(--muted-foreground);
     --color-muted-hover: var(--muted-hover);
     --color-accent: var(--accent);
+    --color-skeleton: var(--skeleton);
     --color-accent-foreground: var(--accent-foreground);
     --color-border: var(--border);
     --color-border-subtle: var(--border-subtle);

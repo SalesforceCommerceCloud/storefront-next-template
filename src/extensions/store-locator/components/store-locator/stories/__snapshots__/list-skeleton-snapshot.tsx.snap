@@ -14,7 +14,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -24,7 +24,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -35,11 +35,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -48,7 +48,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -59,11 +59,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -84,7 +84,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -94,7 +94,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -105,11 +105,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -118,7 +118,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -129,11 +129,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -154,7 +154,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -164,7 +164,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -175,11 +175,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -188,7 +188,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -199,11 +199,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -224,7 +224,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -234,7 +234,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -245,11 +245,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -258,7 +258,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -269,11 +269,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -294,7 +294,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -304,7 +304,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -315,11 +315,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -328,7 +328,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -339,11 +339,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -364,7 +364,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -374,7 +374,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -385,11 +385,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -398,7 +398,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -409,11 +409,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -434,7 +434,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -444,7 +444,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -455,11 +455,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -468,7 +468,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -479,11 +479,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -504,7 +504,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -514,7 +514,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -525,11 +525,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -538,7 +538,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -549,11 +549,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -574,7 +574,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -584,7 +584,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -595,11 +595,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -608,7 +608,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -619,11 +619,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -644,7 +644,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -654,7 +654,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -665,11 +665,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -678,7 +678,7 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -689,11 +689,11 @@ exports[`ListSkeleton stories snapshot > Default story renders and matches snaps
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -734,7 +734,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -744,7 +744,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -755,11 +755,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -768,7 +768,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -779,11 +779,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -804,7 +804,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -814,7 +814,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -825,11 +825,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -838,7 +838,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -849,11 +849,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -874,7 +874,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -884,7 +884,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -895,11 +895,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -908,7 +908,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -919,11 +919,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -944,7 +944,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -954,7 +954,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -965,11 +965,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -978,7 +978,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -989,11 +989,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1014,7 +1014,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1024,7 +1024,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1035,11 +1035,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1048,7 +1048,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1059,11 +1059,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1084,7 +1084,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1094,7 +1094,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1105,11 +1105,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1118,7 +1118,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1129,11 +1129,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1154,7 +1154,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1164,7 +1164,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1175,11 +1175,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1188,7 +1188,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1199,11 +1199,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1224,7 +1224,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1234,7 +1234,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1245,11 +1245,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1258,7 +1258,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1269,11 +1269,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1294,7 +1294,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1304,7 +1304,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1315,11 +1315,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1328,7 +1328,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1339,11 +1339,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1364,7 +1364,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1374,7 +1374,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1385,11 +1385,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1398,7 +1398,7 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1409,11 +1409,11 @@ exports[`ListSkeleton stories snapshot > DesktopLayout story renders and matches
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1454,7 +1454,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1464,7 +1464,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1475,11 +1475,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1488,7 +1488,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1499,11 +1499,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1524,7 +1524,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1534,7 +1534,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1545,11 +1545,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1558,7 +1558,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1569,11 +1569,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1594,7 +1594,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1604,7 +1604,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1615,11 +1615,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1628,7 +1628,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1639,11 +1639,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1664,7 +1664,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1674,7 +1674,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1685,11 +1685,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1698,7 +1698,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1709,11 +1709,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1734,7 +1734,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1744,7 +1744,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1755,11 +1755,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1768,7 +1768,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1779,11 +1779,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1804,7 +1804,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1814,7 +1814,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1825,11 +1825,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1838,7 +1838,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1849,11 +1849,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1874,7 +1874,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1884,7 +1884,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1895,11 +1895,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1908,7 +1908,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1919,11 +1919,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1944,7 +1944,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -1954,7 +1954,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1965,11 +1965,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -1978,7 +1978,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -1989,11 +1989,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2014,7 +2014,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2024,7 +2024,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2035,11 +2035,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2048,7 +2048,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2059,11 +2059,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2084,7 +2084,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2094,7 +2094,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2105,11 +2105,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2118,7 +2118,7 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2129,11 +2129,11 @@ exports[`ListSkeleton stories snapshot > MobileLayout story renders and matches 
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2174,7 +2174,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2184,7 +2184,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2195,11 +2195,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2208,7 +2208,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2219,11 +2219,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2244,7 +2244,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2254,7 +2254,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2265,11 +2265,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2278,7 +2278,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2289,11 +2289,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2314,7 +2314,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2324,7 +2324,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2335,11 +2335,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2348,7 +2348,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2359,11 +2359,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2384,7 +2384,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2394,7 +2394,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2405,11 +2405,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2418,7 +2418,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2429,11 +2429,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2454,7 +2454,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2464,7 +2464,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2475,11 +2475,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2488,7 +2488,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2499,11 +2499,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2524,7 +2524,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2534,7 +2534,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2545,11 +2545,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2558,7 +2558,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2569,11 +2569,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2594,7 +2594,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2604,7 +2604,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2615,11 +2615,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2628,7 +2628,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2639,11 +2639,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2664,7 +2664,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2674,7 +2674,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2685,11 +2685,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2698,7 +2698,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2709,11 +2709,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2734,7 +2734,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2744,7 +2744,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2755,11 +2755,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2768,7 +2768,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2779,11 +2779,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2804,7 +2804,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
         class="flex items-start gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
+          class="bg-skeleton animate-pulse rounded-ui mt-1 h-4 w-4 rounded-full"
           data-slot="skeleton"
         />
         <div
@@ -2814,7 +2814,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-1"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-6 w-56 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-6 w-56 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2825,11 +2825,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="space-y-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-40 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-40 max-w-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-4 w-64 max-w-full"
+                class="bg-skeleton animate-pulse rounded-ui h-4 w-64 max-w-full"
                 data-slot="skeleton"
               />
             </div>
@@ -2838,7 +2838,7 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
             class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-28 max-w-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-28 max-w-full"
               data-slot="skeleton"
             />
           </div>
@@ -2849,11 +2849,11 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
               class="flex items-center justify-between"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-28"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-28"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui h-5 w-5 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui h-5 w-5 rounded-full"
                 data-slot="skeleton"
               />
             </div>

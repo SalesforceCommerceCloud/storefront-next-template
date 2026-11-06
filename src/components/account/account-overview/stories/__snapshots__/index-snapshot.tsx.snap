@@ -1309,11 +1309,11 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
       data-slot="card-content"
     >
       <div
-        class="bg-accent animate-pulse rounded-ui h-6 w-64 mb-1"
+        class="bg-skeleton animate-pulse rounded-ui h-6 w-64 mb-1"
         data-slot="skeleton"
       />
       <div
-        class="bg-accent animate-pulse rounded-ui h-4 w-96 max-w-full"
+        class="bg-skeleton animate-pulse rounded-ui h-4 w-96 max-w-full"
         data-slot="skeleton"
       />
     </div>
@@ -1333,11 +1333,11 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
           data-slot="card-content"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-7 w-40 mb-1.5"
+            class="bg-skeleton animate-pulse rounded-ui h-7 w-40 mb-1.5"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-56"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-56"
             data-slot="skeleton"
           />
         </div>
@@ -1483,11 +1483,11 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-7 w-72 max-w-full"
+          class="bg-skeleton animate-pulse rounded-ui h-7 w-72 max-w-full"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-full max-w-lg"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-full max-w-lg"
           data-slot="skeleton"
         />
         <div
@@ -1503,11 +1503,11 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
                 class="flex shrink-0 gap-2"
               >
                 <div
-                  class="bg-accent animate-pulse rounded-ui h-16 w-16 shrink-0"
+                  class="bg-skeleton animate-pulse rounded-ui h-16 w-16 shrink-0"
                   data-slot="skeleton"
                 />
                 <div
-                  class="bg-accent animate-pulse rounded-ui h-16 w-16 shrink-0"
+                  class="bg-skeleton animate-pulse rounded-ui h-16 w-16 shrink-0"
                   data-slot="skeleton"
                 />
               </div>
@@ -1515,11 +1515,11 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
                 class="min-w-0 flex-1 space-y-2"
               >
                 <div
-                  class="bg-accent animate-pulse rounded-ui h-4 w-full"
+                  class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
                   data-slot="skeleton"
                 />
                 <div
-                  class="bg-accent animate-pulse rounded-ui h-3 w-40"
+                  class="bg-skeleton animate-pulse rounded-ui h-3 w-40"
                   data-slot="skeleton"
                 />
               </div>
@@ -1528,7 +1528,7 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
               class="flex w-full justify-end sm:w-auto sm:self-center"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui h-10 w-full max-w-none sm:h-10 sm:w-40"
+                class="bg-skeleton animate-pulse rounded-ui h-10 w-full max-w-none sm:h-10 sm:w-40"
                 data-slot="skeleton"
               />
             </div>
@@ -1546,26 +1546,26 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
       data-slot="card-content"
     >
       <div
-        class="bg-accent animate-pulse rounded-ui h-7 w-48 mb-2"
+        class="bg-skeleton animate-pulse rounded-ui h-7 w-48 mb-2"
         data-slot="skeleton"
       />
       <div
-        class="bg-accent animate-pulse rounded-ui h-4 w-full max-w-xl mb-4"
+        class="bg-skeleton animate-pulse rounded-ui h-4 w-full max-w-xl mb-4"
         data-slot="skeleton"
       />
       <div
         class="flex flex-wrap gap-3"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-10 w-32"
+          class="bg-skeleton animate-pulse rounded-ui h-10 w-32"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-10 w-36"
+          class="bg-skeleton animate-pulse rounded-ui h-10 w-36"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-10 w-32"
+          class="bg-skeleton animate-pulse rounded-ui h-10 w-32"
           data-slot="skeleton"
         />
       </div>
@@ -1586,22 +1586,22 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
           class="flex-1"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-7 w-48 mb-2"
+            class="bg-skeleton animate-pulse rounded-ui h-7 w-48 mb-2"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-full max-w-xl mb-6"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-full max-w-xl mb-6"
             data-slot="skeleton"
           />
           <div
             class="flex flex-wrap gap-3"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-12 w-32"
+              class="bg-skeleton animate-pulse rounded-ui h-12 w-32"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-12 w-36"
+              class="bg-skeleton animate-pulse rounded-ui h-12 w-36"
               data-slot="skeleton"
             />
           </div>
@@ -1610,11 +1610,11 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
           class="flex flex-col items-center gap-2 lg:flex-shrink-0"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui w-40 h-40"
+            class="bg-skeleton animate-pulse rounded-ui w-40 h-40"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-16"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-16"
             data-slot="skeleton"
           />
         </div>
@@ -1630,7 +1630,7 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
       data-slot="card-content"
     >
       <div
-        class="bg-accent animate-pulse rounded-ui h-7 w-32 mb-4"
+        class="bg-skeleton animate-pulse rounded-ui h-7 w-32 mb-4"
         data-slot="skeleton"
       />
       <div
@@ -1640,23 +1640,11 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
           class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui w-4 h-4"
+            class="bg-skeleton animate-pulse rounded-ui w-4 h-4"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-24"
-            data-slot="skeleton"
-          />
-        </div>
-        <div
-          class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border"
-        >
-          <div
-            class="bg-accent animate-pulse rounded-ui w-4 h-4"
-            data-slot="skeleton"
-          />
-          <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-24"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-24"
             data-slot="skeleton"
           />
         </div>
@@ -1664,11 +1652,11 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
           class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui w-4 h-4"
+            class="bg-skeleton animate-pulse rounded-ui w-4 h-4"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-24"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-24"
             data-slot="skeleton"
           />
         </div>
@@ -1676,11 +1664,23 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
           class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui w-4 h-4"
+            class="bg-skeleton animate-pulse rounded-ui w-4 h-4"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-24"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-24"
+            data-slot="skeleton"
+          />
+        </div>
+        <div
+          class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border"
+        >
+          <div
+            class="bg-skeleton animate-pulse rounded-ui w-4 h-4"
+            data-slot="skeleton"
+          />
+          <div
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-24"
             data-slot="skeleton"
           />
         </div>

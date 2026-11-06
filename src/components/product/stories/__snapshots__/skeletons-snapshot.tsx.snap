@@ -9,15 +9,15 @@ exports[`Product Skeletons stories snapshot > MainSkeleton story renders and mat
       class="block md:hidden space-y-4"
     >
       <div
-        class="bg-accent animate-pulse rounded-ui h-8 w-3/4"
+        class="bg-skeleton animate-pulse rounded-ui h-8 w-3/4"
         data-slot="skeleton"
       />
       <div
-        class="bg-accent animate-pulse rounded-ui h-4 w-full"
+        class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
         data-slot="skeleton"
       />
       <div
-        class="bg-accent animate-pulse rounded-ui h-4 w-2/3"
+        class="bg-skeleton animate-pulse rounded-ui h-4 w-2/3"
         data-slot="skeleton"
       />
     </div>
@@ -28,26 +28,26 @@ exports[`Product Skeletons stories snapshot > MainSkeleton story renders and mat
         class="space-y-4"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
         <div
           class="flex space-x-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui aspect-square w-16 h-16"
+            class="bg-skeleton animate-pulse rounded-ui aspect-square w-16 h-16"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui aspect-square w-16 h-16"
+            class="bg-skeleton animate-pulse rounded-ui aspect-square w-16 h-16"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui aspect-square w-16 h-16"
+            class="bg-skeleton animate-pulse rounded-ui aspect-square w-16 h-16"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui aspect-square w-16 h-16"
+            class="bg-skeleton animate-pulse rounded-ui aspect-square w-16 h-16"
             data-slot="skeleton"
           />
         </div>
@@ -59,15 +59,15 @@ exports[`Product Skeletons stories snapshot > MainSkeleton story renders and mat
           class="hidden md:block space-y-4"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-10 w-3/4"
+            class="bg-skeleton animate-pulse rounded-ui h-10 w-3/4"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-2/3"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-2/3"
             data-slot="skeleton"
           />
         </div>
@@ -75,11 +75,11 @@ exports[`Product Skeletons stories snapshot > MainSkeleton story renders and mat
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-8 w-32"
+            class="bg-skeleton animate-pulse rounded-ui h-8 w-32"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-24"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-24"
             data-slot="skeleton"
           />
         </div>
@@ -90,26 +90,26 @@ exports[`Product Skeletons stories snapshot > MainSkeleton story renders and mat
             class="space-y-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-16"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-16"
               data-slot="skeleton"
             />
             <div
               class="flex space-x-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui w-8 h-8 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui w-8 h-8 rounded-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui w-8 h-8 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui w-8 h-8 rounded-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui w-8 h-8 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui w-8 h-8 rounded-full"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui w-8 h-8 rounded-full"
+                class="bg-skeleton animate-pulse rounded-ui w-8 h-8 rounded-full"
                 data-slot="skeleton"
               />
             </div>
@@ -118,22 +118,22 @@ exports[`Product Skeletons stories snapshot > MainSkeleton story renders and mat
             class="space-y-2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-12"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-12"
               data-slot="skeleton"
             />
             <div
               class="flex space-x-2"
             >
               <div
-                class="bg-accent animate-pulse rounded-ui w-12 h-10"
+                class="bg-skeleton animate-pulse rounded-ui w-12 h-10"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui w-12 h-10"
+                class="bg-skeleton animate-pulse rounded-ui w-12 h-10"
                 data-slot="skeleton"
               />
               <div
-                class="bg-accent animate-pulse rounded-ui w-12 h-10"
+                class="bg-skeleton animate-pulse rounded-ui w-12 h-10"
                 data-slot="skeleton"
               />
             </div>
@@ -146,16 +146,16 @@ exports[`Product Skeletons stories snapshot > MainSkeleton story renders and mat
             class="flex items-center space-x-4"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-10 w-24"
+              class="bg-skeleton animate-pulse rounded-ui h-10 w-24"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-10 flex-1"
+              class="bg-skeleton animate-pulse rounded-ui h-10 flex-1"
               data-slot="skeleton"
             />
           </div>
           <div
-            class="bg-accent animate-pulse rounded-ui h-10 w-full"
+            class="bg-skeleton animate-pulse rounded-ui h-10 w-full"
             data-slot="skeleton"
           />
         </div>
@@ -168,7 +168,7 @@ exports[`Product Skeletons stories snapshot > MainSkeleton story renders and mat
         class="rounded-ui border p-4"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-6 w-48"
+          class="bg-skeleton animate-pulse rounded-ui h-6 w-48"
           data-slot="skeleton"
         />
       </div>
@@ -176,7 +176,7 @@ exports[`Product Skeletons stories snapshot > MainSkeleton story renders and mat
         class="rounded-ui border p-4"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-6 w-48"
+          class="bg-skeleton animate-pulse rounded-ui h-6 w-48"
           data-slot="skeleton"
         />
       </div>
@@ -184,7 +184,7 @@ exports[`Product Skeletons stories snapshot > MainSkeleton story renders and mat
         class="rounded-ui border p-4"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-6 w-48"
+          class="bg-skeleton animate-pulse rounded-ui h-6 w-48"
           data-slot="skeleton"
         />
       </div>
@@ -207,7 +207,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
         class="flex items-center justify-between"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-8 md:h-9 w-64"
+          class="bg-skeleton animate-pulse rounded-ui h-8 md:h-9 w-64"
           data-slot="skeleton"
         />
       </div>
@@ -238,7 +238,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -251,11 +251,11 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -265,11 +265,11 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -278,7 +278,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -300,7 +300,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -313,11 +313,11 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -327,11 +327,11 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -340,7 +340,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -362,7 +362,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -375,11 +375,11 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -389,11 +389,11 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -402,7 +402,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -424,7 +424,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -437,11 +437,11 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -451,11 +451,11 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -464,7 +464,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -477,7 +477,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
             class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-9 w-9"
+              class="bg-skeleton animate-pulse rounded-ui h-9 w-9"
               data-slot="skeleton"
             />
           </div>
@@ -485,7 +485,7 @@ exports[`Product Skeletons stories snapshot > RecommendationSkeleton story rende
             class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-9 w-9"
+              class="bg-skeleton animate-pulse rounded-ui h-9 w-9"
               data-slot="skeleton"
             />
           </div>
@@ -533,7 +533,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -546,11 +546,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -560,11 +560,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -573,7 +573,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -595,7 +595,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -608,11 +608,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -622,11 +622,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -635,7 +635,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -657,7 +657,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -670,11 +670,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -684,11 +684,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -697,7 +697,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -719,7 +719,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -732,11 +732,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -746,11 +746,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -759,7 +759,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -772,7 +772,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
             class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-9 w-9"
+              class="bg-skeleton animate-pulse rounded-ui h-9 w-9"
               data-slot="skeleton"
             />
           </div>
@@ -780,7 +780,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
             class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-9 w-9"
+              class="bg-skeleton animate-pulse rounded-ui h-9 w-9"
               data-slot="skeleton"
             />
           </div>
@@ -819,7 +819,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -832,11 +832,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -846,11 +846,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -859,7 +859,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -881,7 +881,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -894,11 +894,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -908,11 +908,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -921,7 +921,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -943,7 +943,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -956,11 +956,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -970,11 +970,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -983,7 +983,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -1005,7 +1005,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-header"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui w-full"
+                        class="bg-skeleton animate-pulse rounded-ui w-full"
                         data-slot="skeleton"
                         style="aspect-ratio: 0.8 / 1;"
                       />
@@ -1018,11 +1018,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                         class="flex items-center gap-1"
                       >
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                         <div
-                          class="bg-accent animate-pulse rounded-ui h-7 w-7"
+                          class="bg-skeleton animate-pulse rounded-ui h-7 w-7"
                           data-slot="skeleton"
                         />
                       </div>
@@ -1032,11 +1032,11 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
                         data-slot="skeleton"
                       />
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+                        class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
                         data-slot="skeleton"
                       />
                     </div>
@@ -1045,7 +1045,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
                       data-slot="card-content"
                     >
                       <div
-                        class="bg-accent animate-pulse rounded-ui h-5 w-16"
+                        class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
                         data-slot="skeleton"
                       />
                     </div>
@@ -1058,7 +1058,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
             class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-9 w-9"
+              class="bg-skeleton animate-pulse rounded-ui h-9 w-9"
               data-slot="skeleton"
             />
           </div>
@@ -1066,7 +1066,7 @@ exports[`Product Skeletons stories snapshot > RecommendationsSkeleton story rend
             class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-9 w-9"
+              class="bg-skeleton animate-pulse rounded-ui h-9 w-9"
               data-slot="skeleton"
             />
           </div>

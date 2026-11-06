@@ -8,7 +8,7 @@ exports[`HeroCarouselSkeleton stories snapshot > Default story renders and match
     class="relative w-full h-full overflow-hidden"
   >
     <div
-      class="bg-accent animate-pulse rounded-ui absolute inset-0 w-full h-full"
+      class="bg-skeleton animate-pulse rounded-ui absolute inset-0 w-full h-full"
       data-slot="skeleton"
     />
     <div

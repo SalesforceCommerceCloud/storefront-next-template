@@ -433,15 +433,15 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
           </div>
@@ -729,15 +729,15 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
           </div>
@@ -1295,15 +1295,15 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
           </div>
@@ -1591,15 +1591,15 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
           </div>
@@ -2157,15 +2157,15 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
           >
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
             <div
-              class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+              class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
               data-slot="skeleton"
             />
           </div>

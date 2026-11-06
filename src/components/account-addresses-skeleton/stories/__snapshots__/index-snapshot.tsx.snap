@@ -22,12 +22,12 @@ exports[`AccountAddressesSkeleton stories snapshot > Default story renders and m
             Addresses
           </h1>
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-48"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-48"
             data-slot="skeleton"
           />
         </div>
         <div
-          class="bg-accent animate-pulse rounded-ui h-9 w-36"
+          class="bg-skeleton animate-pulse rounded-ui h-9 w-36"
           data-slot="skeleton"
         />
       </div>
@@ -49,11 +49,11 @@ exports[`AccountAddressesSkeleton stories snapshot > Default story renders and m
           data-slot="card-title"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-32"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-32"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-14"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-14"
             data-slot="skeleton"
           />
         </div>
@@ -66,11 +66,11 @@ exports[`AccountAddressesSkeleton stories snapshot > Default story renders and m
           class="space-y-1"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-48"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-48"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-56"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-56"
             data-slot="skeleton"
           />
         </div>
@@ -80,15 +80,15 @@ exports[`AccountAddressesSkeleton stories snapshot > Default story renders and m
         data-slot="card-footer"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-20"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-20"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-16"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-16"
           data-slot="skeleton"
         />
       </div>
@@ -106,7 +106,7 @@ exports[`AccountAddressesSkeleton stories snapshot > Default story renders and m
           data-slot="card-title"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-5 w-32"
+            class="bg-skeleton animate-pulse rounded-ui h-5 w-32"
             data-slot="skeleton"
           />
         </div>
@@ -119,11 +119,11 @@ exports[`AccountAddressesSkeleton stories snapshot > Default story renders and m
           class="space-y-1"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-48"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-48"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-56"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-56"
             data-slot="skeleton"
           />
         </div>
@@ -133,15 +133,15 @@ exports[`AccountAddressesSkeleton stories snapshot > Default story renders and m
         data-slot="card-footer"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-20"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-20"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-16"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-16"
           data-slot="skeleton"
         />
       </div>

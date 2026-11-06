@@ -10,11 +10,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
     data-testid="product-merchandising-grid-skeleton-header"
   >
     <div
-      class="bg-accent animate-pulse rounded-ui h-9 w-56 md:h-10"
+      class="bg-skeleton animate-pulse rounded-ui h-9 w-56 md:h-10"
       data-slot="skeleton"
     />
     <div
-      class="bg-accent animate-pulse rounded-ui h-5 w-16 shrink-0"
+      class="bg-skeleton animate-pulse rounded-ui h-5 w-16 shrink-0"
       data-slot="skeleton"
     />
   </div>
@@ -30,7 +30,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-header"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
       </div>
@@ -42,11 +42,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
           class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
         </div>
@@ -56,11 +56,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
           data-slot="skeleton"
         />
       </div>
@@ -69,7 +69,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-5 w-16"
+          class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
           data-slot="skeleton"
         />
       </div>
@@ -83,7 +83,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-header"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
       </div>
@@ -95,11 +95,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
           class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
         </div>
@@ -109,11 +109,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
           data-slot="skeleton"
         />
       </div>
@@ -122,7 +122,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-5 w-16"
+          class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
           data-slot="skeleton"
         />
       </div>
@@ -136,7 +136,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-header"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
       </div>
@@ -148,11 +148,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
           class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
         </div>
@@ -162,11 +162,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
           data-slot="skeleton"
         />
       </div>
@@ -175,7 +175,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-5 w-16"
+          class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
           data-slot="skeleton"
         />
       </div>
@@ -189,7 +189,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-header"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
       </div>
@@ -201,11 +201,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
           class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
         </div>
@@ -215,11 +215,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
           data-slot="skeleton"
         />
       </div>
@@ -228,7 +228,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-5 w-16"
+          class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
           data-slot="skeleton"
         />
       </div>
@@ -242,7 +242,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-header"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
       </div>
@@ -254,11 +254,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
           class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
         </div>
@@ -268,11 +268,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
           data-slot="skeleton"
         />
       </div>
@@ -281,7 +281,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-5 w-16"
+          class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
           data-slot="skeleton"
         />
       </div>
@@ -295,7 +295,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-header"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui aspect-square w-full"
+          class="bg-skeleton animate-pulse rounded-ui aspect-square w-full"
           data-slot="skeleton"
         />
       </div>
@@ -307,11 +307,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
           class="product-tile-swatches-skeleton flex items-center flex-wrap gap-1 mb-2 relative z-20"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-4 rounded-full"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-4 rounded-full"
             data-slot="skeleton"
           />
         </div>
@@ -321,11 +321,11 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-full mb-1"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-full mb-1"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-3/4"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-3/4"
           data-slot="skeleton"
         />
       </div>
@@ -334,7 +334,7 @@ exports[`ProductMerchandisingGridSkeleton stories snapshot > Default story rende
         data-slot="card-content"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-5 w-16"
+          class="bg-skeleton animate-pulse rounded-ui h-5 w-16"
           data-slot="skeleton"
         />
       </div>

@@ -13,11 +13,11 @@ exports[`AccountDetailSkeleton stories snapshot > Default story renders and matc
       data-slot="card-content"
     >
       <div
-        class="bg-accent animate-pulse rounded-ui h-6 w-40"
+        class="bg-skeleton animate-pulse rounded-ui h-6 w-40"
         data-slot="skeleton"
       />
       <div
-        class="bg-accent animate-pulse rounded-ui h-4 w-64 mt-1"
+        class="bg-skeleton animate-pulse rounded-ui h-4 w-64 mt-1"
         data-slot="skeleton"
       />
     </div>
@@ -34,11 +34,11 @@ exports[`AccountDetailSkeleton stories snapshot > Default story renders and matc
         class="mb-6 pb-4 border-b border-border space-y-1.5"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-5 w-40"
+          class="bg-skeleton animate-pulse rounded-ui h-5 w-40"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-56"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-56"
           data-slot="skeleton"
         />
       </div>
@@ -49,23 +49,11 @@ exports[`AccountDetailSkeleton stories snapshot > Default story renders and matc
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-28"
-            data-slot="skeleton"
-          />
-        </div>
-        <div
-          class="space-y-2"
-        >
-          <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-20"
-            data-slot="skeleton"
-          />
-          <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-28"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-28"
             data-slot="skeleton"
           />
         </div>
@@ -73,11 +61,11 @@ exports[`AccountDetailSkeleton stories snapshot > Default story renders and matc
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-28"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-28"
             data-slot="skeleton"
           />
         </div>
@@ -85,11 +73,23 @@ exports[`AccountDetailSkeleton stories snapshot > Default story renders and matc
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-28"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-28"
+            data-slot="skeleton"
+          />
+        </div>
+        <div
+          class="space-y-2"
+        >
+          <div
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
+            data-slot="skeleton"
+          />
+          <div
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-28"
             data-slot="skeleton"
           />
         </div>
@@ -108,11 +108,11 @@ exports[`AccountDetailSkeleton stories snapshot > Default story renders and matc
         class="mb-6 pb-4 border-b border-border space-y-1.5"
       >
         <div
-          class="bg-accent animate-pulse rounded-ui h-5 w-36"
+          class="bg-skeleton animate-pulse rounded-ui h-5 w-36"
           data-slot="skeleton"
         />
         <div
-          class="bg-accent animate-pulse rounded-ui h-4 w-64"
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-64"
           data-slot="skeleton"
         />
       </div>
@@ -123,16 +123,16 @@ exports[`AccountDetailSkeleton stories snapshot > Default story renders and matc
           class="space-y-2"
         >
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-16"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-16"
             data-slot="skeleton"
           />
           <div
-            class="bg-accent animate-pulse rounded-ui h-4 w-20"
+            class="bg-skeleton animate-pulse rounded-ui h-4 w-20"
             data-slot="skeleton"
           />
         </div>
         <div
-          class="bg-accent animate-pulse rounded-ui h-8 w-32"
+          class="bg-skeleton animate-pulse rounded-ui h-8 w-32"
           data-slot="skeleton"
         />
       </div>
