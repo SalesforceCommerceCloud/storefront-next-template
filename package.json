@@ -28,6 +28,7 @@
         "format": "biome format --write .",
         "format:check": "biome format .",
         "test": "vitest run",
+        "test:ci": "node --test scripts/ci/*.test.mjs",
         "test:watch": "vitest",
         "storybook": "storybook dev -p 6006",
         "storybook:build": "storybook build -o .storybook/storybook-static",
