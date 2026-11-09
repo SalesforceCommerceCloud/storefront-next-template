@@ -296,12 +296,18 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
         returnsWarranty: getReturnsAndWarranty(productLookupId),
         pdpCollapsibles: Promise.all(
             resolvePdpSections(product).map((section) =>
-                pdpSectionApi[section.apiMethod](productLookupId).catch((error) => {
-                    // Non-critical: a failed section is omitted so it can't reject the whole array.
-                    // Log with context so a broken merchant API doesn't vanish silently.
-                    logger.error('Error resolving PDP section in loader', { error, labelKey: section.labelKey });
-                    return null;
-                })
+                Promise.resolve()
+                    .then(() =>
+                        'resolve' in section
+                            ? section.resolve(product)
+                            : pdpSectionApi[section.apiMethod](productLookupId)
+                    )
+                    .catch((error) => {
+                        // Non-critical: a failed section is omitted so it can't reject the whole array.
+                        // Log with context so a broken merchant API doesn't vanish silently.
+                        logger.error('Error resolving PDP section in loader', { error, labelKey: section.labelKey });
+                        return null;
+                    })
             )
         ),
         // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT

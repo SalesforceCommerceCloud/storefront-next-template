@@ -130,9 +130,58 @@ pnpm push
 pnpm push --mrt-backend scapi --environment staging --wait
 ```
 
-See the [Deployment Guide](https://www.npmjs.com/package/@salesforce/storefront-next-dev?activeTab=readme) for all options and [MRT Backends](https://salesforcecommercecloud.github.io/b2c-developer-tooling/cli/mrt.html#mrt-backends) for backend details. The included `.github/workflows/deploy.yml` deploys to Managed Runtime and B2C Commerce on push to `latest`; `bitbucket-pipelines.yml` provides equivalent validation and deploy pipelines for Bitbucket Cloud Free.
+See the [Deployment Guide](https://www.npmjs.com/package/@salesforce/storefront-next-dev?activeTab=readme) for all options and [MRT Backends](https://salesforcecommercecloud.github.io/b2c-developer-tooling/cli/mrt.html#mrt-backends) for backend details.
 
-See [Verified Release Packages](./docs/README-RELEASE-PACKAGES.md) for creating, verifying, and deploying a release package.
+### GitHub release pipeline
+
+The included GitHub Actions workflows implement a release-candidate pipeline:
+
+- Pull requests run lint, type checking, unit tests, bundle-size validation, and advisory Lighthouse checks. They never select a GitHub Environment or receive deployment credentials.
+- A push to `latest` builds and verifies one release package, then deploys it to the configured Test destination. **Deploy Latest to Test** can manually recover that flow only when run from `latest`.
+- Pushing a `release-*` tag validates and packages a candidate without deployment.
+- **Actions → Promote Release Tag** manually deploys a selected `release-*` tag to Development or Staging. Production deployment and Commerce code replication remain manual release-operator work.
+
+Create and protect immutable release tags:
+
+```sh
+git tag -a release-2026.11.0 -m "Release 2026.11.0"
+git push origin release-2026.11.0
+```
+
+Before enabling deployment, create the target GitHub Environments and add the repository-level Actions variable `DEPLOY_ENVIRONMENT_NAMES`. It maps logical release stages to the actual GitHub Environment names, which may use any naming convention:
+
+```json
+{
+  "Test": "realm_sandbox_storefront",
+  "Development": "realm_development_storefront",
+  "Staging": "realm_staging_storefront"
+}
+```
+
+Test is required for automatic deployment from `latest`. Development and Staging are optional until they are explicitly mapped. A deployment stops before selecting an environment when its mapping is missing, empty, invalid, or names an environment that does not already exist. Configure target-specific credentials and variables on each mapped GitHub Environment; the workflow does not create environments or infer stage assignments.
+
+See [CI/CD](./docs/README-CI-CD.md) for the workflow model and GitHub Environment requirements, [Migrate to the GitHub RC Pipeline](./docs/migrations/github-rc-pipeline/README.md) when updating an existing repository, and [Verified Release Packages](./docs/README-RELEASE-PACKAGES.md) for package and deployment details. Ordinary branch pushes are intentionally unvalidated; use pull requests for quality validation.
+
+### Bitbucket release pipeline
+
+The included Bitbucket Cloud pipeline uses the same verified release package:
+
+- Pull requests run lint, type checking, unit tests, bundle-size validation, and advisory Lighthouse checks without deployment steps.
+- A push to `latest` builds one package and deploys its verified contents to the existing Test target. The `deploy-storefront` custom pipeline is a `latest`-only recovery path.
+- A `release-*` tag builds a verified candidate and exposes one manual Staging deployment step. Production remains a manual release-operator handoff.
+
+Bitbucket Cloud Free is supported; Bitbucket Premium is not required. Fast
+Setup's repository variables configure Test immediately. To promote to a
+distinct Staging target, create the `Staging` Bitbucket Deployment environment
+and configure its target-specific secured Deployment variables; they override
+the Test repository defaults only for that stage. A stage without overrides
+falls back to Test and must not be treated as a distinct-target promotion.
+Bitbucket Free does not provide Premium's custom
+deployment permissions or deployment branch restrictions, so a manual step is
+not an approval or credential boundary. See
+[CI/CD](./docs/README-CI-CD.md#bitbucket-pipelines) for the staged setup,
+Free-plan, fork-pull-request, duplicate-execution, and credential-control
+limitations.
 
 ## B2C CLI
 
@@ -208,6 +257,8 @@ src/
 - 🚚 [Delivery Estimates](./docs/README-DELIVERY-ESTIMATES.md)
 - 📖 [Story Coverage & Code Quality Enforcement](./docs/README-STORY-COVERAGE.md)
 - 🚀 [Migrating to React Router 7.18](./docs/migrations/react-router-7.18/README.md)
+- 🔁 [CI/CD](./docs/README-CI-CD.md)
+- 🚀 [Migrate to the GitHub RC Pipeline](./docs/migrations/github-rc-pipeline/README.md)
 - 📦 [Verified Release Packages](./docs/README-RELEASE-PACKAGES.md)
 
 ## Contributing

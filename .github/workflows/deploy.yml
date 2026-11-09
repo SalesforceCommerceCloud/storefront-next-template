@@ -1,201 +1,126 @@
-name: Deploy
-
-# This workflow deploys your storefront when changes are pushed to the
-# latest branch or when manually triggered.
-#
-# Two independent jobs run in parallel:
-#
-#   deploy-mrt        - Pushes the built storefront bundle to Managed Runtime.
-#     Secrets:  MRT_API_KEY (legacy backend), or SFCC_CLIENT_SECRET (SCAPI backend)
-#               SFCC_EXTRA_HEADERS (optional JSON object of custom deployment HTTP headers)
-#     Variables: MRT_PROJECT, MRT_ENVIRONMENT (optional, defaults to 'production';
-#                MRT_TARGET is still accepted), MRT_CLOUD_ORIGIN (optional),
-#                MRT_BACKEND (optional: legacy (default), scapi, or auto)
-#                SFCC_DEPLOYMENT_ENVIRONMENT (default GitHub Environment for pushes)
-#
-#     With MRT_BACKEND=scapi or auto, the push authenticates with the
-#     SFCC_CLIENT_ID / SFCC_CLIENT_SECRET API client and needs SFCC_SHORTCODE
-#     and SFCC_TENANT_ID. MRT_API_KEY is not needed for scapi; auto uses it to
-#     fall back to the legacy backend. In Account Manager, add the
-#     `sfcc.storefront.deployments.rw` scope to the API client. If the same
-#     client deploys cartridges, it keeps the cartridge permissions below too.
-#     https://salesforcecommercecloud.github.io/b2c-developer-tooling/cli/mrt.html#mrt-backends
-#
-#   deploy-cartridges  - Deploys cartridges to a B2C Commerce instance.
-#     Page Designer cartridge metadata is generated automatically during `pnpm build`.
-#     Secrets:  SFCC_CLIENT_SECRET
-#     Variables: SFCC_CLIENT_ID, SFCC_SERVER,
-#                SFCC_SHORTCODE, SFCC_TENANT_ID (recommended, enable SCAPI),
-#                SFCC_CODE_VERSION (optional, auto-generated if unset),
-#                SFCC_ACCOUNT_MANAGER_HOST (optional)
-#
-#     Prerequisites:
-#       The SFCC_CLIENT_ID / SFCC_CLIENT_SECRET API client needs:
-#
-#       1. WebDAV file access (for uploading cartridge code):
-#          https://salesforcecommercecloud.github.io/b2c-developer-tooling/guide/authentication.html#option-b-oauth-based-webdav
-#
-#       2. Code version activation (`activate: 'true'`): the `sfcc.scripts.rw`
-#          SCAPI scope (used when SFCC_SHORTCODE and SFCC_TENANT_ID are set),
-#          or OCAPI Data API access to code_versions as a fallback.
-#          https://salesforcecommercecloud.github.io/b2c-developer-tooling/guide/authentication.html#scopes-by-command
-#
-# Shared (optional):
-#   Variables: SFCC_LOG_LEVEL (trace, debug, info, warn, error, silent)
-#
-# Each job logs a notice and exits cleanly when its required configuration
-# is not present, so the workflow never fails due to missing optional config.
+name: Deploy Latest to Test
 
 on:
   push:
-    branches:
-      - 'latest'
+    branches: [latest]
   workflow_dispatch:
-    inputs:
-      environment:
-        type: environment
-        description: Select the environment to deploy to
-        required: false
-      mrt_environment:
-        type: string
-        description: MRT target environment (overrides MRT_ENVIRONMENT variable)
-        required: false
-      message:
-        type: string
-        description: The message to set for the deployed bundle
-        required: false
-      code_version:
-        type: string
-        description: Code version for cartridge deployment (overrides SFCC_CODE_VERSION variable)
-        required: false
-
-concurrency:
-  group: deploy-${{ github.event.inputs.environment || 'default' }}
-  cancel-in-progress: false
 
 permissions:
+  actions: read
   contents: read
+  deployments: write
 
 env:
   NODE_VERSION: '24'
   PNPM_VERSION: '10.28.0'
-  SFCC_LOG_LEVEL: ${{ vars.SFCC_LOG_LEVEL }}
+
+concurrency:
+  group: deploy-test
+  cancel-in-progress: false
 
 jobs:
-  deploy-mrt:
-    # Fast Setup dispatches the initial deployment after configuring the environment.
-    if: github.event_name != 'push' || github.event.created != true
+  resolve-test-environment:
+    name: Resolve Test Environment
     runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
-    environment: ${{ github.event.inputs.environment || vars.SFCC_DEPLOYMENT_ENVIRONMENT }}
+    outputs:
+      environment_name: ${{ steps.resolve.outputs.environment_name }}
+    steps:
+      - name: Require latest branch
+        run: |
+          if [[ "$GITHUB_REF" != refs/heads/latest ]]; then
+            echo "Manual Test deployment must run from the latest branch." >&2
+            exit 1
+          fi
+      - uses: actions/checkout@v6
+      - name: Resolve configured Test environment
+        id: resolve
+        env:
+          DEPLOY_ENVIRONMENT_NAMES: ${{ vars.DEPLOY_ENVIRONMENT_NAMES }}
+        run: |
+          ENVIRONMENT_NAME=$(node scripts/ci/resolve-deployment-environment.mjs test)
+          echo "environment_name=$ENVIRONMENT_NAME" >> "$GITHUB_OUTPUT"
+      - name: Confirm configured GitHub Environment exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ENVIRONMENT_NAME: ${{ steps.resolve.outputs.environment_name }}
+        run: |
+          ENCODED_ENVIRONMENT_NAME=$(jq -rn --arg value "$ENVIRONMENT_NAME" '$value | @uri')
+          gh api "repos/${GITHUB_REPOSITORY}/environments/${ENCODED_ENVIRONMENT_NAME}" >/dev/null
+
+  package-release:
+    name: Build and Package Release
+    needs: resolve-test-environment
+    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
     timeout-minutes: 30
-    # Secrets are passed only to the steps that need them, not to checkout/install/build.
+    outputs:
+      release_id: ${{ steps.release.outputs.release_id }}
+      source_commit: ${{ steps.release.outputs.source_commit }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+      - run: pnpm cartridge:validate
+      - name: Package verified release
+        id: release
+        run: |
+          RELEASE_ID="latest-${GITHUB_SHA}"
+          bash scripts/ci/package-release.sh "$RELEASE_ID" "$GITHUB_SHA"
+          echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+          echo "source_commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: release-artifacts-${{ github.run_id }}
+          path: release-artifacts/
+          if-no-files-found: error
+          retention-days: 14
+
+  deploy-test:
+    name: Deploy Verified Release to Test
+    needs: [resolve-test-environment, package-release]
+    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    environment: ${{ needs.resolve-test-environment.outputs.environment_name }}
     env:
+      MRT_API_KEY: ${{ secrets.MRT_API_KEY }}
+      MRT_PROJECT: ${{ vars.MRT_PROJECT }}
+      MRT_ENVIRONMENT: ${{ vars.MRT_ENVIRONMENT || vars.MRT_TARGET }}
+      MRT_CLOUD_ORIGIN: ${{ vars.MRT_CLOUD_ORIGIN }}
       MRT_BACKEND: ${{ vars.MRT_BACKEND }}
       SFCC_CLIENT_ID: ${{ vars.SFCC_CLIENT_ID }}
+      SFCC_CLIENT_SECRET: ${{ secrets.SFCC_CLIENT_SECRET }}
+      SFCC_EXTRA_HEADERS: ${{ secrets.SFCC_EXTRA_HEADERS }}
+      SFCC_SERVER: ${{ vars.SFCC_SERVER }}
       SFCC_SHORTCODE: ${{ vars.SFCC_SHORTCODE }}
       SFCC_TENANT_ID: ${{ vars.SFCC_TENANT_ID }}
       SFCC_ACCOUNT_MANAGER_HOST: ${{ vars.SFCC_ACCOUNT_MANAGER_HOST }}
-
+      SFCC_CODE_VERSION: ${{ vars.SFCC_CODE_VERSION }}
+      SFCC_LOG_LEVEL: ${{ vars.SFCC_LOG_LEVEL }}
+      CI_REF_NAME: latest
     steps:
-      - name: Check required configuration
-        id: config
-        env:
-          MRT_API_KEY: ${{ secrets.MRT_API_KEY }}
-          SFCC_CLIENT_SECRET: ${{ secrets.SFCC_CLIENT_SECRET }}
-        shell: bash
-        run: |
-          MISSING_SCAPI=()
-          [ -n "$SFCC_CLIENT_ID" ] || MISSING_SCAPI+=(SFCC_CLIENT_ID)
-          [ -n "$SFCC_CLIENT_SECRET" ] || MISSING_SCAPI+=(SFCC_CLIENT_SECRET)
-          [ -n "$SFCC_SHORTCODE" ] || MISSING_SCAPI+=(SFCC_SHORTCODE)
-          [ -n "$SFCC_TENANT_ID" ] || MISSING_SCAPI+=(SFCC_TENANT_ID)
-          # An explicit scapi backend never falls back to MRT_API_KEY, so missing config is an error, not a skip.
-          if [ "$MRT_BACKEND" = "scapi" ] && [ ${#MISSING_SCAPI[@]} -gt 0 ]; then
-            echo "::error title=MRT deploy misconfigured::MRT_BACKEND is scapi but these are not set: ${MISSING_SCAPI[*]}."
-            exit 1
-          fi
-          HAS_SCAPI=false
-          if { [ "$MRT_BACKEND" = "scapi" ] || [ "$MRT_BACKEND" = "auto" ]; } && [ ${#MISSING_SCAPI[@]} -eq 0 ]; then
-            HAS_SCAPI=true
-          fi
-          if [ -z "$MRT_API_KEY" ] && [ "$HAS_SCAPI" != "true" ]; then
-            echo "::notice title=MRT deploy skipped::MRT deployment was skipped because no MRT credentials are set. Set the MRT_API_KEY secret, or set MRT_BACKEND to scapi with SFCC_CLIENT_ID, SFCC_CLIENT_SECRET, SFCC_SHORTCODE, and SFCC_TENANT_ID."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Checkout
-        if: steps.config.outputs.skip != 'true'
-        uses: actions/checkout@v6
-
-      - name: Build Bundle
-        if: steps.config.outputs.skip != 'true'
-        uses: './.github/actions/build-bundle'
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          pnpm-version: ${{ env.PNPM_VERSION }}
-
-      - name: Push to MRT
-        if: steps.config.outputs.skip != 'true'
-        uses: './.github/actions/deploy-mrt'
-        env:
-          SFCC_EXTRA_HEADERS: ${{ secrets.SFCC_EXTRA_HEADERS }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v7
         with:
-          project: ${{ vars.MRT_PROJECT }}
-          environment: ${{ github.event.inputs.mrt_environment || vars.MRT_ENVIRONMENT || vars.MRT_TARGET }}
-          cloud-origin: ${{ vars.MRT_CLOUD_ORIGIN }}
-          backend: ${{ vars.MRT_BACKEND }}
-          client-id: ${{ vars.SFCC_CLIENT_ID }}
-          api-key: ${{ secrets.MRT_API_KEY }}
-          client-secret: ${{ secrets.SFCC_CLIENT_SECRET }}
-          short-code: ${{ vars.SFCC_SHORTCODE }}
-          tenant-id: ${{ vars.SFCC_TENANT_ID }}
-          account-manager-host: ${{ vars.SFCC_ACCOUNT_MANAGER_HOST }}
-          message: ${{ github.event.inputs.message }}
-
-  deploy-cartridges:
-    if: github.event_name != 'push' || github.event.created != true
-    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
-    environment: ${{ github.event.inputs.environment || vars.SFCC_DEPLOYMENT_ENVIRONMENT }}
-    timeout-minutes: 15
-    env:
-      SFCC_SERVER: ${{ vars.SFCC_SERVER }}
-      SFCC_CLIENT_ID: ${{ vars.SFCC_CLIENT_ID }}
-      SFCC_ACCOUNT_MANAGER_HOST: ${{ vars.SFCC_ACCOUNT_MANAGER_HOST }}
-
-    steps:
-      - name: Check required configuration
-        id: config
-        env:
-          SFCC_CLIENT_SECRET: ${{ secrets.SFCC_CLIENT_SECRET }}
-        shell: bash
-        run: |
-          if [ -z "$SFCC_SERVER" ] || [ -z "$SFCC_CLIENT_ID" ] || [ -z "$SFCC_CLIENT_SECRET" ]; then
-            echo "::notice title=Cartridge deploy skipped::Cartridge deployment was skipped because one or more required variables are not set (SFCC_SERVER, SFCC_CLIENT_ID, SFCC_CLIENT_SECRET). Configure these in repository settings to enable cartridge deploys."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Checkout
-        if: steps.config.outputs.skip != 'true'
-        uses: actions/checkout@v6
-
-      - name: Build Bundle
-        if: steps.config.outputs.skip != 'true'
-        uses: './.github/actions/build-bundle'
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          pnpm-version: ${{ env.PNPM_VERSION }}
-
-      - name: Deploy cartridge
-        if: steps.config.outputs.skip != 'true'
-        uses: './.github/actions/deploy-cartridges'
-        with:
-          cartridge-path: cartridges/
-          code-version: ${{ github.event.inputs.code_version || vars.SFCC_CODE_VERSION }}
-          ref-name: ${{ github.ref_name }}
-          sha: ${{ github.sha }}
-          server: ${{ vars.SFCC_SERVER }}
-          client-id: ${{ vars.SFCC_CLIENT_ID }}
-          client-secret: ${{ secrets.SFCC_CLIENT_SECRET }}
-          short-code: ${{ vars.SFCC_SHORTCODE }}
-          tenant-id: ${{ vars.SFCC_TENANT_ID }}
-          account-manager-host: ${{ vars.SFCC_ACCOUNT_MANAGER_HOST }}
+          name: release-artifacts-${{ github.run_id }}
+          path: release-artifacts
+      - name: Verify and deploy release package
+        run: >-
+          bash scripts/ci/deploy-release.sh test
+          "${{ needs.package-release.outputs.release_id }}"
+          "${{ needs.package-release.outputs.source_commit }}"

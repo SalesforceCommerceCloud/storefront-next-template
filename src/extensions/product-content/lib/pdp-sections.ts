@@ -15,54 +15,62 @@
  */
 import type { ShopperProducts } from '@/scapi';
 import type { ParseKeys } from 'i18next';
+import type { SectionContent } from '@/components/html-fragment/types';
 import type { PdpSectionApiMethod } from '@/extensions/product-content/lib/api/product-content.server';
 
-export type PdpSection = {
-    apiMethod: PdpSectionApiMethod;
-    labelKey: ParseKeys<'product'>;
-};
+export type PdpSection =
+    | { apiMethod: PdpSectionApiMethod; labelKey: ParseKeys<'product'> }
+    | {
+          labelKey: ParseKeys<'product'>;
+          resolve: (product: ShopperProducts.schemas['Product']) => Promise<SectionContent | null>;
+      };
+
+const CONTENT_SECTIONS = [
+    { attribute: 'c_materials', labelKey: 'materials' },
+    { attribute: 'c_careInstructions', labelKey: 'careInstructions' },
+    { attribute: 'c_specifications', labelKey: 'specifications' },
+] as const;
+
+function asNonEmptyString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 /**
- * Returns the ordered list of collapsible sections to render on the PDP.
- *
- * This function is the intended customisation point for merchants. Override it
- * to vary sections by product category, type, or any custom attribute set in
- * Business Manager. The function runs synchronously during SSR so the correct
- * shells are rendered on the first paint — no layout shift.
- *
- * @example Vary by primary category
- * ```ts
- * if (/clothing|footwear/i.test(product.primaryCategoryId ?? '')) {
- *     return [
- *         { apiMethod: 'getIngredientsData', labelKey: 'materials' },
- *         { apiMethod: 'getCareInstructions', labelKey: 'careInstructions' },
- *     ];
- * }
- * return [
- *     { apiMethod: 'getIngredientsData',   labelKey: 'materials'         },
- *     { apiMethod: 'getUsageInstructions', labelKey: 'usageInstructions' },
- *     { apiMethod: 'getCareInstructions',  labelKey: 'careInstructions'  },
- *     { apiMethod: 'getTechSpecs',         labelKey: 'specifications'    },
- * ];
- * ```
- *
- * @example Vary by custom attribute set per-product in Business Manager
- * ```ts
- * const allSections: PdpSection[] = [
- *     { apiMethod: 'getIngredientsData',   labelKey: 'materials'         },
- *     { apiMethod: 'getUsageInstructions', labelKey: 'usageInstructions' },
- *     { apiMethod: 'getCareInstructions',  labelKey: 'careInstructions'  },
- *     { apiMethod: 'getTechSpecs',         labelKey: 'specifications'    },
- * ];
- * const ids = product.c_pdpSections as string[] | undefined;
- * return ids?.length ? allSections.filter(s => ids.includes(s.apiMethod)) : allSections;
- * ```
+ * Selects populated fashion Product custom attributes synchronously for SSR and client rendering.
+ * Materials is escaped plain text; each nonblank care/specification line is an escaped bullet.
+ * Returns & Warranty is unchanged and still uses the extension's mock fixtures.
  */
-export function resolvePdpSections(_product: ShopperProducts.schemas['Product']): PdpSection[] {
-    return [
-        { apiMethod: 'getIngredientsData', labelKey: 'materials' },
-        { apiMethod: 'getUsageInstructions', labelKey: 'usageInstructions' },
-        { apiMethod: 'getCareInstructions', labelKey: 'careInstructions' },
-        { apiMethod: 'getTechSpecs', labelKey: 'specifications' },
-    ];
+export function resolvePdpSections(product: ShopperProducts.schemas['Product']): PdpSection[] {
+    const sections: PdpSection[] = [];
+    for (const { attribute, labelKey } of CONTENT_SECTIONS) {
+        if (!asNonEmptyString(product[attribute])) continue;
+        sections.push({
+            labelKey,
+            resolve: (resolvedProduct) => {
+                const value = asNonEmptyString(resolvedProduct[attribute]);
+                if (!value) return Promise.resolve(null);
+                if (attribute === 'c_materials') {
+                    return Promise.resolve({ contentType: 'plain-text', html: escapeHtml(value) });
+                }
+                const lines = value
+                    .split(/\r?\n/)
+                    .map((line) => line.trim())
+                    .filter(Boolean);
+                return Promise.resolve({
+                    contentType: 'bulleted-list',
+                    html: `<ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul>`,
+                });
+            },
+        });
+    }
+    return sections;
 }

@@ -1,0 +1,153 @@
+name: Promote Release Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Logical release stage to receive the selected release tag
+        required: true
+        type: choice
+        options:
+          - Development
+          - Staging
+
+permissions:
+  actions: read
+  contents: read
+  deployments: write
+
+env:
+  NODE_VERSION: '24'
+  PNPM_VERSION: '10.28.0'
+
+jobs:
+  resolve-deployment:
+    name: Validate Release Tag and Destination
+    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
+    outputs:
+      environment_name: ${{ steps.resolve.outputs.environment_name }}
+      logical_target: ${{ steps.resolve.outputs.logical_target }}
+      release_tag: ${{ steps.release.outputs.release_tag }}
+      source_commit: ${{ steps.source.outputs.source_commit }}
+    steps:
+      - name: Require a release tag
+        id: release
+        run: |
+          if [[ "$GITHUB_REF_TYPE" != tag || ! "$GITHUB_REF_NAME" =~ ^release- ]]; then
+            echo "Choose a release-* tag in the 'Use workflow from' selector." >&2
+            exit 1
+          fi
+          echo "release_tag=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Resolve tagged source commit
+        id: source
+        run: |
+          source_commit=$(git rev-parse "${GITHUB_REF}^{commit}")
+          echo "source_commit=$source_commit" >> "$GITHUB_OUTPUT"
+      - name: Resolve configured destination
+        id: resolve
+        env:
+          DEPLOY_ENVIRONMENT_NAMES: ${{ vars.DEPLOY_ENVIRONMENT_NAMES }}
+          SELECTED_TARGET: ${{ inputs.target }}
+        run: |
+          LOGICAL_TARGET=$(tr '[:upper:]' '[:lower:]' <<< "$SELECTED_TARGET")
+          ENVIRONMENT_NAME=$(node scripts/ci/resolve-deployment-environment.mjs "$LOGICAL_TARGET")
+          echo "logical_target=$LOGICAL_TARGET" >> "$GITHUB_OUTPUT"
+          echo "environment_name=$ENVIRONMENT_NAME" >> "$GITHUB_OUTPUT"
+      - name: Confirm configured GitHub Environment exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ENVIRONMENT_NAME: ${{ steps.resolve.outputs.environment_name }}
+        run: |
+          ENCODED_ENVIRONMENT_NAME=$(jq -rn --arg value "$ENVIRONMENT_NAME" '$value | @uri')
+          gh api "repos/${GITHUB_REPOSITORY}/environments/${ENCODED_ENVIRONMENT_NAME}" >/dev/null
+
+  package-release:
+    name: Build and Package Release Candidate
+    needs: resolve-deployment
+    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.resolve-deployment.outputs.release_tag }}
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+      - run: pnpm cartridge:validate
+      - name: Package and verify release candidate
+        run: |
+          ACTUAL_SOURCE_COMMIT=$(git rev-parse HEAD)
+          test "$ACTUAL_SOURCE_COMMIT" = "${{ needs.resolve-deployment.outputs.source_commit }}"
+          bash scripts/ci/package-release.sh \
+            "${{ needs.resolve-deployment.outputs.release_tag }}" \
+            "$ACTUAL_SOURCE_COMMIT"
+          node scripts/ci/release-artifacts.mjs verify-release \
+            release-artifacts/manifest.json \
+            "${{ needs.resolve-deployment.outputs.release_tag }}" \
+            "${{ needs.resolve-deployment.outputs.source_commit }}"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: release-artifacts-${{ github.run_id }}
+          path: release-artifacts/
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy-release:
+    name: Deploy Verified Release
+    needs: [resolve-deployment, package-release]
+    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    environment: ${{ needs.resolve-deployment.outputs.environment_name }}
+    concurrency:
+      group: deploy-${{ needs.resolve-deployment.outputs.environment_name }}
+      cancel-in-progress: false
+    env:
+      MRT_API_KEY: ${{ secrets.MRT_API_KEY }}
+      MRT_PROJECT: ${{ vars.MRT_PROJECT }}
+      MRT_ENVIRONMENT: ${{ vars.MRT_ENVIRONMENT || vars.MRT_TARGET }}
+      MRT_CLOUD_ORIGIN: ${{ vars.MRT_CLOUD_ORIGIN }}
+      MRT_BACKEND: ${{ vars.MRT_BACKEND }}
+      SFCC_CLIENT_ID: ${{ vars.SFCC_CLIENT_ID }}
+      SFCC_CLIENT_SECRET: ${{ secrets.SFCC_CLIENT_SECRET }}
+      SFCC_EXTRA_HEADERS: ${{ secrets.SFCC_EXTRA_HEADERS }}
+      SFCC_SERVER: ${{ vars.SFCC_SERVER }}
+      SFCC_SHORTCODE: ${{ vars.SFCC_SHORTCODE }}
+      SFCC_TENANT_ID: ${{ vars.SFCC_TENANT_ID }}
+      SFCC_ACCOUNT_MANAGER_HOST: ${{ vars.SFCC_ACCOUNT_MANAGER_HOST }}
+      SFCC_CODE_VERSION: ${{ vars.SFCC_CODE_VERSION }}
+      SFCC_LOG_LEVEL: ${{ vars.SFCC_LOG_LEVEL }}
+      CI_REF_NAME: ${{ needs.resolve-deployment.outputs.release_tag }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.resolve-deployment.outputs.release_tag }}
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v7
+        with:
+          name: release-artifacts-${{ github.run_id }}
+          path: release-artifacts
+      - name: Verify and deploy release package
+        run: >-
+          bash scripts/ci/deploy-release.sh
+          "${{ needs.resolve-deployment.outputs.logical_target }}"
+          "${{ needs.resolve-deployment.outputs.release_tag }}"
+          "${{ needs.resolve-deployment.outputs.source_commit }}"

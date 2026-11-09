@@ -1,0 +1,46 @@
+name: Validate Release Tag
+
+on:
+  push:
+    tags: [release-*]
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '24'
+  PNPM_VERSION: '10.28.0'
+
+jobs:
+  validate-release:
+    name: Build and Package Release Candidate
+    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+      - run: pnpm cartridge:validate
+      - name: Package and verify release candidate
+        run: |
+          SOURCE_COMMIT=$(git rev-parse "${GITHUB_REF}^{commit}")
+          bash scripts/ci/package-release.sh "$GITHUB_REF_NAME" "$SOURCE_COMMIT"
+          node scripts/ci/release-artifacts.mjs verify-release \
+            release-artifacts/manifest.json "$GITHUB_REF_NAME" "$SOURCE_COMMIT"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: release-artifacts-${{ github.run_id }}
+          path: release-artifacts/
+          if-no-files-found: error
+          retention-days: 30

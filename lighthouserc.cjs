@@ -84,6 +84,20 @@ const productScriptSizeLimit =
               : 485000;
 const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
 const cartScriptSizeLimit = vertical === 'footwear' ? 543000 : vertical === 'luxury' ? 541500 : 535000;
+/**
+ * Lighthouse route configuration.
+ *
+ * @env LIGHTHOUSE_BASE_URL Optional LHCI preview origin. Defaults to
+ * `http://localhost:3001` (for example, `http://localhost:3001`).
+ * @env LIGHTHOUSE_PATHS Optional comma-separated target-valid paths. Defaults
+ * to `/,/cart` for compatibility and local runs (for example,
+ * `/Furniture/en-US/,/Furniture/en-US/cart`).
+ */
+const lighthouseBaseUrl = process.env.LIGHTHOUSE_BASE_URL ?? 'http://localhost:3001';
+const lighthousePaths = (process.env.LIGHTHOUSE_PATHS ?? '/,/cart')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
 
 module.exports = {
     ci: {
@@ -92,13 +106,9 @@ module.exports = {
             startServerCommand: 'cross-env NODE_OPTIONS=--conditions=dev-data-store pnpm start --port 3001',
             startServerReadyPattern: 'SFCC Storefront Next',
             startServerReadyTimeout: 30000,
-            url: [
-                'http://localhost:3001/RefArchGlobal/en-GB/',
-                // 'http://localhost:3001/RefArchGlobal/en-GB/c/womens-clothing-tops',
-                'http://localhost:3001/RefArchGlobal/en-GB/p/25591227M?color=JJ9DFXX',
-                'http://localhost:3001/RefArchGlobal/en-GB/cart',
-            ],
+            url: lighthousePaths.map((pathname) => new URL(pathname, lighthouseBaseUrl).toString()),
             settings: {
+                chromeFlags: '--no-sandbox --disable-dev-shm-usage',
                 formFactor: 'mobile',
                 screenEmulation: {
                     mobile: true,
@@ -129,7 +139,7 @@ module.exports = {
             // baseline (`template-retail-rsc-app/lighthouserc.cjs`, #2074).
             assertMatrix: [
                 {
-                    matchingUrlPattern: '.*RefArchGlobal/en-GB/$',
+                    matchingUrlPattern: '.*\\/$',
                     assertions: {
                         'is-on-https': 'off',
                         'redirects-http': 'off',

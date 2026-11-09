@@ -1,36 +1,118 @@
-name: Build
-
-# This workflow builds the storefront to validate that the code compiles correctly.
-# It runs on pull requests and pushes to help catch build errors early.
+name: Pull Request Quality
 
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
-    branches: ['*']
-  push:
-    branches: ['*']
-  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pull-request-quality-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 env:
   NODE_VERSION: '24'
   PNPM_VERSION: '10.28.0'
 
 jobs:
-  build:
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository
-      ) }}
-    name: Run Build
+  lint:
+    name: Lint
     runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
     timeout-minutes: 15
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Build Bundle
-        uses: './.github/actions/build-bundle'
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          pnpm-version: ${{ env.PNPM_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm config:aggregate-extensions && pnpm exec react-router typegen && pnpm lint
+
+  typecheck:
+    name: Typecheck
+    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+
+  bundle-size:
+    name: Bundle Size
+    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm bundlesize
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+
+  lighthouse:
+    name: Lighthouse (Advisory)
+    runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
+    timeout-minutes: 20
+    continue-on-error: true
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --user pwuser
+    # Fast Setup repository variables supply public API target settings without
+    # selecting a deployment environment or exposing deployment secrets.
+    env:
+      PUBLIC__app__commerce__api__clientId: ${{ vars.PUBLIC__APP__COMMERCE__API__CLIENTID }}
+      PUBLIC__app__commerce__api__organizationId: ${{ vars.SFCC_TENANT_ID }}
+      PUBLIC__app__commerce__api__shortCode: ${{ vars.SFCC_SHORTCODE }}
+      LIGHTHOUSE_BASE_URL: ${{ vars.LIGHTHOUSE_BASE_URL || 'http://localhost:3001' }}
+      LIGHTHOUSE_PATHS: ${{ vars.LIGHTHOUSE_PATHS || '/,/cart' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+      - name: Run Lighthouse CI
+        run: |
+          export CHROME_PATH
+          CHROME_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())")
+          pnpm lighthouse:ci

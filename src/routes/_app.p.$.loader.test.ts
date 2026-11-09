@@ -68,11 +68,29 @@ vi.mock('@/lib/page-designer/page-loader.server', () => ({
 }));
 
 // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
-// `resolvePdpSections` is supplied by the product-content extension and its section shape can vary
-// between builds. This suite only exercises getPageData/loader logic and never asserts pdpCollapsibles,
-// so stub it to keep the test independent of that section wiring (which is covered by its own tests).
+import type { PdpSection } from '@/extensions/product-content/lib/pdp-sections';
+const { mockResolvePdpSections, mockSectionApi, mockReturnsWarranty, mockLogError } = vi.hoisted(() => {
+    return {
+        mockResolvePdpSections: vi.fn<(product: ShopperProducts.schemas['Product']) => PdpSection[]>(() => []),
+        mockSectionApi: {
+            getIngredientsData: vi.fn(),
+            getUsageInstructions: vi.fn(),
+            getCareInstructions: vi.fn(),
+            getTechSpecs: vi.fn(),
+        },
+        mockReturnsWarranty: vi.fn(() => Promise.resolve({})),
+        mockLogError: vi.fn(),
+    };
+});
 vi.mock('@/extensions/product-content/lib/pdp-sections', () => ({
-    resolvePdpSections: () => [],
+    resolvePdpSections: mockResolvePdpSections,
+}));
+vi.mock('@/extensions/product-content/lib/api/product-content.server', () => ({
+    pdpSectionApi: mockSectionApi,
+    getReturnsAndWarranty: mockReturnsWarranty,
+}));
+vi.mock('@/lib/logger.server', () => ({
+    getLogger: () => ({ debug: vi.fn(), error: mockLogError }),
 }));
 // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
 
@@ -164,7 +182,132 @@ describe('Product Route Loaders', () => {
         vi.clearAllMocks();
         mockFetchProductById.mockReset();
         mockAttemptRouteSeoFallback.mockResolvedValue(undefined);
+        // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
+        mockResolvePdpSections.mockReturnValue([]);
+        Object.values(mockSectionApi).forEach((method) => method.mockReset());
+        // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
     });
+
+    // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
+    describe('product content dispatch', () => {
+        const content = { contentType: 'plain-text' as const, html: 'Cotton' };
+        const runLoader = (query = '') => {
+            const request = new Request(`https://example.com/p/test-product-123${query}`);
+            return loader({
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', '*': 'test-product-123' },
+                context: mockContext,
+                url: new URL(request.url),
+                pattern: '/p/*',
+            });
+        };
+
+        test.each([
+            '',
+            '?pid=variant-123',
+        ])('dispatches mixed sections with the exact fetched product (%s)', async (query) => {
+            const product = {
+                ...mockProduct,
+                id: query ? 'variant-123' : mockProduct.id,
+                master: { masterId: 'master' },
+            };
+            mockFetchProductById.mockResolvedValueOnce(product);
+            const resolve = vi.fn((resolvedProduct: ShopperProducts.schemas['Product']) =>
+                Promise.resolve({ contentType: 'plain-text' as const, html: resolvedProduct.id })
+            );
+            mockResolvePdpSections.mockReturnValue([
+                { apiMethod: 'getIngredientsData', labelKey: 'materials' },
+                { resolve, labelKey: 'specifications' },
+            ]);
+            mockSectionApi.getIngredientsData.mockResolvedValueOnce(content);
+
+            const result = await runLoader(query);
+
+            expect(result.product).toBe(product);
+            await expect(result.pdpCollapsibles).resolves.toEqual([
+                content,
+                { contentType: 'plain-text', html: product.id },
+            ]);
+            expect(mockResolvePdpSections).toHaveBeenCalledWith(product);
+            expect(resolve.mock.calls[0][0]).toBe(product);
+            expect(resolve).toHaveBeenCalledExactlyOnceWith(product);
+            expect(mockSectionApi.getIngredientsData).toHaveBeenCalledExactlyOnceWith(product.id);
+            expect(mockSectionApi.getUsageInstructions).not.toHaveBeenCalled();
+            expect(mockSectionApi.getCareInstructions).not.toHaveBeenCalled();
+            expect(mockSectionApi.getTechSpecs).not.toHaveBeenCalled();
+            expect(mockReturnsWarranty).toHaveBeenCalledExactlyOnceWith(product.id);
+            expect(mockFetchProductById).toHaveBeenCalledTimes(1);
+            expect(mockFetchProductById.mock.calls[0][1]).toBe(product.id);
+            expect(mockFetchPageWithComponentData).toHaveBeenCalledTimes(1);
+        });
+
+        test('isolates synchronous throws and rejected promises in ordered null slots on both paths', async () => {
+            mockFetchProductById.mockResolvedValueOnce(mockProduct);
+            const syncError = new Error('sync');
+            const asyncError = new Error('async');
+            mockSectionApi.getIngredientsData.mockImplementationOnce(() => {
+                throw syncError;
+            });
+            mockSectionApi.getTechSpecs.mockRejectedValueOnce(asyncError);
+            mockResolvePdpSections.mockReturnValue([
+                { apiMethod: 'getIngredientsData', labelKey: 'materials' },
+                { resolve: () => Promise.resolve(content), labelKey: 'careInstructions' },
+                {
+                    resolve: () => {
+                        throw syncError;
+                    },
+                    labelKey: 'specifications',
+                },
+                { apiMethod: 'getTechSpecs', labelKey: 'specifications' },
+                { resolve: () => Promise.reject(asyncError), labelKey: 'materials' },
+                { resolve: () => Promise.resolve(null), labelKey: 'careInstructions' },
+                { resolve: () => Promise.resolve(content), labelKey: 'materials' },
+            ]);
+
+            const result = await runLoader();
+            await expect(result.pdpCollapsibles).resolves.toEqual([null, content, null, null, null, null, content]);
+            expect(mockLogError).toHaveBeenCalledTimes(4);
+            expect(mockLogError).toHaveBeenCalledWith('Error resolving PDP section in loader', {
+                error: syncError,
+                labelKey: 'materials',
+            });
+            expect(mockLogError).toHaveBeenCalledWith('Error resolving PDP section in loader', {
+                error: asyncError,
+                labelKey: 'specifications',
+            });
+        });
+
+        test('returns before unresolved content on either path settles', async () => {
+            mockFetchProductById.mockResolvedValueOnce(mockProduct);
+            let finishApi!: (value: typeof content) => void;
+            let finishProduct!: (value: typeof content) => void;
+            const apiPromise = new Promise<typeof content>((resolve) => {
+                finishApi = resolve;
+            });
+            const productPromise = new Promise<typeof content>((resolve) => {
+                finishProduct = resolve;
+            });
+            mockSectionApi.getIngredientsData.mockReturnValueOnce(apiPromise);
+            mockResolvePdpSections.mockReturnValue([
+                { apiMethod: 'getIngredientsData', labelKey: 'materials' },
+                { resolve: () => productPromise, labelKey: 'careInstructions' },
+            ]);
+            const result = await runLoader();
+            let settled = false;
+            const resolved = result.pdpCollapsibles.then((value) => {
+                settled = true;
+                return value;
+            });
+            await Promise.resolve();
+            expect(settled).toBe(false);
+            finishProduct(content);
+            await Promise.resolve();
+            expect(settled).toBe(false);
+            finishApi(content);
+            await expect(resolved).resolves.toEqual([content, content]);
+        });
+    });
+    // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
 
     describe('loader function', () => {
         test('returns the resolved product with its primaryCategory expansion', async () => {
