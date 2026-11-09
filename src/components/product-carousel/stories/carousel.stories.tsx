@@ -20,52 +20,12 @@ import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
 import { expect, waitFor, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
-import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
-import { action } from 'storybook/actions';
 import DynamicImageProvider from '@/providers/dynamic-image';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
+import { ActionLogger, getInteractionPayload } from '../../../../.storybook/decorators';
 
 const mockSite = mockSiteObject;
-
-function ActionLogger({ children }: { children: ReactNode }): ReactElement {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        const root = containerRef.current;
-        if (!root) return;
-
-        const logAction = action('interaction');
-
-        const handleClick = (event: Event) => {
-            const target = event.target as HTMLElement | null;
-            if (!target) return;
-
-            const interactiveElement = target.closest('button, a, [role="button"]');
-            if (interactiveElement) {
-                event.preventDefault();
-                event.stopPropagation();
-                const label = interactiveElement.textContent?.trim().substring(0, 50) || 'unlabeled';
-                const tag = interactiveElement.tagName.toLowerCase();
-
-                if (label.match(/add to cart/i)) {
-                    action('add-to-cart')({ label });
-                } else if (label.match(/wishlist/i)) {
-                    action('wishlist')({ label });
-                } else {
-                    logAction({ type: 'click', tag, label });
-                }
-            }
-        };
-
-        root.addEventListener('click', handleClick, true);
-        return () => {
-            root.removeEventListener('click', handleClick, true);
-        };
-    }, []);
-
-    return <div ref={containerRef}>{children}</div>;
-}
 
 const meta: Meta<typeof ProductCarousel> = {
     title: 'Products/Product Carousel/Carousel',
@@ -82,7 +42,19 @@ const meta: Meta<typeof ProductCarousel> = {
                     locale={mockLocale}
                     language={mockSiteObject.defaultLocale}
                     currency={mockSiteObject.defaultCurrency}>
-                    <ActionLogger>
+                    <ActionLogger
+                        preventDefault
+                        stopPropagation
+                        onClick={(element, _event, log) => {
+                            const label = getInteractionPayload(element).label;
+                            if (/add to cart/i.test(label)) {
+                                log('add-to-cart', { label });
+                            } else if (/wishlist/i.test(label)) {
+                                log('wishlist', { label });
+                            } else {
+                                log('interaction', getInteractionPayload(element));
+                            }
+                        }}>
                         <DynamicImageProvider value={{ widths: ['50vw', '50vw', '15vw'] }}>
                             <div className="p-8">
                                 <Story />

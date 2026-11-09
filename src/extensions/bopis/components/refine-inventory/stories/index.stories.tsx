@@ -13,72 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEffect, type ReactElement, type ReactNode } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
-import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import { action } from 'storybook/actions';
 import RefineInventory from '../index';
 import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
+import { ActionLogger, type ActionLoggerLog } from '../../../../../../.storybook/decorators';
 
-function ActionLogger({ children }: { children: ReactNode }): ReactElement {
-    const containerRef = useRef<HTMLDivElement | null>(null);
+const actionLoggerProps = {
+    clickSelector: 'a, button, [role="button"], span[class*="underline"]',
+    changeSelector: 'input[type="checkbox"]',
+    onClick: (element: HTMLElement, event: MouseEvent, log: ActionLoggerLog) => {
+        if (element instanceof HTMLAnchorElement) {
+            event.preventDefault();
+            log('interaction', {
+                type: 'click',
+                element: 'link',
+                href: element.getAttribute('href'),
+                label: element.textContent?.trim(),
+            });
+            return;
+        }
 
-    useEffect(() => {
-        const root = containerRef.current;
-        if (!root) return;
-
-        const logClick = action('interaction');
-        const logCheckboxChange = action('checkbox-change');
-        const logStoreSelection = action('store-selection');
-
-        const handleClick = (event: MouseEvent) => {
-            const target = event.target as HTMLElement | null;
-            if (!target || !root.contains(target)) return;
-
-            // Prevent navigation on links
-            const link = target.closest('a');
-            if (link) {
-                event.preventDefault();
-                const href = link.getAttribute('href');
-                logClick({ type: 'click', element: 'link', href, label: link.textContent?.trim() });
-                return;
-            }
-
-            // Log button clicks (store name link)
-            const button = target.closest('button, [role="button"], span[class*="underline"]');
-            if (button) {
-                const label =
-                    button.textContent?.trim() || button.getAttribute('aria-label') || button.tagName.toLowerCase();
-                if (label.toLowerCase().includes('store') || label.toLowerCase().includes('select')) {
-                    logStoreSelection({ label });
-                } else {
-                    logClick({ type: 'click', element: button.tagName.toLowerCase(), label });
-                }
-            }
-        };
-
-        const handleChange = (event: Event) => {
-            const target = event.target as HTMLElement | null;
-            if (!target || !root.contains(target)) return;
-
-            const checkbox = target.closest('input[type="checkbox"]');
-            if (checkbox instanceof HTMLInputElement) {
-                logCheckboxChange({ checked: checkbox.checked, id: checkbox.id });
-            }
-        };
-
-        root.addEventListener('click', handleClick, true);
-        root.addEventListener('change', handleChange, true);
-
-        return () => {
-            root.removeEventListener('click', handleClick, true);
-            root.removeEventListener('change', handleChange, true);
-        };
-    }, []);
-
-    return <div ref={containerRef}>{children}</div>;
-}
+        const label =
+            element.textContent?.trim() || element.getAttribute('aria-label') || element.tagName.toLowerCase();
+        log(
+            label.toLowerCase().includes('store') || label.toLowerCase().includes('select')
+                ? 'store-selection'
+                : 'interaction',
+            label.toLowerCase().includes('store') || label.toLowerCase().includes('select')
+                ? { label }
+                : { type: 'click', element: element.tagName.toLowerCase(), label }
+        );
+    },
+    onChange: (element: HTMLElement, _event: Event, log: ActionLoggerLog) => {
+        if (element instanceof HTMLInputElement) {
+            log('checkbox-change', { checked: element.checked, id: element.id });
+        }
+    },
+};
 
 function StoreSetter({
     children,
@@ -143,7 +118,7 @@ This component is used in category pages to filter products by store availabilit
     },
     decorators: [
         (Story: React.ComponentType) => (
-            <ActionLogger>
+            <ActionLogger {...actionLoggerProps}>
                 <Story />
             </ActionLogger>
         ),
@@ -238,7 +213,7 @@ export const FilterChecked: Story = {
     decorators: [
         (Story: React.ComponentType) => (
             <StoreSetter storeId="store-1" inventoryId="inventory-1">
-                <ActionLogger>
+                <ActionLogger {...actionLoggerProps}>
                     <Story />
                 </ActionLogger>
             </StoreSetter>

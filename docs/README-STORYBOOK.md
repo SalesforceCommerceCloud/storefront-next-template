@@ -35,6 +35,7 @@ The pieces live in [`../.storybook/decorators/`](../.storybook/decorators/):
 | `with-providers.tsx` | `StorybookWrapper` | Provider stack (config/site/i18n/auth/basket/storeLocator/checkoutOneClick) on a `min-h-screen bg-background` shell. |
 | `with-ui-targets.tsx` | `StoryShell` | `StorybookWrapper` + `UITargetProviders`. |
 | `mock-routes.ts` | `buildDefaultMockRoutes(scapiMock, miniCartData)` | The default `/resource/*` and `/action/*` route table consumed by `withRouter`. |
+| `action-logger.tsx` | `ActionLogger` | Delegates story interactions to the Actions panel without repeating native event listeners in each story. |
 | `index.ts` | barrel | `export { StorybookWrapper, StoryShell, withRouter, buildDefaultMockRoutes }`. |
 
 Treat the providers as an **escape hatch**, not the default. Stories whose component takes the data via props should not require the global provider stack to render.

@@ -18,3 +18,4 @@ export { StorybookWrapper } from './with-providers';
 export { StoryShell } from './with-ui-targets';
 export { withRouter } from './with-router';
 export { buildDefaultMockRoutes } from './mock-routes';
+export { ActionLogger, getInteractionPayload, type ActionLoggerLog } from './action-logger';

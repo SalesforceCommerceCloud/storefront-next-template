@@ -18,36 +18,8 @@ import { Title, Description, Controls } from '@storybook/addon-docs/blocks';
 import ExpressPayments from '../express-payments';
 import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
-import { action } from 'storybook/actions';
-import { useEffect, useRef, type ReactNode, type ReactElement } from 'react';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
-
-function ActionLogger({ children }: { children: ReactNode }): ReactElement {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        const root = containerRef.current;
-        if (!root) return;
-
-        const logClick = action('express-payment-click');
-
-        const handleClick = (event: MouseEvent) => {
-            const target = event.target as HTMLElement | null;
-            if (!target) return;
-            const button = target.closest('button');
-            if (button && root.contains(button)) {
-                logClick({ text: button.textContent || button.getAttribute('aria-label') || 'Payment Button' });
-            }
-        };
-
-        root.addEventListener('click', handleClick);
-        return () => {
-            root.removeEventListener('click', handleClick);
-        };
-    }, []);
-
-    return <div ref={containerRef}>{children}</div>;
-}
+import { ActionLogger } from '../../../../../.storybook/decorators';
 
 const meta: Meta<typeof ExpressPayments> = {
     title: 'Checkout/Express Payments',
@@ -92,7 +64,14 @@ Replace this component with actual payment provider integrations (Stripe, Adyen,
     tags: ['autodocs', 'interaction'],
     decorators: [
         (Story) => (
-            <ActionLogger>
+            <ActionLogger
+                selector="button"
+                capture={false}
+                onClick={(button, _event, log) =>
+                    log('express-payment-click', {
+                        text: button.textContent || button.getAttribute('aria-label') || 'Payment Button',
+                    })
+                }>
                 <Story />
             </ActionLogger>
         ),

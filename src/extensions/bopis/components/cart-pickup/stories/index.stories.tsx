@@ -16,57 +16,35 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
-import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
-import { action } from 'storybook/actions';
 import CartPickup from '../index';
 import { createMockStore } from '@/extensions/bopis/tests/__mocks__/basket';
 import type { ShopperStores } from '@/scapi';
+import { ActionLogger, type ActionLoggerLog } from '../../../../../../.storybook/decorators';
 
-function ActionLogger({ children }: { children: ReactNode }): ReactElement {
-    const containerRef = useRef<HTMLDivElement | null>(null);
+const actionLoggerProps = {
+    selector: 'a, button, [role="button"]',
+    onClick: (element: HTMLElement, event: MouseEvent, log: ActionLoggerLog) => {
+        if (element instanceof HTMLAnchorElement) {
+            event.preventDefault();
+            log('interaction', {
+                type: 'click',
+                element: 'link',
+                href: element.getAttribute('href'),
+                label: element.textContent?.trim(),
+            });
+            return;
+        }
 
-    useEffect(() => {
-        const root = containerRef.current;
-        if (!root) return;
-
-        const logClick = action('interaction');
-        const logChangeStore = action('change-store');
-
-        const handleClick = (event: MouseEvent) => {
-            const target = event.target as HTMLElement | null;
-            if (!target || !root.contains(target)) return;
-
-            // Prevent navigation on links
-            const link = target.closest('a');
-            if (link) {
-                event.preventDefault();
-                const href = link.getAttribute('href');
-                logClick({ type: 'click', element: 'link', href, label: link.textContent?.trim() });
-                return;
-            }
-
-            // Log button clicks
-            const button = target.closest('button, [role="button"]');
-            if (button) {
-                const label =
-                    button.textContent?.trim() || button.getAttribute('aria-label') || button.tagName.toLowerCase();
-                if (label.toLowerCase().includes('change')) {
-                    logChangeStore({ label });
-                } else {
-                    logClick({ type: 'click', element: button.tagName.toLowerCase(), label });
-                }
-            }
-        };
-
-        root.addEventListener('click', handleClick, true);
-
-        return () => {
-            root.removeEventListener('click', handleClick, true);
-        };
-    }, []);
-
-    return <div ref={containerRef}>{children}</div>;
-}
+        const label =
+            element.textContent?.trim() || element.getAttribute('aria-label') || element.tagName.toLowerCase();
+        log(
+            label.toLowerCase().includes('change') ? 'change-store' : 'interaction',
+            label.toLowerCase().includes('change')
+                ? { label }
+                : { type: 'click', element: element.tagName.toLowerCase(), label }
+        );
+    },
+};
 
 const mockStore: ShopperStores.schemas['Store'] = createMockStore('store-1', 'inventory-1', {
     name: 'Downtown Store',
@@ -125,7 +103,7 @@ This component is used on the cart page to show customers where they can pick up
     },
     decorators: [
         (Story: React.ComponentType) => (
-            <ActionLogger>
+            <ActionLogger {...actionLoggerProps}>
                 <Story />
             </ActionLogger>
         ),

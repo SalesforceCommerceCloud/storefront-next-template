@@ -18,50 +18,10 @@ import ProductView from '@/components/product-view';
 import { mockStandardProductOrderable } from '../../__mocks__/standard-product';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
-import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
-import { action } from 'storybook/actions';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
+import { ActionLogger, getInteractionPayload } from '../../../../.storybook/decorators';
 
 const mockSite = mockSiteObject;
-
-function ActionLogger({ children }: { children: ReactNode }): ReactElement {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        const root = containerRef.current;
-        if (!root) return;
-
-        const logAction = action('interaction');
-
-        const handleClick = (event: Event) => {
-            const target = event.target as HTMLElement | null;
-            if (!target) return;
-
-            const interactiveElement = target.closest('button, a, [role="button"]');
-            if (interactiveElement) {
-                event.preventDefault();
-                event.stopPropagation();
-                const label = interactiveElement.textContent?.trim().substring(0, 50) || 'unlabeled';
-                const tag = interactiveElement.tagName.toLowerCase();
-
-                if (label.match(/add to cart/i)) {
-                    action('add-to-cart')({ label });
-                } else if (label.match(/wishlist/i)) {
-                    action('wishlist')({ label });
-                } else {
-                    logAction({ type: 'click', tag, label });
-                }
-            }
-        };
-
-        root.addEventListener('click', handleClick, true);
-        return () => {
-            root.removeEventListener('click', handleClick, true);
-        };
-    }, []);
-
-    return <div ref={containerRef}>{children}</div>;
-}
 
 type SyntheticArgs = {
     productName: string;
@@ -121,7 +81,19 @@ const meta: Meta<typeof ProductView> = {
                         locale={mockLocale}
                         language={mockSiteObject.defaultLocale}
                         currency={mockSiteObject.defaultCurrency}>
-                        <ActionLogger>
+                        <ActionLogger
+                            preventDefault
+                            stopPropagation
+                            onClick={(element, _event, log) => {
+                                const label = getInteractionPayload(element).label;
+                                if (/add to cart/i.test(label)) {
+                                    log('add-to-cart', { label });
+                                } else if (/wishlist/i.test(label)) {
+                                    log('wishlist', { label });
+                                } else {
+                                    log('interaction', getInteractionPayload(element));
+                                }
+                            }}>
                             <div className="section-container py-4">
                                 <Story />
                             </div>
