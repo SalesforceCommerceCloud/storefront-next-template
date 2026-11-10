@@ -23,7 +23,8 @@ import { usePasswordValidation } from '@/hooks/use-password-validation';
 interface ResetPasswordFormProps {
     error?: string;
     token: string;
-    email: string;
+    /** Email to prefill; the shopper can correct it before submitting */
+    email?: string;
 }
 
 export function ResetPasswordForm({ error, token, email }: ResetPasswordFormProps) {
@@ -46,19 +47,21 @@ export function ResetPasswordForm({ error, token, email }: ResetPasswordFormProp
             )}
 
             <input type="hidden" name="token" value={token} />
-            <input type="hidden" name="email" value={email} />
 
             <div className="space-y-6">
                 <div>
-                    <label htmlFor="email-display" className="block text-sm font-medium text-foreground">
+                    <label htmlFor="email" className="block text-sm font-medium text-foreground">
                         {t('emailLabel')}
                     </label>
                     <Input
-                        id="email-display"
+                        id="email"
+                        name="email"
                         type="email"
-                        value={email}
-                        disabled
-                        className="mt-1 bg-muted cursor-not-allowed"
+                        autoComplete="username"
+                        required
+                        defaultValue={email}
+                        className="mt-1"
+                        placeholder={t('emailPlaceholder')}
                     />
                 </div>
 

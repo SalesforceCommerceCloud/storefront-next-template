@@ -40,7 +40,10 @@ async function sendResetPasswordEmail(
 
     const config = getConfig(context);
     const landingPath = config.features.resetPassword.landingUri;
-    const magicLink = `${base}${landingPath}?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email_id)}`;
+    // The shopper email is deliberately not put in the link (it would end up in request logs,
+    // browser history, and Referer headers). The reset page gets it from the browser that
+    // requested the link, or asks the shopper to enter it.
+    const magicLink = `${base}${landingPath}?token=${encodeURIComponent(token)}`;
 
     const templateId = process.env.MARKETING_CLOUD_PASSWORDLESS_LOGIN_TEMPLATE;
     if (!templateId) {
@@ -104,13 +107,12 @@ export async function handleResetPasswordCallback({ request, context }: ActionFu
 
 /**
  * Handles reset password landing page loader
- * Simply passes through to the reset-password route with query parameters
+ * Simply passes through to the reset-password route with the token
  * The reset-password route's loader will handle validation
  */
 export function handleResetPasswordLanding({ request }: LoaderFunctionArgs) {
     const url = new URL(request.url);
     const token = url.searchParams.get('token') || '';
-    const email = url.searchParams.get('email') || '';
 
-    return redirect(`/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`);
+    return redirect(`/reset-password?token=${encodeURIComponent(token)}`);
 }

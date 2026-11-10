@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createRoutesStub } from 'react-router';
+import { createRoutesStub, type UNSAFE_DataWithResponseInit } from 'react-router';
 import { createActionArgs, createLoaderArgs, ROUTE_PATTERN } from '@/lib/test-utils/loader-action-args';
 import Login, { loader, action } from './_empty.login';
 import type { Route } from './+types/_empty.login';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import userEvent from '@testing-library/user-event';
 import { getAuth, authorizePasswordless, getPasswordLessAccessToken, updateAuth } from '@/middlewares/auth.server';
@@ -34,6 +34,9 @@ import { getAppOrigin } from '@/lib/origin';
 import { buildUrlFromContext, stripMrtBasePathFromUrl } from '@/lib/url.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 
+// Loader results that are plain data (not a redirect Response or a data() wrapper that sets headers)
+const isPlainLoaderData = <T,>(result: T): result is Exclude<T, Response | UNSAFE_DataWithResponseInit<unknown>> =>
+    !(result instanceof Response) && !(result && typeof result === 'object' && 'init' in result && 'type' in result);
 vi.mock('@/middlewares/auth.server', () => ({
     getAuth: vi.fn(),
     authorizePasswordless: vi.fn(),
@@ -47,21 +50,26 @@ vi.mock('@/middlewares/auth.server', () => ({
 // `getCookieNameWithSiteId`. Stub it here to return the namespaced name the
 // production callers would produce. `createCookie` and `getCookieConfig` are
 // also stubbed so cookie serialization works without real context.
-vi.mock('@/lib/cookie-utils.server', async (importOriginal) => ({
-    ...(await importOriginal<typeof import('@/lib/cookie-utils.server')>()),
-    getCookieNameWithSiteId: vi.fn((name: string) => `${name}_TestSite`),
-    getCookieConfig: vi.fn((overrides = {}) => ({
-        httpOnly: false,
-        secure: true,
-        sameSite: 'lax' as const,
-        path: '/',
-        ...overrides,
-    })),
-    createCookie: vi.fn((name: string) => ({
-        parse: vi.fn().mockResolvedValue(null),
-        serialize: vi.fn().mockImplementation((val: string) => Promise.resolve(`${name}_TestSite=${val}`)),
-    })),
-}));
+vi.mock('@/lib/cookie-utils.server', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/cookie-utils.server')>();
+    return {
+        ...actual,
+        getCookieNameWithSiteId: vi.fn((name: string) => `${name}_TestSite`),
+        getCookieConfig: vi.fn((overrides = {}) => ({
+            httpOnly: false,
+            secure: true,
+            sameSite: 'lax' as const,
+            path: '/',
+            ...overrides,
+        })),
+        createCookie: vi.fn((name: string) => ({
+            parse: vi.fn((header: string | null) =>
+                Promise.resolve(actual.parseAllCookies(header)[`${name}_TestSite`] ?? null)
+            ),
+            serialize: vi.fn().mockImplementation((val: string) => Promise.resolve(`${name}_TestSite=${val}`)),
+        })),
+    };
+});
 
 vi.mock('@/lib/turnstile/enforce.server', () => ({
     enforceTurnstile: vi.fn().mockResolvedValue({ allowed: true, cookieValue: null }),
@@ -386,7 +394,7 @@ describe('Login Route', () => {
             );
 
             // Check if result is not a Response (redirect)
-            if (!(result instanceof Response)) {
+            if (isPlainLoaderData(result)) {
                 expect(result).toHaveProperty('mode');
                 expect(result.mode).toBe('password');
             }
@@ -401,7 +409,7 @@ describe('Login Route', () => {
                 createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
             );
 
-            if (!(result instanceof Response)) {
+            if (isPlainLoaderData(result)) {
                 expect(result.passwordlessSent).toBe(true);
                 expect(result.email).toBe('test@example.com');
             }
@@ -416,7 +424,7 @@ describe('Login Route', () => {
                 createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
             );
 
-            if (!(result instanceof Response)) {
+            if (isPlainLoaderData(result)) {
                 expect(result.error).toBe('errors:api.unauthorized');
             }
         });
@@ -430,7 +438,7 @@ describe('Login Route', () => {
                 createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
             );
 
-            if (!(result instanceof Response)) {
+            if (isPlainLoaderData(result)) {
                 expect(result.error).toBe('some_other_error');
             }
         });
@@ -445,7 +453,7 @@ describe('Login Route', () => {
                 createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
             );
 
-            if (!(result instanceof Response)) {
+            if (isPlainLoaderData(result)) {
                 expect(result.mode).toBe('passwordless');
             }
         });
@@ -460,7 +468,7 @@ describe('Login Route', () => {
                 createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
             );
 
-            if (!(result instanceof Response)) {
+            if (isPlainLoaderData(result)) {
                 expect(result.mode).toBe('password');
             }
         });
@@ -475,7 +483,7 @@ describe('Login Route', () => {
                 createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
             );
 
-            if (!(result instanceof Response)) {
+            if (isPlainLoaderData(result)) {
                 expect(result.showOTPForm).toBe(true);
             }
         });
@@ -490,7 +498,7 @@ describe('Login Route', () => {
                 createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
             );
 
-            if (!(result instanceof Response)) {
+            if (isPlainLoaderData(result)) {
                 expect(result.showOTPForm).toBe(false);
             }
         });
@@ -504,7 +512,7 @@ describe('Login Route', () => {
                 createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
             );
 
-            if (!(result instanceof Response)) {
+            if (isPlainLoaderData(result)) {
                 expect(result.isSocialLoginEnabled).toBe(true);
             }
         });
@@ -717,6 +725,129 @@ describe('Login Route', () => {
             });
         });
 
+        describe('Magic link without email in the URL', () => {
+            it('uses the remembered email cookie and clears it after login', async () => {
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetPasswordLessAccessToken.mockResolvedValue({
+                    access_token: 'new-token',
+                    id_token: 'id-token',
+                    refresh_token: 'new-refresh',
+                    token_type: 'Bearer',
+                    expires_in: 1800,
+                    refresh_token_expires_in: 86400,
+                    usid: 'test-usid',
+                    customer_id: 'customer-123',
+                    enc_user_id: 'enc-user-123',
+                    idp_access_token: 'idp-token',
+                } as any);
+                mockMergeBasket.mockResolvedValue(undefined);
+
+                const mockRequest = new Request('http://localhost:5173/login?token=otp-token-123', {
+                    headers: { Cookie: 'cc-pwdless-email_TestSite=Shopper%2BTag%40example.com' },
+                });
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                const result = await loader(
+                    createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: ROUTE_PATTERN })
+                );
+
+                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(
+                    mockContext,
+                    'otp-token-123',
+                    'Shopper+Tag@example.com'
+                );
+                expect(result).toBeInstanceOf(Response);
+                const setCookie = (result as Response).headers.get('Set-Cookie');
+                expect(setCookie).toContain('cc-pwdless-email_TestSite=');
+                expect(setCookie).not.toContain('Shopper');
+            });
+
+            it('restores an unencoded "+" in a merchant-supplied email param', async () => {
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetPasswordLessAccessToken.mockResolvedValue({
+                    access_token: 'new-token',
+                    id_token: 'id-token',
+                    refresh_token: 'new-refresh',
+                    token_type: 'Bearer',
+                    expires_in: 1800,
+                    refresh_token_expires_in: 86400,
+                    usid: 'test-usid',
+                    customer_id: 'customer-123',
+                    enc_user_id: 'enc-user-123',
+                    idp_access_token: 'idp-token',
+                } as any);
+                mockMergeBasket.mockResolvedValue(undefined);
+
+                const mockRequest = new Request(
+                    'http://localhost:5173/login?token=otp-token-123&email=shopper+tag@example.com'
+                );
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                await loader(createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: ROUTE_PATTERN }));
+
+                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(
+                    mockContext,
+                    'otp-token-123',
+                    'shopper+tag@example.com'
+                );
+            });
+
+            it('asks the shopper to confirm their email when none is remembered', async () => {
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: true });
+
+                const mockRequest = new Request('http://localhost:5173/login?token=otp-token-123');
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                const result = await loader(
+                    createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: ROUTE_PATTERN })
+                );
+
+                expect(mockGetPasswordLessAccessToken).not.toHaveBeenCalled();
+                expect(result).not.toBeInstanceOf(Response);
+                expect(result).toMatchObject({ confirmEmailToken: 'otp-token-123', mode: 'passwordless' });
+                expect(result).not.toHaveProperty('error');
+            });
+
+            it('clears a remembered email that SLAS rejects and asks for a new link', async () => {
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: true });
+                mockGetPasswordLessAccessToken.mockRejectedValue(new Error('login_id does not match stored login_id'));
+
+                const mockRequest = new Request('http://localhost:5173/login?token=otp-token-123', {
+                    headers: { Cookie: 'cc-pwdless-email_TestSite=shopper-a%40example.com' },
+                });
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                const result = await loader(
+                    createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: ROUTE_PATTERN })
+                );
+
+                const { data: loaderData, init } = result as unknown as {
+                    data: Record<string, unknown>;
+                    init?: { headers?: Record<string, string> };
+                };
+                expect(loaderData.error).toBeTruthy();
+                expect(loaderData).not.toHaveProperty('email');
+                expect(loaderData).not.toHaveProperty('showOTPForm');
+                const setCookie = init?.headers?.['Set-Cookie'];
+                expect(setCookie).toContain('cc-pwdless-email_TestSite=');
+                expect(setCookie).not.toContain('shopper-a');
+            });
+
+            it('keeps the OTP form for a mismatch when the email came from the URL', async () => {
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: true });
+                mockGetPasswordLessAccessToken.mockRejectedValue(new Error('login_id does not match stored login_id'));
+
+                const mockRequest = new Request(
+                    'http://localhost:5173/login?token=otp-token-123&email=test@example.com'
+                );
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                const result = await loader(
+                    createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: ROUTE_PATTERN })
+                );
+
+                expect(result).toMatchObject({ showOTPForm: true, email: 'test@example.com' });
+            });
+        });
+
         describe('guestWishlistCount', () => {
             it('returns the snapshot item count for a guest with saved items', async () => {
                 mockGetAuth.mockReturnValue({ userType: 'guest' });
@@ -733,7 +864,7 @@ describe('Login Route', () => {
                     createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
                 );
 
-                if (!(result instanceof Response)) {
+                if (isPlainLoaderData(result)) {
                     expect(result.guestWishlistCount).toBe(3);
                 }
             });
@@ -749,7 +880,7 @@ describe('Login Route', () => {
                     createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
                 );
 
-                if (!(result instanceof Response)) {
+                if (isPlainLoaderData(result)) {
                     expect(result.guestWishlistCount).toBe(0);
                 }
             });
@@ -772,9 +903,7 @@ describe('Login Route', () => {
                 );
 
                 // The error-return path includes the guest wishlist count from the pre-swap snapshot.
-                if (!(result instanceof Response)) {
-                    expect(result.guestWishlistCount).toBe(2);
-                }
+                expect(result).toMatchObject({ guestWishlistCount: 2 });
             });
         });
     });
@@ -1479,10 +1608,15 @@ describe('Login Route', () => {
             );
 
             expect(result).not.toBeInstanceOf(Response);
-            const data = result as { success: boolean; showOTPForm?: boolean; email?: string };
+            const { data, init } = result as {
+                data: { success: boolean; showOTPForm?: boolean; email?: string };
+                init: { headers: Headers };
+            };
             expect(data.success).toBe(true);
             expect(data.showOTPForm).toBe(true);
             expect(data.email).toBe('test@example.com');
+            // The email is remembered in an HttpOnly cookie because the magic link doesn't carry it
+            expect(init.headers.get('Set-Cookie')).toContain('cc-pwdless-email_TestSite=test%40example.com');
             expect(mockAuthorizePasswordless).toHaveBeenCalledWith(
                 mockContext,
                 expect.objectContaining({
@@ -1530,7 +1664,7 @@ describe('Login Route', () => {
             const mockContext = { get: vi.fn(), set: vi.fn() };
             const result = await action(createActionArgs(mockRequest, mockContext, { pattern: '/login' }));
 
-            expect(result).toHaveProperty('success', true);
+            expect(result).toHaveProperty('data.success', true);
             // finalRedirectPath passed to authorizePasswordless must not contain evil.com
             expect(mockAuthorizePasswordless).toHaveBeenCalledWith(
                 mockContext,
@@ -1627,11 +1761,89 @@ describe('Login Route', () => {
                 createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
             );
 
-            // Successful response is a plain LoginActionResponse object (not a Response)
+            // Successful response is data(LoginActionResponse) (not a Response)
             expect(result).not.toBeInstanceOf(Response);
-            const payload = result as { success: boolean; errorCode?: string };
+            const payload = (result as { data: { success: boolean; errorCode?: string } }).data;
             expect(payload.success).toBe(true);
             expect(payload.errorCode).toBeUndefined();
+        });
+
+        describe('magicLinkConfirm', () => {
+            function confirmRequest(fields: Record<string, string>, query = '') {
+                return new Request(`http://localhost:5173/login?token=otp-token-123${query}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ loginMode: 'magicLinkConfirm', ...fields }).toString(),
+                });
+            }
+
+            it('exchanges the token with the confirmed email and redirects', async () => {
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetPasswordLessAccessToken.mockResolvedValue({
+                    access_token: 'new-token',
+                    id_token: 'id-token',
+                    refresh_token: 'new-refresh',
+                    token_type: 'Bearer',
+                    expires_in: 1800,
+                    refresh_token_expires_in: 86400,
+                    usid: 'test-usid',
+                    customer_id: 'customer-123',
+                    enc_user_id: 'enc-user-123',
+                    idp_access_token: 'idp-token',
+                } as any);
+                mockMergeBasket.mockResolvedValue(undefined);
+
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                const result = await action(
+                    createActionArgs<Route.ActionArgs>(
+                        confirmRequest(
+                            { token: 'otp-token-123', email: ' shopper@example.com ' },
+                            '&returnUrl=/checkout'
+                        ),
+                        mockContext,
+                        { pattern: '/login' }
+                    )
+                );
+
+                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(
+                    mockContext,
+                    'otp-token-123',
+                    'shopper@example.com'
+                );
+                expect(mockUpdateAuth).toHaveBeenCalled();
+                expect(mockMergeBasket).toHaveBeenCalledWith(mockContext);
+                expect(result).toBeInstanceOf(Response);
+                expect((result as Response).headers.get('Location')).toBe('/checkout');
+            });
+
+            it('maps a login_id mismatch to the invalid-token message', async () => {
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetPasswordLessAccessToken.mockRejectedValue(new Error('login_id does not match stored login_id'));
+
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                const result = await action(
+                    createActionArgs<Route.ActionArgs>(
+                        confirmRequest({ token: 'otp-token-123', email: 'other@example.com' }),
+                        mockContext,
+                        { pattern: '/login' }
+                    )
+                );
+
+                expect(result).toEqual({ success: false, error: 'errors:invalidToken' });
+                expect(mockUpdateAuth).not.toHaveBeenCalled();
+            });
+
+            it('requires both token and email', async () => {
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                const result = await action(
+                    createActionArgs<Route.ActionArgs>(confirmRequest({ token: 'otp-token-123' }), mockContext, {
+                        pattern: '/login',
+                    })
+                );
+
+                expect(result).toHaveProperty('error', 'An error occurred. Please try again.');
+                expect(mockGetPasswordLessAccessToken).not.toHaveBeenCalled();
+            });
         });
 
         describe('cc-tv cookie', () => {
@@ -1691,7 +1903,7 @@ describe('Login Route', () => {
                     createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
                 );
 
-                expect(getSetCookie(result)).toBeUndefined();
+                expect(getSetCookie(result)).not.toContain('cc-tv_');
             });
         });
     });
@@ -1765,6 +1977,36 @@ describe('Login Route', () => {
             await waitFor(() => {
                 expect(screen.getByText('An error occurred. Please try again.')).toBeInTheDocument();
             });
+        });
+
+        it('asks for the email and finishes a magic-link login with it', async () => {
+            const user = userEvent.setup();
+            mockGetAuth.mockReturnValue({ userType: 'guest' });
+            mockGetPasswordLessAccessToken.mockRejectedValue(new Error('login_id does not match stored login_id'));
+
+            renderWithAction({
+                mode: 'passwordless',
+                isPasswordlessLoginEnabled: true,
+                isSocialLoginEnabled: false,
+                pageUrl: 'http://localhost/login',
+                guestWishlistCount: 0,
+                confirmEmailToken: 'otp-token-123',
+            });
+
+            const form = screen.getByTestId('confirm-magic-link-email');
+            expect(within(form).getByText(/enter the email address you used to request the link/i)).toBeInTheDocument();
+
+            await user.type(within(form).getByLabelText(/email/i), 'shopper@example.com');
+            await user.click(within(form).getByRole('button', { name: /continue/i }));
+
+            await waitFor(() => {
+                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledWith(
+                    expect.anything(),
+                    'otp-token-123',
+                    'shopper@example.com'
+                );
+            });
+            expect(await within(form).findByRole('alert')).toBeInTheDocument();
         });
 
         it('renders PasswordlessLoginForm when mode is passwordless', () => {

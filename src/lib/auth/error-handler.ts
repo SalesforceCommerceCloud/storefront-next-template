@@ -35,6 +35,26 @@ const TOO_MANY_REQUESTS_ERROR = /too many .* requests/i;
 
 const INVALID_TOKEN_ERROR = /invalid.*token/i;
 
+const LOGIN_ID_MISMATCH_ERROR = 'login_id does not match stored login_id';
+
+// Exact SLAS messages for a missing or mismatched login_id on the token exchange
+const MISSING_OR_MISMATCHED_LOGIN_ID_ERRORS = [
+    LOGIN_ID_MISMATCH_ERROR,
+    'login_id is required',
+    'login id is required for Passwordless Login authentication',
+].map((message) => message.toLowerCase());
+
+/**
+ * True when SLAS rejected a passwordless token exchange because `login_id` isn't the email the
+ * link was requested for. SLAS consumes the token before this check, so the link can't be retried.
+ */
+export const isLoginIdMismatchError = (errorMessage: string): boolean =>
+    String(errorMessage).trim().toLowerCase() === LOGIN_ID_MISMATCH_ERROR;
+
+const isInvalidTokenError = (errorMessage: string): boolean =>
+    INVALID_TOKEN_ERROR.test(errorMessage) ||
+    MISSING_OR_MISMATCHED_LOGIN_ID_ERRORS.includes(String(errorMessage).trim().toLowerCase());
+
 /**
  * Error message translation keys for different error scenarios
  */
@@ -62,7 +82,7 @@ export function getPasswordlessErrorMessageKey(
     if (TOO_MANY_REQUESTS_ERROR.test(errorMessage)) {
         return ERROR_MESSAGE_KEYS.TOO_MANY_LOGIN_ATTEMPTS;
     }
-    if (INVALID_TOKEN_ERROR.test(errorMessage)) {
+    if (isInvalidTokenError(errorMessage)) {
         return ERROR_MESSAGE_KEYS.INVALID_TOKEN;
     }
     return ERROR_MESSAGE_KEYS.GENERIC;
@@ -84,7 +104,7 @@ export function getPasswordResetErrorMessageKey(
     if (TOO_MANY_REQUESTS_ERROR.test(errorMessage)) {
         return ERROR_MESSAGE_KEYS.TOO_MANY_PASSWORD_RESET_ATTEMPTS;
     }
-    if (INVALID_TOKEN_ERROR.test(errorMessage)) {
+    if (isInvalidTokenError(errorMessage)) {
         return ERROR_MESSAGE_KEYS.INVALID_TOKEN;
     }
     return ERROR_MESSAGE_KEYS.GENERIC;

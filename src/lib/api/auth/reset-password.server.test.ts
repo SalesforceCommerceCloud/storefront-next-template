@@ -279,11 +279,8 @@ describe('reset-password', () => {
                             body: expect.stringContaining('token=reset-token-123'),
                         })
                     );
-                    expect(emailSendCall[1]).toEqual(
-                        expect.objectContaining({
-                            body: expect.stringContaining('email=test%40example.com'),
-                        })
-                    );
+                    expect(emailSendCall[1].body).not.toContain('email=');
+                    expect(emailSendCall[1].body).not.toContain('test%40example.com');
                 }
             });
         });
@@ -523,102 +520,42 @@ describe('reset-password', () => {
     });
 
     describe('handleResetPasswordLanding', () => {
-        it('should redirect to /reset-password with token and email parameters', () => {
-            const mockRequest = {
-                url: 'https://example.com/reset-password-landing?token=valid-token&email=test%40example.com',
-            } as any;
-
-            mockRedirect.mockReturnValue('redirect-response' as any);
-
-            const result = handleResetPasswordLanding({
-                request: mockRequest,
-                url: new URL(mockRequest.url),
+        const runLanding = (url: string) =>
+            handleResetPasswordLanding({
+                request: { url } as any,
+                url: new URL(url),
                 context: mockContext,
                 params: {},
                 pattern: '/reset-password-landing',
             });
 
-            expect(mockRedirect).toHaveBeenCalledWith('/reset-password?token=valid-token&email=test%40example.com');
+        beforeEach(() => {
+            mockRedirect.mockReturnValue('redirect-response' as any);
+        });
+
+        it('should redirect to /reset-password with only the token', () => {
+            const result = runLanding('https://example.com/reset-password-landing?token=valid-token');
+
+            expect(mockRedirect).toHaveBeenCalledWith('/reset-password?token=valid-token');
             expect(result).toBe('redirect-response');
+        });
+
+        it('should not forward an email from an older link', () => {
+            runLanding('https://example.com/reset-password-landing?token=valid-token&email=test%40example.com');
+
+            expect(mockRedirect).toHaveBeenCalledWith('/reset-password?token=valid-token');
         });
 
         it('should handle missing token parameter', () => {
-            const mockRequest = {
-                url: 'https://example.com/reset-password-landing?email=test%40example.com',
-            } as any;
+            runLanding('https://example.com/reset-password-landing');
 
-            mockRedirect.mockReturnValue('redirect-response' as any);
-
-            const result = handleResetPasswordLanding({
-                request: mockRequest,
-                url: new URL(mockRequest.url),
-                context: mockContext,
-                params: {},
-                pattern: '/reset-password-landing',
-            });
-
-            expect(mockRedirect).toHaveBeenCalledWith('/reset-password?token=&email=test%40example.com');
-            expect(result).toBe('redirect-response');
+            expect(mockRedirect).toHaveBeenCalledWith('/reset-password?token=');
         });
 
-        it('should handle missing email parameter', () => {
-            const mockRequest = {
-                url: 'https://example.com/reset-password-landing?token=valid-token',
-            } as any;
+        it('should properly encode special characters in the token', () => {
+            runLanding('https://example.com/reset-password-landing?token=abc%2Bdef');
 
-            mockRedirect.mockReturnValue('redirect-response' as any);
-
-            const result = handleResetPasswordLanding({
-                request: mockRequest,
-                url: new URL(mockRequest.url),
-                context: mockContext,
-                params: {},
-                pattern: '/reset-password-landing',
-            });
-
-            expect(mockRedirect).toHaveBeenCalledWith('/reset-password?token=valid-token&email=');
-            expect(result).toBe('redirect-response');
-        });
-
-        it('should handle both token and email missing', () => {
-            const mockRequest = {
-                url: 'https://example.com/reset-password-landing',
-            } as any;
-
-            mockRedirect.mockReturnValue('redirect-response' as any);
-
-            const result = handleResetPasswordLanding({
-                request: mockRequest,
-                url: new URL(mockRequest.url),
-                context: mockContext,
-                params: {},
-                pattern: '/reset-password-landing',
-            });
-
-            expect(mockRedirect).toHaveBeenCalledWith('/reset-password?token=&email=');
-            expect(result).toBe('redirect-response');
-        });
-
-        it('should properly encode special characters in parameters', () => {
-            const mockRequest = {
-                url: 'https://example.com/reset-password-landing?token=abc%2Bdef&email=test%2Buser%40example.com',
-            } as any;
-
-            mockRedirect.mockReturnValue('redirect-response' as any);
-
-            const result = handleResetPasswordLanding({
-                request: mockRequest,
-                url: new URL(mockRequest.url),
-                context: mockContext,
-                params: {},
-                pattern: '/reset-password-landing',
-            });
-
-            // The parameters should be properly encoded
-            expect(mockRedirect).toHaveBeenCalledWith(
-                '/reset-password?token=abc%2Bdef&email=test%2Buser%40example.com'
-            );
-            expect(result).toBe('redirect-response');
+            expect(mockRedirect).toHaveBeenCalledWith('/reset-password?token=abc%2Bdef');
         });
     });
 });

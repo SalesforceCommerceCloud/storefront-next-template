@@ -43,6 +43,7 @@ import { getLogger } from '@/lib/logger.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getPasswordlessErrorMessageKey, extractErrorMessage } from '@/lib/auth/error-handler';
 import { getLoginPreferences } from '@/lib/login-preferences.server';
+import { serializePasswordlessEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
 
 const OtpModal = lazy(() => import('@/components/login/otp-modal'));
 
@@ -134,7 +135,10 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Si
                 returnUrl,
                 registrationMode: 'passwordless',
             });
-            return redirect(`${url.pathname}?${params.toString()}`);
+            // Remember the email for the magic-link landing page; the link doesn't carry it
+            return redirect(`${url.pathname}?${params.toString()}`, {
+                headers: { 'Set-Cookie': await serializePasswordlessEmailCookie(context, email) },
+            });
         } catch (error) {
             logger.error('Signup (passwordless): failed', { error });
             return { error: t(getPasswordlessErrorMessageKey(extractErrorMessage(error))) };

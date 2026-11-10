@@ -21,6 +21,7 @@ import {
     extractErrorMessage,
     getPasswordlessErrorMessageKey,
     getPasswordResetErrorMessageKey,
+    isLoginIdMismatchError,
 } from './error-handler';
 
 describe('getPasswordlessErrorMessageKey', () => {
@@ -41,6 +42,14 @@ describe('getPasswordlessErrorMessageKey', () => {
 
     it('returns INVALID_TOKEN for invalid token errors', () => {
         const message = 'Invalid authentication token provided.';
+        expect(getPasswordlessErrorMessageKey(message)).toBe(ERROR_MESSAGE_KEYS.INVALID_TOKEN);
+    });
+
+    it.each([
+        'login_id does not match stored login_id',
+        'login_id is required',
+        'Login id is required for Passwordless Login authentication',
+    ])('returns INVALID_TOKEN for the SLAS login_id error "%s"', (message) => {
         expect(getPasswordlessErrorMessageKey(message)).toBe(ERROR_MESSAGE_KEYS.INVALID_TOKEN);
     });
 
@@ -75,6 +84,15 @@ describe('getPasswordResetErrorMessageKey', () => {
     it('returns GENERIC for unknown error messages', () => {
         const message = 'Some unexpected error from backend';
         expect(getPasswordResetErrorMessageKey(message)).toBe(ERROR_MESSAGE_KEYS.GENERIC);
+    });
+});
+
+describe('isLoginIdMismatchError', () => {
+    it('matches only the SLAS login_id mismatch message', () => {
+        expect(isLoginIdMismatchError('login_id does not match stored login_id')).toBe(true);
+        expect(isLoginIdMismatchError(' Login_id does not match stored login_id ')).toBe(true);
+        expect(isLoginIdMismatchError('login_id is required')).toBe(false);
+        expect(isLoginIdMismatchError('Invalid token')).toBe(false);
     });
 });
 

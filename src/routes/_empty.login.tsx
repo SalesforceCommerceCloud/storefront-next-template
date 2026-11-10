@@ -15,7 +15,7 @@
  */
 import { type ReactElement, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from '@/hooks/use-navigate';
-import { data, redirect, redirectDocument, useActionData } from 'react-router';
+import { data, Form, redirect, redirectDocument, useActionData } from 'react-router';
 import { usePasskeyLogin } from '@/hooks/use-passkey-login';
 import type { Route } from './+types/_empty.login';
 import { Link } from '@/components/link';
@@ -37,6 +37,8 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { updateBasketResource } from '@/middlewares/basket.server';
 import { buildUrlFromContext, stripMrtBasePathFromUrl } from '@/lib/url.server';
 import { TurnstileWidget } from '@/components/security/turnstile-widget';
+import { Input } from '@/components/ui/input';
+import { FormSubmitButton } from '@/components/buttons/form-submit-button';
 import { getTurnstileSiteKey, getTurnstileMode, isTurnstileEnabled } from '@/lib/turnstile/utils';
 
 // services
@@ -57,11 +59,16 @@ import {
     mergeWishlist,
     type WishlistMergeResult,
 } from '@/lib/api/wishlist.server';
-import { getPasswordlessErrorMessageKey, extractErrorMessage } from '@/lib/auth/error-handler';
+import { getPasswordlessErrorMessageKey, extractErrorMessage, isLoginIdMismatchError } from '@/lib/auth/error-handler';
 import { getLogger } from '@/lib/logger.server';
 import { enforceTurnstile } from '@/lib/turnstile/enforce.server';
 import { COOKIE_TURNSTILE_VERIFIED, TURNSTILE_VERIFIED_MAX_AGE } from '@/lib/turnstile/constants';
 import { createCookie, getCookieConfig, getCookieNameWithSiteId } from '@/lib/cookie-utils.server';
+import {
+    clearPasswordlessEmailCookie,
+    readPasswordlessEmailCookie,
+    serializePasswordlessEmailCookie,
+} from '@/lib/auth/remembered-email-cookie.server';
 import { ApiError } from '@/scapi';
 
 type LoginActionResponse = {
@@ -92,7 +99,61 @@ type LoginLoaderData = {
     pageUrl: string;
     /** Number of items in the guest wishlist (0 if guest has none, no list, or SCAPI failed). */
     guestWishlistCount: number;
+    /**
+     * Magic-link token waiting for the shopper to confirm their email. Set when the link was
+     * opened in a browser that didn't request it, so the email isn't remembered.
+     */
+    confirmEmailToken?: string;
 };
+
+/**
+ * Exchanges a passwordless token for a registered session, merges the guest basket and
+ * wishlist, and redirects to `returnUrl` (or home). Clears the remembered-email cookie.
+ * Throws when SLAS rejects the token. Take `guestWishlistSnapshot` BEFORE calling; the
+ * registered token can't authorize a read against the guest customerId.
+ */
+async function completePasswordlessLogin(
+    context: Route.LoaderArgs['context'],
+    token: string,
+    loginId: string,
+    returnUrl: string | null,
+    guestWishlistSnapshot: Awaited<ReturnType<typeof captureGuestWishlistSnapshot>>
+): Promise<Response> {
+    const logger = getLogger(context);
+    const tokenResponse = await getPasswordLessAccessToken(context, token, loginId);
+
+    // Update session with auth data. userType, customerId, usid, and the refresh-token
+    // expiry cap all derive from the access-token JWT inside updateAuth; no follow-up
+    // call is needed.
+    updateAuthServer(context, tokenResponse);
+
+    // Merge guest basket with registered user basket
+    try {
+        await mergeBasket(context);
+    } catch (basketError) {
+        logger.error('Login: basket merge failed during passwordless login', { error: basketError });
+    }
+
+    let wishlistMergeResult: WishlistMergeResult | null = null;
+    if (guestWishlistSnapshot) {
+        try {
+            wishlistMergeResult = await mergeWishlist(context, guestWishlistSnapshot);
+        } catch (wishlistError) {
+            logger.error('Login: wishlist merge failed during passwordless login', { error: wishlistError });
+        }
+    }
+
+    logger.info('Login: passwordless verification succeeded');
+    const headers = new Headers();
+    headers.append('Set-Cookie', await clearPasswordlessEmailCookie(context));
+    let target = buildUrlFromContext(returnUrl || routes.home, context);
+    if (wishlistMergeResult) {
+        const { url: redirectUrl, setCookie } = appendWishlistMergeFlag(context, target, wishlistMergeResult);
+        target = redirectUrl;
+        headers.append('Set-Cookie', setCookie);
+    }
+    return redirect(target, { headers });
+}
 
 export async function loader({ request, context }: Route.LoaderArgs) {
     const logger = getLogger(context);
@@ -115,7 +176,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     }
 
     const passwordlessSent = url.searchParams.get('passwordless') === 'sent';
-    const email = url.searchParams.get('email');
+    // URLSearchParams decodes an unencoded "+" as a space; emails never contain spaces.
+    const email = url.searchParams.get('email')?.trim().replace(/ /g, '+') || null;
 
     const tokenFromUrl = url.searchParams.get('token');
     const legacyOtpCode = url.searchParams.get('otpCode');
@@ -137,53 +199,67 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     // Turnstile widget when the email-verification site permission is off.
     const showOTPForm = isPasswordlessLoginEnabled && url.searchParams.get('otp') === 'true';
 
-    // Auto-verify OTP token when a token is present in the URL (email is optional)
+    // Auto-verify the token when a magic link lands here. SLAS requires the exact email the link
+    // was requested with; the link doesn't carry it, so use the email remembered at request time.
     if (token) {
-        // Snapshot the guest wishlist BEFORE the SLAS swap; the registered token can't authorize a read against the guest customerId.
         const guestWishlistSnapshot = await captureGuestWishlistSnapshot(context);
+        const guestWishlistCount = guestWishlistSnapshot?.items.length ?? 0;
+        // Only read the cookie when the URL has no email; set means the email came from the cookie
+        const rememberedEmail = email ? undefined : await readPasswordlessEmailCookie(request, context);
+        const loginId = email || rememberedEmail;
+
+        // Link opened in a different browser or device: ask the shopper to confirm their email
+        // instead of sending SLAS a token exchange that is certain to fail.
+        if (!loginId) {
+            logger.info('Login: passwordless email not remembered, asking shopper to confirm');
+            return {
+                mode: 'passwordless',
+                isPasswordlessLoginEnabled,
+                isSocialLoginEnabled,
+                returnUrl,
+                action: pendingAction,
+                actionParams,
+                otpLength: config.auth.otpLength,
+                pageUrl,
+                guestWishlistCount,
+                confirmEmailToken: token,
+            };
+        }
 
         try {
-            const tokenResponse = await getPasswordLessAccessToken(context, token, email?.trim());
-
-            // Update session with auth data. userType, customerId, usid, and the refresh-token
-            // expiry cap all derive from the access-token JWT inside updateAuth; no follow-up
-            // call is needed.
-            updateAuthServer(context, tokenResponse);
-
-            // Merge guest basket with registered user basket
-            try {
-                await mergeBasket(context);
-            } catch (basketError) {
-                logger.error('Login: basket merge failed during passwordless login', { error: basketError });
-            }
-
-            let wishlistMergeResult: WishlistMergeResult | null = null;
-            if (guestWishlistSnapshot) {
-                try {
-                    wishlistMergeResult = await mergeWishlist(context, guestWishlistSnapshot);
-                } catch (wishlistError) {
-                    logger.error('Login: wishlist merge failed during passwordless login', { error: wishlistError });
-                }
-            }
-
-            logger.info('Login: passwordless verification succeeded');
-            const target = buildUrlFromContext(returnUrl || routes.home, context);
-            if (wishlistMergeResult) {
-                const { url: redirectUrl, setCookie } = appendWishlistMergeFlag(context, target, wishlistMergeResult);
-                return redirect(redirectUrl, { headers: { 'Set-Cookie': setCookie } });
-            }
-            return redirect(target);
+            return await completePasswordlessLogin(context, token, loginId, returnUrl, guestWishlistSnapshot);
         } catch (verifyError) {
             // Auto-verification failed - show error with OTP form
             logger.warn('Login: passwordless auto-verification failed');
             const errorMessage = extractErrorMessage(verifyError);
-            const errorKey = getPasswordlessErrorMessageKey(errorMessage);
             const { t } = getTranslation(context);
 
+            // The remembered email belongs to someone else who requested a link in this browser.
+            // SLAS has already consumed the token, so drop the stale email (and don't show it) and
+            // ask for a new link. Other errors (e.g. an expired link) keep the remembered email.
+            if (rememberedEmail && isLoginIdMismatchError(errorMessage)) {
+                return data(
+                    {
+                        error: t('errors:magicLinkEmailMismatch'),
+                        mode: 'passwordless',
+                        isPasswordlessLoginEnabled,
+                        isSocialLoginEnabled,
+                        returnUrl,
+                        action: pendingAction,
+                        actionParams,
+                        otpLength: config.auth.otpLength,
+                        pageUrl,
+                        guestWishlistCount,
+                    },
+                    { headers: { 'Set-Cookie': await clearPasswordlessEmailCookie(context) } }
+                );
+            }
+
+            const errorKey = getPasswordlessErrorMessageKey(errorMessage);
             return {
                 error: t(errorKey),
                 showOTPForm: isPasswordlessLoginEnabled,
-                email,
+                email: loginId,
                 mode,
                 isPasswordlessLoginEnabled,
                 isSocialLoginEnabled,
@@ -192,7 +268,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
                 actionParams,
                 otpLength: config.auth.otpLength,
                 pageUrl,
-                guestWishlistCount: guestWishlistSnapshot?.items.length ?? 0,
+                guestWishlistCount,
             };
         }
     }
@@ -229,7 +305,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
  * - `Response` (redirect): successful login or social IDP authorization. React Router intercepts
  *   the redirect before it reaches the component, so `useActionData()` never sees it.
  * - `data(LoginActionResponse, { headers })`: passwordless OTP intermediate state that also sets
- *   the Turnstile `cc-tv` cookie via Set-Cookie.
+ *   the Turnstile `cc-tv` cookie and the remembered-email cookie via Set-Cookie.
  * - `LoginActionResponse`: errors or intermediate states without extra headers. This data is
  *   serialized and delivered to the component via `useActionData()` for rendering.
  */
@@ -302,14 +378,14 @@ export async function action({
             // Null means the request was already covered by a valid HMAC-bound cookie;
             // nothing new to record. The cookie lets downstream endpoints (e.g. OTP resend)
             // skip a fresh challenge within the 30-minute window.
-            let loginTvHeaders: Record<string, string> | undefined;
+            const loginHeaders = new Headers();
             if (cookieValue !== null) {
                 const tvCookie = createCookie<string>(
                     COOKIE_TURNSTILE_VERIFIED,
                     getCookieConfig({ httpOnly: true, maxAge: TURNSTILE_VERIFIED_MAX_AGE }, context),
                     context
                 );
-                loginTvHeaders = { 'Set-Cookie': await tvCookie.serialize(cookieValue) };
+                loginHeaders.append('Set-Cookie', await tvCookie.serialize(cookieValue));
             }
 
             // Build redirectPath from returnUrl, action, and actionParams for passwordless flow
@@ -348,9 +424,9 @@ export async function action({
                 if (actionParams) {
                     params.set('actionParams', actionParams);
                 }
-                return loginTvHeaders
-                    ? data({ success: true, showOTPForm: true, email }, { headers: loginTvHeaders })
-                    : { success: true, showOTPForm: true, email };
+                // Remember the email for the magic-link landing page; the link doesn't carry it
+                loginHeaders.append('Set-Cookie', await serializePasswordlessEmailCookie(context, email));
+                return data({ success: true, showOTPForm: true, email }, { headers: loginHeaders });
             } catch (error) {
                 const errorMessage = extractErrorMessage(error);
                 const errorKey = getPasswordlessErrorMessageKey(errorMessage);
@@ -362,9 +438,25 @@ export async function action({
                     rawBody: error instanceof ApiError ? error.rawBody : undefined,
                 });
 
-                return loginTvHeaders
-                    ? data({ success: false, error: t(errorKey) }, { headers: loginTvHeaders })
+                return loginHeaders.has('Set-Cookie')
+                    ? data({ success: false, error: t(errorKey) }, { headers: loginHeaders })
                     : { success: false, error: t(errorKey) };
+            }
+        } else if (loginMode === 'magicLinkConfirm') {
+            // Finish a magic-link login with the email the shopper confirmed on the landing page
+            const token = formData.get('token')?.toString();
+            if (!email || !token) {
+                return { success: false, error: genericError };
+            }
+            const returnUrl = stripMrtBasePathFromUrl(
+                getSafeReturnUrl(new URL(request.url).searchParams.get('returnUrl'))
+            );
+            const guestWishlistSnapshot = await captureGuestWishlistSnapshot(context);
+            try {
+                return await completePasswordlessLogin(context, token, email, returnUrl, guestWishlistSnapshot);
+            } catch (error) {
+                logger.warn('Login: passwordless verification with confirmed email failed');
+                return { success: false, error: t(getPasswordlessErrorMessageKey(extractErrorMessage(error))) };
             }
         } else {
             // Standard password login flow (default case - handles 'password' mode or undefined/null)
@@ -510,6 +602,7 @@ export default function Login({ loaderData }: { loaderData: LoginLoaderData }): 
         otpLength,
         pageUrl,
         guestWishlistCount,
+        confirmEmailToken,
     } = loaderData;
 
     const [resendTurnstileToken, setResendTurnstileToken] = useState<string | null>(null);
@@ -602,6 +695,41 @@ export default function Login({ loaderData }: { loaderData: LoginLoaderData }): 
 
     // Decide which form to render based on mode
     const renderForm = () => {
+        if (confirmEmailToken) {
+            // Magic link opened in a browser that didn't request it: the token needs the email
+            return (
+                <Form method="post" className="space-y-6" data-testid="confirm-magic-link-email">
+                    <div className="space-y-1">
+                        <h2 className="text-lg font-semibold text-foreground">{t('confirmEmailTitle')}</h2>
+                        <p className="text-sm text-muted-foreground">{t('confirmEmailDescription')}</p>
+                    </div>
+                    {error && (
+                        <div
+                            role="alert"
+                            className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-ui">
+                            {error}
+                        </div>
+                    )}
+                    <div>
+                        <label htmlFor="confirm-email" className="block text-sm font-medium text-foreground">
+                            {t('emailLabel')}
+                        </label>
+                        <Input
+                            id="confirm-email"
+                            name="email"
+                            type="email"
+                            autoComplete="username"
+                            required
+                            className="mt-1"
+                            placeholder={t('emailPlaceholder')}
+                        />
+                    </div>
+                    <input type="hidden" name="loginMode" value="magicLinkConfirm" />
+                    <input type="hidden" name="token" value={confirmEmailToken} />
+                    <FormSubmitButton defaultText={t('sendLoginLink')} submittingText={t('redirecting')} />
+                </Form>
+            );
+        }
         if (mode === 'passwordless') {
             return (
                 <PasswordlessLoginForm

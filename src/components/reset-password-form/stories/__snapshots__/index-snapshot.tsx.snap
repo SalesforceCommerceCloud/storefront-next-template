@@ -12,26 +12,24 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
       type="hidden"
       value="reset-token-12345"
     />
-    <input
-      name="email"
-      type="hidden"
-      value="user@example.com"
-    />
     <div
       class="space-y-6"
     >
       <div>
         <label
           class="block text-sm font-medium text-foreground"
-          for="email-display"
+          for="email"
         >
           Email address
         </label>
         <input
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1 bg-muted cursor-not-allowed"
+          autocomplete="username"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
-          disabled=""
-          id="email-display"
+          id="email"
+          name="email"
+          placeholder="Enter your email"
+          required=""
           type="email"
           value="user@example.com"
         />
@@ -293,10 +291,284 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
       type="hidden"
       value="reset-token-12345"
     />
+    <div
+      class="space-y-6"
+    >
+      <div>
+        <label
+          class="block text-sm font-medium text-foreground"
+          for="email"
+        >
+          Email address
+        </label>
+        <input
+          autocomplete="username"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          data-slot="input"
+          id="email"
+          name="email"
+          placeholder="Enter your email"
+          required=""
+          type="email"
+          value="user@example.com"
+        />
+      </div>
+      <div>
+        <label
+          class="block text-sm font-medium text-foreground"
+          for="newPassword"
+        >
+          New Password
+        </label>
+        <input
+          aria-describedby="reset-password-requirements"
+          autocomplete="new-password"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          data-slot="input"
+          id="newPassword"
+          name="newPassword"
+          placeholder="Create a secure password"
+          required=""
+          type="password"
+          value=""
+        />
+        <div
+          class="space-y-2"
+          id="reset-password-requirements"
+        >
+          <p
+            aria-level="4"
+            class="text-sm font-medium text-foreground"
+            role="heading"
+          >
+            Password Requirements
+          </p>
+          <p
+            aria-live="polite"
+            class="sr-only"
+            role="status"
+          >
+            0 of 5 requirements met
+          </p>
+          <ul
+            class="space-y-1.5"
+            role="list"
+          >
+            <li
+              class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-x h-4 w-4 text-muted-foreground"
+                data-testid="x-icon"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 6 6 18"
+                />
+                <path
+                  d="m6 6 12 12"
+                />
+              </svg>
+              <span>
+                At least 8 characters
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
+              class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-x h-4 w-4 text-muted-foreground"
+                data-testid="x-icon"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 6 6 18"
+                />
+                <path
+                  d="m6 6 12 12"
+                />
+              </svg>
+              <span>
+                At least one uppercase letter
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
+              class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-x h-4 w-4 text-muted-foreground"
+                data-testid="x-icon"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 6 6 18"
+                />
+                <path
+                  d="m6 6 12 12"
+                />
+              </svg>
+              <span>
+                At least one lowercase letter
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
+              class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-x h-4 w-4 text-muted-foreground"
+                data-testid="x-icon"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 6 6 18"
+                />
+                <path
+                  d="m6 6 12 12"
+                />
+              </svg>
+              <span>
+                At least one number
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
+              class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-x h-4 w-4 text-muted-foreground"
+                data-testid="x-icon"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 6 6 18"
+                />
+                <path
+                  d="m6 6 12 12"
+                />
+              </svg>
+              <span>
+                At least one special character
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <label
+          class="block text-sm font-medium text-foreground"
+          for="confirmPassword"
+        >
+          Confirm Password
+        </label>
+        <input
+          autocomplete="new-password"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          data-slot="input"
+          id="confirmPassword"
+          name="confirmPassword"
+          placeholder="Confirm your password"
+          required=""
+          type="password"
+          value=""
+        />
+      </div>
+      <div>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+          disabled=""
+          type="submit"
+        >
+          Reset Password
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`ResetPasswordForm stories snapshot > EmailNotRemembered story renders and matches snapshot 1`] = `
+<div
+  class="p-8 max-w-md"
+>
+  <form
+    method="POST"
+  >
     <input
-      name="email"
+      name="token"
       type="hidden"
-      value="user@example.com"
+      value="reset-token-12345"
     />
     <div
       class="space-y-6"
@@ -304,17 +576,20 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
       <div>
         <label
           class="block text-sm font-medium text-foreground"
-          for="email-display"
+          for="email"
         >
           Email address
         </label>
         <input
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1 bg-muted cursor-not-allowed"
+          autocomplete="username"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
-          disabled=""
-          id="email-display"
+          id="email"
+          name="email"
+          placeholder="Enter your email"
+          required=""
           type="email"
-          value="user@example.com"
+          value=""
         />
       </div>
       <div>
@@ -583,26 +858,24 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
       type="hidden"
       value="reset-token-12345"
     />
-    <input
-      name="email"
-      type="hidden"
-      value="user@example.com"
-    />
     <div
       class="space-y-6"
     >
       <div>
         <label
           class="block text-sm font-medium text-foreground"
-          for="email-display"
+          for="email"
         >
           Email address
         </label>
         <input
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1 bg-muted cursor-not-allowed"
+          autocomplete="username"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
-          disabled=""
-          id="email-display"
+          id="email"
+          name="email"
+          placeholder="Enter your email"
+          required=""
           type="email"
           value="user@example.com"
         />

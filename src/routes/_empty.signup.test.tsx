@@ -818,6 +818,10 @@ describe('signup route', () => {
                     expect(url.searchParams.get('lastName')).toBe('Doe');
                     expect(url.searchParams.get('returnUrl')).toBe('/');
                     expect(url.searchParams.get('registrationMode')).toBe('passwordless');
+                    // The magic link doesn't carry the email, so the landing page reads it from this cookie
+                    const setCookie = result.headers.get('Set-Cookie');
+                    expect(setCookie).toMatch(/cc-pwdless-email_[^=]+=test%40example\.com/);
+                    expect(setCookie).toContain('HttpOnly');
                 }
             });
 

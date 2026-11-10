@@ -172,12 +172,12 @@ describe('_empty.$.ts - Catch-all route (no layout)', () => {
         it('should handle reset password landing route', async () => {
             const mockResponse = new Response(null, {
                 status: 302,
-                headers: { Location: '/reset-password?token=test&email=test%40example.com' },
+                headers: { Location: '/reset-password?token=test' },
             });
             mockResetPasswordLanding.mockResolvedValue(mockResponse);
 
             const args = createLoaderArgs<Route.LoaderArgs>(
-                new Request('http://localhost/reset-password-landing?token=test&email=test@example.com'),
+                new Request('http://localhost/reset-password-landing?token=test'),
                 mockContext,
                 { pattern: '*' }
             );

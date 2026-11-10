@@ -26,6 +26,7 @@ import { enforceTurnstile } from '@/lib/turnstile/enforce.server';
 import { redactEmailForLog } from '@/lib/turnstile/log-redact.server';
 import { createCookie, getCookieConfig, getCookieNameWithSiteId } from '@/lib/cookie-utils.server';
 import { COOKIE_TURNSTILE_VERIFIED, TURNSTILE_VERIFIED_MAX_AGE } from '@/lib/turnstile/constants';
+import { serializePasswordlessEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
 import { ApiError } from '@/scapi';
 
 export type AuthorizePasswordlessEmailResponse = {
@@ -121,20 +122,24 @@ export async function action({
     // cookieValue is the HMAC-bound value for this email + site. Null means the request
     // was short-circuited by an already-valid cookie; nothing new to record.
     const shouldSetCookie = cookieValue !== null;
-    let headers: Record<string, string> = {};
+    const headers = new Headers();
     if (shouldSetCookie) {
         const tvCookie = createCookie<string>(
             COOKIE_TURNSTILE_VERIFIED,
             getCookieConfig({ httpOnly: true, maxAge: TURNSTILE_VERIFIED_MAX_AGE }, context),
             context
         );
-        headers = { 'Set-Cookie': await tvCookie.serialize(cookieValue) };
+        headers.append('Set-Cookie', await tvCookie.serialize(cookieValue));
     }
+    // Remember the email for the magic-link landing page; the link doesn't carry it
+    const rememberEmail = async () =>
+        headers.append('Set-Cookie', await serializePasswordlessEmailCookie(context, email));
 
     try {
         await authorizePasswordless(context, { userid: email, strictVerify });
 
         logger.info('AuthorizePasswordlessEmail: OTP sent');
+        await rememberEmail();
 
         return data({ success: true, email }, { headers });
     } catch (error) {
@@ -151,6 +156,7 @@ export async function action({
                 try {
                     await authorizePasswordless(context, { userid: email, strictVerify: false });
                     logger.info('AuthorizePasswordlessEmail: OTP sent (verify-email recovery)');
+                    await rememberEmail();
                     return data({ success: true, email }, { headers });
                 } catch (recoveryError) {
                     const recoveryMessage = recoveryError instanceof Error ? recoveryError.message : 'unknown error';
