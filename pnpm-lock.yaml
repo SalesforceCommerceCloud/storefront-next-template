@@ -215,8 +215,8 @@ importers:
         specifier: 7.18.2
         version: 7.18.2(@react-router/dev@7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0))(typescript@5.9.2)
       '@salesforce/b2c-cli':
-        specifier: 2.11.0
-        version: 2.11.0(@types/node@24.3.0)(bare-buffer@3.7.1)(typescript@5.9.2)
+        specifier: 2.14.0
+        version: 2.14.0(@types/node@24.3.0)(bare-buffer@3.7.1)(typescript@5.9.2)
       '@storybook/addon-a11y':
         specifier: 10.2.19
         version: 10.2.19(storybook@10.2.19(@testing-library/dom@10.4.2)(prettier@3.9.10)(react@19.2.3))
@@ -3129,8 +3129,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@salesforce/b2c-cli@2.11.0':
-    resolution: {integrity: sha512-/3aVY3XGh4BtZ4OgCBwGnUs946PgfP7239qoiKq60+yJw9CwAZgOaZ6nVTfjORmBFDRMMkvBB8OzQlfRjTGrUQ==}
+  '@salesforce/b2c-cli@2.14.0':
+    resolution: {integrity: sha512-6keEqhwFOWMTTq/ywlH00sxSRGOypCky9tkX6sEVhHi3HZ3Q4Y75GEX/YZHaq9DB2IKkoDuPdzqfNyjnuaaXSg==}
     engines: {node: '>=22.16.0'}
     hasBin: true
 
@@ -3143,6 +3143,18 @@ packages:
       '@oclif/core':
         optional: true
     bundledDependencies:
+      - '@salesforce/b2c-api-schemas'
+
+  '@salesforce/b2c-tooling-sdk@2.14.0':
+    resolution: {integrity: sha512-rCrcYxHG17evj/f4Sxts6ykDwt1/7wqkyxVGGaD5Wiv82OuJKklIoIIg4bjCod21nh5nTgBswgFA2wKr+II4xQ==}
+    engines: {node: '>=22.16.0'}
+    peerDependencies:
+      '@oclif/core': ^4
+    peerDependenciesMeta:
+      '@oclif/core':
+        optional: true
+    bundledDependencies:
+      - '@salesforce/b2c-agent-plugins'
       - '@salesforce/b2c-api-schemas'
 
   '@salesforce/mrt-utilities@0.3.4':
@@ -4142,8 +4154,8 @@ packages:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
     engines: {node: '>=8'}
 
-  ansi-regex@6.5.0:
-    resolution: {integrity: sha512-zhvbbbdt1kbw7EJ9OQoxmQcuaNR9P5kTj7e/YdmOSU10aHWbycofJxA6jKfoEy3vlLdctOF9ZHaxLtmSm998wQ==}
+  ansi-regex@6.6.0:
+    resolution: {integrity: sha512-XZ5apbzreCbXSKwPjJstu8R0zOi247w3XYwWxtwBXgpZrCyc1Ka7p9/xY0A9/diMewmHbEKz+FIraWaEWjlN5g==}
     engines: {node: '>=12'}
 
   ansi-styles@3.2.1:
@@ -5717,8 +5729,8 @@ packages:
   fn.name@1.1.0:
     resolution: {integrity: sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==}
 
-  follow-redirects@1.16.2:
-    resolution: {integrity: sha512-/kVP2U8z596Ia0gwFrwyIeo74ta5aVmSeU1FfAUMAmcEP5EP7zydmag3SLiN64NaRKef3lxsq7i/g7ltJQDGow==}
+  follow-redirects@1.16.3:
+    resolution: {integrity: sha512-toOSoqN6d51Wjf1aOFJYcoVv1aND9rj/CwjLU0Vz40oDuSpWDayCeKe4JpL5NL0WdFvoOOCI3BRo69HahjbR1A==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -9400,8 +9412,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.22.1:
-    resolution: {integrity: sha512-oyL6OPYme/CmiFvNuGzeoxCJ4nOrZE2O1FwM9MWM1AsGri6nLXB2pg+lNA8aLeXMSav0J6eIVS1j6vUPzUtK9g==}
+  ws@8.22.2:
+    resolution: {integrity: sha512-/rEZ2ejown2N5gxVTHUu9bVVC7ttu0/Tgzf5hbTOixR3Fs7mbbXgn2DbdbcKgJOmpQMtrIUWivtYuVMnp/W/yA==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -12359,7 +12371,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
 
-  '@salesforce/b2c-cli@2.11.0(@types/node@24.3.0)(bare-buffer@3.7.1)(typescript@5.9.2)':
+  '@salesforce/b2c-cli@2.14.0(@types/node@24.3.0)(bare-buffer@3.7.1)(typescript@5.9.2)':
     dependencies:
       '@inquirer/prompts': 8.2.0(@types/node@24.3.0)
       '@oclif/core': 4.8.0
@@ -12369,7 +12381,7 @@ snapshots:
       '@oclif/plugin-plugins': 5.4.53
       '@oclif/plugin-version': 2.2.36
       '@oclif/plugin-warn-if-update-available': 3.1.52
-      '@salesforce/b2c-tooling-sdk': 2.11.0(@oclif/core@4.8.0)(bare-buffer@3.7.1)(typescript@5.9.2)
+      '@salesforce/b2c-tooling-sdk': 2.14.0(@oclif/core@4.8.0)(bare-buffer@3.7.1)(typescript@5.9.2)
       cliui: 9.0.1
       glob: 13.0.0
       marked: 15.0.12
@@ -12414,7 +12426,7 @@ snapshots:
       - react-native-b4a
       - typescript
 
-  '@salesforce/b2c-tooling-sdk@2.11.0(@oclif/core@4.8.0)(bare-buffer@3.7.1)(typescript@5.9.2)':
+  '@salesforce/b2c-tooling-sdk@2.14.0(@oclif/core@4.8.0)(bare-buffer@3.7.1)(typescript@5.9.2)':
     dependencies:
       '@vscode/debugadapter': 1.68.0
       chokidar: 5.0.0
@@ -13402,7 +13414,7 @@ snapshots:
       sirv: 3.0.2
       tinyrainbow: 3.2.0
       vitest: 4.1.10(@opentelemetry/api@1.10.0)(@types/node@24.3.0)(@vitest/coverage-v8@4.1.10)(@vitest/ui@4.1.10)(jsdom@27.4.0)(msw@2.11.3(@types/node@24.3.0)(typescript@5.9.2))(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))
-      ws: 8.22.1
+      ws: 8.22.2
     transitivePeerDependencies:
       - bufferutil
       - msw
@@ -13623,7 +13635,7 @@ snapshots:
 
   ansi-regex@5.0.1: {}
 
-  ansi-regex@6.5.0: {}
+  ansi-regex@6.6.0: {}
 
   ansi-styles@3.2.1:
     dependencies:
@@ -13752,7 +13764,7 @@ snapshots:
 
   axios@1.18.0(debug@4.4.3):
     dependencies:
-      follow-redirects: 1.16.2(debug@4.4.3)
+      follow-redirects: 1.16.3(debug@4.4.3)
       form-data: 4.0.6
       https-proxy-agent: 5.0.1
       proxy-from-env: 2.1.0
@@ -15404,7 +15416,7 @@ snapshots:
   fn.name@1.1.0:
     optional: true
 
-  follow-redirects@1.16.2(debug@4.4.3):
+  follow-redirects@1.16.3(debug@4.4.3):
     optionalDependencies:
       debug: 4.4.3(supports-color@10.2.2)
 
@@ -15763,7 +15775,7 @@ snapshots:
   http-proxy@1.18.1(debug@4.4.3):
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.16.2(debug@4.4.3)
+      follow-redirects: 1.16.3(debug@4.4.3)
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
@@ -16617,7 +16629,7 @@ snapshots:
       webidl-conversions: 8.0.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 15.1.0
-      ws: 8.22.1
+      ws: 8.22.2
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - '@noble/hashes'
@@ -16956,7 +16968,7 @@ snapshots:
   marked-terminal@7.3.0(marked@15.0.12):
     dependencies:
       ansi-escapes: 7.3.0
-      ansi-regex: 6.5.0
+      ansi-regex: 6.6.0
       chalk: 5.6.2
       cli-highlight: 2.1.11
       cli-table3: 0.6.5
@@ -18067,7 +18079,7 @@ snapshots:
       devtools-protocol: 0.0.1608973
       typed-query-selector: 2.12.3
       webdriver-bidi-protocol: 0.4.1
-      ws: 8.22.1
+      ws: 8.22.2
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
@@ -18083,7 +18095,7 @@ snapshots:
       devtools-protocol: 0.0.1704951
       typed-query-selector: 2.12.3
       webdriver-bidi-protocol: 1.0.1
-      ws: 8.22.1
+      ws: 8.22.2
     transitivePeerDependencies:
       - bufferutil
       - proxy-agent
@@ -18842,7 +18854,7 @@ snapshots:
       recast: 0.23.21
       semver: 7.8.6
       use-sync-external-store: 1.7.0(react@19.2.3)
-      ws: 8.22.1
+      ws: 8.22.2
     optionalDependencies:
       prettier: 3.9.10
     transitivePeerDependencies:
@@ -18931,7 +18943,7 @@ snapshots:
 
   strip-ansi@7.2.0:
     dependencies:
-      ansi-regex: 6.5.0
+      ansi-regex: 6.6.0
 
   strip-bom@3.0.0: {}
 
@@ -19726,7 +19738,7 @@ snapshots:
 
   ws@7.5.13: {}
 
-  ws@8.22.1: {}
+  ws@8.22.2: {}
 
   wsl-utils@0.1.0:
     dependencies:
