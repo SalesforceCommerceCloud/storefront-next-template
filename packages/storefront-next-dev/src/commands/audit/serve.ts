@@ -22,6 +22,7 @@ import { commonFlags } from '../../flags';
 
 export default class Serve extends AuditCommand {
     static override hidden = true;
+    protected static override readonly reportsUsage = false;
     static override summary = 'Serve the dashboard for a finalized audit-result.json or a live run';
     static override examples = ['<%= config.bin %> <%= command.id %> -d ./my-storefront --no-open'];
     static override flags = {

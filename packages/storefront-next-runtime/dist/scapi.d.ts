@@ -35162,11 +35162,10 @@ interface PasswordlessExchangeTokenOptions {
   pwdlessLoginToken: string;
   /**
    * The same user ID (email or phone) that was passed as `userId` to `passwordless.authorize()`
-   * for this login. When provided, SLAS validates it matches the ID used during authorization.
-   * Optional — the token itself encodes the user identity; omit when the email is not available
-   * at exchange time (e.g. magic-link flow where email is not embedded in the URL).
+   * for this login. SLAS validates that this exactly matches the ID used during passwordless
+   * login (no case or whitespace normalization) and rejects the exchange on mismatch.
    */
-  loginId?: string;
+  loginId: string;
   /** Enable Do Not Track for the user */
   dnt?: boolean;
 }
@@ -35244,7 +35243,11 @@ interface SocialGetAuthorizationUrlOptions {
  * Result from getAuthorizationUrl containing the redirect URL and code verifier.
  */
 interface SocialAuthorizationUrlResult {
-  /** The URL to redirect the user to for social login */
+  /**
+   * The URL to redirect the user to for social login. For a public client this is the SLAS
+   * authorize URL; for a private client it's the identity provider URL that SLAS redirected to,
+   * because authorize is called server-side so the client credentials can be sent.
+   */
   url: string;
   /**
    * The PKCE code verifier that must be stored and passed to exchangeCode().

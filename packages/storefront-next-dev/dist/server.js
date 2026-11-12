@@ -1,5 +1,6 @@
 import { t as logger } from "./logger.js";
-import { o as loadRuntimeConfig } from "./config.js";
+import { t as importTypescript } from "./ts-import.js";
+import { c as loadRuntimeConfig } from "./config.js";
 import path from "path";
 import chalk from "chalk";
 import express from "express";
@@ -21,59 +22,6 @@ import { Resource } from "@opentelemetry/resources";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { UndiciInstrumentation } from "@opentelemetry/instrumentation-undici";
 
-//#region src/server/ts-import.ts
-/**
-* Parse TypeScript paths from tsconfig.json and convert to jiti alias format.
-*
-* @param tsconfigPath - Path to tsconfig.json
-* @param projectDirectory - Project root directory for resolving relative paths
-* @returns Record of alias mappings for jiti
-*
-* @example
-* // tsconfig.json: { "compilerOptions": { "paths": { "@/*": ["./src/*"] } } }
-* // Returns: { "@/": "/absolute/path/to/src/" }
-*/
-function parseTsconfigPaths(tsconfigPath, projectDirectory) {
-	const alias = {};
-	if (!existsSync(tsconfigPath)) return alias;
-	try {
-		const tsconfigContent = readFileSync(tsconfigPath, "utf-8");
-		const tsconfig = JSON.parse(tsconfigContent);
-		const paths = tsconfig.compilerOptions?.paths;
-		const baseUrl = tsconfig.compilerOptions?.baseUrl || ".";
-		if (paths) {
-			for (const [key, values] of Object.entries(paths)) if (values && values.length > 0) {
-				const aliasKey = key.replace(/\/\*$/, "/");
-				alias[aliasKey] = resolve(projectDirectory, baseUrl, values[0].replace(/\/\*$/, "/").replace(/^\.\//, ""));
-			}
-		}
-	} catch {}
-	const sortedAlias = {};
-	Object.keys(alias).sort((a, b) => b.length - a.length).forEach((key) => {
-		sortedAlias[key] = alias[key];
-	});
-	return sortedAlias;
-}
-/**
-* Import a TypeScript file using jiti with proper path alias resolution.
-* This is a cross-platform alternative to tsx that works on Windows.
-*
-* @param filePath - Absolute path to the TypeScript file to import
-* @param options - Import options including project directory
-* @returns The imported module
-*/
-async function importTypescript(filePath, options) {
-	const { projectDirectory, tsconfigPath = resolve(projectDirectory, "tsconfig.json") } = options;
-	const { createJiti } = await import("jiti");
-	const alias = parseTsconfigPaths(tsconfigPath, projectDirectory);
-	return createJiti(import.meta.url, {
-		fsCache: false,
-		interopDefault: true,
-		alias
-	}).import(filePath);
-}
-
-//#endregion
 //#region src/server/config.ts
 /**
 * This is a temporary function before we move the config implementation from
@@ -257,6 +205,35 @@ const SKIP_PATTERNS = [
 	"**/*.css.map"
 ];
 /**
+* Query parameters whose values are masked in request logs. Passwordless and password-reset
+* links carry single-use tokens and, in older or merchant-configured links, the shopper email.
+*/
+const REDACTED_LOG_QUERY_PARAMS = Object.freeze([
+	"token",
+	"otpCode",
+	"email",
+	"login_id"
+]);
+/**
+* Masks the values of sensitive query parameters in a request URL so they are not written to
+* request logs. Other parameters are left untouched.
+*/
+function redactUrlForLogging(url) {
+	if (!url) return url;
+	const queryIndex = url.indexOf("?");
+	if (queryIndex === -1) return url;
+	const query = url.slice(queryIndex + 1).split("&").map((pair) => {
+		const separatorIndex = pair.indexOf("=");
+		const rawKey = separatorIndex === -1 ? pair : pair.slice(0, separatorIndex);
+		let key = rawKey;
+		try {
+			key = decodeURIComponent(rawKey);
+		} catch {}
+		return REDACTED_LOG_QUERY_PARAMS.includes(key) ? `${rawKey}=[REDACTED]` : pair;
+	}).join("&");
+	return `${url.slice(0, queryIndex)}?${query}`;
+}
+/**
 * Create request logging middleware
 * Used in dev and preview modes for request visibility
 */
@@ -283,7 +260,7 @@ function createLoggingMiddleware() {
 	return morgan((tokens, req, res) => {
 		return [
 			tokens["method-colored"](req, res),
-			tokens.url(req, res),
+			redactUrlForLogging(tokens.url(req, res)),
 			"-",
 			tokens["status-colored"](req, res),
 			chalk.gray(`(${tokens["response-time"](req, res)}ms)`)

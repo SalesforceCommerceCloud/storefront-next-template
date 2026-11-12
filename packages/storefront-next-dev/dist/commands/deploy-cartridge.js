@@ -1,4 +1,4 @@
-import { i as SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR, t as CARTRIDGES_BASE_DIR } from "../config.js";
+import { i as SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR, r as SFNEXT_BASE_CARTRIDGE_NAME, t as CARTRIDGES_BASE_DIR } from "../config.js";
 import { Flags } from "@oclif/core";
 import path from "path";
 import fs from "fs-extra";
@@ -78,8 +78,12 @@ var Deploy = class Deploy extends CartridgeCommand {
 		const projectDirectory = flags["project-directory"] || process.cwd();
 		if (!fs.existsSync(projectDirectory)) this.error(`Project directory doesn't exist: ${projectDirectory}`);
 		const cartridgesDir = path.join(projectDirectory, CARTRIDGES_BASE_DIR);
-		const metadataDir = path.join(projectDirectory, CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR);
-		if (!fs.existsSync(metadataDir)) this.error(`Metadata directory doesn't exist: ${metadataDir}. Run 'sfnext generate-cartridge' first.`);
+		const { include, exclude } = this.cartridgeOptions;
+		const hasCartridgeFilter = Boolean(include?.length || exclude?.length);
+		const checkBaseMetadata = (directory) => {
+			if (!fs.existsSync(directory)) this.error(`Metadata directory doesn't exist: ${directory}. Run 'sfnext generate-cartridge' first.`);
+		};
+		if (!hasCartridgeFilter) checkBaseMetadata(path.join(projectDirectory, CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR));
 		this.requireServer();
 		this.requireWebDavCredentials();
 		let version = this.resolvedConfig.values.codeVersion;
@@ -98,6 +102,10 @@ var Deploy = class Deploy extends CartridgeCommand {
 		}
 		const cartridges = await this.findCartridgesWithProviders(cartridgesDir);
 		if (cartridges.length === 0) this.error(`No cartridges found in ${cartridgesDir}`);
+		if (hasCartridgeFilter) {
+			const selectedBase = cartridges.find((cartridge) => cartridge.name === SFNEXT_BASE_CARTRIDGE_NAME);
+			if (selectedBase) checkBaseMetadata(path.join(selectedBase.src, "cartridge", "experience"));
+		}
 		this.log(`Deploying to code version "${version}"...`);
 		for (const c of cartridges) this.log(`  ${c.name} (${c.src})`);
 		if (flags.delete) {

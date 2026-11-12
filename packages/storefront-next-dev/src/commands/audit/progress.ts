@@ -24,6 +24,7 @@ import { commonFlags } from '../../flags';
 
 export default class Progress extends AuditCommand {
     static override hidden = true;
+    protected static override readonly reportsUsage = false;
     static override summary = 'Append one live-progress event to the run event log';
     static override examples = [
         '<%= config.bin %> <%= command.id %> --event \'{"type":"log","level":"info","message":"Checking SEO rules"}\'',

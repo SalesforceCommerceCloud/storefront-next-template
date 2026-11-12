@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import path from 'node:path';
 import ValidateCartridge from './validate-cartridge';
 import fs from 'fs-extra';
 import { validateCartridgeMetadata } from '../cartridge-services/validate-cartridge';
@@ -44,10 +45,10 @@ vi.mock('../cartridge-services/validate-cartridge', () => ({
     ),
 }));
 
-function createCommand() {
+function createCommand(flags: Record<string, string> = {}) {
     const cmd = new ValidateCartridge([], {} as never);
     vi.spyOn(cmd as any, 'parse').mockResolvedValue({
-        flags: { 'project-directory': '/test/project' },
+        flags: { 'project-directory': '/test/project', ...flags },
         args: {},
         argv: [],
         raw: [],
@@ -69,6 +70,34 @@ describe('validate-cartridge command', () => {
         await cmd.run();
 
         expect(validateCartridgeMetadata).toHaveBeenCalledWith(expect.stringContaining('app_storefrontnext_base'));
+    });
+
+    it('validates a custom cartridge when --cartridge-name is set', async () => {
+        const cmd = createCommand({ 'cartridge-name': 'app_storefrontnext_refarch' });
+        await cmd.run();
+
+        expect(validateCartridgeMetadata).toHaveBeenCalledWith(
+            path.join('/test/project', 'cartridges', 'app_storefrontnext_refarch', 'cartridge', 'experience')
+        );
+    });
+
+    it('accepts ordinary dots and punctuation in a single cartridge name', async () => {
+        const cartridgeName = 'custom.cartridge-name_v2';
+        const cmd = createCommand({ 'cartridge-name': cartridgeName });
+        await cmd.run();
+
+        expect(validateCartridgeMetadata).toHaveBeenCalledWith(
+            path.join('/test/project', 'cartridges', cartridgeName, 'cartridge', 'experience')
+        );
+    });
+
+    it('validates the base cartridge when --cartridge-name is the base name', async () => {
+        const cmd = createCommand({ 'cartridge-name': 'app_storefrontnext_base' });
+        await cmd.run();
+
+        expect(validateCartridgeMetadata).toHaveBeenCalledWith(
+            path.join('/test/project', 'cartridges', 'app_storefrontnext_base', 'cartridge', 'experience')
+        );
     });
 
     it('should error if project directory does not exist', async () => {
@@ -175,5 +204,30 @@ describe('validate-cartridge command', () => {
         });
 
         await expect(cmd.run()).rejects.toThrow('Validation failed');
+    });
+
+    it.each([
+        '',
+        '.',
+        '..',
+        '../outside',
+        '../../outside',
+        'nested/name',
+        'nested\\name',
+        '/absolute',
+        'C:\\outside',
+        'C:outside',
+        ' ',
+        '\t \n',
+        '\0',
+    ])('rejects invalid --cartridge-name %j before reading metadata', async (cartridgeName) => {
+        const cmd = createCommand({ 'cartridge-name': cartridgeName });
+        vi.spyOn(cmd, 'error').mockImplementation((msg) => {
+            throw new Error(msg as string);
+        });
+
+        await expect(cmd.run()).rejects.toThrow('--cartridge-name');
+        expect(validateCartridgeMetadata).not.toHaveBeenCalled();
+        expect(fs.existsSync).toHaveBeenCalledTimes(1);
     });
 });

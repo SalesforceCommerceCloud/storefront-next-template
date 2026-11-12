@@ -36,7 +36,8 @@ async function sendResetPasswordEmail(
 ): Promise<void> {
     const config = getConfig(context);
     const landingPath = buildUrlFromContext(config.features.resetPassword.landingUri ?? '/reset-password', context);
-    const magicLinkPath = `${landingPath}?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email_id)}`;
+    // Keep the shopper email out of request logs, browser history, and Referer headers.
+    const magicLinkPath = `${landingPath}?token=${encodeURIComponent(token)}`;
 
     await sendNotification(context, { type: 'password-reset', recipient: email_id, data: { magicLinkPath } });
 }
@@ -139,13 +140,12 @@ export async function handleResetPasswordCallback({ request, context }: ActionFu
 
 /**
  * Handles reset password landing page loader
- * Simply passes through to the reset-password route with query parameters
+ * Simply passes through to the reset-password route with the token
  * The reset-password route's loader will handle validation
  */
 export function handleResetPasswordLanding({ request }: LoaderFunctionArgs) {
     const url = new URL(request.url);
     const token = url.searchParams.get('token') || '';
-    const email = url.searchParams.get('email') || '';
 
-    return redirect(`${routes.resetPassword}?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`);
+    return redirect(`${routes.resetPassword}?token=${encodeURIComponent(token)}`);
 }

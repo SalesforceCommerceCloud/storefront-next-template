@@ -18,6 +18,8 @@ import { getPasswordResetToken } from '@/middlewares/auth.server';
 import { getLogger } from '@/lib/logger.server';
 import { extractErrorMessage, getPasswordResetErrorMessageKey } from '@/lib/auth/error-handler';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import { serializePasswordResetEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
+import { redactEmailForLog } from '@/lib/turnstile/log-redact.server';
 
 /**
  * Action endpoint for requesting a password reset email.
@@ -36,10 +38,14 @@ export async function action({ request, context }: ActionFunctionArgs): Promise<
     try {
         // Send password reset token using SLAS and Marketing Cloud
         await getPasswordResetToken(context, { email });
-        logger.info('RequestPasswordReset: reset token sent', { email });
-        return Response.json({ success: true });
+        logger.info('RequestPasswordReset: reset token sent', { email: redactEmailForLog(email) });
+        // Remember the email for the reset page; the reset link doesn't carry it
+        return Response.json(
+            { success: true },
+            { headers: { 'Set-Cookie': await serializePasswordResetEmailCookie(context, email) } }
+        );
     } catch (error) {
-        logger.error('RequestPasswordReset: failed', { error, email });
+        logger.error('RequestPasswordReset: failed', { error, email: redactEmailForLog(email) });
         const errorMessage = extractErrorMessage(error);
         const errorKey = getPasswordResetErrorMessageKey(errorMessage);
         return Response.json({ error: t(errorKey) });

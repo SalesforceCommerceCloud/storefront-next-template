@@ -29,7 +29,7 @@ const meta: Meta<typeof ResetPasswordForm> = {
         docs: {
             description: {
                 component:
-                    'Token-driven password reset. Renders the email read-only with new + confirm password fields and a live `PasswordRequirement` checklist. The `error` prop covers both invalid-credential and expired-link server responses.',
+                    'Token-driven password reset. Renders the email read-only when it is known (otherwise an editable email field) with new + confirm password fields and a live `PasswordRequirement` checklist. The `error` prop covers both invalid-credential and expired-link server responses.',
             },
         },
     },
@@ -42,7 +42,8 @@ const meta: Meta<typeof ResetPasswordForm> = {
         token: { table: { disable: true } },
         email: {
             control: 'text',
-            description: 'Email associated with the reset link; rendered read-only at the top of the form.',
+            description:
+                'Email remembered from the reset request; rendered read-only. When empty, the shopper enters it.',
         },
     },
     args: {
@@ -67,11 +68,26 @@ export const Default: Story = {
         const canvas = within(canvasElement);
 
         const emailInput = canvas.getByLabelText(/^email/i);
-        await expect(emailInput).toBeDisabled();
+        await expect(emailInput).toBeEnabled();
         await expect(emailInput).toHaveValue('user@example.com');
         await expect(canvas.getByLabelText(/^new password/i)).toBeInTheDocument();
         await expect(canvas.getByLabelText(/confirm password/i)).toBeInTheDocument();
         await expect(canvas.getByRole('button', { name: /reset password/i })).toBeInTheDocument();
+    },
+};
+
+export const EmailNotRemembered: Story = {
+    args: {
+        email: '',
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        const emailInput = canvas.getByLabelText(/^email/i);
+        await expect(emailInput).toBeEnabled();
+        await expect(emailInput).toHaveAttribute('name', 'email');
+        await expect(emailInput).toBeRequired();
     },
 };
 

@@ -29,7 +29,7 @@ import {
 import { attemptRouteSeoFallback } from '@/lib/seo/route-fallback.server';
 import { getAllQueryParams, getQueryParam, PRODUCT_SEARCH_QUERY_PARAMS } from '@/lib/query-params';
 import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config';
-import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
+import { siteContext, useSite } from '@salesforce/storefront-next-runtime/site-context';
 import CategoryBreadcrumbs from '@/components/category-breadcrumbs';
 import CategoryPagination from '@/components/category-pagination';
 import LoadMore from '@/components/product-grid/load-more';
@@ -436,6 +436,7 @@ export default function CategoryPage({
     loaderData: CategoryPageData;
 }) {
     const config = useConfig();
+    const { site } = useSite();
     const { t } = useTranslation();
 
     const [filtersOpen, toggleFiltersOpen] = useFiltersPanelState(initialFiltersOpen);
@@ -451,22 +452,36 @@ export default function CategoryPage({
     );
 
     const analytics = useAnalytics();
-    const lastTrackedDataRef = useRef<string | null>(null);
+    const analyticsRef = useRef(analytics);
+    analyticsRef.current = analytics;
+    const consentKey = analytics?.consentKey;
     const resultsHeadingRef = useRef<HTMLHeadingElement>(null);
 
     const location = useLocation();
     const navigation = useNavigation();
     const searchWithoutFiltersParam = useMemo(() => getSearchWithoutFiltersParam(location.search), [location.search]);
-    const pageIdentity = `${categoryId}-${currency}-${locale}`;
-    const analyticsKey = `${pageIdentity}-${searchWithoutFiltersParam}-${location.hash}`;
-    const analyticsSequence = useMemo(() => {
-        let release: (() => void) | undefined;
-        const initial = new Promise<void>((resolve) => {
-            release = resolve;
-        });
-        return { key: analyticsKey, initial, resolveInitial: () => release?.() };
-    }, [analyticsKey]);
+    const isAnalyticsNavigation =
+        navigation.state !== 'idle' &&
+        !!navigation.location &&
+        (navigation.location.pathname !== location.pathname ||
+            getSearchWithoutFiltersParam(navigation.location.search) !== searchWithoutFiltersParam);
+    const pageIdentity = `${site.id}-${categoryId}-${currency}-${locale}`;
     const productGridDataKey = `${pageIdentity}-${searchWithoutFiltersParam}`;
+    const analyticsSequence = useMemo(() => {
+        return {
+            key: `${productGridDataKey}-${initialCount}-${offset}`,
+            initialTracked: false,
+            batches: [] as { result: CategoryProductsResult; tracked: boolean }[],
+            send: undefined as (() => void) | undefined,
+        };
+    }, [productGridDataKey, initialCount, offset]);
+    const currentAnalyticsSequenceRef = useRef<typeof analyticsSequence | null>(null);
+    useEffect(() => {
+        currentAnalyticsSequenceRef.current = analyticsSequence;
+        return () => {
+            currentAnalyticsSequenceRef.current = null;
+        };
+    }, [analyticsSequence]);
     const selectedFiltersCount = useMemo(
         () => new URLSearchParams(location.search).getAll('refine').length,
         [location.search]
@@ -508,31 +523,13 @@ export default function CategoryPage({
     const paginationConfig = uiConfig.pages.category.pagination;
     const isLoadMoreMode = paginationConfig.mode === 'load-more';
 
-    const sendLoadedProducts = useCallback(
-        ({ hits, offset: batchOffset, limit: batchLimit, total: batchTotal }: CategoryProductsResult) => {
-            if (analytics && hits.length > 0) {
-                void analytics.trackViewCategory({
-                    category,
-                    isNavigation: false,
-                    searchResults: hits,
-                    sort:
-                        searchResultCritical.selectedSortingOption ||
-                        searchResultCritical.sortingOptions?.[0]?.label ||
-                        '',
-                    refinements: searchResultCritical.selectedRefinements ?? {},
-                    offset: batchOffset,
-                    limit: batchLimit,
-                    total: batchTotal,
-                });
-            }
-        },
-        [analytics, category, searchResultCritical]
-    );
     const trackLoadedProducts = useCallback(
         (result: CategoryProductsResult) => {
-            void analyticsSequence.initial.then(() => sendLoadedProducts(result));
+            if (currentAnalyticsSequenceRef.current !== analyticsSequence || result.hits.length === 0) return;
+            analyticsSequence.batches.push({ result, tracked: false });
+            analyticsSequence.send?.();
         },
-        [analyticsSequence, sendLoadedProducts]
+        [analyticsSequence]
     );
 
     // "Load more" / infinite scroll: the loader renders the first page (`initialCount` products) and
@@ -652,34 +649,88 @@ export default function CategoryPage({
     }, [filtersOpen]);
 
     useEffect(() => {
-        // Only track if we haven't already tracked this specific data combination
-        if (analyticsSequence.key !== lastTrackedDataRef.current) {
-            lastTrackedDataRef.current = analyticsSequence.key;
-
-            void nonCriticalPromise
-                .then((searchHitsData: ShopperSearch.schemas['ProductSearchHit'][]) => {
-                    if (analytics) {
-                        return analytics.trackViewCategory({
-                            category,
+        if (isAnalyticsNavigation) return;
+        const controller = new AbortController();
+        let running = false;
+        let skipped = false;
+        const send = async () => {
+            if (running || skipped || controller.signal.aborted) return;
+            running = true;
+            try {
+                const searchHitsData = await nonCriticalPromise;
+                if (controller.signal.aborted || !analyticsRef.current) return;
+                const common = {
+                    category,
+                    sort:
+                        searchResultCritical.selectedSortingOption ||
+                        searchResultCritical.sortingOptions?.[0]?.label ||
+                        '',
+                    refinements: searchResultCritical.selectedRefinements ?? {},
+                };
+                if (!analyticsSequence.initialTracked) {
+                    const tracked = await analyticsRef.current.trackViewCategory(
+                        {
+                            ...common,
                             searchResults: [...(searchResultCritical.hits ?? []), ...searchHitsData],
-                            sort:
-                                searchResultCritical.selectedSortingOption ||
-                                searchResultCritical.sortingOptions?.[0]?.label ||
-                                '',
-                            refinements: searchResultCritical.selectedRefinements ?? {},
                             offset: searchResultCritical.offset,
                             limit,
                             total: searchResultCritical.total,
-                        });
+                        },
+                        controller.signal
+                    );
+                    if (tracked === true) analyticsSequence.initialTracked = true;
+                    if (controller.signal.aborted) return;
+                    if (tracked !== true) {
+                        skipped = true;
+                        return;
                     }
-                })
-                .catch(() => {
-                    // Silently handle promise rejection
-                })
-                .finally(analyticsSequence.resolveInitial);
-        }
-        // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [analytics, analyticsSequence, category, nonCriticalPromise]);
+                }
+                // Retain only this view's displayed batches; recovery waits for each mediator handoff.
+                for (const batch of analyticsSequence.batches) {
+                    if (controller.signal.aborted) return;
+                    if (batch.tracked) continue;
+                    const tracked = await analyticsRef.current.trackViewCategory(
+                        {
+                            ...common,
+                            isNavigation: false,
+                            searchResults: batch.result.hits,
+                            offset: batch.result.offset,
+                            limit: batch.result.limit,
+                            total: batch.result.total,
+                        },
+                        controller.signal
+                    );
+                    if (tracked === true) batch.tracked = true;
+                    if (controller.signal.aborted) return;
+                    if (tracked !== true) {
+                        skipped = true;
+                        return;
+                    }
+                }
+            } catch {
+                // Best effort only: do not retry delivery failures.
+                skipped = true;
+            } finally {
+                running = false;
+            }
+        };
+        analyticsSequence.send = () => {
+            void send();
+        };
+        analyticsSequence.send();
+        return () => {
+            controller.abort();
+            analyticsSequence.send = undefined;
+        };
+    }, [
+        consentKey,
+        analyticsSequence,
+        category,
+        nonCriticalPromise,
+        searchResultCritical,
+        limit,
+        isAnalyticsNavigation,
+    ]);
 
     const handleProductClick = useCallback(
         (product: ShopperSearch.schemas['ProductSearchHit']) => {

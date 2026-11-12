@@ -19,6 +19,38 @@ Comprehensive guide for developing components in Salesforce Page Designer system
 
 ## Core Concepts
 
+### PDP and PLP metadata routes
+
+`sfnext generate-cartridge` writes route metadata for the canonical
+`src/routes/_app.p.$.tsx` and `src/routes/_app.c.$.tsx` Page Designer pages using
+`app.defaultSiteId` and that site's `app.url.seoRoutes` entry. Use
+`--site-id <siteId>` to select another configured site, or pass `siteId` in the
+programmatic `generateMetadata` options. Without `seoRoutes`, the metadata uses
+`p/:productId` and `c/:categoryId`; the configured outer `app.url.prefix` stays
+in front of either route.
+
+To generate a site-specific cartridge (no base cartridge required):
+
+```bash
+pnpm cartridge:generate --site-id RefArch --cartridge-name app_storefrontnext_refarch
+pnpm cartridge:validate --cartridge-name app_storefrontnext_refarch
+```
+
+A new `--cartridge-name` scaffolds only `.project` and `<name>.properties`, then
+writes metadata there. Existing non-metadata files are preserved; metadata is
+regenerated. Put the named cartridge **before** `app_storefrontnext_base` in
+that site's cartridge path so the base still supplies hooks and shared
+behavior. Deploy with existing `pnpm cartridge:deploy -c app_storefrontnext_refarch`.
+
+Only the selected site's complete entry is used. A `'*'` entry is the fallback
+for a site without an explicit entry; its fields are not merged with a
+site-specific entry. If the selected site and `'*'` are both missing, or a
+selected prefix is omitted, generation uses the built-in `p` / `c` defaults
+for that resource. The generated PDP/PLP metadata captures only the path
+prefix and ID parameter, not optional product or category slugs. Page Designer
+route metadata represents one site at a time; regenerate for the site's
+prefixes when deploying to a different selected site.
+
 ### Architecture Overview
 
 The Page Designer system has four key concepts:

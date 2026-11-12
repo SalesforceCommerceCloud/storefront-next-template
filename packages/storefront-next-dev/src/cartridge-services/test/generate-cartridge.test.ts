@@ -21,7 +21,9 @@ import { testRoutes, testRoutesWithSiteContext } from './generate-cartridge.data
 
 // Import the actual functions from generate-cartridge for testing
 import { readdir, readFile, writeFile, mkdir, access, rm } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { importTypescript } from '../../server/ts-import';
 
 // Mock node:child_process
 vi.mock('node:child_process', async (importOriginal) => {
@@ -51,6 +53,10 @@ vi.mock('node:fs/promises', () => ({
     mkdir: vi.fn(),
     access: vi.fn(),
     rm: vi.fn(),
+}));
+
+vi.mock('../../server/ts-import', () => ({
+    importTypescript: vi.fn(),
 }));
 
 // Test utility functions (copied from the main script for testing)
@@ -200,13 +206,13 @@ describe('filePathToRoute', () => {
         [
             '/Users/test/project/src/routes/_app.p.$.tsx',
             '/Users/test/project',
-            '/p/*',
+            '/p/:productId',
             'layout route _app with product splat',
         ],
         [
             '/Users/test/project/src/routes/_app.c.$.tsx',
             '/Users/test/project',
-            '/c/*',
+            '/c/:categoryId',
             'layout route _app with category splat',
         ],
 
@@ -226,7 +232,7 @@ describe('filePathToRoute', () => {
         [
             'C:\\Users\\test\\project\\src\\routes\\_app.p.$.tsx',
             'C:\\Users\\test\\project',
-            '/p/*',
+            '/p/:productId',
             'Windows path with product splat',
         ],
 
@@ -279,9 +285,9 @@ describe('filePathToRoute', () => {
             );
         });
 
-        test('resolves a pathless SEO route through its generated alias', () => {
-            const aliasedRoutes = structuredClone(testRoutesWithSiteContext) as any;
-            const appRoutes = aliasedRoutes[0].children[1].children[0].children;
+        test('resolves a pathless SEO parent using the manifest outer prefix', () => {
+            const pathlessRoutes = structuredClone(testRoutesWithSiteContext) as any;
+            const appRoutes = pathlessRoutes[0].children[1].children[0].children;
             const productRoute = appRoutes.find((route: { id: string }) => route.id === 'routes/_app.p.$');
 
             delete productRoute.path;
@@ -292,10 +298,10 @@ describe('filePathToRoute', () => {
                     file: 'app-wrapper.tsx',
                 },
             ];
-            (readFileSync as Mock).mockReturnValue(JSON.stringify(aliasedRoutes));
+            (readFileSync as Mock).mockReturnValue(JSON.stringify(pathlessRoutes));
 
             expect(filePathToRoute('/Users/test/project/src/routes/_app.p.$.tsx', '/Users/test/project')).toBe(
-                '/:siteId/:localeId/p/*'
+                '/:siteId/:localeId/p/:productId'
             );
         });
 
@@ -309,7 +315,7 @@ describe('filePathToRoute', () => {
             [
                 '/Users/test/project/src/routes/_app.p.$.tsx',
                 '/Users/test/project',
-                '/:siteId/:localeId/p/*',
+                '/:siteId/:localeId/p/:productId',
                 'product page under prefix',
             ],
             [
@@ -328,6 +334,365 @@ describe('filePathToRoute', () => {
             const result = filePathToRoute(filePath, projectRoot);
             expect(result).toBe(expected);
         });
+    });
+});
+
+describe('canonical Page Designer SEO routes', () => {
+    const projectDir = resolve('/customer/project');
+    const metadataDir = join(projectDir, 'cartridges', 'pages');
+    const validSeoRoutes = {
+        SiteA: {
+            product: { prefix: 'catalog' },
+            category: { prefix: 'departments', mode: 'id-suffix' },
+        },
+        SiteB: {
+            product: { prefix: 'items' },
+            category: { prefix: 'collections', mode: 'slug-path' },
+        },
+        '*': {
+            product: { prefix: 'products' },
+            category: { prefix: 'categories', mode: 'id-suffix' },
+        },
+    };
+
+    const productPageCode = `
+        @PageType({
+            name: 'Product Detail Page',
+            description: 'Product detail page with product information, images, and recommendations',
+            supportedAspectTypes: ['pdp'],
+        })
+        @RegionDefinition([
+            { id: 'promoContent', name: 'Promo Content Region', maxComponents: 1 }
+        ])
+        class ProductDetailPage {
+            @AttributeDefinition()
+            productId: string;
+        }
+    `;
+
+    const categoryPageCode = `
+        @PageType({
+            name: 'Product Listing Page',
+            description: 'Product listing page with product listings and personalized content',
+            supportedAspectTypes: ['plp'],
+        })
+        @RegionDefinition([
+            { id: 'plpTopFullWidth', name: 'Top Full Width Region', maxComponents: 1 }
+        ])
+        class ProductListingPage {
+            @AttributeDefinition()
+            categoryId: string;
+        }
+    `;
+
+    const siteAConfig = { app: { defaultSiteId: 'SiteA', url: { seoRoutes: validSeoRoutes } } };
+    const configPath = join(projectDir, 'config.server.ts');
+
+    function pageSource(filePath: unknown) {
+        return String(filePath).includes('_app.c.$.tsx') ? categoryPageCode : productPageCode;
+    }
+
+    function withPathlessParent(
+        routeId: string,
+        aliases: Array<{ suffix: string; path: string }>,
+        source = testRoutesWithSiteContext
+    ) {
+        const routes = structuredClone(source) as any;
+        const route = routes[0].children[1].children[0].children.find((entry: { id: string }) => entry.id === routeId);
+        delete route.path;
+        route.children = aliases.map(({ suffix, path }) => ({
+            id: `${routeId}--seo-alias--${suffix}`,
+            path,
+            file: 'app-wrapper.tsx',
+        }));
+        return routes;
+    }
+
+    function mockGeneration(config?: unknown, routes: unknown = testRoutesWithSiteContext) {
+        vi.mocked(readFileSync).mockReturnValue(JSON.stringify(routes));
+        vi.mocked(existsSync).mockImplementation((path) => String(path) === configPath && config !== undefined);
+        vi.mocked(importTypescript).mockResolvedValue({ default: config } as never);
+    }
+
+    function setupPageGeneration(pageFile: string, code: string, config?: unknown, siteId?: string) {
+        mockGeneration(config);
+        vi.mocked(readFile).mockResolvedValue(code);
+        return generateMetadata(projectDir, metadataDir, {
+            filePaths: [`src/routes/${pageFile}`],
+            lintFix: false,
+            ...(siteId ? { siteId } : {}),
+        });
+    }
+
+    function writtenPages() {
+        return Object.fromEntries(
+            vi
+                .mocked(writeFile)
+                .mock.calls.map(([outputPath, contents]) => [String(outputPath), JSON.parse(contents as string)])
+        );
+    }
+
+    function writtenRoute() {
+        return JSON.parse(vi.mocked(writeFile).mock.calls[0][1] as string).route;
+    }
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.mocked(existsSync).mockReturnValue(false);
+        vi.mocked(rm).mockResolvedValue(undefined);
+        vi.mocked(mkdir).mockResolvedValue(undefined);
+        vi.mocked(access).mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
+        vi.mocked(readFileSync).mockReturnValue(JSON.stringify(testRoutesWithSiteContext));
+        vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+    });
+
+    test('uses default p/c IDs when config.server.ts is absent and retains the manifest outer prefix', async () => {
+        await setupPageGeneration('_app.p.$.tsx', productPageCode);
+        expect(writtenRoute()).toBe('/:siteId/:localeId/p/:productId');
+    });
+
+    test('uses the default site SEO prefixes', async () => {
+        await setupPageGeneration('_app.p.$.tsx', productPageCode, siteAConfig);
+        expect(writtenRoute()).toBe('/:siteId/:localeId/catalog/:productId');
+        expect(importTypescript).toHaveBeenCalledWith(configPath, { projectDirectory: projectDir });
+    });
+
+    test('uses the explicitly selected site and emits categoryId for slug-path', async () => {
+        await setupPageGeneration('_app.c.$.tsx', categoryPageCode, siteAConfig, 'SiteB');
+        expect(writtenRoute()).toBe('/:siteId/:localeId/collections/:categoryId');
+    });
+
+    test('uses the whole wildcard entry when the selected site has no entry', async () => {
+        await setupPageGeneration('_app.p.$.tsx', productPageCode, {
+            app: { defaultSiteId: 'Unlisted', url: { seoRoutes: validSeoRoutes } },
+        });
+        expect(writtenRoute()).toBe('/:siteId/:localeId/products/:productId');
+    });
+
+    test('does not merge a site entry with the wildcard entry', async () => {
+        await setupPageGeneration('_app.c.$.tsx', categoryPageCode, {
+            app: {
+                defaultSiteId: 'SiteA',
+                url: {
+                    seoRoutes: {
+                        SiteA: { product: { prefix: 'catalog' } },
+                        '*': {
+                            product: { prefix: 'products' },
+                            category: { prefix: 'categories', mode: 'id-suffix' },
+                        },
+                    },
+                },
+            },
+        });
+        expect(writtenRoute()).toBe('/:siteId/:localeId/c/:categoryId');
+    });
+
+    test('uses a configured prefix that no alias represents, retaining the manifest outer prefix', () => {
+        mockGeneration(
+            undefined,
+            withPathlessParent('routes/_app.p.$', [
+                { suffix: 'a', path: 'a/*' },
+                { suffix: 'z', path: 'z/*' },
+            ])
+        );
+
+        expect(
+            filePathToRoute('/Users/test/project/src/routes/_app.p.$.tsx', '/Users/test/project', {
+                product: 'items',
+                category: 'c',
+            })
+        ).toBe('/:siteId/:localeId/items/:productId');
+    });
+
+    test('uses p/c defaults when an existing config omits seoRoutes', async () => {
+        await setupPageGeneration('_app.p.$.tsx', productPageCode, { app: { defaultSiteId: 'SiteA' } });
+        expect(writtenRoute()).toBe('/:siteId/:localeId/p/:productId');
+    });
+
+    test('leaves non-PDP/PLP metadata routes unchanged', () => {
+        expect(
+            filePathToRoute('/Users/test/project/src/routes/_app.search.tsx', '/Users/test/project', {
+                product: 'catalog',
+                category: 'departments',
+            })
+        ).toBe('/:siteId/:localeId/search');
+    });
+
+    test('keeps the pathless parent prefix when falling back to p/c with no matching alias', () => {
+        mockGeneration(undefined, withPathlessParent('routes/_app.p.$', [{ suffix: 'catalog', path: 'catalog/*' }]));
+
+        expect(
+            filePathToRoute('/Users/test/project/src/routes/_app.p.$.tsx', '/Users/test/project', {
+                product: 'p',
+                category: 'c',
+            })
+        ).toBe('/:siteId/:localeId/p/:productId');
+    });
+
+    test('keeps a one-segment pathless parent prefix when falling back to p/c', () => {
+        const oneSegmentRoutes = {
+            id: 'root',
+            path: '',
+            file: 'root.tsx',
+            children: [
+                {
+                    id: 'locale-wrapper',
+                    file: 'locale-wrapper.tsx',
+                    path: ':localeId',
+                    children: [
+                        {
+                            id: 'routes/_app.p.$',
+                            file: 'routes/_app.p.$.tsx',
+                            children: [
+                                {
+                                    id: 'routes/_app.p.$--seo-alias--catalog',
+                                    path: 'catalog/*',
+                                    file: 'app-wrapper.tsx',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+        (readFileSync as Mock).mockReturnValue(JSON.stringify([oneSegmentRoutes]));
+
+        expect(
+            filePathToRoute('/Users/test/project/src/routes/_app.p.$.tsx', '/Users/test/project', {
+                product: 'p',
+            })
+        ).toBe('/:localeId/p/:productId');
+    });
+
+    test('uses p/c defaults when the selected site and wildcard are both missing', async () => {
+        await setupPageGeneration('_app.p.$.tsx', productPageCode, {
+            app: { defaultSiteId: 'Unlisted', url: { seoRoutes: { SiteA: validSeoRoutes.SiteA } } },
+        });
+        expect(writtenRoute()).toBe('/:siteId/:localeId/p/:productId');
+    });
+
+    test('loads config.server.ts once when both canonical PDP and PLP files are processed', async () => {
+        mockGeneration(siteAConfig);
+        vi.mocked(readFile).mockImplementation((path) => Promise.resolve(pageSource(path)));
+
+        const result = await generateMetadata(projectDir, metadataDir, {
+            filePaths: ['src/routes/_app.p.$.tsx', 'src/routes/_app.c.$.tsx'],
+            lintFix: false,
+        });
+
+        expect(result.pageTypesGenerated).toBe(2);
+        expect(importTypescript).toHaveBeenCalledTimes(1);
+        expect(vi.mocked(writeFile)).toHaveBeenCalledTimes(2);
+
+        const pages = writtenPages();
+        expect(pages[join(metadataDir, 'pages', 'productDetailPage.json')]).toEqual({
+            name: 'Product Detail Page',
+            description: 'Product detail page with product information, images, and recommendations',
+            arch_type: 'headless',
+            region_definitions: [
+                {
+                    id: 'promoContent',
+                    name: 'Promo Content Region',
+                    max_components: 1,
+                },
+            ],
+            attribute_definition_groups: [
+                {
+                    id: 'productdetailpage',
+                    name: 'Product Detail Page',
+                    description: 'Product detail page with product information, images, and recommendations',
+                    attribute_definitions: [
+                        {
+                            id: 'productId',
+                            name: 'Product Id',
+                            type: 'string',
+                            required: true,
+                            description: 'Field: productId',
+                        },
+                    ],
+                },
+            ],
+            supported_aspect_types: ['pdp'],
+            route: '/:siteId/:localeId/catalog/:productId',
+        });
+        expect(pages[join(metadataDir, 'pages', 'productListingPage.json')]).toEqual({
+            name: 'Product Listing Page',
+            description: 'Product listing page with product listings and personalized content',
+            arch_type: 'headless',
+            region_definitions: [
+                {
+                    id: 'plpTopFullWidth',
+                    name: 'Top Full Width Region',
+                    max_components: 1,
+                },
+            ],
+            attribute_definition_groups: [
+                {
+                    id: 'productlistingpage',
+                    name: 'Product Listing Page',
+                    description: 'Product listing page with product listings and personalized content',
+                    attribute_definitions: [
+                        {
+                            id: 'categoryId',
+                            name: 'Category Id',
+                            type: 'string',
+                            required: true,
+                            description: 'Field: categoryId',
+                        },
+                    ],
+                },
+            ],
+            supported_aspect_types: ['plp'],
+            route: '/:siteId/:localeId/departments/:categoryId',
+        });
+    });
+
+    test('uses the wildcard SEO prefixes when defaultSiteId is missing', async () => {
+        await setupPageGeneration('_app.p.$.tsx', productPageCode, {
+            app: { url: { seoRoutes: validSeoRoutes } },
+        });
+        expect(writtenRoute()).toBe('/:siteId/:localeId/products/:productId');
+    });
+
+    test('generates configured PDP and PLP routes when scanning the project', async () => {
+        const pathlessRoutes = withPathlessParent(
+            'routes/_app.c.$',
+            [{ suffix: 'departments', path: 'departments/*' }],
+            withPathlessParent('routes/_app.p.$', [{ suffix: 'catalog', path: 'catalog/*' }])
+        );
+        mockGeneration(siteAConfig, pathlessRoutes);
+        vi.mocked(readFile).mockImplementation((path) => Promise.resolve(pageSource(path)));
+        vi.mocked(readdir).mockImplementation((dir) =>
+            Promise.resolve(
+                ({
+                    [join(projectDir, 'src')]: [{ name: 'routes', isDirectory: () => true, isFile: () => false }],
+                    [join(projectDir, 'src', 'routes')]: [
+                        { name: '_app.p.$.tsx', isDirectory: () => false, isFile: () => true },
+                        { name: '_app.c.$.tsx', isDirectory: () => false, isFile: () => true },
+                    ],
+                }[String(dir)] ?? []) as never
+            )
+        );
+        vi.mocked(access).mockImplementation((path) => {
+            if (String(path).endsWith('config-metadata')) {
+                return Promise.reject(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
+            }
+            return Promise.resolve();
+        });
+
+        const result = await generateMetadata(projectDir, metadataDir, { lintFix: false });
+        const pages = writtenPages();
+
+        expect(result.pageTypesGenerated).toBe(2);
+        expect(importTypescript).toHaveBeenCalledTimes(1);
+        expect(vi.mocked(writeFile)).toHaveBeenCalledTimes(2);
+        expect(pages[join(metadataDir, 'pages', 'productDetailPage.json')].route).toBe(
+            '/:siteId/:localeId/catalog/:productId'
+        );
+        expect(pages[join(metadataDir, 'pages', 'productListingPage.json')].route).toBe(
+            '/:siteId/:localeId/departments/:categoryId'
+        );
     });
 });
 

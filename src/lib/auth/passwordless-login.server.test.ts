@@ -390,7 +390,7 @@ describe('passwordless-login', () => {
     });
 
     describe('handlePasswordlessLanding', () => {
-        it('should pass through token to /login (email not forwarded — PII not in URL)', () => {
+        it('should pass through token without email to /login', () => {
             const mockRequest = {
                 url: 'https://example.com/passwordless-landing?token=valid-token',
             } as any;

@@ -236,6 +236,7 @@ await clients.auth.passwordless.authorize({
 const pwdlessToken = getQueryParam('dwsgst'); // Token from URL
 const { data: tokens } = await clients.auth.passwordless.exchangeToken({
   pwdlessLoginToken: pwdlessToken,
+  loginId: 'user@example.com', // same userId sent to authorize()
 });
 ```
 

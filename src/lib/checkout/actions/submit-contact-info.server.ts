@@ -24,6 +24,7 @@ import { updateBillingAddressForBasket } from '@/lib/api/basket.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { getLogger } from '@/lib/logger.server';
 import { getLoginPreferences } from '@/lib/login-preferences.server';
+import { serializePasswordlessEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
 import { ACTION_HOOK_IDS, runHookSafe } from '@/targets/action-hook.server';
 
 /**
@@ -122,9 +123,12 @@ export async function action(formData: FormData, context: ActionFunctionArgs['co
     // (called from contact-info.tsx) is where the requiresLogin response is consumed and
     // the standard login modal is opened.
     const { emailVerificationEnabled } = await getLoginPreferences(context);
+    const responseHeaders = new Headers();
     if (emailVerificationEnabled && email?.trim()) {
         try {
             await authorizePasswordless(context, { userid: email.trim(), strictVerify: true });
+            // Remember the email for the magic-link landing page; the link doesn't carry it
+            responseHeaders.append('Set-Cookie', await serializePasswordlessEmailCookie(context, email.trim()));
         } catch (error) {
             logger.error('SubmitContactInfo: failed to send passwordless OTP', { error });
         }
@@ -140,13 +144,16 @@ export async function action(formData: FormData, context: ActionFunctionArgs['co
 
     logger.info('SubmitContactInfo: succeeded', { basketId });
 
-    return Response.json({
-        success: true,
-        step: 'contactInfo',
-        data: {
-            email,
-            phone: fullPhone,
+    return Response.json(
+        {
+            success: true,
+            step: 'contactInfo',
+            data: {
+                email,
+                phone: fullPhone,
+            },
+            basket: updatedBasket,
         },
-        basket: updatedBasket,
-    });
+        { headers: responseHeaders }
+    );
 }

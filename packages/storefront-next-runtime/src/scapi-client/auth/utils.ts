@@ -113,6 +113,20 @@ export function createBasicAuthHeader(clientId: string, clientSecret: string): s
 }
 
 /**
+ * Creates the SLAS strict client auth header value (`x-slas-client-auth`) from client credentials.
+ *
+ * Unlike {@link createBasicAuthHeader}, the value is the raw Base64 encoding with no `Basic ` prefix.
+ * SLAS validates it on `/oauth2/login`, where `Authorization` already carries the shopper credentials.
+ *
+ * @param clientId - The client ID
+ * @param clientSecret - The client secret
+ * @returns The raw Base64 encoding of `clientId:clientSecret`
+ */
+export function createSlasClientAuthHeader(clientId: string, clientSecret: string): string {
+    return btoa(`${clientId}:${clientSecret}`);
+}
+
+/**
  * Extract a cookie value from the Set-Cookie response header.
  *
  * @param response - The fetch Response object

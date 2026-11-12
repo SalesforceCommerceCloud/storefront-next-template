@@ -15,7 +15,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
-import { createLoggingMiddleware } from './logging';
+import { createLoggingMiddleware, redactUrlForLogging } from './logging';
 
 describe('logging middleware', () => {
     let mockRequest: Partial<Request>;
@@ -290,5 +290,40 @@ describe('logging middleware', () => {
             middleware(mockRequest as Request, mockResponse as Response, nextFunction);
             expect(nextFunction).toHaveBeenCalled();
         });
+    });
+});
+
+describe('redactUrlForLogging', () => {
+    it('masks the passwordless magic-link token', () => {
+        expect(redactUrlForLogging('/global/en-GB/login?token=20533860')).toBe('/global/en-GB/login?token=[REDACTED]');
+    });
+
+    it('masks email, login_id, and otpCode while keeping other params', () => {
+        expect(
+            redactUrlForLogging(
+                '/login?otpCode=12345678&email=shopper%2Btag%40example.com&returnUrl=%2Fcart&login_id=a@b.com'
+            )
+        ).toBe('/login?otpCode=[REDACTED]&email=[REDACTED]&returnUrl=%2Fcart&login_id=[REDACTED]');
+    });
+
+    it('masks encoded parameter names', () => {
+        expect(redactUrlForLogging('/login?%74oken=abc')).toBe('/login?%74oken=[REDACTED]');
+    });
+
+    it('masks a sensitive param that has no value', () => {
+        expect(redactUrlForLogging('/login?token')).toBe('/login?token=[REDACTED]');
+    });
+
+    it('leaves malformed parameter names untouched', () => {
+        expect(redactUrlForLogging('/login?%E0%A4%A=1&token=abc')).toBe('/login?%E0%A4%A=1&token=[REDACTED]');
+    });
+
+    it('returns URLs without a query string unchanged', () => {
+        expect(redactUrlForLogging('/global/en-GB/login')).toBe('/global/en-GB/login');
+        expect(redactUrlForLogging(undefined)).toBeUndefined();
+    });
+
+    it('does not mask params that only contain a sensitive name', () => {
+        expect(redactUrlForLogging('/search?q=token&emailOptIn=true')).toBe('/search?q=token&emailOptIn=true');
     });
 });

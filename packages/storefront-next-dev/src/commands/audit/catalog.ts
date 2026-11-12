@@ -20,6 +20,7 @@ import { commonFlags } from '../../flags';
 
 export default class Catalog extends AuditCommand {
     static override hidden = true;
+    protected static override readonly reportsUsage = false;
     static override summary = 'Inspect the discovered category and rule catalog';
     static override examples = ['<%= config.bin %> <%= command.id %>'];
     static override flags = {

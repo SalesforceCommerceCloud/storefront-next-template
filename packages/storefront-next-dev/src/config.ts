@@ -20,8 +20,31 @@ import type { MrtSsrConfig } from './types';
 
 export const CARTRIDGES_BASE_DIR = 'cartridges';
 export const SFNEXT_BASE_CARTRIDGE_NAME = 'app_storefrontnext_base';
-export const SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR = `${SFNEXT_BASE_CARTRIDGE_NAME}/cartridge/experience`;
 export const SFNEXT_BASE_CARTRIDGE_VERSION = '0.0.1';
+
+/**
+ * Reject path-like `--cartridge-name` values before they are joined under `cartridges/`.
+ * Invalid input is rejected as-is; it is not trimmed or sanitized.
+ */
+export function assertValidCartridgeName(cartridgeName: string): void {
+    if (
+        cartridgeName.trim().length === 0 ||
+        cartridgeName === '.' ||
+        cartridgeName === '..' ||
+        /[\\/]/.test(cartridgeName) ||
+        cartridgeName.includes('\0') ||
+        /^[a-zA-Z]:/.test(cartridgeName)
+    ) {
+        throw new Error('Invalid --cartridge-name: must be a single cartridge name, not a path.');
+    }
+}
+
+/** Metadata directory relative to `cartridges/`, for the given cartridge name. */
+export function cartridgeExperienceDir(cartridgeName = SFNEXT_BASE_CARTRIDGE_NAME): string {
+    return `${cartridgeName}/cartridge/experience`;
+}
+
+export const SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR = cartridgeExperienceDir();
 
 /**
  * When enabled, automatically generates and deploys cartridge metadata before an MRT push.

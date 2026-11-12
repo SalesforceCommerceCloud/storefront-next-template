@@ -2,7 +2,7 @@ import "../package.js";
 import { t as logger } from "../logger.js";
 import "../logger2.js";
 import { i as getMrtConfig, n as getDefaultBuildDir, r as getDefaultMessage } from "../utils.js";
-import { a as buildMrtConfig } from "../config.js";
+import { o as buildMrtConfig } from "../config.js";
 import { i as commonFlags, t as BUNDLE_VERSIONS } from "../flags.js";
 import { n as createBundle, r as getBundleDependencies, t as toV2SsrParameters } from "../bundle-v2.js";
 import { Command, Flags } from "@oclif/core";

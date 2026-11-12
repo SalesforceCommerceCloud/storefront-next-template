@@ -32,6 +32,7 @@ vi.mock('./utils', () => ({
         };
     }),
     createBasicAuthHeader: vi.fn((clientId: string, secret: string) => `Basic ${btoa(`${clientId}:${secret}`)}`),
+    createSlasClientAuthHeader: vi.fn((clientId: string, secret: string) => btoa(`${clientId}:${secret}`)),
     extractCookieFromResponse: vi.fn((response: Response, cookieName: string) => {
         const setCookie = response.headers.get('set-cookie');
         if (!setCookie) return undefined;
@@ -308,6 +309,21 @@ describe('createAuthHelpers', () => {
                 password: 'password123',
             });
 
+            // Should send both the shopper credentials and the client credentials on /oauth2/login
+            expect(mockShopperLoginClient.authenticateCustomer).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    params: {
+                        header: {
+                            Authorization: `Basic ${btoa('test@example.com:password123')}`,
+                        },
+                    },
+                    headers: {
+                        ...FORM_URLENCODED_HEADER,
+                        'x-slas-client-auth': btoa('test-client-id:test-secret'),
+                    },
+                })
+            );
+
             // Should include client secret auth header for token exchange
             expect(mockShopperLoginClient.getAccessToken).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -510,6 +526,67 @@ describe('createAuthHelpers', () => {
                 // Should not have double slashes
                 expect(result.url).not.toContain('//shopper');
                 expect(result.url).toContain('salesforce.com/shopper');
+            });
+
+            it('should not call authorize server-side for public client', async () => {
+                const auth = createAuthHelpers(baseConfig);
+                await auth.social.getAuthorizationUrl({ hint: 'google' });
+
+                expect(mockShopperLoginClient.authorizeCustomer).not.toHaveBeenCalled();
+            });
+
+            describe('with private client (clientSecret)', () => {
+                const privateConfig: AuthConfig = {
+                    ...baseConfig,
+                    clientSecret: 'test-secret',
+                };
+                const idpUrl = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=idp-client&state=%7Babc%7D';
+
+                it('should call authorize server-side with x-slas-client-auth and return the IdP redirect', async () => {
+                    mockShopperLoginClient.authorizeCustomer.mockResolvedValue({
+                        data: undefined,
+                        response: { headers: new Headers({ location: idpUrl }) },
+                    });
+
+                    const auth = createAuthHelpers(privateConfig);
+                    const result = await auth.social.getAuthorizationUrl({
+                        hint: 'google',
+                        redirectUri: 'https://custom.com/social-callback',
+                        usid: 'existing-session-usid',
+                    });
+
+                    expect(mockShopperLoginClient.authorizeCustomer).toHaveBeenCalledWith({
+                        params: {
+                            query: {
+                                client_id: 'test-client-id',
+                                channel_id: 'RefArch',
+                                redirect_uri: 'https://custom.com/social-callback',
+                                response_type: 'code',
+                                hint: 'google',
+                                code_challenge: 'mock-code-challenge-456',
+                                usid: 'existing-session-usid',
+                            },
+                        },
+                        headers: {
+                            'x-slas-client-auth': btoa('test-client-id:test-secret'),
+                        },
+                        redirect: 'manual',
+                    });
+                    expect(result).toEqual({ url: idpUrl, codeVerifier: 'mock-code-verifier-123' });
+                });
+
+                it('should throw if authorize returns no redirect location', async () => {
+                    mockShopperLoginClient.authorizeCustomer.mockResolvedValue({
+                        data: undefined,
+                        response: { headers: new Headers() },
+                    });
+
+                    const auth = createAuthHelpers(privateConfig);
+
+                    await expect(auth.social.getAuthorizationUrl({ hint: 'google' })).rejects.toThrow(
+                        'Failed to get identity provider redirect from social authorization'
+                    );
+                });
             });
         });
 
@@ -957,35 +1034,12 @@ describe('createAuthHelpers', () => {
                 expect(exchangeCallBody.channel_id).toBe('RefArch');
             });
 
-            it('should omit login_id when loginId is absent or empty', async () => {
-                const config: AuthConfig = {
-                    ...baseConfig,
-                    clientSecret: 'test-secret',
-                };
-
-                mockShopperLoginClient.getPasswordLessAccessToken.mockResolvedValue({
-                    data: mockTokenResponse,
-                    response: new Response(),
-                });
-
-                const auth = createAuthHelpers(config);
-
-                await auth.passwordless.exchangeToken({
-                    pwdlessLoginToken: 'some-token',
-                });
-
-                const bodyWithoutLoginId = mockShopperLoginClient.getPasswordLessAccessToken.mock.calls[0][0].body;
-                expect(bodyWithoutLoginId.login_id).toBeUndefined();
-
-                mockShopperLoginClient.getPasswordLessAccessToken.mockClear();
-
-                await auth.passwordless.exchangeToken({
-                    pwdlessLoginToken: 'some-token',
-                    loginId: '',
-                });
-
-                const bodyWithEmptyLoginId = mockShopperLoginClient.getPasswordLessAccessToken.mock.calls[0][0].body;
-                expect(bodyWithEmptyLoginId.login_id).toBeUndefined();
+            it.each([undefined, '', '   '])('rejects a missing or blank loginId', async (loginId) => {
+                const auth = createAuthHelpers({ ...baseConfig, clientSecret: 'test-secret' });
+                await expect(
+                    auth.passwordless.exchangeToken({ pwdlessLoginToken: 'some-token', loginId } as never)
+                ).rejects.toThrow('loginId is required for passwordless token exchange');
+                expect(mockShopperLoginClient.getPasswordLessAccessToken).not.toHaveBeenCalled();
             });
 
             it('should throw error when clientSecret is not provided', async () => {

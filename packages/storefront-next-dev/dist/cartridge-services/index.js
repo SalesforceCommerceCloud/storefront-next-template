@@ -1,7 +1,7 @@
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
 import { Node, Project } from "ts-morph";
-import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
@@ -101,6 +101,14 @@ const logger = {
 
 //#endregion
 //#region src/cartridge-services/react-router-config.ts
+const DEFAULT_PAGE_DESIGNER_PREFIXES = {
+	product: "p",
+	category: "c"
+};
+const PAGE_DESIGNER_PARAMETER_NAMES = {
+	product: "productId",
+	category: "categoryId"
+};
 let isCliAvailable = null;
 function filePathEndsWithRoute(filePath, routeFile) {
 	const routeFileNormalized = routeFile.replace(/^\.\//, "");
@@ -169,18 +177,26 @@ function getReactRouterRoutes(projectDirectory) {
 }
 /**
 * Convert a file path to its corresponding route path using React Router's CLI.
-* This ensures we get the exact same route resolution as React Router uses internally.
+* PDP/PLP paths use configured prefixes and named ID parameters for Page Designer.
 * @param filePath - Absolute path to the route file
 * @param projectRoot - The project root directory
-* @returns The route path (e.g., '/cart', '/p/*')
+* @param seoPrefixes - Optional selected site's PDP/PLP prefixes. Defaults to p/c.
+* @returns The computed Page Designer route path (e.g., '/cart', '/p/:productId')
 * @example
 * const route = filePathToRoute('/path/to/project/src/routes/_app.cart.tsx', '/path/to/project');
 * // Returns: '/cart'
 */
-function filePathToRoute(filePath, projectRoot) {
+function filePathToRoute(filePath, projectRoot, seoPrefixes) {
 	const filePathPosix = filePath.replace(/\\/g, "/");
 	const canonicalRoutes = flattenRoutes(getReactRouterRoutes(projectRoot)).filter((route) => !route.id.endsWith("--root-duplicate"));
 	for (const route of canonicalRoutes) if (routeFileMatches(filePathPosix, route.file.replace(/\\/g, "/"))) {
+		const routeFileName = route.id.split("/").at(-1);
+		const seoResource = routeFileName === "_app.p.$" ? "product" : routeFileName === "_app.c.$" ? "category" : void 0;
+		if (seoResource) {
+			const configuredPrefix = seoPrefixes?.[seoResource] ?? DEFAULT_PAGE_DESIGNER_PREFIXES[seoResource];
+			const pathSegments = (route.path ?? "").split("/").filter(Boolean);
+			return `${`/${(pathSegments.at(-1) === "*" ? pathSegments.slice(0, -2) : pathSegments).join("/")}`.replace(/\/$/, "")}/${configuredPrefix}/:${PAGE_DESIGNER_PARAMETER_NAMES[seoResource]}`.replace(/\/+/g, "/");
+		}
 		const seoAliases = canonicalRoutes.filter((candidate) => candidate.id.startsWith(`${route.id}--seo-alias--`)).sort((left, right) => left.path.localeCompare(right.path));
 		if (seoAliases.length > 0) {
 			if (seoAliases.length > 1) logger.warn(`Multiple SEO route aliases match ${filePath}; using ${seoAliases[0].path} for Page Designer metadata.`);
@@ -272,6 +288,59 @@ function resolveBiomeBin(filePath) {
 		return join$1(dirname(biomePkgJson), bin.biome);
 	} catch {}
 	return null;
+}
+
+//#endregion
+//#region src/server/ts-import.ts
+/**
+* Parse TypeScript paths from tsconfig.json and convert to jiti alias format.
+*
+* @param tsconfigPath - Path to tsconfig.json
+* @param projectDirectory - Project root directory for resolving relative paths
+* @returns Record of alias mappings for jiti
+*
+* @example
+* // tsconfig.json: { "compilerOptions": { "paths": { "@/*": ["./src/*"] } } }
+* // Returns: { "@/": "/absolute/path/to/src/" }
+*/
+function parseTsconfigPaths(tsconfigPath, projectDirectory) {
+	const alias = {};
+	if (!existsSync(tsconfigPath)) return alias;
+	try {
+		const tsconfigContent = readFileSync(tsconfigPath, "utf-8");
+		const tsconfig = JSON.parse(tsconfigContent);
+		const paths = tsconfig.compilerOptions?.paths;
+		const baseUrl = tsconfig.compilerOptions?.baseUrl || ".";
+		if (paths) {
+			for (const [key, values] of Object.entries(paths)) if (values && values.length > 0) {
+				const aliasKey = key.replace(/\/\*$/, "/");
+				alias[aliasKey] = resolve(projectDirectory, baseUrl, values[0].replace(/\/\*$/, "/").replace(/^\.\//, ""));
+			}
+		}
+	} catch {}
+	const sortedAlias = {};
+	Object.keys(alias).sort((a, b) => b.length - a.length).forEach((key) => {
+		sortedAlias[key] = alias[key];
+	});
+	return sortedAlias;
+}
+/**
+* Import a TypeScript file using jiti with proper path alias resolution.
+* This is a cross-platform alternative to tsx that works on Windows.
+*
+* @param filePath - Absolute path to the TypeScript file to import
+* @param options - Import options including project directory
+* @returns The imported module
+*/
+async function importTypescript(filePath, options) {
+	const { projectDirectory, tsconfigPath = resolve(projectDirectory, "tsconfig.json") } = options;
+	const { createJiti } = await import("jiti");
+	const alias = parseTsconfigPaths(tsconfigPath, projectDirectory);
+	return createJiti(import.meta.url, {
+		fsCache: false,
+		interopDefault: true,
+		alias
+	}).import(filePath);
 }
 
 //#endregion
@@ -629,7 +698,7 @@ async function processComponentFile(filePath, _projectRoot) {
 		return [];
 	}
 }
-async function processPageTypeFile(filePath, projectRoot) {
+async function processPageTypeFile(filePath, projectRoot, seoPrefixes) {
 	try {
 		const content = await readFile(filePath, "utf-8");
 		const pageTypes = [];
@@ -648,7 +717,7 @@ async function processPageTypeFile(filePath, projectRoot) {
 				const pageTypeConfig = parseDecoratorArgs(pageTypeDecorator);
 				const attributes = extractAttributesFromSource(sourceFile, className);
 				const regionDefinitions = extractRegionDefinitionsFromSource(sourceFile, className);
-				const route = filePathToRoute(filePath, projectRoot);
+				const route = filePathToRoute(filePath, projectRoot, seoPrefixes);
 				const pageTypeMetadata = {
 					typeId: pageTypeConfig.id || className.toLowerCase(),
 					name: pageTypeConfig.name || toHumanReadableName(className),
@@ -776,6 +845,23 @@ function lintGeneratedFiles(metadataDir) {
 	logger.debug("🔧 Formatting generated JSON files with Biome...");
 	formatDirectoryWithProjectBiome(metadataDir);
 }
+function isCanonicalProductOrCategoryRouteFile(filePath, projectRoot) {
+	const relativePath = filePath.slice(projectRoot.length).replace(/\\/g, "/").replace(/^\//, "");
+	return /^src\/(?:.*\/)?routes\/_app\.(?:p|c)\.\$\.tsx$/.test(relativePath);
+}
+async function loadPageDesignerSeoPrefixes(projectRoot, requestedSiteId) {
+	const configPath = join(projectRoot, "config.server.ts");
+	if (existsSync(configPath) !== true) return void 0;
+	const app = (await importTypescript(configPath, { projectDirectory: projectRoot })).default?.app;
+	const seoRoutes = (app?.url)?.seoRoutes;
+	if (seoRoutes === void 0) return void 0;
+	const siteId = requestedSiteId ?? (typeof app?.defaultSiteId === "string" ? app.defaultSiteId : void 0);
+	const selected = siteId && Object.prototype.hasOwnProperty.call(seoRoutes, siteId) ? seoRoutes[siteId] : seoRoutes["*"];
+	return {
+		product: selected?.product?.prefix,
+		category: selected?.category?.prefix
+	};
+}
 async function generateMetadata(projectDirectory, metadataDirectory, options) {
 	try {
 		const filePaths = options?.filePaths;
@@ -850,13 +936,14 @@ async function generateMetadata(projectDirectory, metadataDirectory, options) {
 				else logger.warn(`   - Unable to access ${configMetadataDir}:`, error.message);
 			}
 		}
+		const seoPrefixes = files.some((file) => isCanonicalProductOrCategoryRouteFile(file, projectRoot)) ? await loadPageDesignerSeoPrefixes(projectRoot, options?.siteId) : void 0;
 		const allComponents = [];
 		const allPageTypes = [];
 		const allAspects = [];
 		for (const file of files) {
 			const components = await processComponentFile(file, projectRoot);
 			allComponents.push(...components);
-			const pageTypes = await processPageTypeFile(file, projectRoot);
+			const pageTypes = await processPageTypeFile(file, projectRoot, seoPrefixes);
 			allPageTypes.push(...pageTypes);
 			const aspects = await processAspectFile(file, projectRoot);
 			allAspects.push(...aspects);

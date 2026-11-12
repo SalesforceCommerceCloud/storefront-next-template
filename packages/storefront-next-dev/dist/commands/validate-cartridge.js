@@ -1,7 +1,7 @@
-import { i as SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR, t as CARTRIDGES_BASE_DIR } from "../config.js";
+import { a as assertValidCartridgeName, r as SFNEXT_BASE_CARTRIDGE_NAME, s as cartridgeExperienceDir, t as CARTRIDGES_BASE_DIR } from "../config.js";
 import { i as commonFlags } from "../flags.js";
 import { t as validateCartridgeMetadata } from "../validate-cartridge.js";
-import { Command } from "@oclif/core";
+import { Command, Flags } from "@oclif/core";
 import path from "path";
 import fs from "fs-extra";
 import chalk from "chalk";
@@ -16,12 +16,21 @@ import chalk from "chalk";
 var ValidateCartridge = class ValidateCartridge extends Command {
 	static description = "Validate Page Designer metadata JSON files against schemas";
 	static examples = ["<%= config.bin %> <%= command.id %>", "<%= config.bin %> <%= command.id %> -d ./my-project"];
-	static flags = { ...commonFlags };
+	static flags = {
+		...commonFlags,
+		"cartridge-name": Flags.string({ description: "Cartridge directory name under cartridges/ (defaults to app_storefrontnext_base)" })
+	};
 	async run() {
 		const { flags } = await this.parse(ValidateCartridge);
 		const projectDirectory = flags["project-directory"];
 		if (!fs.existsSync(projectDirectory)) this.error(`Project directory doesn't exist: ${projectDirectory}`);
-		const metadataDir = path.join(projectDirectory, CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR);
+		const cartridgeName = flags["cartridge-name"] ?? SFNEXT_BASE_CARTRIDGE_NAME;
+		try {
+			assertValidCartridgeName(cartridgeName);
+		} catch (error) {
+			this.error(error instanceof Error ? error.message : String(error));
+		}
+		const metadataDir = path.join(projectDirectory, CARTRIDGES_BASE_DIR, cartridgeExperienceDir(cartridgeName));
 		if (!fs.existsSync(metadataDir)) this.error(`Metadata directory doesn't exist: ${metadataDir}\nRun "sfnext generate-cartridge" first to generate metadata files.`);
 		this.log("Validating Page Designer metadata...\n");
 		const summary = await validateCartridgeMetadata(metadataDir);

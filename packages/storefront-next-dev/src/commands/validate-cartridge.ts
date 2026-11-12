@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-import { Command } from '@oclif/core';
+import { Command, Flags } from '@oclif/core';
 import path from 'path';
 import fs from 'fs-extra';
 import chalk from 'chalk';
-import { CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR } from '../config';
+import {
+    assertValidCartridgeName,
+    CARTRIDGES_BASE_DIR,
+    SFNEXT_BASE_CARTRIDGE_NAME,
+    cartridgeExperienceDir,
+} from '../config';
 import { commonFlags } from '../flags';
 import { validateCartridgeMetadata } from '../cartridge-services/validate-cartridge';
 
@@ -35,6 +40,9 @@ export default class ValidateCartridge extends Command {
 
     static flags = {
         ...commonFlags,
+        'cartridge-name': Flags.string({
+            description: 'Cartridge directory name under cartridges/ (defaults to app_storefrontnext_base)',
+        }),
     };
 
     async run(): Promise<void> {
@@ -45,7 +53,14 @@ export default class ValidateCartridge extends Command {
             this.error(`Project directory doesn't exist: ${projectDirectory}`);
         }
 
-        const metadataDir = path.join(projectDirectory, CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR);
+        const cartridgeName = flags['cartridge-name'] ?? SFNEXT_BASE_CARTRIDGE_NAME;
+        try {
+            assertValidCartridgeName(cartridgeName);
+        } catch (error) {
+            this.error(error instanceof Error ? error.message : String(error));
+        }
+
+        const metadataDir = path.join(projectDirectory, CARTRIDGES_BASE_DIR, cartridgeExperienceDir(cartridgeName));
 
         if (!fs.existsSync(metadataDir)) {
             this.error(

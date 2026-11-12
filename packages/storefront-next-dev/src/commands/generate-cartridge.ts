@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-import { Command } from '@oclif/core';
+import { Command, Flags } from '@oclif/core';
 import path from 'path';
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import { generateMetadata } from '../cartridge-services/generate-cartridge';
 import { validateCartridgeMetadata } from '../cartridge-services/validate-cartridge';
-import { CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR } from '../config';
+import { initializeNamedCartridge } from '../cartridge-services/initialize-cartridge';
+import {
+    assertValidCartridgeName,
+    CARTRIDGES_BASE_DIR,
+    SFNEXT_BASE_CARTRIDGE_NAME,
+    cartridgeExperienceDir,
+} from '../config';
 import { commonFlags } from '../flags';
 
 /**
@@ -36,6 +42,14 @@ export default class Generate extends Command {
 
     static flags = {
         ...commonFlags,
+        'site-id': Flags.string({
+            description:
+                'Site ID to use for site-specific configuration, such as SEO route prefixes (defaults to app.defaultSiteId)',
+        }),
+        'cartridge-name': Flags.string({
+            description:
+                'Cartridge directory name under cartridges/ (defaults to app_storefrontnext_base). A new name scaffolds identity files once, then generates metadata there.',
+        }),
     };
 
     async run(): Promise<void> {
@@ -47,8 +61,18 @@ export default class Generate extends Command {
             this.error(`Project directory doesn't exist: ${projectDirectory}`);
         }
 
+        const cartridgeName = flags['cartridge-name'] ?? SFNEXT_BASE_CARTRIDGE_NAME;
+        try {
+            assertValidCartridgeName(cartridgeName);
+            if (cartridgeName !== SFNEXT_BASE_CARTRIDGE_NAME) {
+                await initializeNamedCartridge(projectDirectory, cartridgeName);
+            }
+        } catch (error) {
+            this.error(error instanceof Error ? error.message : String(error));
+        }
+
         // Full path where metadata files are generated
-        const metadataDir = path.join(projectDirectory, CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR);
+        const metadataDir = path.join(projectDirectory, CARTRIDGES_BASE_DIR, cartridgeExperienceDir(cartridgeName));
 
         // Ensure the full metadata directory path exists
         if (!fs.existsSync(metadataDir)) {
@@ -58,7 +82,7 @@ export default class Generate extends Command {
 
         this.log('Generating Page Designer metadata...');
 
-        await generateMetadata(projectDirectory, metadataDir);
+        await generateMetadata(projectDirectory, metadataDir, { siteId: flags['site-id'] });
 
         this.log('Page Designer metadata generated successfully!\n');
 

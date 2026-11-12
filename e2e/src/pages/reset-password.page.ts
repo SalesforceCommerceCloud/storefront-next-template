@@ -28,7 +28,7 @@ type PageWithCapture = Page & {
 
 /**
  * Reset Password Page Object
- * Handles interactions with the reset password form (with token and email params)
+ * Handles interactions with the reset password form (opened from the emailed link, which carries only the token)
  */
 class ResetPasswordPage {
     // Locators for reset password page elements
@@ -37,6 +37,7 @@ class ResetPasswordPage {
         resetPasswordHeading: locate('h1, h2').withText('Reset Password').as('Reset Password Heading'),
 
         // Form elements
+        emailInput: locate('input[name="email"]').as('Email Input'),
         passwordInput: locate('input[type="password"]').first().as('Password Input'),
         passwordInputByName: locate('input[name*="password"]').first().as('Password Input by Name'),
         confirmPasswordInput: locate('input[type="password"]').last().as('Confirm Password Input'),
@@ -58,15 +59,14 @@ class ResetPasswordPage {
     };
 
     /**
-     * Navigate to the reset password page with token and email
+     * Navigate to the reset password page with a token, as the emailed link does
      * @param token - Password reset token
-     * @param email - User email address
      * @param baseUrl - Base URL of the storefront (defaults to environment BASE_URL)
      */
-    navigate(token: string, email: string, baseUrl?: string): void {
+    navigate(token: string, baseUrl?: string): void {
         const targetUrl = baseUrl || process.env.BASE_URL || 'http://localhost:5173';
         const resetUrl = new URL(
-            buildSitePath(`/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`),
+            buildSitePath(`/reset-password?token=${encodeURIComponent(token)}`),
             targetUrl
         ).toString();
         I.amOnPage(resetUrl);
@@ -88,6 +88,15 @@ class ResetPasswordPage {
         if (cookieButtonCount > 0) {
             I.click(this.locators.cookieAcceptButton);
         }
+    }
+
+    /**
+     * Enter the shopper email (the link doesn't carry it, so it's empty unless this browser
+     * requested the reset)
+     * @param email - User email address
+     */
+    enterEmail(email: string): void {
+        I.fillField(this.locators.emailInput, email);
     }
 
     /**

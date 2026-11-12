@@ -1,6 +1,7 @@
 import "../package.js";
 import { i as printShutdownMessage, n as printServerConfig, r as printServerInfo, t as logger } from "../logger.js";
 import "../logger2.js";
+import "../ts-import.js";
 import { i as loadProjectConfig, n as initBasePathEnv, r as getCommerceCloudApiUrl, t as createServer } from "../server.js";
 import "../config.js";
 import { i as commonFlags } from "../flags.js";

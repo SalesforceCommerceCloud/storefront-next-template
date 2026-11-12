@@ -544,6 +544,19 @@ describe('action.authorize-passwordless-email', () => {
             expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
         });
 
+        it('remembers the email for the magic-link landing page when the OTP is sent', async () => {
+            const formData = new FormData();
+            formData.append('email', 'user+tag@example.com');
+            const request = new Request('http://localhost/action/authorize-passwordless-email', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const response = await action({ request, context: mockContext } as ActionFunctionArgs);
+
+            expect(getSetCookie(response)).toContain('user%2Btag%40example.com');
+        });
+
         it('does NOT set cc-tv cookie when enforceTurnstile short-circuits (cookieValue null, allowed true)', async () => {
             // When the HMAC-bound cookie already covers the current email + site,
             // enforceTurnstile returns { allowed: true, cookieValue: null }. No new
@@ -560,7 +573,7 @@ describe('action.authorize-passwordless-email', () => {
             const response = await action({ request, context: mockContext } as ActionFunctionArgs);
 
             expect(response.data.success).toBe(true);
-            expect(getSetCookie(response)).toBeUndefined();
+            expect(getSetCookie(response)).not.toContain('cc-tv_');
         });
 
         it('does NOT set cc-tv cookie when Turnstile rejects', async () => {

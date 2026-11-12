@@ -22,6 +22,11 @@ import { getLogger } from '@/lib/logger.server';
 vi.mock('@/middlewares/auth.server');
 vi.mock('@salesforce/storefront-next-runtime/i18n');
 vi.mock('@/lib/logger.server');
+vi.mock('@/lib/auth/remembered-email-cookie.server', () => ({
+    serializePasswordResetEmailCookie: vi.fn((_context: unknown, email: string) =>
+        Promise.resolve(`cc-pwreset-email_Site=${encodeURIComponent(email)}; HttpOnly`)
+    ),
+}));
 
 describe('action.request-password-reset', () => {
     const mockContext = {} as any;
@@ -67,9 +72,11 @@ describe('action.request-password-reset', () => {
         expect(getPasswordResetToken).toHaveBeenCalledWith(mockContext, {
             email: 'test@example.com',
         });
+        // The logged email is redacted (hashed local part)
         expect(mockLogger.info).toHaveBeenCalledWith('RequestPasswordReset: reset token sent', {
-            email: 'test@example.com',
+            email: expect.stringMatching(/^[0-9a-f]{8}@example\.com$/),
         });
+        expect(result.headers.get('Set-Cookie')).toBe('cc-pwreset-email_Site=test%40example.com; HttpOnly');
     });
 
     it('returns error when password reset token fails', async () => {
@@ -88,7 +95,7 @@ describe('action.request-password-reset', () => {
         expect(data).toHaveProperty('error');
         expect(mockLogger.error).toHaveBeenCalledWith('RequestPasswordReset: failed', {
             error,
-            email: 'test@example.com',
+            email: expect.stringMatching(/^[0-9a-f]{8}@example\.com$/),
         });
     });
 

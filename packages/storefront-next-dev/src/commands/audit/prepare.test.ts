@@ -16,9 +16,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Prepare from './prepare';
 import { prepare } from '../../audit/audit';
+import { preparedAttributes } from '../../audit/telemetry';
 
 vi.mock('../../audit/audit', () => ({
     prepare: vi.fn(() => Promise.resolve('/project/.site-audit/runs/2026-09-16T00-00-00Z/prepared.json')),
+}));
+
+vi.mock('../../audit/telemetry', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('../../audit/telemetry')>()),
+    preparedAttributes: vi.fn(() => Promise.resolve({ pagesCollected: 3 })),
 }));
 
 function command(flags: Record<string, unknown>): Prepare {
@@ -77,6 +83,29 @@ describe('audit prepare command', () => {
 
         expect(prepare).toHaveBeenCalledWith(
             expect.objectContaining({ project: '/project', workspace: undefined, runs: 1, build: true })
+        );
+    });
+
+    it('tracks AUDIT_PREPARED before printing the prepared.json path', async () => {
+        const cmd = command({
+            'project-directory': '/project',
+            url: ['home=https://example.com/'],
+            runs: 1,
+            build: true,
+        });
+        const log = vi.spyOn(cmd, 'log').mockImplementation(() => {});
+        const track = vi.spyOn(cmd as any, 'track').mockResolvedValue(undefined);
+
+        await cmd.run();
+
+        expect(track).toHaveBeenCalledWith('AUDIT_PREPARED', expect.any(Function));
+        expect(track.mock.invocationCallOrder[0]).toBeLessThan(log.mock.invocationCallOrder[0]);
+
+        // The attributes come from the prepared.json that prepare wrote, with the run's own options.
+        await expect((track.mock.calls[0][1] as () => Promise<unknown>)()).resolves.toEqual({ pagesCollected: 3 });
+        expect(preparedAttributes).toHaveBeenCalledWith(
+            '/project/.site-audit/runs/2026-09-16T00-00-00Z/prepared.json',
+            { runs: 1, build: true }
         );
     });
 

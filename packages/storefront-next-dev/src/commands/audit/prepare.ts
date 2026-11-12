@@ -17,6 +17,7 @@ import { Flags } from '@oclif/core';
 import { prepare } from '../../audit/audit';
 import { AuditCommand } from '../../audit/command';
 import { text } from '../../audit/flags';
+import { preparedAttributes } from '../../audit/telemetry';
 import { commonFlags, PROJECT_DIRECTORY_FLAG } from '../../flags';
 
 export default class Prepare extends AuditCommand {
@@ -75,19 +76,21 @@ export default class Prepare extends AuditCommand {
 
     async run(): Promise<void> {
         const { flags } = await this.parse(Prepare);
-        this.log(
-            await prepare({
-                urls: flags.url,
-                archives: flags.archive,
-                expectedPages: flags['expected-page'],
-                project: flags[PROJECT_DIRECTORY_FLAG],
-                workspace: flags.workspace,
-                runs: flags.runs,
-                allowHttp: flags['allow-http'],
-                categories: flags.categories,
-                events: flags.events,
-                build: flags.build,
-            })
+        const preparedPath = await prepare({
+            urls: flags.url,
+            archives: flags.archive,
+            expectedPages: flags['expected-page'],
+            project: flags[PROJECT_DIRECTORY_FLAG],
+            workspace: flags.workspace,
+            runs: flags.runs,
+            allowHttp: flags['allow-http'],
+            categories: flags.categories,
+            events: flags.events,
+            build: flags.build,
+        });
+        await this.track('AUDIT_PREPARED', () =>
+            preparedAttributes(preparedPath, { runs: flags.runs, build: flags.build })
         );
+        this.log(preparedPath);
     }
 }

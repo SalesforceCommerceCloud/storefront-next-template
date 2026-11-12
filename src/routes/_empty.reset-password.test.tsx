@@ -21,6 +21,7 @@ import { createActionArgs, createLoaderArgs } from '@/lib/test-utils';
 import ResetPassword, { loader, action } from './_empty.reset-password';
 import { resetPasswordWithToken, loginRegisteredUser, updateAuth } from '@/middlewares/auth.server';
 import { isPasswordValid } from '@/lib/utils';
+import { readPasswordResetEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
@@ -41,6 +42,11 @@ vi.mock('@/lib/utils', async () => {
         isPasswordValid: vi.fn(),
     };
 });
+
+vi.mock('@/lib/auth/remembered-email-cookie.server', () => ({
+    readPasswordResetEmailCookie: vi.fn(),
+    clearPasswordResetEmailCookie: vi.fn(() => Promise.resolve('cc-pwreset-email_Site=; Max-Age=0')),
+}));
 
 // Mock PasswordRequirement component to avoid needing to deal with its complexity
 vi.mock('@/components/password-requirements', () => ({
@@ -105,6 +111,7 @@ const mockResetPasswordWithToken = vi.mocked(resetPasswordWithToken);
 const mockLoginRegisteredUser = vi.mocked(loginRegisteredUser);
 const mockUpdateAuth = vi.mocked(updateAuth);
 const mockIsPasswordValid = vi.mocked(isPasswordValid);
+const mockReadPasswordResetEmailCookie = vi.mocked(readPasswordResetEmailCookie);
 
 describe('reset-password route', () => {
     beforeEach(() => {
@@ -116,43 +123,41 @@ describe('reset-password route', () => {
     });
 
     describe('loader', () => {
-        it('should return loader data when token and email are provided', () => {
-            const mockRequest = new Request('http://localhost/reset-password?token=abc123&email=test@example.com');
-            const result = loader(createLoaderArgs(mockRequest, mockContext, { pattern: '/reset-password' }));
-
-            expect(result).toEqual({
-                token: 'abc123',
-                email: 'test@example.com',
-            });
-        });
-
-        it('should redirect to forgot-password when token is missing', () => {
-            const mockRequest = new Request('http://localhost/reset-password?email=test@example.com');
-            const result = loader(createLoaderArgs(mockRequest, mockContext, { pattern: '/reset-password' }));
-
-            // Check if it's a Response (redirect)
-            expect(result).toBeInstanceOf(Response);
-            if (result instanceof Response) {
-                expect(result.status).toBe(302);
-                expect(result.headers.get('Location')).toBe('/forgot-password');
-            }
-        });
-
-        it('should redirect to forgot-password when email is missing', () => {
+        it('should use the email remembered when the reset link was requested', async () => {
+            mockReadPasswordResetEmailCookie.mockResolvedValue('Shopper+Tag@example.com');
             const mockRequest = new Request('http://localhost/reset-password?token=abc123');
-            const result = loader(createLoaderArgs(mockRequest, mockContext, { pattern: '/reset-password' }));
+            const result = await loader(createLoaderArgs(mockRequest, mockContext, { pattern: '/reset-password' }));
 
-            // Check if it's a Response (redirect)
-            expect(result).toBeInstanceOf(Response);
-            if (result instanceof Response) {
-                expect(result.status).toBe(302);
-                expect(result.headers.get('Location')).toBe('/forgot-password');
-            }
+            expect(result).toEqual({ token: 'abc123', email: 'Shopper+Tag@example.com' });
         });
 
-        it('should redirect to forgot-password when both token and email are missing', () => {
-            const mockRequest = new Request('http://localhost/reset-password');
-            const result = loader(createLoaderArgs(mockRequest, mockContext, { pattern: '/reset-password' }));
+        it('should return an empty email so the shopper can enter it when none is remembered', async () => {
+            mockReadPasswordResetEmailCookie.mockResolvedValue(undefined);
+            const mockRequest = new Request('http://localhost/reset-password?token=abc123');
+            const result = await loader(createLoaderArgs(mockRequest, mockContext, { pattern: '/reset-password' }));
+
+            expect(result).toEqual({ token: 'abc123', email: '' });
+        });
+
+        it('should ignore an email in the link and use the remembered one', async () => {
+            mockReadPasswordResetEmailCookie.mockResolvedValue('Shopper+Tag@example.com');
+            const mockRequest = new Request('http://localhost/reset-password?token=abc123&email=other@example.com');
+            const result = await loader(createLoaderArgs(mockRequest, mockContext, { pattern: '/reset-password' }));
+
+            expect(result).toEqual({ token: 'abc123', email: 'Shopper+Tag@example.com' });
+        });
+
+        it('should ignore an email in the link when none is remembered', async () => {
+            mockReadPasswordResetEmailCookie.mockResolvedValue(undefined);
+            const mockRequest = new Request('http://localhost/reset-password?token=abc123&email=other@example.com');
+            const result = await loader(createLoaderArgs(mockRequest, mockContext, { pattern: '/reset-password' }));
+
+            expect(result).toEqual({ token: 'abc123', email: '' });
+        });
+
+        it('should redirect to forgot-password when token is missing', async () => {
+            const mockRequest = new Request('http://localhost/reset-password?email=test@example.com');
+            const result = await loader(createLoaderArgs(mockRequest, mockContext, { pattern: '/reset-password' }));
 
             expect(result).toBeInstanceOf(Response);
             if (result instanceof Response) {
@@ -351,6 +356,7 @@ describe('reset-password route', () => {
                     expect(result.status).toBe(302);
                     const location = result.headers.get('Location');
                     expect(location).toBe('/login');
+                    expect(result.headers.get('Set-Cookie')).toContain('cc-pwreset-email_Site=;');
                 }
             });
         });
@@ -522,6 +528,29 @@ describe('reset-password route', () => {
         // Note: "password not strong enough" validation is tested in action unit tests.
         // Full-flow testing is not possible here because client-side validation in
         // usePasswordValidation hook disables the submit button for weak passwords.
+
+        it('should ask for the email when it is not remembered and submit what the shopper enters', async () => {
+            const user = userEvent.setup();
+            mockIsPasswordValid.mockReturnValue(true);
+            mockResetPasswordWithToken.mockRejectedValue(new Error('Invalid token'));
+
+            renderWithAction({ token: 'test-token-123', email: '' });
+
+            const emailInput = screen.getByLabelText(t('resetPassword:emailLabel'));
+            expect(emailInput).toBeEnabled();
+            await user.type(emailInput, 'typed@example.com');
+            await user.type(screen.getByLabelText(t('resetPassword:newPasswordLabel')), 'Test123!');
+            await user.type(screen.getByLabelText(t('resetPassword:confirmPasswordLabel')), 'Test123!');
+            await user.click(screen.getByRole('button', { name: t('resetPassword:resetPasswordButton') }));
+
+            await waitFor(() => {
+                expect(mockResetPasswordWithToken).toHaveBeenCalledWith(mockContext, {
+                    email: 'typed@example.com',
+                    token: 'test-token-123',
+                    newPassword: 'Test123!',
+                });
+            });
+        });
 
         it('should display invalidToken error when API reports an invalid token', async () => {
             const user = userEvent.setup();

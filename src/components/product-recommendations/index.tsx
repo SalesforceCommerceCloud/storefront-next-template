@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Suspense, useCallback, useEffect, useRef, useMemo, type ReactElement, type ReactNode } from 'react';
-import { Await } from 'react-router';
+import {
+    Suspense,
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useMemo,
+    type ReactElement,
+    type ReactNode,
+} from 'react';
+import { Await, useLocation, useNavigation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import { useRecommenders, type Product, type Recommendation } from '@/hooks/recommenders/use-recommenders';
@@ -349,33 +358,69 @@ function ProductRecommendationsView({
     const analytics = useAnalytics();
     const { t } = useTranslation('common');
     const { isDesignMode } = usePageDesignerMode();
+    const location = useLocation();
+    const navigation = useNavigation();
+    const { site, locale } = useSite();
     const ref = useRef<HTMLDivElement>(null);
-    // Viewport-gated: fire the impression once when the carousel scrolls into view (PWA Kit parity).
-    const isOnScreen = useIntersectionObserver(ref, { useOnce: true });
+    const isOnScreen = useIntersectionObserver(ref);
 
     const recommenderId = recommendation?.recoUUID ?? '';
     const recommenderName = recommendation?.recommenderName ?? recommender?.name ?? '';
     const productRecs = recommendation?.recs;
+    const title = recommendation?.displayMessage || recommender?.title;
+    const hasRecs = !!productRecs && productRecs.length > 0;
+    const identity = JSON.stringify([
+        location.pathname,
+        site.id,
+        locale.id,
+        recommenderId,
+        recommenderName,
+        productRecs,
+    ]);
+    const impression = useRef({ identity, tracked: false });
+    const analyticsRef = useRef(analytics);
+    analyticsRef.current = analytics;
+    const latestRecommendation = useRef({ recommenderId, recommenderName, products: productRecs });
+    latestRecommendation.current = { recommenderId, recommenderName, products: productRecs };
 
-    useEffect(() => {
-        if (isOnScreen && productRecs?.length) {
-            void analytics.trackViewRecommender({ recommenderId, recommenderName, products: productRecs });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once per resolved recommender; recoUUID keys the impression
-    }, [isOnScreen, recommendation?.recoUUID]);
+    // Suspense hides resolved loader content by cleaning up layout effects, not passive effects.
+    useLayoutEffect(() => {
+        if (impression.current.identity !== identity) impression.current = { identity, tracked: false };
+        const data = latestRecommendation.current;
+        const products = data.products;
+        if (!isOnScreen || isLoading || !title || !products?.length || navigation.state !== 'idle') return;
+        const current = impression.current;
+        if (current.tracked) return;
+        const controller = new AbortController();
+        const { trackViewRecommender } = analyticsRef.current;
+        // Defer handoff so Strict Mode's effect probe can cancel before dispatch.
+        void Promise.resolve()
+            .then(async () => {
+                if (controller.signal.aborted) return;
+                const handedOff = await trackViewRecommender({ ...data, products }, controller.signal);
+                if (handedOff) current.tracked = true;
+            })
+            .catch(() => undefined);
+        return () => controller.abort();
+    }, [
+        identity,
+        title,
+        isLoading,
+        isOnScreen,
+        analytics.consentKey,
+        location.key,
+        location.search,
+        location.hash,
+        navigation.state,
+    ]);
 
     // Keep the click handler stable so the memoized ProductTiles don't re-render on every parent render.
     // `useAnalytics()` returns a fresh object each render, so read it through a ref instead of a dep.
-    const analyticsRef = useRef(analytics);
-    analyticsRef.current = analytics;
     const onProductClick = useCallback(
         (product: ShopperSearch.schemas['ProductSearchHit']) =>
             void analyticsRef.current.trackClickProductInRecommender({ recommenderId, recommenderName, product }),
         [recommenderId, recommenderName]
     );
-
-    const title = recommendation?.displayMessage || recommender?.title;
-    const hasRecs = !!productRecs && productRecs.length > 0;
 
     // Empty state (W-23729817): a freshly-dropped, unconfigured Product Recommendations component —
     // no recommender selected yet, so no title and no recs. Rather than a bespoke placeholder, we feed

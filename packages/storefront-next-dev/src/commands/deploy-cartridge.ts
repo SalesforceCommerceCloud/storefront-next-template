@@ -24,7 +24,7 @@ import {
 } from '@salesforce/b2c-tooling-sdk/operations/code';
 import path from 'path';
 import fs from 'fs-extra';
-import { CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR } from '../config';
+import { CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_NAME, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR } from '../config';
 
 /**
  * Deploy cartridge command - deploys cartridges to a B2C instance.
@@ -110,11 +110,18 @@ export default class Deploy extends CartridgeCommand<typeof Deploy> {
 
         // Build cartridge paths
         const cartridgesDir = path.join(projectDirectory, CARTRIDGES_BASE_DIR);
-        const metadataDir = path.join(projectDirectory, CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR);
+        const { include, exclude } = this.cartridgeOptions;
+        const hasCartridgeFilter = Boolean(include?.length || exclude?.length);
 
-        // Verify metadata directory exists within cartridge base
-        if (!fs.existsSync(metadataDir)) {
-            this.error(`Metadata directory doesn't exist: ${metadataDir}. Run 'sfnext generate-cartridge' first.`);
+        const checkBaseMetadata = (directory: string) => {
+            if (!fs.existsSync(directory)) {
+                this.error(`Metadata directory doesn't exist: ${directory}. Run 'sfnext generate-cartridge' first.`);
+            }
+        };
+
+        // Unfiltered deploys still require local base metadata before credentials.
+        if (!hasCartridgeFilter) {
+            checkBaseMetadata(path.join(projectDirectory, CARTRIDGES_BASE_DIR, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR));
         }
 
         // Validate required configuration
@@ -153,6 +160,14 @@ export default class Deploy extends CartridgeCommand<typeof Deploy> {
 
         if (cartridges.length === 0) {
             this.error(`No cartridges found in ${cartridgesDir}`);
+        }
+
+        // Filtered deploys only require base metadata when the SDK selected the base cartridge.
+        if (hasCartridgeFilter) {
+            const selectedBase = cartridges.find((cartridge) => cartridge.name === SFNEXT_BASE_CARTRIDGE_NAME);
+            if (selectedBase) {
+                checkBaseMetadata(path.join(selectedBase.src, 'cartridge', 'experience'));
+            }
         }
 
         this.log(`Deploying to code version "${version}"...`);

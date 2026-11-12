@@ -26,6 +26,16 @@ import { getAuth, getPasswordResetToken } from '@/middlewares/auth.server';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
 // Mock dependencies
+vi.mock('@/lib/auth/remembered-email-cookie.server', () => ({
+    serializePasswordResetEmailCookie: vi.fn((_context: unknown, email: string) =>
+        Promise.resolve(`cc-pwreset-email_Site=${encodeURIComponent(email)}; HttpOnly`)
+    ),
+}));
+
+// Successful requests return data() so they can set the remembered-email cookie
+const getActionData = (result: unknown) =>
+    result && typeof result === 'object' && 'data' in result ? (result as { data: unknown }).data : result;
+
 vi.mock('@/middlewares/auth.server', () => ({
     getAuth: vi.fn(),
     getPasswordResetToken: vi.fn(),
@@ -230,10 +240,15 @@ describe('forgot-password route', () => {
                 expect(mockGetPasswordResetToken).toHaveBeenCalledWith(mockContext, {
                     email: 'test@example.com',
                 });
-                expect(result).toEqual({
+                expect(getActionData(result)).toEqual({
                     success: true,
                     email: 'test@example.com',
                 });
+                // Remembers the email for the reset page, since the reset link doesn't carry it
+                const init = (result as { init?: ResponseInit }).init;
+                expect(new Headers(init?.headers).get('Set-Cookie')).toBe(
+                    'cc-pwreset-email_Site=test%40example.com; HttpOnly'
+                );
             });
 
             it('should handle email with special characters', async () => {
@@ -264,7 +279,7 @@ describe('forgot-password route', () => {
                 expect(mockGetPasswordResetToken).toHaveBeenCalledWith(mockContext, {
                     email: 'test+user@example.com',
                 });
-                expect(result).toEqual({
+                expect(getActionData(result)).toEqual({
                     success: true,
                     email: 'test+user@example.com',
                 });
@@ -424,7 +439,7 @@ describe('forgot-password route', () => {
 
                 const result = await action(args);
 
-                expect(result).toEqual({
+                expect(getActionData(result)).toEqual({
                     success: true,
                     email: longEmail,
                 });
@@ -456,7 +471,7 @@ describe('forgot-password route', () => {
 
                 const result = await action(args);
 
-                expect(result).toEqual({
+                expect(getActionData(result)).toEqual({
                     success: true,
                     email: unicodeEmail,
                 });

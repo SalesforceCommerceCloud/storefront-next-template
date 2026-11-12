@@ -1,5 +1,7 @@
+import "../../package.js";
 import { i as commonFlags } from "../../flags.js";
-import "../../sanitize.js";
+import "../../results.js";
+import "../../schema.js";
 import { i as AuditCommand, n as workspaceFlag, r as workspaceFor, t as text } from "../../flags2.js";
 import { Flags } from "@oclif/core";
 import path from "node:path";
@@ -8,6 +10,7 @@ import { spawn } from "node:child_process";
 //#region src/commands/audit/serve.ts
 var Serve = class Serve extends AuditCommand {
 	static hidden = true;
+	static reportsUsage = false;
 	static summary = "Serve the dashboard for a finalized audit-result.json or a live run";
 	static examples = ["<%= config.bin %> <%= command.id %> -d ./my-storefront --no-open"];
 	static flags = {

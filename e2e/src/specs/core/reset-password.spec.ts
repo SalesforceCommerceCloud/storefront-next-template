@@ -94,15 +94,17 @@ Scenario('User can reset password using magic link', async () => {
     const testToken = '12345678';
     const testPassword = 'NewSecureP@ssw0rd!';
 
-    // Navigate to reset password page with token and email
-    resetPasswordPage.navigate(testToken, specEmail);
+    // Navigate to reset password page with the token; the link doesn't carry the email
+    resetPasswordPage.navigate(testToken);
 
     // Dismiss cookie/consent dialog first so heading is visible, then verify heading
     await resetPasswordPage.dismissCookieDialog();
     resetPasswordPage.validateResetPasswordHeading();
 
     // Capture the reset-password request sent when we submit the form
+    // This browser didn't request the reset, so the shopper enters their email
     const resetPasswordRequest = await resetPasswordPage.captureResetPasswordRequestWhile(() => {
+        resetPasswordPage.enterEmail(specEmail);
         resetPasswordPage.enterPassword(testPassword);
         resetPasswordPage.enterConfirmPassword(testPassword);
         resetPasswordPage.submitForm();

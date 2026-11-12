@@ -15,10 +15,25 @@
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import { use } from 'react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { use, StrictMode } from 'react';
 import type { ShopperProducts } from '@/scapi';
 import { loader, type ProductPageData } from './_app.p.$';
+
+const tracking = vi.hoisted(() => ({
+    consentKey: 'accepted',
+    trackViewProduct:
+        vi.fn<(data: { product: ShopperProducts.schemas['Product'] }, signal?: AbortSignal) => Promise<boolean>>(),
+    location: { pathname: '/p/test-product-123', search: '', hash: '', key: 'default', state: null },
+    navigationState: 'idle',
+    siteId: 'test-site',
+    localeId: 'en-US',
+}));
+
+vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@salesforce/storefront-next-runtime/site-context')>()),
+    useSite: () => ({ site: { id: tracking.siteId }, locale: { id: tracking.localeId } }),
+}));
 
 // ProductPage reads `nonce` from the root loader. Tests render the page outside
 // a real data router, so stub `useRouteLoaderData` with a deterministic value.
@@ -27,6 +42,8 @@ vi.mock('react-router', async (importOriginal) => {
     return {
         ...actual,
         useRouteLoaderData: (id: string) => (id === 'root' ? { nonce: undefined } : undefined),
+        useLocation: () => tracking.location,
+        useNavigation: () => ({ state: tracking.navigationState }),
     };
 });
 
@@ -131,7 +148,8 @@ vi.mock('@/components/product-recommendations', () => ({
 
 vi.mock('@/hooks/use-analytics', () => ({
     useAnalytics: () => ({
-        trackViewProduct: vi.fn(),
+        consentKey: tracking.consentKey,
+        trackViewProduct: tracking.trackViewProduct,
     }),
 }));
 
@@ -261,6 +279,12 @@ import config from '@/config/server';
 describe('Product Detail Route', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
+        tracking.consentKey = 'accepted';
+        tracking.trackViewProduct.mockReset().mockResolvedValue(true);
+        tracking.location = { pathname: '/p/test-product-123', search: '', hash: '', key: 'default', state: null };
+        tracking.navigationState = 'idle';
+        tracking.siteId = 'test-site';
+        tracking.localeId = 'en-US';
         // Reset modules to ensure fresh import and createPage call
         vi.resetModules();
         // Import the route module to trigger createPage call with mocks in place
@@ -357,6 +381,230 @@ describe('Product Detail Route', () => {
             const { shouldRevalidate: shouldRevalidateRoute } = await import('./_app.p.$');
             const { shouldRevalidate: shouldRevalidateProduct } = await import('@/lib/revalidation/routes/product');
             expect(shouldRevalidateRoute).toBe(shouldRevalidateProduct);
+        });
+    });
+
+    describe('product impression recovery', () => {
+        const impressionData = (): ProductPageData => ({
+            product: mockProduct,
+            page: mockPage,
+            pageKey: mockProduct.id,
+            pageUrl: '/p/test-product-123',
+            productSchema: Promise.resolve(null),
+            ...mockExtensionLoaderData,
+        });
+
+        test('recovers a consent-skipped current product once after acceptance', async () => {
+            const { default: ProductPage } = await import('./_app.p.$');
+            const data = impressionData();
+            tracking.consentKey = 'unknown';
+            tracking.trackViewProduct.mockResolvedValueOnce(false);
+            const view = render(<ProductPage loaderData={data} />);
+            await act(async () => {});
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(1);
+
+            tracking.consentKey = 'accepted';
+            view.rerender(<ProductPage loaderData={data} />);
+            await act(async () => {});
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(2);
+            view.rerender(<ProductPage loaderData={{ ...data, product: { ...mockProduct } }} />);
+            await act(async () => {});
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(2);
+        });
+
+        test.each([
+            'consent',
+            'product',
+            'location',
+            'navigation',
+            'unmount',
+        ])('aborts pending tracking on %s change', async (change) => {
+            const { default: ProductPage } = await import('./_app.p.$');
+            let resolve!: (value: boolean) => void;
+            tracking.trackViewProduct.mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((done) => {
+                        resolve = done;
+                    })
+            );
+            const data = impressionData();
+            const view = render(<ProductPage loaderData={data} />);
+            await act(async () => {});
+            const signal = tracking.trackViewProduct.mock.calls[0][1];
+            expect(signal).toBeInstanceOf(AbortSignal);
+            expect(signal?.aborted).toBe(false);
+            if (change === 'consent') tracking.consentKey = 'declined';
+            if (change === 'location') tracking.location = { ...tracking.location, search: '?color=blue', key: 'next' };
+            if (change === 'navigation') tracking.navigationState = 'loading';
+            if (change === 'unmount') view.unmount();
+            else
+                view.rerender(
+                    <ProductPage
+                        loaderData={
+                            change === 'product' ? { ...data, product: { ...mockProduct, id: 'variant-456' } } : data
+                        }
+                    />
+                );
+            expect(signal?.aborted).toBe(true);
+            await act(() => {
+                resolve(true);
+                return Promise.resolve();
+            });
+            if (change === 'navigation' || change === 'unmount') {
+                expect(tracking.trackViewProduct).toHaveBeenCalledTimes(1);
+            }
+        });
+
+        test('deduplicates Strict Mode and irrelevant rerenders before and after handoff', async () => {
+            const { default: ProductPage } = await import('./_app.p.$');
+            let resolve!: (value: boolean) => void;
+            tracking.trackViewProduct.mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((done) => {
+                        resolve = done;
+                    })
+            );
+            const data = impressionData();
+            const view = render(
+                <StrictMode>
+                    <ProductPage loaderData={data} />
+                </StrictMode>
+            );
+            await act(async () => {});
+            view.rerender(
+                <StrictMode>
+                    <ProductPage loaderData={{ ...data, product: { ...mockProduct } }} />
+                </StrictMode>
+            );
+            await act(async () => {});
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(1);
+            expect(tracking.trackViewProduct.mock.calls[0][1]?.aborted).toBe(false);
+            await act(() => {
+                resolve(true);
+                return Promise.resolve();
+            });
+            tracking.consentKey = 'declined';
+            view.rerender(
+                <StrictMode>
+                    <ProductPage loaderData={data} />
+                </StrictMode>
+            );
+            tracking.consentKey = 'accepted';
+            tracking.location = { ...tracking.location, search: '?color=blue', hash: '#details', key: 'next' };
+            view.rerender(
+                <StrictMode>
+                    <ProductPage loaderData={data} />
+                </StrictMode>
+            );
+            await act(async () => {});
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(1);
+        });
+
+        test.each([
+            'pathname',
+            'site',
+            'locale',
+            'product',
+        ])('tracks a new %s impression even when the route stays mounted', async (change) => {
+            const { default: ProductPage } = await import('./_app.p.$');
+            const data = impressionData();
+            const view = render(<ProductPage loaderData={data} />);
+            await act(async () => {});
+            if (change === 'pathname')
+                tracking.location = { ...tracking.location, pathname: '/p/another-slug/test-product-123' };
+            if (change === 'site') tracking.siteId = 'another-site';
+            if (change === 'locale') tracking.localeId = 'fr-FR';
+            const current = change === 'product' ? { ...data, product: { ...mockProduct, id: 'variant-456' } } : data;
+            view.rerender(<ProductPage loaderData={current} />);
+            await act(async () => {});
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(2);
+            expect(tracking.trackViewProduct.mock.calls[1][0]).toEqual({ product: current.product });
+        });
+
+        test('ignores a stale completion and recovers only the current product after consent', async () => {
+            const { default: ProductPage } = await import('./_app.p.$');
+            let resolve!: (value: boolean) => void;
+            tracking.trackViewProduct.mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((done) => {
+                        resolve = done;
+                    })
+            );
+            const data = impressionData();
+            const view = render(<ProductPage loaderData={data} />);
+            await act(async () => {});
+            tracking.consentKey = 'unknown';
+            tracking.trackViewProduct.mockResolvedValueOnce(false);
+            const current = { ...data, product: { ...mockProduct, id: 'variant-456' } };
+            view.rerender(<ProductPage loaderData={current} />);
+            await act(() => {
+                resolve(true);
+                return Promise.resolve();
+            });
+            tracking.consentKey = 'accepted';
+            view.rerender(<ProductPage loaderData={current} />);
+            await act(async () => {});
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(3);
+            expect(tracking.trackViewProduct.mock.calls[2][0]).toEqual({ product: current.product });
+        });
+
+        test('does not retry skipped work on irrelevant rerenders, but retries when navigation settles', async () => {
+            const { default: ProductPage } = await import('./_app.p.$');
+            tracking.trackViewProduct.mockResolvedValueOnce(false);
+            const data = impressionData();
+            const view = render(<ProductPage loaderData={data} />);
+            await act(async () => {});
+            view.rerender(<ProductPage loaderData={{ ...data, product: { ...mockProduct } }} />);
+            await act(async () => {});
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(1);
+            tracking.navigationState = 'loading';
+            view.rerender(<ProductPage loaderData={data} />);
+            tracking.navigationState = 'idle';
+            view.rerender(<ProductPage loaderData={data} />);
+            await act(async () => {});
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(2);
+        });
+
+        test('retains a true handoff completed after consent withdrawal without duplicating on acceptance', async () => {
+            const { default: ProductPage } = await import('./_app.p.$');
+            let resolve!: (value: boolean) => void;
+            tracking.trackViewProduct.mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((done) => {
+                        resolve = done;
+                    })
+            );
+            const data = impressionData();
+            const view = render(<ProductPage loaderData={data} />);
+            await act(() => Promise.resolve());
+            const signal = tracking.trackViewProduct.mock.calls[0][1];
+
+            tracking.consentKey = 'declined';
+            tracking.trackViewProduct.mockResolvedValueOnce(false);
+            view.rerender(<ProductPage loaderData={data} />);
+            expect(signal?.aborted).toBe(true);
+            await act(() => {
+                resolve(true);
+                return Promise.resolve();
+            });
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(2);
+
+            tracking.consentKey = 'accepted';
+            view.rerender(<ProductPage loaderData={data} />);
+            await act(() => Promise.resolve());
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(2);
+        });
+
+        test('keeps tracking failures from breaking the route or causing automatic retries', async () => {
+            const { default: ProductPage } = await import('./_app.p.$');
+            tracking.trackViewProduct.mockRejectedValueOnce(new Error('Tracking failed'));
+            const data = impressionData();
+            const view = render(<ProductPage loaderData={data} />);
+            await act(async () => {});
+            view.rerender(<ProductPage loaderData={{ ...data, product: { ...mockProduct } }} />);
+            await act(async () => {});
+            expect(screen.getByTestId('product-view')).toBeInTheDocument();
+            expect(tracking.trackViewProduct).toHaveBeenCalledTimes(1);
         });
     });
 

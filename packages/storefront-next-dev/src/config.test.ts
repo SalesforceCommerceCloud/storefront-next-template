@@ -29,7 +29,7 @@ vi.mock('jiti', () => ({
     })),
 }));
 
-const { buildMrtConfig } = await import('./config');
+const { assertValidCartridgeName, buildMrtConfig } = await import('./config');
 
 describe('buildMrtConfig', () => {
     const originalEnv = process.env;
@@ -122,5 +122,38 @@ describe('buildMrtConfig', () => {
         const config = await buildMrtConfig('/build', '/project');
 
         expect(config.ssrParameters.envBasePath).toBe('/shop');
+    });
+});
+
+describe('assertValidCartridgeName', () => {
+    it.each([
+        'app_storefrontnext_base',
+        'app_storefrontnext_refarch',
+        'app_storefrontnext_beauty',
+        'plugin_applepay',
+        'a',
+        'A1-b_2',
+        'custom.cartridge-name_v2',
+        'café-storefront',
+    ])('accepts %j', (name) => {
+        expect(() => assertValidCartridgeName(name)).not.toThrow();
+    });
+
+    it.each([
+        '',
+        '.',
+        '..',
+        '../outside',
+        '../../outside',
+        'nested/name',
+        'nested\\name',
+        '/absolute',
+        'C:\\outside',
+        'C:outside',
+        ' ',
+        '\t \n',
+        '\0',
+    ])('rejects %j', (name) => {
+        expect(() => assertValidCartridgeName(name)).toThrow('--cartridge-name');
     });
 });

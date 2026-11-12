@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 import { readdir, readFile, writeFile, mkdir, access, rm } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join, extname, resolve, basename } from 'node:path';
 import { Project, Node, type SourceFile, type PropertyDeclaration, type Decorator, type Expression } from 'ts-morph';
-import { filePathToRoute } from './react-router-config.js';
+import { filePathToRoute, type PageDesignerSeoPrefixes } from './react-router-config.js';
 import { logger } from '../logger';
 import { formatDirectoryWithProjectBiome } from '../utils/format-with-project-biome';
+import { importTypescript } from '../server/ts-import';
 
 // Re-export `filePathToRoute`
 export { filePathToRoute };
@@ -673,7 +675,11 @@ async function processComponentFile(filePath: string, _projectRoot: string): Pro
     }
 }
 
-async function processPageTypeFile(filePath: string, projectRoot: string): Promise<unknown[]> {
+async function processPageTypeFile(
+    filePath: string,
+    projectRoot: string,
+    seoPrefixes?: PageDesignerSeoPrefixes
+): Promise<unknown[]> {
     try {
         const content = await readFile(filePath, 'utf-8');
         const pageTypes: unknown[] = [];
@@ -709,7 +715,7 @@ async function processPageTypeFile(filePath: string, projectRoot: string): Promi
 
                 const attributes = extractAttributesFromSource(sourceFile, className);
                 const regionDefinitions = extractRegionDefinitionsFromSource(sourceFile, className);
-                const route = filePathToRoute(filePath, projectRoot);
+                const route = filePathToRoute(filePath, projectRoot, seoPrefixes);
 
                 const pageTypeMetadata = {
                     typeId: pageTypeConfig.id || className.toLowerCase(),
@@ -936,6 +942,12 @@ export interface GenerateMetadataOptions {
      * Defaults to false.
      */
     dryRun?: boolean;
+
+    /**
+     * Site ID used for site-specific configuration, such as SEO route prefixes.
+     * Defaults to `app.defaultSiteId` in the project config.
+     */
+    siteId?: string;
 }
 
 /**
@@ -958,6 +970,38 @@ function lintGeneratedFiles(metadataDir: string): void {
     logger.debug('🔧 Formatting generated JSON files with Biome...');
     formatDirectoryWithProjectBiome(metadataDir);
 }
+
+function isCanonicalProductOrCategoryRouteFile(filePath: string, projectRoot: string): boolean {
+    const relativePath = filePath.slice(projectRoot.length).replace(/\\/g, '/').replace(/^\//, '');
+    return /^src\/(?:.*\/)?routes\/_app\.(?:p|c)\.\$\.tsx$/.test(relativePath);
+}
+
+async function loadPageDesignerSeoPrefixes(
+    projectRoot: string,
+    requestedSiteId?: string
+): Promise<PageDesignerSeoPrefixes | undefined> {
+    const configPath = join(projectRoot, 'config.server.ts');
+    if (existsSync(configPath) !== true) return undefined;
+
+    const loaded = await importTypescript<{ default?: { app?: Record<string, unknown> } }>(configPath, {
+        projectDirectory: projectRoot,
+    });
+    const app = loaded.default?.app;
+    const seoRoutes = (app?.url as { seoRoutes?: Record<string, SeoRoutesEntry> } | undefined)?.seoRoutes;
+    if (seoRoutes === undefined) return undefined;
+    const siteId = requestedSiteId ?? (typeof app?.defaultSiteId === 'string' ? app.defaultSiteId : undefined);
+    const selected =
+        siteId && Object.prototype.hasOwnProperty.call(seoRoutes, siteId) ? seoRoutes[siteId] : seoRoutes['*'];
+    return {
+        product: selected?.product?.prefix,
+        category: selected?.category?.prefix,
+    };
+}
+
+type SeoRoutesEntry = {
+    product?: { prefix?: string };
+    category?: { prefix?: string };
+};
 
 // Main function
 export async function generateMetadata(
@@ -1070,6 +1114,10 @@ export async function generateMetadata(
             }
         }
 
+        const needsSeoPrefixes = files.some((file) => isCanonicalProductOrCategoryRouteFile(file, projectRoot));
+        const seoPrefixes = needsSeoPrefixes
+            ? await loadPageDesignerSeoPrefixes(projectRoot, options?.siteId)
+            : undefined;
         // Process each file for both components and page types
         const allComponents: unknown[] = [];
         const allPageTypes: unknown[] = [];
@@ -1079,7 +1127,7 @@ export async function generateMetadata(
             const components = await processComponentFile(file, projectRoot);
             allComponents.push(...components);
 
-            const pageTypes = await processPageTypeFile(file, projectRoot);
+            const pageTypes = await processPageTypeFile(file, projectRoot, seoPrefixes);
             allPageTypes.push(...pageTypes);
 
             const aspects = await processAspectFile(file, projectRoot);

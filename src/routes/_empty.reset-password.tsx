@@ -25,10 +25,12 @@ import { buildUrlFromContext } from '@/lib/url.server';
 import { isPasswordValid } from '@/lib/utils';
 import { resetPasswordWithToken } from '@/middlewares/auth.server';
 import { getLogger } from '@/lib/logger.server';
+import { clearPasswordResetEmailCookie, readPasswordResetEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
 import { routes } from '@/route-paths';
 
 type ResetPasswordLoaderData = {
     token: string;
+    /** Email remembered from the reset request; empty when the shopper must enter it */
     email: string;
 };
 
@@ -36,14 +38,17 @@ type ResetPasswordActionData = {
     error?: string;
 };
 
-export function loader({ request, context }: Route.LoaderArgs): ResetPasswordLoaderData | Response {
+export async function loader({ request, context }: Route.LoaderArgs): Promise<ResetPasswordLoaderData | Response> {
     const url = new URL(request.url);
     const token = url.searchParams.get('token');
-    const email = url.searchParams.get('email');
 
-    if (!token || !email) {
+    if (!token) {
         return redirect(buildUrlFromContext(routes.forgotPassword, context));
     }
+
+    // Reset links don't carry the email (and an `email` param is ignored); use the one remembered
+    // by this browser when it requested the link, otherwise the shopper enters it.
+    const email = (await readPasswordResetEmailCookie(request, context)) || '';
 
     return {
         token,
@@ -58,7 +63,7 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Re
     const { t } = getTranslation(context);
     const formData = await request.formData();
     const token = formData.get('token')?.toString();
-    const email = formData.get('email')?.toString();
+    const email = formData.get('email')?.toString()?.trim();
     const newPassword = formData.get('newPassword')?.toString();
     const confirmPassword = formData.get('confirmPassword')?.toString();
 
@@ -96,7 +101,9 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Re
         updateAuth(context, authResponse);
 
         // Password reset successful - redirect to login
-        return redirect(buildUrlFromContext(routes.login, context));
+        return redirect(buildUrlFromContext(routes.login, context), {
+            headers: { 'Set-Cookie': await clearPasswordResetEmailCookie(context) },
+        });
     } catch (error) {
         logger.error('ResetPassword: failed', { error });
         const errorMessage = extractErrorMessage(error);

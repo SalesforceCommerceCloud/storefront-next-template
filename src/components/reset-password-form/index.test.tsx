@@ -76,11 +76,12 @@ describe('ResetPasswordForm', () => {
         test('renders form with all required elements', () => {
             const { container } = renderWithRouter(<ResetPasswordForm {...defaultProps} />);
 
-            // Email display (disabled)
+            // Email prefilled but editable, so a stale remembered email can be corrected
             const emailInput = screen.getByLabelText(t('resetPassword:emailLabel') || t('signup:form.emailLabel'));
             expect(emailInput).toBeInTheDocument();
             expect(emailInput).toHaveValue(defaultProps.email);
-            expect(emailInput).toBeDisabled();
+            expect(emailInput).toBeEnabled();
+            expect(emailInput).toHaveAttribute('name', 'email');
 
             // Password fields
             expect(
@@ -95,13 +96,10 @@ describe('ResetPasswordForm', () => {
 
             // Hidden fields
             const tokenInput = container.querySelector('input[name="token"]');
-            const emailHidden = container.querySelector('input[name="email"]');
             expect(tokenInput).toBeInTheDocument();
             expect(tokenInput).toHaveValue(defaultProps.token);
             expect(tokenInput).toHaveAttribute('type', 'hidden');
-            expect(emailHidden).toBeInTheDocument();
-            expect(emailHidden).toHaveValue(defaultProps.email);
-            expect(emailHidden).toHaveAttribute('type', 'hidden');
+            expect(container.querySelectorAll('input[name="email"]')).toHaveLength(1);
 
             // PasswordRequirements component
             expect(screen.getByTestId('password-requirements')).toBeInTheDocument();
@@ -254,11 +252,19 @@ describe('ResetPasswordForm', () => {
         });
 
         test('handles empty email', () => {
-            const { container } = renderWithRouter(<ResetPasswordForm {...defaultProps} email="" />);
-            const emailDisplay = screen.getByLabelText(t('resetPassword:emailLabel') || t('signup:form.emailLabel'));
-            expect(emailDisplay).toHaveValue('');
-            const emailHidden = container.querySelector('input[name="email"]');
-            expect(emailHidden).toHaveValue('');
+            renderWithRouter(<ResetPasswordForm {...defaultProps} email="" />);
+            const emailInput = screen.getByLabelText(t('resetPassword:emailLabel') || t('signup:form.emailLabel'));
+            expect(emailInput).toHaveValue('');
+            expect(emailInput).toBeRequired();
+        });
+
+        test('lets the shopper correct a prefilled email', async () => {
+            const user = userEvent.setup();
+            renderWithRouter(<ResetPasswordForm {...defaultProps} />);
+            const emailInput = screen.getByLabelText(t('resetPassword:emailLabel') || t('signup:form.emailLabel'));
+            await user.clear(emailInput);
+            await user.type(emailInput, 'other@example.com');
+            expect(emailInput).toHaveValue('other@example.com');
         });
 
         test('handles special characters in email', () => {

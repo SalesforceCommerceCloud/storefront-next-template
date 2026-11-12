@@ -19,6 +19,7 @@ import { destroyAuth as destroyAuthServer, getAuth } from '@/middlewares/auth.se
 import { createApiClients } from '@/lib/api-clients.server';
 import { destroyBasket } from '@/middlewares/basket.server';
 import { getLogger } from '@/lib/logger.server';
+import { clearPasswordlessEmailCookie, clearPasswordResetEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
 import { routes } from '@/route-paths';
 
 /**
@@ -43,5 +44,10 @@ export async function action({ context }: Route.ActionArgs) {
     destroyAuthServer(context);
     destroyBasket(context);
     logger.info('Logout: session destroyed');
-    return redirect(routes.home);
+    // Drop emails remembered for unused magic links so they don't outlive the session
+    // (e.g. on a shared computer).
+    const headers = new Headers();
+    headers.append('Set-Cookie', await clearPasswordlessEmailCookie(context));
+    headers.append('Set-Cookie', await clearPasswordResetEmailCookie(context));
+    return redirect(routes.home, { headers });
 }

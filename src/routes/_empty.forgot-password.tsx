@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { ReactElement } from 'react';
-import { redirect, useActionData } from 'react-router';
+import { data, redirect, useActionData } from 'react-router';
 import type { Route } from './+types/_empty.forgot-password';
 import { useTranslation } from 'react-i18next';
 import { getPasswordResetErrorMessageKey, extractErrorMessage } from '@/lib/auth/error-handler';
@@ -33,6 +33,7 @@ import { routes } from '@/route-paths';
 // Middleware
 import { getAuth, getPasswordResetToken } from '@/middlewares/auth.server';
 import { getLogger } from '@/lib/logger.server';
+import { serializePasswordResetEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
 
 type ForgotPasswordActionData = {
     error?: string;
@@ -50,7 +51,10 @@ export function loader({ context }: Route.LoaderArgs): Response | void {
 
 // Server action required for authentication - password reset token generation must be handled
 // server-side to maintain security and proper integration with SFCC's authentication system
-export async function action({ request, context }: Route.ActionArgs): Promise<ForgotPasswordActionData> {
+export async function action({
+    request,
+    context,
+}: Route.ActionArgs): Promise<ForgotPasswordActionData | ReturnType<typeof data<ForgotPasswordActionData>>> {
     const logger = getLogger(context);
     const { t } = getTranslation(context);
     const formData = await request.formData();
@@ -63,7 +67,11 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Fo
         //Send password reset token using SLAS and Marketing Cloud
         await getPasswordResetToken(context, { email });
         logger.info('ForgotPassword: reset token sent');
-        return { success: true, email };
+        // Remember the email for the reset page; the reset link doesn't carry it
+        return data(
+            { success: true, email },
+            { headers: { 'Set-Cookie': await serializePasswordResetEmailCookie(context, email) } }
+        );
     } catch (error) {
         logger.error('ForgotPassword: failed', { error });
         const errorMessage = extractErrorMessage(error);

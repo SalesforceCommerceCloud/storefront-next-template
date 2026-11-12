@@ -16,6 +16,7 @@
 import { finalize } from '../../audit/audit';
 import { AuditCommand } from '../../audit/command';
 import { text, workspaceFlag, workspaceFor } from '../../audit/flags';
+import { finalizedAttributes } from '../../audit/telemetry';
 import { commonFlags } from '../../flags';
 
 export default class Finalize extends AuditCommand {
@@ -33,8 +34,12 @@ export default class Finalize extends AuditCommand {
 
     async run(): Promise<void> {
         const { flags } = await this.parse(Finalize);
-        this.log(
-            await finalize({ workspace: workspaceFor(flags), categories: flags.categories, events: flags.events })
-        );
+        const resultPath = await finalize({
+            workspace: workspaceFor(flags),
+            categories: flags.categories,
+            events: flags.events,
+        });
+        await this.track('AUDIT_FINALIZED', () => finalizedAttributes(resultPath));
+        this.log(resultPath);
     }
 }

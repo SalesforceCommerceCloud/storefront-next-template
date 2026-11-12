@@ -310,6 +310,11 @@ export const testRoutesWithSiteContext = [
                                 file: 'routes/_app.p.$.tsx',
                             },
                             {
+                                id: 'routes/_app.c.$',
+                                path: 'c/*',
+                                file: 'routes/_app.c.$.tsx',
+                            },
+                            {
                                 id: 'routes/_app.search',
                                 path: 'search',
                                 file: 'routes/_app.search.tsx',

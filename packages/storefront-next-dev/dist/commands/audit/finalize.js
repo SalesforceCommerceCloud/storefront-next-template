@@ -1,14 +1,13 @@
 import "../../package.js";
 import { i as commonFlags } from "../../flags.js";
-import "../../assets.js";
+import "../../results.js";
 import "../../catalog.js";
 import "../../measured-run.js";
 import { n as finalize } from "../../audit.js";
-import "../../sanitize.js";
 import "../../schema.js";
 import "../../events.js";
 import "../../live.js";
-import { i as AuditCommand, n as workspaceFlag, r as workspaceFor, t as text } from "../../flags2.js";
+import { a as finalizedAttributes, i as AuditCommand, n as workspaceFlag, r as workspaceFor, t as text } from "../../flags2.js";
 
 //#region src/commands/audit/finalize.ts
 var Finalize = class Finalize extends AuditCommand {
@@ -30,11 +29,13 @@ var Finalize = class Finalize extends AuditCommand {
 	};
 	async run() {
 		const { flags } = await this.parse(Finalize);
-		this.log(await finalize({
+		const resultPath = await finalize({
 			workspace: workspaceFor(flags),
 			categories: flags.categories,
 			events: flags.events
-		}));
+		});
+		await this.track("AUDIT_FINALIZED", () => finalizedAttributes(resultPath));
+		this.log(resultPath);
 	}
 };
 

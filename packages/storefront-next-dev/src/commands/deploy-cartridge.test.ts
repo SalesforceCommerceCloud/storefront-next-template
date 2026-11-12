@@ -17,14 +17,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import DeployCartridge from './deploy-cartridge';
 import fs from 'fs-extra';
 import path from 'path';
+import { SFNEXT_BASE_CARTRIDGE_NAME, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR } from '../config';
+
+const namedCartridge = {
+    name: 'app_storefrontnext_refarch',
+    src: path.join('/test/project', 'cartridges', 'app_storefrontnext_refarch'),
+    dest: 'app_storefrontnext_refarch',
+};
 
 const defaultCartridges = [
     {
-        name: 'app_storefrontnext_base',
-        src: path.join('/test/project', 'cartridges', 'app_storefrontnext_base'),
-        dest: 'app_storefrontnext_base',
+        name: SFNEXT_BASE_CARTRIDGE_NAME,
+        src: path.join('/test/project', 'cartridges', SFNEXT_BASE_CARTRIDGE_NAME),
+        dest: SFNEXT_BASE_CARTRIDGE_NAME,
     },
 ];
+
+const defaultMetadataDir = path.join('/test/project', 'cartridges', SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR);
 
 // Hoisted mocks must be declared before vi.mock calls due to hoisting
 const {
@@ -74,12 +83,19 @@ vi.mock('@salesforce/b2c-tooling-sdk/cli', () => {
     class CartridgeCommand extends Command {
         static baseFlags = {};
         static cartridgeFlags = {};
-        resolvedConfig = {
+        resolvedConfig: { values: { codeVersion?: string; cartridges?: string[] } } = {
             values: {
                 codeVersion: 'test-version',
             },
         };
+        flags: Record<string, unknown> = {};
         instance = { config: { codeVersion: 'test-version' } };
+        get cartridgeOptions() {
+            return {
+                include: this.flags?.cartridge ?? this.resolvedConfig?.values.cartridges,
+                exclude: this.flags?.['exclude-cartridge'],
+            };
+        }
         requireServer() {}
         requireCodeVersion() {}
         requireWebDavCredentials() {}
@@ -99,13 +115,15 @@ vi.mock('@salesforce/b2c-tooling-sdk/cli', () => {
 
 function createCommand(flagOverrides: Record<string, unknown> = {}) {
     const cmd = new DeployCartridge([], {} as never);
+    const flags = {
+        'project-directory': '/test/project',
+        delete: false,
+        reload: false,
+        ...flagOverrides,
+    };
+    (cmd as any).flags = flags;
     vi.spyOn(cmd as any, 'parse').mockResolvedValue({
-        flags: {
-            'project-directory': '/test/project',
-            delete: false,
-            reload: false,
-            ...flagOverrides,
-        },
+        flags,
         args: {},
         argv: [],
         raw: [],
@@ -166,20 +184,13 @@ describe('deploy-cartridge command', () => {
         const logSpy = vi.spyOn(cmd as any, 'log');
         await cmd.run();
 
-        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('app_storefrontnext_base'));
+        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining(SFNEXT_BASE_CARTRIDGE_NAME));
     });
 
     it('should error if project directory does not exist', async () => {
         (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
 
-        const cmd = new DeployCartridge([], {} as never);
-        vi.spyOn(cmd as any, 'parse').mockResolvedValue({
-            flags: { 'project-directory': '/nonexistent/project', delete: false, reload: false },
-            args: {},
-            argv: [],
-            raw: [],
-            metadata: {},
-        });
+        const cmd = createCommand({ 'project-directory': '/nonexistent/project' });
         vi.spyOn(cmd as any, 'error').mockImplementation((msg: any) => {
             throw new Error(msg);
         });
@@ -191,14 +202,7 @@ describe('deploy-cartridge command', () => {
         // First call (project dir) returns true, second call (metadata dir) returns false
         (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValueOnce(true).mockReturnValueOnce(false);
 
-        const cmd = new DeployCartridge([], {} as never);
-        vi.spyOn(cmd as any, 'parse').mockResolvedValue({
-            flags: { 'project-directory': '/test/project', delete: false, reload: false },
-            args: {},
-            argv: [],
-            raw: [],
-            metadata: {},
-        });
+        const cmd = createCommand();
         vi.spyOn(cmd as any, 'error').mockImplementation((msg: any) => {
             throw new Error(msg);
         });
@@ -209,14 +213,7 @@ describe('deploy-cartridge command', () => {
     it('should suggest generate-cartridge command in error message', async () => {
         (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValueOnce(true).mockReturnValueOnce(false);
 
-        const cmd = new DeployCartridge([], {} as never);
-        vi.spyOn(cmd as any, 'parse').mockResolvedValue({
-            flags: { 'project-directory': '/test/project', delete: false, reload: false },
-            args: {},
-            argv: [],
-            raw: [],
-            metadata: {},
-        });
+        const cmd = createCommand();
         vi.spyOn(cmd as any, 'error').mockImplementation((msg: any) => {
             throw new Error(msg);
         });
@@ -349,5 +346,137 @@ describe('deploy-cartridge command', () => {
         });
 
         await expect(cmd.run()).rejects.toThrow('Failed to discover active code version');
+    });
+
+    it('should deploy a named cartridge when the local base metadata directory is missing', async () => {
+        mockFindCartridges.mockReturnValue([namedCartridge]);
+        (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
+            (target: string) => target !== defaultMetadataDir
+        );
+
+        const cmd = createCommand({ cartridge: [namedCartridge.name] });
+        await cmd.run();
+
+        expect(mockUploadCartridges).toHaveBeenCalledWith(expect.anything(), [namedCartridge], {
+            ignoreDirs: undefined,
+        });
+    });
+
+    it('should error when an explicit selected base cartridge is missing metadata', async () => {
+        const selectedBaseMetadata = path.join(defaultCartridges[0].src, 'cartridge', 'experience');
+        (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
+            (target: string) => target !== selectedBaseMetadata
+        );
+
+        const cmd = createCommand({ cartridge: [SFNEXT_BASE_CARTRIDGE_NAME] });
+        vi.spyOn(cmd as any, 'error').mockImplementation((msg: any) => {
+            throw new Error(msg);
+        });
+
+        await expect(cmd.run()).rejects.toThrow("Metadata directory doesn't exist");
+        expect(mockUploadCartridges).not.toHaveBeenCalled();
+    });
+
+    it('should skip the early base check when dw.json include selects a named cartridge', async () => {
+        mockFindCartridges.mockReturnValue([namedCartridge]);
+        (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
+            (target: string) => target !== defaultMetadataDir
+        );
+
+        const cmd = createCommand();
+        (cmd as any).resolvedConfig = {
+            values: { codeVersion: 'test-version', cartridges: [namedCartridge.name] },
+        };
+        await cmd.run();
+
+        expect(mockUploadCartridges).toHaveBeenCalledWith(expect.anything(), [namedCartridge], {
+            ignoreDirs: undefined,
+        });
+    });
+
+    it('should skip the early base check when exclude omits the base cartridge', async () => {
+        mockFindCartridges.mockReturnValue([namedCartridge]);
+        (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
+            (target: string) => target !== defaultMetadataDir
+        );
+
+        const cmd = createCommand({ 'exclude-cartridge': [SFNEXT_BASE_CARTRIDGE_NAME] });
+        await cmd.run();
+
+        expect(mockUploadCartridges).toHaveBeenCalledWith(expect.anything(), [namedCartridge], {
+            ignoreDirs: undefined,
+        });
+    });
+
+    it('should honor the SDK returned mappings for include plus exclude', async () => {
+        mockFindCartridges.mockReturnValue([namedCartridge]);
+        (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
+            (target: string) => target !== defaultMetadataDir
+        );
+
+        const cmd = createCommand({
+            cartridge: [SFNEXT_BASE_CARTRIDGE_NAME, namedCartridge.name],
+            'exclude-cartridge': [SFNEXT_BASE_CARTRIDGE_NAME],
+        });
+        await cmd.run();
+
+        expect(mockUploadCartridges).toHaveBeenCalledWith(expect.anything(), [namedCartridge], {
+            ignoreDirs: undefined,
+        });
+    });
+
+    it('should not upload or delete when a filtered selection is empty', async () => {
+        mockFindCartridges.mockReturnValue([]);
+        (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
+            (target: string) => target !== defaultMetadataDir
+        );
+
+        const cmd = createCommand({ cartridge: ['missing_cartridge'], delete: true });
+        vi.spyOn(cmd as any, 'error').mockImplementation((msg: any) => {
+            throw new Error(msg);
+        });
+
+        await expect(cmd.run()).rejects.toThrow('No cartridges found');
+        expect(mockUploadCartridges).not.toHaveBeenCalled();
+        expect(mockDeleteCartridges).not.toHaveBeenCalled();
+    });
+
+    it('should check selected base metadata on the provider mapping src', async () => {
+        const providerSrc = path.join('/provider/root', SFNEXT_BASE_CARTRIDGE_NAME);
+        const providerBase = {
+            name: SFNEXT_BASE_CARTRIDGE_NAME,
+            src: providerSrc,
+            dest: SFNEXT_BASE_CARTRIDGE_NAME,
+        };
+        mockFindCartridges.mockReturnValue([providerBase]);
+        (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation((target: string) => {
+            if (target === defaultMetadataDir) {
+                return false;
+            }
+            return target !== path.join(providerSrc, 'does-not-exist');
+        });
+
+        const cmd = createCommand({ cartridge: [SFNEXT_BASE_CARTRIDGE_NAME] });
+        await cmd.run();
+
+        expect(fs.existsSync).toHaveBeenCalledWith(path.join(providerSrc, 'cartridge', 'experience'));
+        expect(mockUploadCartridges).toHaveBeenCalledWith(expect.anything(), [providerBase], { ignoreDirs: undefined });
+    });
+
+    it('should deploy an ordinary selected cartridge that has no experience metadata', async () => {
+        const ordinary = {
+            name: 'app_custom',
+            src: path.join('/test/project', 'cartridges', 'app_custom'),
+            dest: 'app_custom',
+        };
+        mockFindCartridges.mockReturnValue([ordinary]);
+        (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
+            (target: string) => target !== defaultMetadataDir
+        );
+
+        const cmd = createCommand({ cartridge: [ordinary.name] });
+        await cmd.run();
+
+        expect(mockUploadCartridges).toHaveBeenCalledWith(expect.anything(), [ordinary], { ignoreDirs: undefined });
     });
 });

@@ -20,6 +20,7 @@ import {
     generateCodeChallenge,
     getCodeAndUsidFromUrl,
     createBasicAuthHeader,
+    createSlasClientAuthHeader,
     extractCookieFromResponse,
 } from './utils';
 
@@ -185,6 +186,27 @@ describe('auth/utils', () => {
             const decoded = atob(encoded);
 
             expect(decoded).toBe('client:with:colons:secret+with+plus');
+        });
+    });
+
+    describe('createSlasClientAuthHeader', () => {
+        it('should return raw base64 of clientId:clientSecret without a Basic prefix', () => {
+            const header = createSlasClientAuthHeader('myClient', 'mySecret');
+
+            expect(header).not.toMatch(/^Basic /);
+            expect(atob(header)).toBe('myClient:mySecret');
+        });
+
+        it('should match the encoded portion of the Basic auth header', () => {
+            expect(createSlasClientAuthHeader('client-id', 'client-secret')).toBe(
+                createBasicAuthHeader('client-id', 'client-secret').replace('Basic ', '')
+            );
+        });
+
+        it('should handle special characters', () => {
+            const header = createSlasClientAuthHeader('client:with:colons', 'secret+with+plus');
+
+            expect(atob(header)).toBe('client:with:colons:secret+with+plus');
         });
     });
 

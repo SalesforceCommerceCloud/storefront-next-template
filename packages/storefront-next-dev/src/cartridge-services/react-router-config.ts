@@ -22,6 +22,21 @@ import { npmRunPathEnv } from 'npm-run-path';
 import type { RouteConfigEntry } from '@react-router/dev/routes';
 import { logger } from '../logger';
 
+export type PageDesignerSeoPrefixes = {
+    product?: string;
+    category?: string;
+};
+
+const DEFAULT_PAGE_DESIGNER_PREFIXES = {
+    product: 'p',
+    category: 'c',
+} as const;
+
+const PAGE_DESIGNER_PARAMETER_NAMES = {
+    product: 'productId',
+    category: 'categoryId',
+} as const;
+
 let isCliAvailable: boolean | null = null;
 
 function filePathEndsWithRoute(filePath: string, routeFile: string): boolean {
@@ -114,15 +129,16 @@ function getReactRouterRoutes(projectDirectory: string): RouteConfigEntry[] {
 
 /**
  * Convert a file path to its corresponding route path using React Router's CLI.
- * This ensures we get the exact same route resolution as React Router uses internally.
+ * PDP/PLP paths use configured prefixes and named ID parameters for Page Designer.
  * @param filePath - Absolute path to the route file
  * @param projectRoot - The project root directory
- * @returns The route path (e.g., '/cart', '/p/*')
+ * @param seoPrefixes - Optional selected site's PDP/PLP prefixes. Defaults to p/c.
+ * @returns The computed Page Designer route path (e.g., '/cart', '/p/:productId')
  * @example
  * const route = filePathToRoute('/path/to/project/src/routes/_app.cart.tsx', '/path/to/project');
  * // Returns: '/cart'
  */
-export function filePathToRoute(filePath: string, projectRoot: string): string {
+export function filePathToRoute(filePath: string, projectRoot: string, seoPrefixes?: PageDesignerSeoPrefixes): string {
     // Normalize paths to POSIX-style
     const filePathPosix = filePath.replace(/\\/g, '/');
 
@@ -141,6 +157,24 @@ export function filePathToRoute(filePath: string, projectRoot: string): string {
         const routeFilePosix = route.file.replace(/\\/g, '/');
 
         if (routeFileMatches(filePathPosix, routeFilePosix)) {
+            const routeFileName = route.id.split('/').at(-1);
+            const seoResource =
+                routeFileName === '_app.p.$' ? 'product' : routeFileName === '_app.c.$' ? 'category' : undefined;
+            if (seoResource) {
+                const configuredPrefix = seoPrefixes?.[seoResource] ?? DEFAULT_PAGE_DESIGNER_PREFIXES[seoResource];
+                // With seoRoutes, the matched path contains only the outer prefix.
+                // Without seoRoutes, it also includes the resource prefix and splat (e.g. /p/*).
+                const pathSegments = (route.path ?? '').split('/').filter(Boolean);
+                const isResourceLeaf = pathSegments.at(-1) === '*';
+                const outerSegments = isResourceLeaf ? pathSegments.slice(0, -2) : pathSegments;
+                const outerPrefix = `/${outerSegments.join('/')}`.replace(/\/$/, '');
+                // Named ID for Page Designer, e.g. /:siteId/:localeId/catalog/:productId.
+                return `${outerPrefix}/${configuredPrefix}/:${PAGE_DESIGNER_PARAMETER_NAMES[seoResource]}`.replace(
+                    /\/+/g,
+                    '/'
+                );
+            }
+
             const seoAliases = canonicalRoutes
                 .filter((candidate) => candidate.id.startsWith(`${route.id}--seo-alias--`))
                 .sort((left, right) => left.path.localeCompare(right.path));

@@ -32,13 +32,16 @@ export function ScoreRing({
     size?: 'small' | 'large';
     className?: string;
 }) {
+    // Show the whole number Lighthouse shows (Math.round(score * 100)); scores arrive as floats such as 28.000000000000004.
+    // The band and fill keep the unrounded score, as Lighthouse does, so 89.6 reads "90" in the needs-improvement band.
+    const shown = score === undefined ? undefined : Math.round(score);
     return (
         <span
             role="img"
-            aria-label={score === undefined ? 'Performance score unavailable' : `Performance score ${score} of 100`}
+            aria-label={shown === undefined ? 'Performance score unavailable' : `Performance score ${shown} of 100`}
             className={cn('audit-score', `audit-score_${size}`, toneClass(scoreTone(score)), className)}
             style={share((score ?? 0) / 100)}>
-            <span className="audit-score__value">{score ?? '—'}</span>
+            <span className="audit-score__value">{shown ?? '—'}</span>
         </span>
     );
 }

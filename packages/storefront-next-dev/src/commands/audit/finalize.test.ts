@@ -17,9 +17,15 @@ import path from 'node:path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Finalize from './finalize';
 import { finalize } from '../../audit/audit';
+import { finalizedAttributes } from '../../audit/telemetry';
 
 vi.mock('../../audit/audit', () => ({
     finalize: vi.fn(() => Promise.resolve('/project/.site-audit/runs/2026-09-16T00-00-00Z/audit-result.json')),
+}));
+
+vi.mock('../../audit/telemetry', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('../../audit/telemetry')>()),
+    finalizedAttributes: vi.fn(() => Promise.resolve({ findings: 2 })),
 }));
 
 /** Stands in for the command's `log`. */
@@ -65,6 +71,19 @@ describe('audit finalize command', () => {
             categories: '/categories',
             events: '/events.ndjson',
         });
+    });
+
+    it('tracks AUDIT_FINALIZED from the written audit-result.json', async () => {
+        const cmd = command({ 'project-directory': '/project' });
+        const track = vi.spyOn(cmd as any, 'track').mockResolvedValue(undefined);
+
+        await cmd.run();
+
+        expect(track).toHaveBeenCalledWith('AUDIT_FINALIZED', expect.any(Function));
+        await expect((track.mock.calls[0][1] as () => Promise<unknown>)()).resolves.toEqual({ findings: 2 });
+        expect(finalizedAttributes).toHaveBeenCalledWith(
+            '/project/.site-audit/runs/2026-09-16T00-00-00Z/audit-result.json'
+        );
     });
 
     it('is hidden', () => {

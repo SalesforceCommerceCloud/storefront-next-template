@@ -47,6 +47,7 @@ import {
     generateCodeChallenge,
     getCodeAndUsidFromUrl,
     createBasicAuthHeader,
+    createSlasClientAuthHeader,
     extractCookieFromResponse,
 } from './utils';
 
@@ -234,13 +235,21 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
             // This returns a 303 redirect with authorization code
             // IMPORTANT: Use redirect: 'manual' to prevent fetch from following the redirect
             // Note: Authorization goes in params.header (OpenAPI-defined), Content-Type in headers (request-level)
+            // For private client, also send the client credentials in x-slas-client-auth for SLAS
+            // strict client auth, since Authorization already carries the shopper credentials.
             const authResult = await shopperLoginClient.authenticateCustomer({
                 params: {
                     header: {
                         Authorization: `Basic ${btoa(`${username}:${password}`)}`,
                     },
                 },
-                headers: FORM_URLENCODED_HEADER,
+                headers:
+                    isPrivateClient && clientSecret
+                        ? {
+                              ...FORM_URLENCODED_HEADER,
+                              'x-slas-client-auth': createSlasClientAuthHeader(clientId, clientSecret),
+                          }
+                        : FORM_URLENCODED_HEADER,
                 body: {
                     client_id: clientId,
                     channel_id: siteId,
@@ -370,6 +379,37 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
 
                 const effectiveRedirectUri = overrideRedirectUri || redirectUri;
 
+                // For private client, call authorize server-side so x-slas-client-auth can be sent for
+                // SLAS strict client auth (a browser redirect can't carry it). SLAS responds with a 303
+                // to the identity provider; return that Location for the browser to follow instead.
+                // IMPORTANT: Use redirect: 'manual' so fetch doesn't follow the redirect itself.
+                if (isPrivateClient && clientSecret) {
+                    const authorizeResult = await shopperLoginClient.authorizeCustomer({
+                        params: {
+                            query: {
+                                client_id: clientId,
+                                channel_id: siteId,
+                                redirect_uri: effectiveRedirectUri,
+                                response_type: 'code',
+                                hint,
+                                code_challenge: codeChallenge,
+                                ...(usid && { usid }),
+                            },
+                        },
+                        headers: {
+                            'x-slas-client-auth': createSlasClientAuthHeader(clientId, clientSecret),
+                        },
+                        redirect: 'manual',
+                    });
+
+                    const url = authorizeResult.response.headers.get('location');
+                    if (!url) {
+                        throw new Error('Failed to get identity provider redirect from social authorization');
+                    }
+
+                    return { url, codeVerifier };
+                }
+
                 // Construct the full authorization URL by appending to the baseUrl.
                 // The baseUrl may include a proxy path (e.g., '/mobify/proxy/api'), so we use
                 // a relative path (no leading /) to ensure proper concatenation.
@@ -497,6 +537,10 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
                     throw new Error('Client secret is required for passwordless token exchange');
                 }
 
+                if (!loginId?.trim()) {
+                    throw new Error('loginId is required for passwordless token exchange');
+                }
+
                 const codeVerifier = createCodeVerifier();
 
                 // `channel_id` is required by SLAS on this endpoint but is missing from the
@@ -507,7 +551,7 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
                     hint: 'pwdless_login',
                     pwdless_login_token: pwdlessLoginToken,
                     code_verifier: codeVerifier,
-                    ...(loginId && { login_id: loginId }),
+                    login_id: loginId,
                     channel_id: siteId,
                     ...(dnt !== undefined && { dnt: dnt.toString() }),
                 };

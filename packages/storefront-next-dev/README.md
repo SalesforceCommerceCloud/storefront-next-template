@@ -137,8 +137,17 @@ Run these commands from your project directory:
 # Generate cartridge metadata for your site
 pnpm sfnext generate-cartridge
 
-# Deploy generated metadata to B2C Commerce (uses dw.json for all settings)
-pnpm sfnext deploy-cartridge
+# Select a site other than app.defaultSiteId for PDP/PLP route metadata
+pnpm sfnext generate-cartridge --site-id RefArch
+
+# Generate a site-specific cartridge (scaffolds identity files once; no base required)
+pnpm sfnext generate-cartridge --site-id RefArch --cartridge-name app_storefrontnext_refarch
+
+# Validate a custom cartridge
+pnpm sfnext validate-cartridge --cartridge-name app_storefrontnext_refarch
+
+# Deploy a named cartridge with the existing filter
+pnpm sfnext deploy-cartridge -c app_storefrontnext_refarch
 ```
 
 ## CLI Options
@@ -273,6 +282,8 @@ The cartridge commands are independent tools for working with B2C Commerce metad
 - Scans `src/` directory for `@Component`, `@PageType`, and `@Aspect` decorators
 - Generates JSON metadata files in `cartridge/cartridge/experience/` directory
 - Creates separate files for components, page types, and aspects
+- Canonical PDP/PLP route metadata uses the selected site's complete `app.url.seoRoutes` entry (default: `app.defaultSiteId`); `--site-id` overrides it. A `'*'` entry is used only when no site-specific entry exists. Without `seoRoutes`, the metadata route prefixes are `p` and `c`.
+- `--cartridge-name` writes to `cartridges/<name>` instead of `app_storefrontnext_base`. A new name scaffolds only `.project` and `<name>.properties` (no base cartridge, hooks, or sample assets). An existing target is left unchanged, so non-metadata files are preserved; generated components/pages/aspects are replaced. Put the named cartridge **before** the base entry in that site's cartridge path so the base still supplies hooks and shared behavior. Deploy with existing `-c`. Separate outputs must be regenerated explicitly.
 
 **Deploy Metadata**: `deploy-cartridge` uploads metadata directories to B2C Commerce
 
@@ -348,3 +359,9 @@ For optimal tree-shaking, use subpath exports:
 - `@salesforce/storefront-next-dev` - Vite plugin (default export)
 - `@salesforce/storefront-next-dev/react-router-preset` - React Router preset
 - `@salesforce/storefront-next-dev/react-router/Scripts` - React Router Scripts component
+
+## Usage data
+
+The hidden `sfnext audit prepare` and `sfnext audit finalize` commands report anonymous usage to the same Application Insights resource as the B2C CLI: the command (`command`: `sfnext:audit:prepare` or `sfnext:audit:finalize`, the same under `pnpm exec sfnext` and `b2c sfnext`), its duration, the error type and exit code on failure, and per-run counts (pages collected, failed and missing, rules, findings by severity, runs, whether a build ran), the bundle analysis status, the launch guidance (`go`, `go-with-fixes`, `no-go`) and the run id. Each event also carries a `surface: sfnext-audit` tag, the version of this package, the name of the running CLI (`hostCli`: `@salesforce/storefront-next-dev` under `pnpm exec sfnext`, `@salesforce/b2c-cli` under `b2c`), and the SDK's usual fields: an anonymous random install id (`cliId`, kept in a file in the CLI's data directory), session id, version, platform, architecture, Node version, `NODE_ENV`, process uptime, timestamps, a CI flag, and, when an AI agent drives the command, the agent name and a one-way hash of its session. CI runs report too. URLs, hosts, page names, paths, finding text and error messages are never sent. Event names are always `@salesforce/storefront-next-dev/<event>`, whichever CLI runs the command. To tell one run from another, join on the install id (`cliId`) together with `auditRunId`; the run id alone is a timestamp.
+
+Turn it off with `SF_DISABLE_TELEMETRY=true` or `SFCC_DISABLE_TELEMETRY=true`. Other `sfnext` commands (`push`, `scapi`, `config inspect`, `deploy-cartridge`) do not report because of this, unless `SFCC_APP_INSIGHTS_KEY` is set or they run under a host CLI that configures telemetry.

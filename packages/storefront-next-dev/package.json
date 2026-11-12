@@ -203,7 +203,7 @@
     "@opentelemetry/sdk-trace-node": "^1.30.0",
     "@opentelemetry/semantic-conventions": "^1.28.0",
     "@react-router/express": "7.18.2",
-    "@salesforce/b2c-tooling-sdk": "2.11.0",
+    "@salesforce/b2c-tooling-sdk": "2.14.0",
     "@salesforce/playhouse": "0.1.2",
     "ajv": "8.20.0",
     "archiver": "^7.0.1",

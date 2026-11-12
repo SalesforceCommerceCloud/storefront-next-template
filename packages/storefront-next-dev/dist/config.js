@@ -17,7 +17,18 @@ const getMrtEntryFile = (mode) => {
 //#region src/config.ts
 const CARTRIDGES_BASE_DIR = "cartridges";
 const SFNEXT_BASE_CARTRIDGE_NAME = "app_storefrontnext_base";
-const SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR = `${SFNEXT_BASE_CARTRIDGE_NAME}/cartridge/experience`;
+/**
+* Reject path-like `--cartridge-name` values before they are joined under `cartridges/`.
+* Invalid input is rejected as-is; it is not trimmed or sanitized.
+*/
+function assertValidCartridgeName(cartridgeName) {
+	if (cartridgeName.trim().length === 0 || cartridgeName === "." || cartridgeName === ".." || /[\\/]/.test(cartridgeName) || cartridgeName.includes("\0") || /^[a-zA-Z]:/.test(cartridgeName)) throw new Error("Invalid --cartridge-name: must be a single cartridge name, not a path.");
+}
+/** Metadata directory relative to `cartridges/`, for the given cartridge name. */
+function cartridgeExperienceDir(cartridgeName = SFNEXT_BASE_CARTRIDGE_NAME) {
+	return `${cartridgeName}/cartridge/experience`;
+}
+const SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR = cartridgeExperienceDir();
 /**
 * When enabled, automatically generates and deploys cartridge metadata before an MRT push.
 * This is useful for keeping Page Designer metadata in sync with component changes.
@@ -112,4 +123,4 @@ const buildMrtConfig = async (_buildDirectory, projectDirectory) => {
 };
 
 //#endregion
-export { buildMrtConfig as a, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR as i, GENERATE_AND_DEPLOY_CARTRIDGE_ON_MRT_PUSH as n, loadRuntimeConfig as o, SFNEXT_BASE_CARTRIDGE_NAME as r, CARTRIDGES_BASE_DIR as t };
+export { assertValidCartridgeName as a, loadRuntimeConfig as c, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR as i, GENERATE_AND_DEPLOY_CARTRIDGE_ON_MRT_PUSH as n, buildMrtConfig as o, SFNEXT_BASE_CARTRIDGE_NAME as r, cartridgeExperienceDir as s, CARTRIDGES_BASE_DIR as t };

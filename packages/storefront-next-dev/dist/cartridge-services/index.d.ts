@@ -20,6 +20,11 @@ interface GenerateMetadataOptions {
    * Defaults to false.
    */
   dryRun?: boolean;
+  /**
+   * Site ID used for site-specific configuration, such as SEO route prefixes.
+   * Defaults to `app.defaultSiteId` in the project config.
+   */
+  siteId?: string;
 }
 /**
  * Result returned by generateMetadata function

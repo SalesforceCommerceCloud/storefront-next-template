@@ -1,14 +1,13 @@
 import "../../package.js";
 import { i as commonFlags, r as PROJECT_DIRECTORY_FLAG } from "../../flags.js";
-import "../../assets.js";
+import "../../results.js";
 import "../../catalog.js";
 import "../../measured-run.js";
 import { r as prepare } from "../../audit.js";
-import "../../sanitize.js";
 import "../../schema.js";
 import "../../events.js";
 import "../../live.js";
-import { i as AuditCommand, t as text } from "../../flags2.js";
+import { i as AuditCommand, o as preparedAttributes, t as text } from "../../flags2.js";
 import { Flags } from "@oclif/core";
 
 //#region src/commands/audit/prepare.ts
@@ -65,7 +64,7 @@ var Prepare = class Prepare extends AuditCommand {
 	};
 	async run() {
 		const { flags } = await this.parse(Prepare);
-		this.log(await prepare({
+		const preparedPath = await prepare({
 			urls: flags.url,
 			archives: flags.archive,
 			expectedPages: flags["expected-page"],
@@ -76,7 +75,12 @@ var Prepare = class Prepare extends AuditCommand {
 			categories: flags.categories,
 			events: flags.events,
 			build: flags.build
+		});
+		await this.track("AUDIT_PREPARED", () => preparedAttributes(preparedPath, {
+			runs: flags.runs,
+			build: flags.build
 		}));
+		this.log(preparedPath);
 	}
 };
 
