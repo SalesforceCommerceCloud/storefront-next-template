@@ -13,15 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, test, vi } from 'vitest';
-
-vi.mock('@/lib/utils', async () => {
-    const actual = await vi.importActual<typeof import('@/lib/utils')>('@/lib/utils');
-    return {
-        ...actual,
-        resolveAssetUrl: (url: string) => `RESOLVED:${url}`,
-    };
-});
+import { describe, expect, test } from 'vitest';
 
 import {
     DEFAULT_CAPABILITIES_VERSION,
@@ -30,7 +22,6 @@ import {
     MAX_PDP_QUESTIONS,
     isEmbeddedAgentConfigured,
     isEmbeddedAgentEnabled,
-    isTrustedWidgetScriptUrl,
     parsePdpQuestions,
     resolveWidgetScriptSrc,
     type EmbeddedAgentConfig,
@@ -85,55 +76,45 @@ describe('isEmbeddedAgentConfigured', () => {
     });
 });
 
-describe('isTrustedWidgetScriptUrl', () => {
-    test('accepts the exact cimulate.ai domain over HTTPS', () => {
-        expect(isTrustedWidgetScriptUrl('https://cimulate.ai/inline-agent-widget.umd.js')).toBe(true);
-    });
-
-    test('accepts a cimulate.ai subdomain', () => {
-        expect(isTrustedWidgetScriptUrl('https://cdn.search.cimulate.ai/x/y.umd.js')).toBe(true);
-    });
-
-    test('accepts a sfcc-store-internal.net subdomain', () => {
-        expect(isTrustedWidgetScriptUrl('https://a.sfcc-store-internal.net/x.umd.js')).toBe(true);
-    });
-
-    test('rejects HTTP', () => {
-        expect(isTrustedWidgetScriptUrl('http://cimulate.ai/x.umd.js')).toBe(false);
-    });
-
-    test('rejects a lookalike domain', () => {
-        expect(isTrustedWidgetScriptUrl('https://cimulate.ai.evil.com/x.umd.js')).toBe(false);
-    });
-
-    test('rejects an untrusted host', () => {
-        expect(isTrustedWidgetScriptUrl('https://evil.example.com/x.umd.js')).toBe(false);
-    });
-
-    test('rejects a malformed URL', () => {
-        expect(isTrustedWidgetScriptUrl('not a url')).toBe(false);
-    });
-});
-
 describe('resolveWidgetScriptSrc', () => {
-    test('returns the asset-resolved default when no override is set', () => {
-        expect(resolveWidgetScriptSrc({})).toBe(`RESOLVED:${DEFAULT_WIDGET_SCRIPT_SRC}`);
+    test.each([undefined, null])('supports omitted config %s', (config) => {
+        expect(resolveWidgetScriptSrc(config)).toBe(DEFAULT_WIDGET_SCRIPT_SRC);
+    });
+
+    test.each([
+        'https://cimulate.ai/widget.js',
+        'https://cdn.search.cimulate.ai.evil.example/inline-agent-widget/0.1.0/inline-agent-widget.umd.js',
+        'https://a.sfcc-store-internal.net/widget.js',
+        'https://cdn.search.cimulate.ai/copilot-widget/1.55.3/messaging.umd.js',
+        'https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js?x=1',
+        'https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js#x',
+        'https://user:pass@cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js',
+        'https://cdn.search.cimulate.ai:8443/inline-agent-widget/0.1.0/inline-agent-widget.umd.js',
+        'not a URL',
+    ])('rejects an incorrect new widget source %s', (source) => {
+        expect(resolveWidgetScriptSrc({ cc_embeddedWidgetCdnVersion: '0.1.1', embeddedWidgetSourceUrl: source })).toBe(
+            'https://cdn.search.cimulate.ai/inline-agent-widget/0.1.1/inline-agent-widget.umd.js'
+        );
+    });
+
+    test('returns the pinned CDN default when no override is set', () => {
+        expect(resolveWidgetScriptSrc({})).toBe(DEFAULT_WIDGET_SCRIPT_SRC);
     });
 
     test('returns the override as-is when it is on a trusted domain', () => {
         const url = 'https://cdn.search.cimulate.ai/inline-agent-widget/1.0.0/inline-agent-widget.umd.js';
-        expect(resolveWidgetScriptSrc({ scriptSourceUrl: url })).toBe(url);
+        expect(resolveWidgetScriptSrc({ embeddedWidgetSourceUrl: url })).toBe(url);
     });
 
-    test('falls back to the self-host default when the override fails trust validation', () => {
-        expect(resolveWidgetScriptSrc({ scriptSourceUrl: 'https://evil.example.com/x.umd.js' })).toBe(
-            `RESOLVED:${DEFAULT_WIDGET_SCRIPT_SRC}`
+    test('falls back to the pinned CDN default when the override fails trust validation', () => {
+        expect(resolveWidgetScriptSrc({ embeddedWidgetSourceUrl: 'https://evil.example.com/x.umd.js' })).toBe(
+            DEFAULT_WIDGET_SCRIPT_SRC
         );
     });
 
     test('falls back when the override is HTTP (fails HTTPS gate)', () => {
-        expect(resolveWidgetScriptSrc({ scriptSourceUrl: 'http://cimulate.ai/x.umd.js' })).toBe(
-            `RESOLVED:${DEFAULT_WIDGET_SCRIPT_SRC}`
+        expect(resolveWidgetScriptSrc({ embeddedWidgetSourceUrl: 'http://cimulate.ai/x.umd.js' })).toBe(
+            DEFAULT_WIDGET_SCRIPT_SRC
         );
     });
 });
@@ -179,8 +160,10 @@ describe('parsePdpQuestions', () => {
 });
 
 describe('exported defaults', () => {
-    test('DEFAULT_WIDGET_SCRIPT_SRC targets the self-hosted UMD', () => {
-        expect(DEFAULT_WIDGET_SCRIPT_SRC).toBe('/inline-agent-widget.umd.js');
+    test('DEFAULT_WIDGET_SCRIPT_SRC targets the pinned CDN UMD', () => {
+        expect(DEFAULT_WIDGET_SCRIPT_SRC).toBe(
+            'https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js'
+        );
     });
 
     test('DEFAULT_PRODUCT_ID_PATTERN matches the SF Next PDP grammar', () => {
@@ -201,5 +184,62 @@ describe('exported defaults', () => {
     test('DEFAULT_CAPABILITIES_VERSION is a stable string', () => {
         expect(typeof DEFAULT_CAPABILITIES_VERSION).toBe('string');
         expect(DEFAULT_CAPABILITIES_VERSION).not.toBe('');
+    });
+});
+
+describe('embedded widget CDN version selection', () => {
+    test.each(['0.1.1', '1.0.0-rc.1', '1.2.3+build.2'])('resolves selected version %s', (version) => {
+        expect(resolveWidgetScriptSrc({ cc_embeddedWidgetCdnVersion: version })).toBe(
+            `https://cdn.search.cimulate.ai/inline-agent-widget/${version}/inline-agent-widget.umd.js`
+        );
+    });
+    test.each(['latest', 'v0.1.0', '0.01.0', '../0.1.0', ''])('defaults an invalid version %s', (version) => {
+        expect(resolveWidgetScriptSrc({ cc_embeddedWidgetCdnVersion: version })).toBe(DEFAULT_WIDGET_SCRIPT_SRC);
+    });
+    test.each([
+        '',
+        '   ',
+        'https://evil.example/widget.js',
+    ])('uses the selected version when override is empty or rejected: %s', (source) => {
+        expect(resolveWidgetScriptSrc({ cc_embeddedWidgetCdnVersion: '0.1.1', embeddedWidgetSourceUrl: source })).toBe(
+            'https://cdn.search.cimulate.ai/inline-agent-widget/0.1.1/inline-agent-widget.umd.js'
+        );
+    });
+    test.each([
+        'latest',
+        'v0.2.0',
+        '0.01.0',
+        'release-candidate',
+        '0.2',
+    ])('rejects a non-semver URL segment %s and preserves the selected release', (segment) => {
+        expect(
+            resolveWidgetScriptSrc({
+                cc_embeddedWidgetCdnVersion: '0.2.0',
+                embeddedWidgetSourceUrl: `https://cdn.search.cimulate.ai/inline-agent-widget/${segment}/inline-agent-widget.umd.js`,
+            })
+        ).toBe('https://cdn.search.cimulate.ai/inline-agent-widget/0.2.0/inline-agent-widget.umd.js');
+    });
+    test.each(['0.2.0', '1.0.0-rc.1', '1.2.3+build.2'])('accepts an explicit release URL for %s', (version) => {
+        const source = `https://cdn.search.cimulate.ai/inline-agent-widget/${version}/inline-agent-widget.umd.js`;
+        expect(resolveWidgetScriptSrc({ embeddedWidgetSourceUrl: source })).toBe(source);
+    });
+    test('the explicit URL wins over the version', () => {
+        expect(
+            resolveWidgetScriptSrc({
+                cc_embeddedWidgetCdnVersion: '0.1.1',
+                embeddedWidgetSourceUrl: DEFAULT_WIDGET_SCRIPT_SRC,
+            })
+        ).toBe(DEFAULT_WIDGET_SCRIPT_SRC);
+    });
+    test('ignores the removed URL alias when selecting a version', () => {
+        const config = { cc_embeddedWidgetCdnVersion: '0.1.1', scriptSourceUrl: DEFAULT_WIDGET_SCRIPT_SRC };
+        expect(resolveWidgetScriptSrc(config)).toBe(
+            'https://cdn.search.cimulate.ai/inline-agent-widget/0.1.1/inline-agent-widget.umd.js'
+        );
+    });
+    test('trims the selected version', () => {
+        expect(resolveWidgetScriptSrc({ cc_embeddedWidgetCdnVersion: ' 0.1.1 ' })).toBe(
+            'https://cdn.search.cimulate.ai/inline-agent-widget/0.1.1/inline-agent-widget.umd.js'
+        );
     });
 });

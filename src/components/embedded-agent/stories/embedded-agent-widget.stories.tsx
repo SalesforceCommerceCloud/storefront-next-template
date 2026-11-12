@@ -80,7 +80,7 @@ const meta: Meta<typeof StoryHost> = {
             description: {
                 component: `
 React wrapper that mounts the \`<inline-agent-widget>\` custom element (shipped as
-a self-hosted UMD at \`/inline-agent-widget.umd.js\`) once per route and keeps its
+a versioned UMD from the trusted Cimulate CDN) once per route and keeps its
 attributes in sync with React props. Returns \`null\` until the config is fully
 populated so merchants that leave the block empty get no mount at all. The widget
 UMD is not loaded in Storybook; stories register a lightweight stub for

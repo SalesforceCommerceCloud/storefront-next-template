@@ -23,7 +23,6 @@ export {
     MAX_PDP_QUESTIONS,
     DEFAULT_WIDGET_SCRIPT_SRC,
     DEFAULT_CAPABILITIES_VERSION,
-    isTrustedWidgetScriptUrl,
     resolveWidgetScriptSrc,
 } from './embedded-agent.utils';
 export type { EmbeddedAgentConfig } from './embedded-agent.utils';

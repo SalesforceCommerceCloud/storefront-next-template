@@ -16,14 +16,6 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
 import { render, waitFor, act } from '@testing-library/react';
 
-vi.mock('@/lib/utils', async () => {
-    const actual = await vi.importActual<typeof import('@/lib/utils')>('@/lib/utils');
-    return {
-        ...actual,
-        resolveAssetUrl: (url: string) => url,
-    };
-});
-
 // `readyPromise` is module-scoped in the SUT; reset modules between tests so
 // each test gets a fresh script-load state instead of leaking resolved promises.
 async function loadFreshModule() {
@@ -91,7 +83,9 @@ describe('<EmbeddedAgentWidget>', () => {
             />
         );
 
-        const script = document.head.querySelector('script[src="/inline-agent-widget.umd.js"]') as HTMLScriptElement;
+        const script = document.head.querySelector(
+            'script[src="https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js"]'
+        ) as HTMLScriptElement;
         expect(script).not.toBeNull();
         expect(script.async).toBe(true);
 
@@ -201,13 +195,15 @@ describe('<EmbeddedAgentWidget>', () => {
 
     test('reuses an existing script tag rather than appending a duplicate', async () => {
         const existing = document.createElement('script');
-        existing.src = '/inline-agent-widget.umd.js';
+        existing.src = 'https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js';
         document.head.appendChild(existing);
 
         const { EmbeddedAgentWidget } = await loadFreshModule();
         render(<EmbeddedAgentWidget config={baseConfig} />);
 
-        const scripts = document.head.querySelectorAll('script[src="/inline-agent-widget.umd.js"]');
+        const scripts = document.head.querySelectorAll(
+            'script[src="https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js"]'
+        );
         expect(scripts).toHaveLength(1);
     });
 
@@ -225,7 +221,9 @@ describe('<EmbeddedAgentWidget>', () => {
         const { EmbeddedAgentWidget } = await loadFreshModule();
         const { container } = render(<EmbeddedAgentWidget config={baseConfig} />);
 
-        const script = document.head.querySelector('script[src="/inline-agent-widget.umd.js"]') as HTMLScriptElement;
+        const script = document.head.querySelector(
+            'script[src="https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js"]'
+        ) as HTMLScriptElement;
         act(() => {
             script.dispatchEvent(new Event('error'));
             whenDefinedReject(new Error('never defined'));
@@ -242,7 +240,9 @@ describe('<EmbeddedAgentWidget>', () => {
         const { EmbeddedAgentWidget } = await loadFreshModule();
         const { unmount } = render(<EmbeddedAgentWidget config={baseConfig} />);
 
-        const script = document.head.querySelector('script[src="/inline-agent-widget.umd.js"]') as HTMLScriptElement;
+        const script = document.head.querySelector(
+            'script[src="https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js"]'
+        ) as HTMLScriptElement;
         expect(script).not.toBeNull();
 
         act(() => {
@@ -251,13 +251,19 @@ describe('<EmbeddedAgentWidget>', () => {
         });
 
         await waitFor(() => {
-            expect(document.head.querySelector('script[src="/inline-agent-widget.umd.js"]')).toBeNull();
+            expect(
+                document.head.querySelector(
+                    'script[src="https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js"]'
+                )
+            ).toBeNull();
         });
 
         unmount();
         // Fresh mount — a new <script> should be appended, not blocked by a stale node.
         render(<EmbeddedAgentWidget config={baseConfig} />);
-        const fresh = document.head.querySelector('script[src="/inline-agent-widget.umd.js"]');
+        const fresh = document.head.querySelector(
+            'script[src="https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js"]'
+        );
         expect(fresh).not.toBeNull();
         expect(fresh).not.toBe(script);
     });

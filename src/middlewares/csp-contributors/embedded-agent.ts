@@ -32,8 +32,7 @@ function origins(...urls: (string | undefined)[]): string[] {
 
 /**
  * CSP contributor for the inline PDP `<inline-agent-widget>` custom element.
- * Self-hosted UMD contributes nothing (covered by `self`); CDN script URLs and
- * the `scrt2Url` MIAW endpoint contribute explicit origins.
+ * The CDN script and SCRT2 endpoint contribute explicit origins.
  */
 export function createEmbeddedAgentCspContributor(config: EmbeddedAgentCspConfig | undefined): CspContributor {
     return {
@@ -43,9 +42,8 @@ export function createEmbeddedAgentCspContributor(config: EmbeddedAgentCspConfig
             if (!isEmbeddedAgentConfigured(config)) return {};
 
             const scriptUrl = resolveWidgetScriptSrc(config);
-            // Only contribute origins; same-origin `/inline-agent-widget.umd.js` resolves to a bare path.
-            const scriptOrigins = scriptUrl.startsWith('/') ? [] : origins(scriptUrl);
-            const connectSrc = origins(config.scrt2Url, ...(scriptOrigins.length ? [scriptUrl] : []));
+            const scriptOrigins = origins(scriptUrl);
+            const connectSrc = origins(config.scrt2Url, scriptUrl);
             const frameSrc = origins(config.scrt2Url);
 
             const out: CspContribution = {};

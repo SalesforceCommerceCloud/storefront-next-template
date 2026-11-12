@@ -15,14 +15,15 @@
  */
 
 import { createLogger } from '@/lib/logger';
-import { resolveAssetUrl } from '@/lib/utils';
 
 const logger = createLogger();
 
-const TRUSTED_WIDGET_DOMAINS = ['cimulate.ai', 'sfcc-store-internal.net'];
+const EMBEDDED_WIDGET_CDN_BASE = 'https://cdn.search.cimulate.ai/inline-agent-widget';
+const EMBEDDED_WIDGET_VERSION_PATTERN =
+    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 
-/** Local self-hosted UMD under `public/`. Flip via `scriptSourceUrl` once CDN is live. */
-export const DEFAULT_WIDGET_SCRIPT_SRC = '/inline-agent-widget.umd.js';
+export const DEFAULT_EMBEDDED_WIDGET_CDN_VERSION = '0.1.0';
+export const DEFAULT_WIDGET_SCRIPT_SRC = `${EMBEDDED_WIDGET_CDN_BASE}/${DEFAULT_EMBEDDED_WIDGET_CDN_VERSION}/inline-agent-widget.umd.js`;
 
 export const DEFAULT_CAPABILITIES_VERSION = '66';
 
@@ -40,8 +41,8 @@ export interface EmbeddedAgentConfig {
     placeholder?: string;
     persistSession?: boolean;
     enableLogging?: boolean;
-    /** Overrides `DEFAULT_WIDGET_SCRIPT_SRC`. HTTPS + trusted-domain validated. */
-    scriptSourceUrl?: string;
+    cc_embeddedWidgetCdnVersion?: string;
+    embeddedWidgetSourceUrl?: string;
     capabilitiesVersion?: string;
     /** Query-string key the widget should read the product id from (e.g. "pid"). */
     productIdParam?: string;
@@ -68,30 +69,41 @@ export function isEmbeddedAgentConfigured(
     );
 }
 
-export function isTrustedWidgetScriptUrl(url: string): boolean {
-    try {
-        const parsed = new URL(url);
-        if (parsed.protocol !== 'https:') return false;
-        return TRUSTED_WIDGET_DOMAINS.some((d) => parsed.hostname === d || parsed.hostname.endsWith(`.${d}`));
-    } catch {
-        return false;
+export function resolveWidgetScriptSrc(
+    config?: Pick<EmbeddedAgentConfig, 'cc_embeddedWidgetCdnVersion' | 'embeddedWidgetSourceUrl'> | null
+): string {
+    const configuredVersion = config?.cc_embeddedWidgetCdnVersion;
+    const trimmedVersion = typeof configuredVersion === 'string' ? configuredVersion.trim() : '';
+    const version = EMBEDDED_WIDGET_VERSION_PATTERN.test(trimmedVersion)
+        ? trimmedVersion
+        : DEFAULT_EMBEDDED_WIDGET_CDN_VERSION;
+    const versionUrl = `${EMBEDDED_WIDGET_CDN_BASE}/${version}/inline-agent-widget.umd.js`;
+    const source = config?.embeddedWidgetSourceUrl;
+    if (typeof source === 'string' && source.trim()) {
+        try {
+            const url = new URL(source.trim());
+            const sourceVersion = url.pathname.match(
+                /^\/inline-agent-widget\/([^/]+)\/inline-agent-widget\.umd\.js$/
+            )?.[1];
+            if (
+                url.protocol === 'https:' &&
+                url.hostname === 'cdn.search.cimulate.ai' &&
+                !url.port &&
+                !url.username &&
+                !url.password &&
+                EMBEDDED_WIDGET_VERSION_PATTERN.test(sourceVersion || '') &&
+                !url.search &&
+                !url.hash
+            ) {
+                return url.href;
+            }
+        } catch {
+            // Invalid overrides use the selected CDN version.
+        }
+        logger.error('Rejected untrusted embedded widget source URL; using selected CDN version');
+        return versionUrl;
     }
-}
-
-/**
- * Picks the UMD script URL. Same-origin default when unset or when an override
- * fails trust validation (log + fall back — a bad config must not break the PDP).
- * The self-host path is routed through `resolveAssetUrl` so MRT prepends the
- * `/mobify/bundle/<id>/client/` prefix; Vite dev returns the path as-is.
- */
-export function resolveWidgetScriptSrc(config: Pick<EmbeddedAgentConfig, 'scriptSourceUrl'>): string {
-    const override = config.scriptSourceUrl;
-    if (!override) return resolveAssetUrl(DEFAULT_WIDGET_SCRIPT_SRC);
-    if (isTrustedWidgetScriptUrl(override)) return override;
-    logger.error('Rejected untrusted inline-agent-widget scriptSourceUrl; falling back to self-host', {
-        url: override,
-    });
-    return resolveAssetUrl(DEFAULT_WIDGET_SCRIPT_SRC);
+    return versionUrl;
 }
 
 /** Dedupe + trim + cap. Mirrors `MAX_PDP_QUESTIONS` in the widget source. */
