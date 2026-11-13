@@ -157,20 +157,3 @@ export const ValidationError: Story = {
         },
     },
 };
-
-export const ThreeAttemptsHint: Story = {
-    args: {
-        onCancel: fn(),
-    },
-    parameters: {
-        reactRouter: {
-            mocks: {
-                useFetcher: () => ({
-                    data: undefined,
-                    state: 'idle',
-                    submit: () => {},
-                }),
-            },
-        },
-    },
-};

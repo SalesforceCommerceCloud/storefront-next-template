@@ -1653,18 +1653,6 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
 </div>
 `;
 
-exports[`PopularCategories stories snapshot > SkeletonState story renders and matches snapshot 1`] = `
-<div>
-  <div
-    class="bg-background min-h-screen"
-  >
-    <section
-      class="bg-muted/50"
-    />
-  </div>
-</div>
-`;
-
 exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders and matches snapshot 1`] = `
 <div>
   <div

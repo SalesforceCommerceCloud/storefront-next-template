@@ -406,7 +406,7 @@ export const Empty: Story = {
  * Designer design mode (`mode="EDIT"`). Feeds empty `PopularCategory` (Category Card) children
  * through the real CarouselSection render path, so each renders its own placeholder card (image +
  * default "Category" title). On the live storefront an unconfigured carousel renders nothing (see
- * the SkeletonState/Empty stories).
+ * the Empty story).
  */
 export const UnconfiguredDesignMode: Story = {
     args: {},
@@ -448,29 +448,6 @@ export const UnconfiguredDesignMode: Story = {
 /**
  * No props state
  */
-export const SkeletonState: Story = {
-    args: {},
-    parameters: {
-        docs: {
-            description: {
-                story: 'Component with no props - renders the section wrapper but no content (use Loading story for skeleton state).',
-            },
-        },
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-
-        // With no props, the component renders the section wrapper but no content
-        const section = canvasElement.querySelector('section');
-        await expect(section).toBeInTheDocument();
-
-        // No title or categories should be rendered
-        const canvas = within(canvasElement);
-        await expect(canvas.queryByText('Style for Real Life')).not.toBeInTheDocument();
-        const shopNowButtons = canvas.queryAllByText(/shop now/i);
-        await expect(shopNowButtons.length).toBe(0);
-    },
-};
 
 /**
  * Interactive test - testing user interactions with category cards
