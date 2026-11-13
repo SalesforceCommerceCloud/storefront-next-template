@@ -21,6 +21,7 @@ import { ErrorCode } from '@/lib/error-codes';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { findOrCreatePickupShipment } from '@/extensions/bopis/lib/api/shipment.server';
 import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
+import { rejectUnconfirmedStoreChange } from '@/extensions/bopis/lib/actions/store-context-guard.server';
 import { validateDeliveryOptionCompatibility } from '@/extensions/bopis/lib/product-actions';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -114,6 +115,10 @@ export const action = createBasketAction(
             );
         }
 
+        if (storeId) {
+            const confirmationRequired = rejectUnconfirmedStoreChange(context, storeId);
+            if (confirmationRequired) return confirmationRequired;
+        }
         const deliveryValidation = validateDeliveryOptionCompatibility(basket, storeId, context);
         if (!deliveryValidation.valid) {
             return data(

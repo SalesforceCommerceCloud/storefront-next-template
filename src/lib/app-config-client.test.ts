@@ -18,6 +18,29 @@ import type { AppConfig } from '@/types/config';
 import { extractClientConfig, SERVER_ONLY_NAMESPACES } from './app-config-client';
 
 describe('extractClientConfig', () => {
+    it('keeps store-selection mappings and cleanup policy on the server at large store counts', () => {
+        const stores = Object.fromEntries(
+            Array.from({ length: 4000 }, (_, i) => [
+                `store-${i}`,
+                { inventoryId: `inventory-${i}`, assignmentQualifiers: { store: `store-${i}` } },
+            ])
+        );
+        const storeSelection = { storesBySite: { GroceryNext: stores }, qualifierKeys: ['store'], cleanup: false };
+        const input = {
+            features: {
+                guestCheckout: true,
+                shopperContext: { enabled: true, storeSelectionEnabled: true, storeSelection },
+            },
+        } as unknown as AppConfig;
+        const client = extractClientConfig(input);
+        expect(client.features.shopperContext).toEqual({ enabled: true, storeSelectionEnabled: true });
+        expect(client.features.guestCheckout).toBe(true);
+        expect(JSON.stringify(client)).not.toContain('inventory-3999');
+        expect(input.features.shopperContext.storeSelection).toBe(storeSelection);
+        expect(client.features.shopperContext.storeSelectionEnabled).toBe(true);
+        expect(Object.keys(stores)).toHaveLength(4000);
+    });
+
     it('strips every namespace listed in SERVER_ONLY_NAMESPACES', () => {
         // The list is the load-bearing contract the build-time guard also reads. If a future
         // namespace is added (or removed) it must be reflected here so the runtime stripping

@@ -28,6 +28,10 @@ import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
 import { expectStatus } from '@/lib/test-utils/expect-status';
 import type { CartItemUpdateData } from '@/lib/cart/basket-schemas';
 
+vi.mock('@salesforce/storefront-next-runtime/config', async (original) => ({
+    ...(await original<typeof import('@salesforce/storefront-next-runtime/config')>()),
+    getConfig: () => ({ features: { shopperContext: { enabled: false } } }),
+}));
 vi.mock('@/middlewares/basket.server');
 vi.mock('@/lib/api-clients.server');
 vi.mock('@/lib/cart/shipments.server');

@@ -198,6 +198,28 @@ describe('CheckoutPickup', () => {
         expect(screen.getByText('storePickup.changePickupLocation')).toBeInTheDocument();
     });
 
+    test('disables native pickup-store switching while keeping checkout editing available', () => {
+        const config = {
+            ...mockConfig,
+            features: { ...mockConfig.features, shopperContext: { enabled: true, storeSelectionEnabled: true } },
+        };
+        render(
+            <ConfigProvider config={config}>
+                <CheckoutPickup
+                    cart={baseCart as any}
+                    productsByItemId={productsByItemId}
+                    isEditing
+                    onEdit={() => {}}
+                    onContinue={() => {}}
+                    continueButtonLabel="Continue"
+                />
+            </ConfigProvider>,
+            { wrapper }
+        );
+        expect(screen.getByRole('button', { name: 'storePickup.changePickupLocation' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled();
+    });
+
     test('does not render Change Pickup Location link in summary mode', () => {
         render(
             <CheckoutPickup

@@ -13,7 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createContext, type PropsWithChildren, useContext, useRef, useSyncExternalStore, useCallback } from 'react';
+import {
+    createContext,
+    type PropsWithChildren,
+    useContext,
+    useRef,
+    useSyncExternalStore,
+    useCallback,
+    useEffect,
+} from 'react';
 import {
     type StoreLocatorStore,
     type StoreApi,
@@ -46,6 +54,13 @@ const StoreLocatorProvider = ({
             selectedStoreInfo: selectedStoreInfo ?? null,
         });
     }
+
+    const previousSelection = useRef(selectedStoreInfo);
+    useEffect(() => {
+        if (previousSelection.current === selectedStoreInfo) return;
+        previousSelection.current = selectedStoreInfo;
+        storeRef.current?.setState({ selectedStoreInfo: selectedStoreInfo ?? null });
+    }, [selectedStoreInfo]);
 
     return <StoreLocatorContext.Provider value={storeRef.current}>{children}</StoreLocatorContext.Provider>;
 };

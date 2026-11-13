@@ -34,18 +34,28 @@ export const SERVER_ONLY_NAMESPACES = ['serverExtension'] as const;
 
 export type ServerOnlyNamespace = (typeof SERVER_ONLY_NAMESPACES)[number];
 
-export type ClientAppConfig = Omit<AppConfig, ServerOnlyNamespace>;
+export type ClientAppConfig = Omit<AppConfig, ServerOnlyNamespace | 'features'> & {
+    features: Omit<AppConfig['features'], 'shopperContext'> & {
+        shopperContext: Omit<AppConfig['features']['shopperContext'], 'storeSelection'>;
+    };
+};
 
 /**
  * Strip every server-only namespace from `app` before it gets serialized into
  * `window.__APP_CONFIG__`. The build-time guard prevents a client module from importing
  * the server-only barrel; this filter prevents the same values from hitching a ride
  * inside the JSON-stringified config blob the SSR layout writes into the document head.
+ * Store-selection mappings and cleanup policy are also server-only; clients need the enabled flag.
  */
 export function extractClientConfig(app: AppConfig): ClientAppConfig {
     const out: Record<string, unknown> = { ...app };
     for (const key of SERVER_ONLY_NAMESPACES) {
         delete out[key];
+    }
+    if (app.features?.shopperContext) {
+        const shopperContext = { ...app.features.shopperContext };
+        delete shopperContext.storeSelection;
+        out.features = { ...app.features, shopperContext };
     }
     return out as ClientAppConfig;
 }

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
+import { isNativeStoreSelectionEnabled } from '@/lib/shopper-context/store-selection';
 import { type ReactElement, useCallback, useEffect, useRef } from 'react';
 import { resourceRoutes } from '@/route-paths';
 import { useItemFetcher } from '@/hooks/use-item-fetcher';
@@ -46,6 +48,7 @@ interface CartDeliveryOptionProps {
 export default function CartDeliveryOption({ product, isDeliveryOutOfStock }: CartDeliveryOptionProps): ReactElement {
     const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
     const openStoreLocator = useStoreLocator((s) => s.open);
+    const nativeStoreContextEnabled = isNativeStoreSelectionEnabled(useConfig().features.shopperContext);
     const setSelectedStoreInfoRaw = useStoreLocator((s) => s.setSelectedStoreInfo);
     const basketContext = useBasket();
     const fetcher = useItemFetcher({ itemId: product.itemId, componentName: 'cart-delivery-option' });
@@ -81,13 +84,20 @@ export default function CartDeliveryOption({ product, isDeliveryOutOfStock }: Ca
      */
     const handleOpenStoreLocator = useCallback(() => {
         if (!product.storeId) {
-            setSelectedStoreInfoRaw(null);
+            if (!nativeStoreContextEnabled) setSelectedStoreInfoRaw(null);
         }
         // Remember this item is waiting for a pickup store, and scope the store search to it so the picker can
         // augment/sort stores by whether they stock it. Consumers that ignore pickupContext are unaffected.
-        pendingPickupRef.current = true;
+        pendingPickupRef.current = !nativeStoreContextEnabled;
         openStoreLocator(productId ? { productId, quantity: product.quantity ?? 1 } : undefined);
-    }, [product.storeId, product.quantity, productId, setSelectedStoreInfoRaw, openStoreLocator]);
+    }, [
+        nativeStoreContextEnabled,
+        product.storeId,
+        product.quantity,
+        productId,
+        setSelectedStoreInfoRaw,
+        openStoreLocator,
+    ]);
 
     // Handle show error toast on delivery-option switch (pickup - cart & vice versa) failure
     const lastHandledErrorRef = useRef<unknown>(null);
@@ -118,6 +128,11 @@ export default function CartDeliveryOption({ product, isDeliveryOutOfStock }: Ca
     // the sheet closes — so selecting a store completes the switch instead of leaving the item on Delivery. Only
     // the item that opened the locator holds `pendingPickupRef`, so a shared selection applies to just that item.
     useEffect(() => {
+        // Native pickup changes belong to the confirmed-change integration.
+        if (nativeStoreContextEnabled) {
+            pendingPickupRef.current = false;
+            return;
+        }
         if (isStoreLocatorOpen || !pendingPickupRef.current) return;
         pendingPickupRef.current = false; // consume the pending intent when the sheet closes
         const storeId = selectedStoreInfo?.id;
@@ -133,6 +148,7 @@ export default function CartDeliveryOption({ product, isDeliveryOutOfStock }: Ca
         formData.append('inventoryId', inventoryId);
         void fetcher.submit(formData, { method: 'PATCH', action: resourceRoutes.cartItemUpdate });
     }, [
+        nativeStoreContextEnabled,
         isStoreLocatorOpen,
         selectedStoreInfo,
         currentFulfillment,
@@ -164,6 +180,18 @@ export default function CartDeliveryOption({ product, isDeliveryOutOfStock }: Ca
             action: resourceRoutes.cartItemUpdate,
         });
     };
+
+    if (nativeStoreContextEnabled) {
+        return (
+            <span className="text-xs font-medium">
+                {tExtBopis(
+                    currentFulfillment === DELIVERY_OPTIONS.PICKUP
+                        ? 'deliveryOptions.pickupOrDelivery.storePickupLabel'
+                        : 'deliveryOptions.pickupOrDelivery.delivery'
+                )}
+            </span>
+        );
+    }
 
     return (
         <PickupOrDeliveryDropdown

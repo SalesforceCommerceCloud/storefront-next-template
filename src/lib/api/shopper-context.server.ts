@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { RouterContextProvider } from 'react-router';
+import { createContext, type RouterContextProvider } from 'react-router';
+import { createShopperContextHelpers, type ShopperContext as ShopperContextNamespace } from '@/scapi';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { createApiClients } from '@/lib/api-clients.server';
-import type { ShopperContext as ShopperContextNamespace } from '@/scapi';
 
 /**
  * ShopperContext request body type — uses the API schema directly.
@@ -87,4 +87,22 @@ export async function createShopperContext(
         wrappedError.cause = error; // Preserve original error
         throw wrappedError;
     }
+}
+
+const shopperContextHelpersContext = createContext<{
+    usid: string;
+    helpers: ReturnType<typeof createShopperContextHelpers>;
+} | null>(null);
+
+/** Share native state within a request, discarding the snapshot when its shopper session changes. */
+export function getShopperContextHelpers(context: Readonly<RouterContextProvider>, usid: string) {
+    let cached = context.get(shopperContextHelpersContext);
+    if (!cached || cached.usid !== usid) {
+        cached = {
+            usid,
+            helpers: createShopperContextHelpers({ client: createApiClients(context).shopperContext, usid }),
+        };
+        context.set(shopperContextHelpersContext, cached);
+    }
+    return cached.helpers;
 }

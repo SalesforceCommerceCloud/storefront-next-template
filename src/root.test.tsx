@@ -676,6 +676,23 @@ describe('root.tsx', () => {
                 expect(getByText('404')).toBeInTheDocument();
                 expect(getByText('Page not found')).toBeInTheDocument();
             });
+
+            it('renders a stable skip-link label when reconciliation prevents the root loader', () => {
+                const { getByRole, getByTestId, queryByText } = render(
+                    <ErrorBoundary
+                        error={{
+                            status: 502,
+                            statusText: '',
+                            data: { code: 'STORE_CONTEXT_UNAVAILABLE' },
+                            internal: false,
+                        }}
+                    />
+                );
+
+                expect(getByRole('link', { name: 'Skip to main content' })).toHaveAttribute('href', '#main-content');
+                expect(getByTestId('error-page')).toBeInTheDocument();
+                expect(queryByText('STORE_CONTEXT_UNAVAILABLE')).not.toBeInTheDocument();
+            });
         });
 
         // W-23493124: a campaign link landing directly on a 404/route error renders ErrorBoundary

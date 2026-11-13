@@ -962,6 +962,16 @@ Enables Shopper Context API integration for personalized experiences based on sh
 
 ---
 
+### features.shopperContext.storeSelectionEnabled
+
+Type: `boolean` | Default: `false`
+
+Opts store selection into native Shopper Context ownership. Requires `features.shopperContext.enabled` and trusted store mappings. Leave it off to retain existing URL store qualification and cookie-based locator/BOPIS behavior.
+
+### features.shopperContext.storeSelection
+
+Trusted per-site store/inventory/assignment mappings, owned qualifier keys and an explicit native cleanup mode. See [Store selection and Shopper Context](./README-STORE-SELECTION.md) for configuration, response contracts and the disable/drain procedure.
+
 ### features.shopperContext.dwsourcecodeCookieSuffix
 
 Type: `string` Optional | Default: `undefined`

@@ -129,6 +129,11 @@ import appStylesHref from '@/theme/index.css?url';
 // Extensions
 import { UITargetProviders } from '@/targets/ui-target-providers';
 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+import {
+    storeSelectionMiddleware,
+    shoppingContext,
+    type ShoppingContext,
+} from '@/extensions/store-locator/lib/store-selection.server';
 import StoreLocatorProvider from '@/extensions/store-locator/providers/store-locator';
 // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 import { type Maintenance, maintenanceContext } from '@/lib/maintenance';
@@ -176,8 +181,9 @@ export const middleware: MiddlewareFunction<Response>[] = [
     performanceMetricsMiddlewareServer,
     maintenanceMiddleware,
     authMiddlewareServer,
-    createBasketMiddleware(),
     shopperContextMiddlewareServer,
+    storeSelectionMiddleware /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
+    createBasketMiddleware(),
     // Must run after authMiddlewareServer (reads the final session userType). Writes the JS-readable
     // `__sfdc_usertype` hint in its response phase so AuthProvider can restore the header auth state
     // under a cached app shell. Writes only the userType hint — never the httpOnly token cookies.
@@ -218,6 +224,7 @@ export const loader = ({
     locale: Locale;
     site: Site;
     currency: string;
+    shoppingContext: ShoppingContext | null /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
     selectedStoreInfo: SelectedStoreInfo | null /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
     correlationId: string;
     pageDesignerPageUpdateMode: PageUpdateMode;
@@ -293,6 +300,7 @@ export const loader = ({
         site,
         currency,
         selectedStoreInfo /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
+        shoppingContext: context.get(shoppingContext) /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
         correlationId,
         maintenance,
         clientAuth,
@@ -406,6 +414,7 @@ function ErrorPageContent({
     statusDetails,
     goToHomepageLabel,
     allRightsReservedLabel,
+    skipToMainContentLabel,
 }: {
     status: number | undefined;
     details: string | undefined;
@@ -417,6 +426,7 @@ function ErrorPageContent({
     statusDetails?: string;
     goToHomepageLabel: string;
     allRightsReservedLabel: string;
+    skipToMainContentLabel?: string;
 }) {
     return (
         <>
@@ -424,7 +434,7 @@ function ErrorPageContent({
                 root `meta` returns [] without loaderData, so <Meta/> emits no <title> on the
                 error path — set one here to satisfy the document-title a11y rule. */}
             <title>{title}</title>
-            <SkipLink />
+            <SkipLink label={skipToMainContentLabel} />
             {/* Simple Header */}
             <header className="bg-header-background text-header-foreground sticky top-0 z-50">
                 <div className="section-container">
@@ -675,6 +685,7 @@ export function ErrorBoundary({ error }: { error: unknown }) {
             message={fallbackContent.message}
             goToHomepageLabel="Go to Homepage"
             allRightsReservedLabel="All rights reserved."
+            skipToMainContentLabel="Skip to main content"
         />
     );
 }

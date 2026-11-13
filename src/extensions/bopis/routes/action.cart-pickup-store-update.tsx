@@ -16,6 +16,7 @@
 // React Router
 import type { Route } from './+types/action.cart-pickup-store-update';
 import { data } from 'react-router';
+import { rejectUnconfirmedStoreChange } from '@/extensions/bopis/lib/actions/store-context-guard.server';
 
 // Middlewares
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
@@ -76,6 +77,11 @@ export async function action({
             { status: 405 }
         );
     }
+
+    // Native preparing-store changes must come from the shared confirmed-change
+    // flow; this legacy shipment mutation has no preview/consent contract.
+    const confirmationRequired = rejectUnconfirmedStoreChange(context);
+    if (confirmationRequired) return confirmationRequired;
 
     const basketResource = await getBasket(context);
     const basket = basketResource.current;

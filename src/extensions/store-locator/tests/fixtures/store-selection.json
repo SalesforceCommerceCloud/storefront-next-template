@@ -1,0 +1,22 @@
+{
+    "qualifierKeys": ["store", "group"],
+    "cleanup": false,
+    "storesBySite": {
+        "GroceryNext": {
+            "A": {
+                "inventoryId": "inventory-a",
+                "assignmentQualifiers": {
+                    "store": "store-a",
+                    "group": "north"
+                }
+            },
+            "B": {
+                "inventoryId": "inventory-b",
+                "assignmentQualifiers": {
+                    "store": "store-b",
+                    "group": "south"
+                }
+            }
+        }
+    }
+}

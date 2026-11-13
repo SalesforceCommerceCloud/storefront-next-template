@@ -56,3 +56,9 @@ export {
     type BuiltInClientDefault,
     type BuiltInClientKey,
 } from './built-in-clients';
+
+export {
+    createShopperContextHelpers,
+    type NativeShopperContext,
+    type ConfirmedContextChangeRequired,
+} from './shopper-context';

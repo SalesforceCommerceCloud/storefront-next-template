@@ -88,14 +88,29 @@ export const selectedStoreMiddleware: MiddlewareFunction<Response> = async ({ re
         try {
             const decoded = decodeURIComponent(rawValue);
             const parsed = JSON.parse(decoded);
-            if (parsed && typeof parsed === 'object' && parsed.id) {
-                storeInfo = parsed as SelectedStoreInfo;
+            if (
+                parsed &&
+                typeof parsed === 'object' &&
+                !Array.isArray(parsed) &&
+                typeof parsed.id === 'string' &&
+                parsed.id.trim() &&
+                parsed.id.length <= 256 &&
+                !/[,\r\n]/.test(parsed.id)
+            ) {
+                storeInfo = {
+                    id: parsed.id,
+                    ...(typeof parsed.inventoryId === 'string' ? { inventoryId: parsed.inventoryId } : {}),
+                };
             }
         } catch {
             // Invalid JSON in cookie, ignore
         }
     }
 
+    if (rawValue && !storeInfo) {
+        storage.set('storeInfo', '');
+        storage.set('isUpdated', true);
+    }
     context.set(selectedStoreContext, storeInfo);
 
     const response = await next();
@@ -105,10 +120,15 @@ export const selectedStoreMiddleware: MiddlewareFunction<Response> = async ({ re
         storage.delete('isUpdated');
 
         const updatedValue = storage.get('storeInfo') as string;
+        // Passive reconciliation repairs differences without sliding the one-year
+        // expiry on every request. Explicit choices refresh both replicas.
+        const refreshCookies = storage.get('refreshCookies') === true;
         if (updatedValue) {
             // Setting a store — serialize the JSON string as the cookie value
-            const setCookieHeader = await storeCookie.serialize(encodeURIComponent(updatedValue));
-            response.headers.append('Set-Cookie', setCookieHeader);
+            const encoded = encodeURIComponent(updatedValue);
+            if (refreshCookies || rawValue !== encoded) {
+                response.headers.append('Set-Cookie', await storeCookie.serialize(encoded));
+            }
             // Update context for current request
             try {
                 context.set(selectedStoreContext, JSON.parse(updatedValue));
@@ -117,11 +137,25 @@ export const selectedStoreMiddleware: MiddlewareFunction<Response> = async ({ re
             }
         } else {
             // Clearing the store — set empty value with maxAge=0 to delete
-            const setCookieHeader = await storeCookie.serialize('', { maxAge: 0 });
-            response.headers.append('Set-Cookie', setCookieHeader);
+            if (refreshCookies || rawValue) {
+                response.headers.append('Set-Cookie', await storeCookie.serialize('', { maxAge: 0 }));
+            }
             context.set(selectedStoreContext, null);
         }
     }
 
+    const record = storage.get('selectionRecord');
+    if (typeof record === 'string') {
+        const recordCookie = createCookie<string>(
+            'storeChoiceRecord',
+            getCookieConfig({ httpOnly: true, maxAge: 60 * 60 * 24 * 365 }, context),
+            context
+        );
+        const encoded = encodeURIComponent(record);
+        const incoming = await recordCookie.parse(requestCookieHeader);
+        if (storage.get('refreshCookies') === true || incoming !== encoded) {
+            response.headers.append('Set-Cookie', await recordCookie.serialize(encoded));
+        }
+    }
     return response;
 };

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
+import { isNativeStoreSelectionEnabled } from '@/lib/shopper-context/store-selection';
 import { useMemo, useCallback, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Typography } from '@/components/typography';
@@ -101,18 +103,20 @@ export default function CheckoutPickup({
     // Get currency from context (automatically derived from locale)
     const { currency } = useSite();
     const openStoreLocator = useStoreLocator((s) => s.open);
+    const nativeStoreContextEnabled = isNativeStoreSelectionEnabled(useConfig().features.shopperContext);
     const setSelectedStoreInfoRaw = useStoreLocator((s) => s.setSelectedStoreInfo);
     const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
     const isStoreLocatorOpen = useStoreLocator((s) => s.isOpen);
     const { changeStore } = useChangePickupStore();
 
     const handleChangePickupLocation = useCallback(() => {
-        if (!store) return;
+        if (!store || nativeStoreContextEnabled) return;
         setSelectedStoreInfoRaw(store);
         openStoreLocator();
-    }, [store, setSelectedStoreInfoRaw, openStoreLocator]);
+    }, [nativeStoreContextEnabled, store, setSelectedStoreInfoRaw, openStoreLocator]);
 
     useEffect(() => {
+        if (nativeStoreContextEnabled) return;
         if (
             selectedStoreInfo &&
             selectedStoreInfo.id !== store?.id &&
@@ -122,7 +126,13 @@ export default function CheckoutPickup({
             void changeStore(selectedStoreInfo);
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedStoreInfo?.id, selectedStoreInfo?.inventoryId, isStoreLocatorOpen, store?.id]);
+    }, [
+        nativeStoreContextEnabled,
+        selectedStoreInfo?.id,
+        selectedStoreInfo?.inventoryId,
+        isStoreLocatorOpen,
+        store?.id,
+    ]);
 
     // Filter pickup items for the specific store and enrich with product catalog data
     // Skip expensive computation when not editing
@@ -173,6 +183,7 @@ export default function CheckoutPickup({
                                     variant="link"
                                     size="sm"
                                     onClick={handleChangePickupLocation}
+                                    disabled={nativeStoreContextEnabled}
                                     className="ml-auto h-auto p-0 text-muted-foreground hover:text-foreground font-normal">
                                     {tBopis('storePickup.changePickupLocation')}
                                 </Button>

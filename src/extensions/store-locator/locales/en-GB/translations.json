@@ -32,7 +32,8 @@
             "statusInput": "Viewing stores within {{distanceText}} of {{postal}} in {{countryName}}",
             "statusLocation": "Viewing stores near your location",
             "loadMoreButton": "Load More",
-            "fetchError": "Something went wrong. Try again!"
+            "fetchError": "Something went wrong. Try again!",
+            "storeChangeUnavailable": "We can’t change your store while your basket has items. Your current store is unchanged."
         },
         "details": {
             "phoneLabel": "Phone:",

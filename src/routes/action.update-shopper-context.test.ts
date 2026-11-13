@@ -20,6 +20,13 @@ import { getAuth } from '@/middlewares/auth.server';
 import { updateShopperContext } from '@/lib/shopper-context/server-utils.server';
 import { createFormDataRequest } from '@/test-utils/request-helpers';
 import { expectStatus } from '@/lib/test-utils';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { getLogger } from '@/lib/logger.server';
+
+vi.mock('@salesforce/storefront-next-runtime/config', async (original) => ({
+    ...(await original<typeof import('@salesforce/storefront-next-runtime/config')>()),
+    getConfig: vi.fn(),
+}));
 
 vi.mock('@/middlewares/auth.server');
 vi.mock('@/lib/shopper-context/server-utils.server', async (importOriginal) => {
@@ -55,6 +62,9 @@ function createArgs(qualifiers: string | undefined): ActionFunctionArgs {
 describe('action.update-shopper-context', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(getConfig).mockReturnValue({ features: { shopperContext: { enabled: true } } } as ReturnType<
+            typeof getConfig
+        >);
         mockGetAuth.mockReturnValue({ usid: 'test-usid' } as never);
         mockUpdateShopperContext.mockResolvedValue({ setCookieHeaders: [] });
     });
@@ -206,6 +216,30 @@ describe('action.update-shopper-context', () => {
     });
 
     describe('when request is unauthorized or uses wrong method', () => {
+        test('logs a disabled-feature rejection without reading or updating qualifiers', async () => {
+            vi.mocked(getConfig).mockReturnValue({ features: { shopperContext: { enabled: false } } } as ReturnType<
+                typeof getConfig
+            >);
+            mockGetAuth.mockReturnValue({ customerId: 'customer-123', usid: 'private-usid' } as never);
+            const args = createArgs('{"src":"private-qualifier"}');
+            const res = await action(args);
+            expectStatus(res, 403);
+            expect(res.data).toEqual({ success: false, message: 'Shopper context is disabled.' });
+            expect(mockUpdateShopperContext).not.toHaveBeenCalled();
+            const logger = vi.mocked(getLogger).mock.results.at(-1)?.value;
+            expect(logger.warn).toHaveBeenCalledWith('UpdateShopperContext: update denied', {
+                actor: 'customer-123',
+                action: 'update_shopper_context',
+                target: 'shopper_context',
+                timestamp: expect.any(String),
+                outcome: 'denied',
+                reason: 'feature_disabled',
+                method: 'PUT',
+            });
+            expect(JSON.stringify(logger.warn.mock.calls)).not.toContain('private-');
+            expect(args.request.bodyUsed).toBe(false);
+        });
+
         test('returns 401 when user session has no USID', async () => {
             mockGetAuth.mockReturnValue({ usid: undefined } as never);
             const res = await action(createArgs('{"src":"email"}'));

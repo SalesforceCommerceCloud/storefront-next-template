@@ -19,19 +19,24 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import { useStoreLocatorList, type SearchStoresResult } from './use-store-locator-list';
 import { resourceRoutes } from '@/route-paths';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { mockConfig } from '@/test-utils/config';
+import type { StoreChangeResult } from '@/extensions/store-locator/lib/store-selection.server';
 import type { ShopperStores } from '@/scapi';
+
+const addToast = vi.hoisted(() => vi.fn());
+vi.mock('@/components/toast', () => ({ useToast: () => ({ addToast }) }));
 
 // Mock react-router useFetcher (called twice: once for store search, once for set-selected-store action)
 const mockSearchFetcher = {
-    state: 'idle' as 'idle' | 'loading',
+    state: 'idle' as 'idle' | 'loading' | 'submitting',
     data: undefined as SearchStoresResult | undefined,
     load: vi.fn(),
     submit: vi.fn(),
 };
 
 const mockStoreFetcher = {
-    state: 'idle' as 'idle' | 'loading',
-    data: undefined,
+    state: 'idle' as 'idle' | 'loading' | 'submitting',
+    data: undefined as StoreChangeResult | undefined,
     load: vi.fn(),
     submit: vi.fn(),
 };
@@ -81,6 +86,7 @@ vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
 describe('useStoreLocatorList', () => {
     beforeEach(() => {
         fetcherCallCount = 0;
+        addToast.mockClear();
         mockSearchFetcher.state = 'idle';
         mockSearchFetcher.data = undefined;
         mockSearchFetcher.load.mockClear();
@@ -95,6 +101,154 @@ describe('useStoreLocatorList', () => {
         mockStore.shouldSearch = false;
         mockStore.setShouldSearch.mockClear();
         mockStore.selectedStoreInfo = null;
+        mockStore.setSelectedStoreInfo.mockClear();
+    });
+
+    test('keeps choices and selection retries usable after a failed selection and a new search', async () => {
+        const nativeConfig = {
+            ...mockConfig,
+            features: { ...mockConfig.features, shopperContext: { enabled: true, storeSelectionEnabled: true } },
+        };
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <AllProvidersWrapper config={nativeConfig}>{children}</AllProvidersWrapper>
+        );
+        const { result, rerender } = renderHook(() => useStoreLocatorList(), { wrapper });
+        await act(async () => {
+            result.current.setSelectedStoreInfo({ id: 'B', inventoryId: 'inventory-b' });
+            await Promise.resolve();
+        });
+        mockStoreFetcher.data = {
+            success: false,
+            code: 'STORE_CHANGE_CONFIRMATION_REQUIRED',
+            current: { id: 'A' },
+            candidate: { id: 'B' },
+        };
+        rerender();
+        expect(result.current.hasError).toBe(false);
+        expect(addToast).toHaveBeenCalledOnce();
+        expect(addToast).toHaveBeenCalledWith(expect.stringContaining('current store'), 'error');
+        mockStore.shouldSearch = true;
+        mockStore.searchParams = { countryCode: 'US', postalCode: '02139' };
+        rerender();
+        mockSearchFetcher.data = {
+            success: true,
+            stores: { data: [{ id: 'B', inventoryId: 'inventory-b' }], limit: 1, total: 1 },
+        };
+        rerender();
+        expect(result.current.stores).toHaveLength(1);
+        expect(result.current.hasError).toBe(false);
+        expect(addToast).toHaveBeenCalledOnce();
+        expect(mockStore.setSelectedStoreInfo).not.toHaveBeenCalled();
+        await act(async () => {
+            result.current.setSelectedStoreInfo({ id: 'B', inventoryId: 'inventory-b' });
+            await Promise.resolve();
+        });
+        expect(mockStoreFetcher.submit).toHaveBeenCalledTimes(2);
+        mockStoreFetcher.data = {
+            success: true,
+            selectedStoreInfo: { id: 'B', inventoryId: 'inventory-b' },
+            shoppingContext: null,
+        };
+        rerender();
+        expect(mockStore.setSelectedStoreInfo).toHaveBeenCalledWith(mockStoreFetcher.data.selectedStoreInfo);
+        mockSearchFetcher.data = { success: false } as SearchStoresResult;
+        rerender();
+        expect(result.current.hasError).toBe(true);
+    });
+
+    test('does not reapply a prior success when a later submission returns no new data', () => {
+        const config = {
+            ...mockConfig,
+            features: { ...mockConfig.features, shopperContext: { enabled: true, storeSelectionEnabled: true } },
+        };
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <AllProvidersWrapper config={config}>{children}</AllProvidersWrapper>
+        );
+        mockStoreFetcher.data = { success: true, selectedStoreInfo: { id: 'A' }, shoppingContext: null };
+        const { rerender } = renderHook(() => useStoreLocatorList(), { wrapper });
+        expect(mockStore.setSelectedStoreInfo).toHaveBeenCalledOnce();
+        mockStoreFetcher.state = 'submitting';
+        rerender();
+        mockStoreFetcher.state = 'idle';
+        rerender();
+        expect(mockStore.setSelectedStoreInfo).toHaveBeenCalledOnce();
+    });
+
+    test('blocks duplicate native submissions until settlement and exposes pending state', async () => {
+        mockStore.selectedStoreInfo = { id: 'A', name: 'Store A', inventoryId: 'inventory-a' };
+        const config = {
+            ...mockConfig,
+            features: { ...mockConfig.features, shopperContext: { enabled: true, storeSelectionEnabled: true } },
+        };
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <AllProvidersWrapper config={config}>{children}</AllProvidersWrapper>
+        );
+        let settle!: () => void;
+        const submission = new Promise<void>((resolve) => {
+            settle = resolve;
+        });
+        mockStoreFetcher.submit.mockReturnValueOnce(submission);
+        const { result, rerender } = renderHook(() => useStoreLocatorList(), { wrapper });
+        act(() => {
+            result.current.setSelectedStoreInfo({ id: 'B', inventoryId: 'inventory-b' });
+            result.current.setSelectedStoreInfo({ id: 'A', inventoryId: 'inventory-a' });
+            result.current.setSelectedStoreInfo(null);
+        });
+        expect(mockStoreFetcher.submit).toHaveBeenCalledOnce();
+        expect(mockStore.setSelectedStoreInfo).not.toHaveBeenCalled();
+        mockStoreFetcher.state = 'submitting';
+        rerender();
+        expect(result.current.isSelecting).toBe(true);
+        mockStoreFetcher.state = 'loading';
+        rerender();
+        expect(result.current.isSelecting).toBe(true);
+        await act(async () => {
+            settle();
+            await submission;
+        });
+        mockStoreFetcher.state = 'idle';
+        mockStoreFetcher.data = {
+            success: false,
+            code: 'STORE_CHANGE_CONFIRMATION_REQUIRED',
+            current: null,
+            candidate: null,
+        };
+        rerender();
+        expect(result.current.isSelecting).toBe(false);
+        expect(result.current.selectedStoreInfo?.id).toBe('A');
+        expect(mockStore.setSelectedStoreInfo).not.toHaveBeenCalled();
+        await act(async () => {
+            result.current.setSelectedStoreInfo({ id: 'B', inventoryId: 'inventory-b' });
+            await Promise.resolve();
+        });
+        expect(mockStoreFetcher.submit).toHaveBeenCalledTimes(2);
+    });
+
+    test.each(['rejected', 'synchronous'])('allows native retry after a %s submission failure', async (failure) => {
+        const config = {
+            ...mockConfig,
+            features: { ...mockConfig.features, shopperContext: { enabled: true, storeSelectionEnabled: true } },
+        };
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <AllProvidersWrapper config={config}>{children}</AllProvidersWrapper>
+        );
+        if (failure === 'rejected') mockStoreFetcher.submit.mockRejectedValueOnce(new Error('network'));
+        else
+            mockStoreFetcher.submit.mockImplementationOnce(() => {
+                throw new Error('submit');
+            });
+        const { result } = renderHook(() => useStoreLocatorList(), { wrapper });
+        await act(async () => {
+            result.current.setSelectedStoreInfo({ id: 'B', inventoryId: 'inventory-b' });
+            await Promise.resolve();
+        });
+        expect(addToast).toHaveBeenCalledOnce();
+        expect(mockStore.setSelectedStoreInfo).not.toHaveBeenCalled();
+        await act(async () => {
+            result.current.setSelectedStoreInfo({ id: 'B', inventoryId: 'inventory-b' });
+            await Promise.resolve();
+        });
+        expect(mockStoreFetcher.submit).toHaveBeenCalledTimes(2);
     });
 
     test('triggers search when shouldSearch and input params present', () => {
@@ -190,5 +344,34 @@ describe('useStoreLocatorList', () => {
         expect(mockStoreFetcher.submit).toHaveBeenCalledTimes(1);
         const [formData] = mockStoreFetcher.submit.mock.calls[0];
         expect(formData.get('storeInfo')).toBe('');
+    });
+    test('native selection waits for success and never publishes a failed candidate', () => {
+        const nativeConfig = {
+            ...mockConfig,
+            features: { ...mockConfig.features, shopperContext: { enabled: true, storeSelectionEnabled: true } },
+        };
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+            <AllProvidersWrapper config={nativeConfig}>{children}</AllProvidersWrapper>
+        );
+        const { result, rerender } = renderHook(() => useStoreLocatorList(), { wrapper });
+        act(() => result.current.setSelectedStoreInfo({ id: 'A', inventoryId: 'inventory-a' }));
+        expect(mockStore.setSelectedStoreInfo).not.toHaveBeenCalled();
+        mockStoreFetcher.data = {
+            success: false,
+            code: 'STORE_CHANGE_CONFIRMATION_REQUIRED',
+            current: null,
+            candidate: { id: 'A' },
+        };
+        rerender();
+        expect(mockStore.setSelectedStoreInfo).not.toHaveBeenCalled();
+        expect(result.current.hasError).toBe(false);
+        expect(addToast).toHaveBeenCalledOnce();
+        mockStoreFetcher.data = {
+            success: true,
+            selectedStoreInfo: { id: 'A', name: 'Validated A', inventoryId: 'inventory-a' },
+            shoppingContext: null,
+        };
+        rerender();
+        expect(mockStore.setSelectedStoreInfo).toHaveBeenCalledWith(mockStoreFetcher.data.selectedStoreInfo);
     });
 });

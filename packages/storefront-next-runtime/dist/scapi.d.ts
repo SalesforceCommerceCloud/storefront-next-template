@@ -37135,5 +37135,81 @@ type BuiltInClientKey = keyof typeof BUILT_IN_CLIENT_DEFAULTS;
 declare const BUILT_IN_CLIENT_KEYS: readonly BuiltInClientKey[];
 declare function isBuiltInClientKey(key: string): key is BuiltInClientKey;
 //#endregion
-export { ApiError, type AuthConfig, type AuthNamespace, type AuthResponse, AuthTokenInvalidError, BUILT_IN_CLIENT_DEFAULTS, BUILT_IN_CLIENT_KEYS, type Basket, type BasketHelpersConfig, type BasketHelpersNamespace, type BuiltInClientDefault, type BuiltInClientKey, Clients, CommerceApiClientConfig, CreateClientOptions, type ErrorDetail, type GetOrCreateBasketOptions, GlobalRequestParameters, type LoginAsGuestOptions, type LoginWithCredentialsOptions, type LogoutOptions, type MergeClients, type OperationInfo, type OperationMap, type OperationMethodsOnly, type PasswordRequestResetOptions, type PasswordResetOptions, type PasswordlessAuthorizeOptions, type PasswordlessExchangeTokenOptions, type ProxyClient, type RefreshTokenOptions, SLAS_AUTH_ENDPOINTS, ShopperAvailability, ShopperBasketsV1, ShopperBasketsV2, type ShopperBasketsV2Client, ShopperConfigurations, ShopperConsents, ShopperContext, ShopperCustomers, ShopperDeliveryEstimates, ShopperExperience, ShopperGiftCertificates, ShopperLogin, ShopperOrders, ShopperPayments, ShopperProducts, ShopperPromotions, ShopperSearch, ShopperSeo, ShopperStores, type SocialAuthorizationUrlResult, type SocialExchangeCodeOptions, type SocialGetAuthorizationUrlOptions, type TokenResponse, createAuthHelpers, createBasketHelpers, createClient, createCommerceApiClients, createOpenApiFetchClient, defaultQuerySerializer, isBuiltInClientKey };
+//#region src/scapi-client/shopper-context.d.ts
+type NativeShopperContext = ShopperContext.schemas['ShopperContext'];
+/**
+ * Request-scoped native context access. PATCH merges individual qualifier keys;
+ * null removes one key. Never replace existing native context from a cookie replica.
+ * An empty patch reconciles the native result without changing qualification.
+ * Native errors propagate, including unsupported missing-context behavior.
+ */
+declare function createShopperContextHelpers({
+  client,
+  usid
+}: {
+  client: Clients['shopperContext'];
+  usid: string;
+}): {
+  /** Resolve once before dependent reads, including an expired/missing context. */
+  resolve: () => Promise<{
+    effectiveDateTime?: string | null;
+    sourceCode?: string | null;
+    customerGroupIds?: string[];
+    customQualifiers?: {
+      [key: string]: string | null;
+    };
+    assignmentQualifiers?: {
+      [key: string]: string | null;
+    };
+    clientIp?: string;
+    geoLocation?: {
+      city?: string;
+      country?: string;
+      countryCode?: string;
+      latitude?: number;
+      longitude?: number;
+      metroCode?: string;
+      postalCode?: string;
+      region?: string;
+      regionCode?: string;
+    };
+    couponCodes?: string[];
+  }>;
+  /** Store only native success; callers must publish their replicas afterwards. */
+  update: (body: NativeShopperContext, options?: {
+    initialContext?: NativeShopperContext;
+  }) => Promise<{
+    effectiveDateTime?: string | null;
+    sourceCode?: string | null;
+    customerGroupIds?: string[];
+    customQualifiers?: {
+      [key: string]: string | null;
+    };
+    assignmentQualifiers?: {
+      [key: string]: string | null;
+    };
+    clientIp?: string;
+    geoLocation?: {
+      city?: string;
+      country?: string;
+      countryCode?: string;
+      latitude?: number;
+      longitude?: number;
+      metroCode?: string;
+      postalCode?: string;
+      region?: string;
+      regionCode?: string;
+    };
+    couponCodes?: string[];
+  }>;
+};
+/** Server-owned handoff to the preview/consent/recalculation workstream. */
+type ConfirmedContextChangeRequired<T> = {
+  success: false;
+  code: 'STORE_CHANGE_CONFIRMATION_REQUIRED';
+  current: T | null;
+  candidate: T | null;
+};
+//#endregion
+export { ApiError, type AuthConfig, type AuthNamespace, type AuthResponse, AuthTokenInvalidError, BUILT_IN_CLIENT_DEFAULTS, BUILT_IN_CLIENT_KEYS, type Basket, type BasketHelpersConfig, type BasketHelpersNamespace, type BuiltInClientDefault, type BuiltInClientKey, Clients, CommerceApiClientConfig, type ConfirmedContextChangeRequired, CreateClientOptions, type ErrorDetail, type GetOrCreateBasketOptions, GlobalRequestParameters, type LoginAsGuestOptions, type LoginWithCredentialsOptions, type LogoutOptions, type MergeClients, type NativeShopperContext, type OperationInfo, type OperationMap, type OperationMethodsOnly, type PasswordRequestResetOptions, type PasswordResetOptions, type PasswordlessAuthorizeOptions, type PasswordlessExchangeTokenOptions, type ProxyClient, type RefreshTokenOptions, SLAS_AUTH_ENDPOINTS, ShopperAvailability, ShopperBasketsV1, ShopperBasketsV2, type ShopperBasketsV2Client, ShopperConfigurations, ShopperConsents, ShopperContext, ShopperCustomers, ShopperDeliveryEstimates, ShopperExperience, ShopperGiftCertificates, ShopperLogin, ShopperOrders, ShopperPayments, ShopperProducts, ShopperPromotions, ShopperSearch, ShopperSeo, ShopperStores, type SocialAuthorizationUrlResult, type SocialExchangeCodeOptions, type SocialGetAuthorizationUrlOptions, type TokenResponse, createAuthHelpers, createBasketHelpers, createClient, createCommerceApiClients, createOpenApiFetchClient, createShopperContextHelpers, defaultQuerySerializer, isBuiltInClientKey };
 //# sourceMappingURL=scapi.d.ts.map

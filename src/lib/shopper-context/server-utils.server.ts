@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import type { RouterContextProvider } from 'react-router';
-import { createShopperContext, type ShopperContext } from '@/lib/api/shopper-context.server';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { getShopperContextHelpers, type ShopperContext } from '@/lib/api/shopper-context.server';
 import { getLogger } from '@/lib/logger.server';
 import {
     SHOPPER_CONTEXT_SEARCH_PARAMS,
@@ -30,6 +31,7 @@ import {
 import { createCookie, getCookieConfig } from '@/lib/cookie-utils.server';
 import { parseJsonToStringRecord } from '@/lib/utils';
 import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-next-runtime/design/mode';
+import { isNativeStoreSelectionEnabled } from '@/lib/shopper-context/store-selection';
 
 /**
  * Check if Page Designer edit or preview mode is active
@@ -57,6 +59,15 @@ const assignmentQualifiersApiFieldNames = assignmentQualifiersKeys.map(
 
 const couponCodesMapping = SHOPPER_CONTEXT_SEARCH_PARAMS.couponCodes as QualifierMapping;
 const customerGroupIdsMapping = SHOPPER_CONTEXT_SEARCH_PARAMS.customerGroupIds as QualifierMapping | undefined;
+const rememberedRootKeys = new Set(
+    Object.values(SHOPPER_CONTEXT_SEARCH_PARAMS)
+        .filter((mapping) => QUALIFIER_MAPPING_PARAM_NAME in mapping)
+        .map((mapping) => {
+            const entry = mapping as QualifierMapping;
+            return entry[QUALIFIER_MAPPING_API_FIELD_NAME] ?? entry[QUALIFIER_MAPPING_PARAM_NAME];
+        })
+        .filter((key) => key !== SOURCE_CODE_API_FIELD_NAME)
+);
 
 export const isCustomQualifier = (key: string): boolean => {
     return customQualifiersApiFieldNames.includes(key) || customQualifiersKeys.includes(key);
@@ -232,6 +243,15 @@ export async function updateShopperContext({
     cookieHeader: string | null;
 }): Promise<{ setCookieHeaders: string[] }> {
     const logger = getLogger(context);
+    const feature = getConfig(context).features.shopperContext;
+    if (!feature.enabled) return { setCookieHeaders: [] };
+    const ownedKeys =
+        isNativeStoreSelectionEnabled(feature) || feature.storeSelection?.cleanup
+            ? (feature.storeSelection?.qualifierKeys ?? [])
+            : [];
+    newShopperContext = Object.fromEntries(
+        Object.entries(newShopperContext).filter(([key]) => !ownedKeys.includes(key))
+    );
     const setCookieHeaders: string[] = [];
 
     // Get current context from cookies using cookie-utils (same as other app cookies; adds siteId suffix)
@@ -240,9 +260,12 @@ export async function updateShopperContext({
     const shopperContextCookieHandler = createCookie<string>(SHOPPER_CONTEXT_COOKIE_NAME_BASE, cookieConfig, context);
     const sourceCodeCookieHandler = createCookie<string>(SOURCE_CODE_COOKIE_NAME_BASE, cookieConfig, context);
 
-    const currentShopperContext = cookieHeader
+    const cookieContext = cookieHeader
         ? parseJsonToStringRecord(await shopperContextCookieHandler.parse(cookieHeader))
         : {};
+    const currentShopperContext = Object.fromEntries(
+        Object.entries(cookieContext).filter(([key]) => !ownedKeys.includes(key))
+    );
     // Source-code cookie is stored as a bare string for SFRA hybrid compatibility — SFRA reads
     // the same `dwsourcecode_*` cookie name and expects the plain source-code value.
     const rawSourceCode = cookieHeader ? await sourceCodeCookieHandler.parse(cookieHeader) : null;
@@ -261,8 +284,18 @@ export async function updateShopperContext({
 
     // Only call API if there are updates
     if (hasNewContext || hasNewSourceCodeContext) {
-        const shopperContextBody = buildShopperContextBody(effectiveShopperContext, effectiveSourceCodeContext);
-        await createShopperContext(context, usid, shopperContextBody);
+        const shopperContextBody = buildShopperContextBody(newShopperContext, newSourceCodeContext);
+        await getShopperContextHelpers(context, usid).update(shopperContextBody, {
+            initialContext: buildShopperContextBody(
+                // Cookies contain canonical API names, which can differ from URL aliases.
+                Object.fromEntries(
+                    Object.entries(effectiveShopperContext).filter(
+                        ([key]) => isCustomQualifier(key) || isAssignmentQualifier(key) || rememberedRootKeys.has(key)
+                    )
+                ),
+                effectiveSourceCodeContext
+            ),
+        });
     }
 
     // Serialize updated cookies as Set-Cookie headers. The shopper-context cookie is JSON-encoded

@@ -17,7 +17,7 @@ import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
 import shopperContextMiddleware from './shopper-context.server';
 import { createTestContext } from '@/lib/test-utils';
-import { createShopperContext } from '@/lib/api/shopper-context.server';
+
 import { getAuth } from './auth.server';
 import { createCookie, getCookieConfig } from '@/lib/cookie-utils.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
@@ -47,8 +47,14 @@ vi.mock('@/lib/shopper-context/constants', async (importOriginal) => {
     };
 });
 
+const patchShopperContext = vi.hoisted(() => vi.fn());
+
+function expectPatch(body: unknown) {
+    expect(patchShopperContext).toHaveBeenCalledWith(body, { initialContext: body });
+}
+
 vi.mock('@/lib/api/shopper-context.server', () => ({
-    createShopperContext: vi.fn(),
+    getShopperContextHelpers: vi.fn(() => ({ update: patchShopperContext })),
 }));
 
 vi.mock('./auth.server', () => ({
@@ -138,7 +144,7 @@ describe('shopper-context.server', () => {
         mockNext = vi.fn().mockImplementation(() => Promise.resolve(new Response('test'))) as MiddlewareNext;
 
         vi.mocked(getAuth).mockReturnValue({ usid: 'test-usid' } as any);
-        vi.mocked(createShopperContext).mockResolvedValue(undefined);
+        vi.mocked(patchShopperContext).mockResolvedValue(undefined);
     });
 
     afterEach(() => {
@@ -166,7 +172,7 @@ describe('shopper-context.server', () => {
                 const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
                 expect(mockNext).toHaveBeenCalledOnce();
-                expect(createShopperContext).not.toHaveBeenCalled();
+                expect(patchShopperContext).not.toHaveBeenCalled();
                 expect(result).toBeInstanceOf(Response);
                 expect((result as Response).headers.get('Set-Cookie')).toBeNull();
             } finally {
@@ -192,7 +198,7 @@ describe('shopper-context.server', () => {
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).not.toHaveBeenCalled();
+            expect(patchShopperContext).not.toHaveBeenCalled();
             // Verify no cookies were set
             expect(result).toBeInstanceOf(Response);
             expect((result as Response).headers.get('Set-Cookie')).toBeNull();
@@ -204,7 +210,7 @@ describe('shopper-context.server', () => {
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).not.toHaveBeenCalled();
+            expect(patchShopperContext).not.toHaveBeenCalled();
             // Verify no cookies were set
             expect(result).toBeInstanceOf(Response);
             expect((result as Response).headers.get('Set-Cookie')).toBeNull();
@@ -216,7 +222,7 @@ describe('shopper-context.server', () => {
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).not.toHaveBeenCalled();
+            expect(patchShopperContext).not.toHaveBeenCalled();
             expect(result).toBeInstanceOf(Response);
             expect((result as Response).headers.get('Set-Cookie')).toBeNull();
         });
@@ -228,7 +234,7 @@ describe('shopper-context.server', () => {
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).not.toHaveBeenCalled();
+            expect(patchShopperContext).not.toHaveBeenCalled();
             expect(result).toBeInstanceOf(Response);
             expect((result as Response).headers.get('Set-Cookie')).toBeNull();
         });
@@ -240,7 +246,7 @@ describe('shopper-context.server', () => {
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', { sourceCode: 'email' });
+            expectPatch({ sourceCode: 'email' });
             // Verify cookies were set
             expect(result).toBeInstanceOf(Response);
             const setCookieHeaders = (result as Response).headers.getSetCookie();
@@ -282,7 +288,7 @@ describe('shopper-context.server', () => {
 
             // Should still process and set new cookies even when existing cookies parse to null
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', { sourceCode: 'email' });
+            expectPatch({ sourceCode: 'email' });
             expect(result).toBeInstanceOf(Response);
             const setCookieHeaders = (result as Response).headers.getSetCookie();
             expect(setCookieHeaders.length).toBe(1);
@@ -321,7 +327,7 @@ describe('shopper-context.server', () => {
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', { sourceCode: 'email' });
+            expectPatch({ sourceCode: 'email' });
             expect(result).toBeInstanceOf(Response);
             const setCookieHeaders = (result as Response).headers.getSetCookie();
             expect(setCookieHeaders.length).toBe(1);
@@ -350,7 +356,7 @@ describe('shopper-context.server', () => {
                 const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
                 expect(mockNext).toHaveBeenCalledOnce();
-                expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+                expectPatch({
                     customQualifiers: {
                         deviceType: 'mobile',
                     },
@@ -386,7 +392,7 @@ describe('shopper-context.server', () => {
                 const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
                 expect(mockNext).toHaveBeenCalledOnce();
-                expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+                expectPatch({
                     sourceCode: 'email',
                     customQualifiers: {
                         deviceType: 'mobile',
@@ -433,7 +439,7 @@ describe('shopper-context.server', () => {
 
             // Should compute effective context but not call API since no new qualifiers
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).not.toHaveBeenCalled();
+            expect(patchShopperContext).not.toHaveBeenCalled();
 
             // Note: sourceCode cookie already has the value, so it won't be updated (no change)
             // No new qualifiers in URL, so no cookies should be set
@@ -461,7 +467,7 @@ describe('shopper-context.server', () => {
 
             // The middleware checks if context changed before calling API
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).not.toHaveBeenCalled();
+            expect(patchShopperContext).not.toHaveBeenCalled();
             // Verify no cookies were set
             expect(result).toBeInstanceOf(Response);
             expect((result as Response).headers.get('Set-Cookie')).toBeNull();
@@ -469,8 +475,8 @@ describe('shopper-context.server', () => {
     });
 
     describe('error handling', () => {
-        test('should not fail request when createShopperContext throws', async () => {
-            vi.mocked(createShopperContext).mockRejectedValue(new Error('API Error'));
+        test('should not fail request when patchShopperContext throws', async () => {
+            vi.mocked(patchShopperContext).mockRejectedValue(new Error('API Error'));
 
             const url = new URL('https://example.com?src=email');
             mockRequest = new Request(url.toString());
@@ -536,7 +542,7 @@ describe('shopper-context.server', () => {
             mockRequest = new Request(rootDataUrl);
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
-            expect(createShopperContext).not.toHaveBeenCalled();
+            expect(patchShopperContext).not.toHaveBeenCalled();
             // Verify no cookies were set
             expect(result).toBeInstanceOf(Response);
             expect((result as Response).headers.getSetCookie().length).toBe(0);
@@ -586,7 +592,7 @@ describe('shopper-context.server', () => {
                     cookieForNextRequest ? { headers: { Cookie: cookieForNextRequest } } : {}
                 );
                 const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-                expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+                expectPatch({
                     sourceCode: expected,
                 });
                 const setCookieHeaders = (result as Response).headers.getSetCookie();
@@ -620,7 +626,7 @@ describe('shopper-context.server', () => {
                     cookieForNextRequest ? { headers: { Cookie: cookieForNextRequest } } : {}
                 );
                 const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-                expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+                expectPatch({
                     effectiveDateTime: expected,
                 });
                 const setCookieHeaders = (result as Response).headers.getSetCookie();
@@ -653,7 +659,7 @@ describe('shopper-context.server', () => {
                     cookieForNextRequest ? { headers: { Cookie: cookieForNextRequest } } : {}
                 );
                 const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-                expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+                expectPatch({
                     customerGroupIds: expectedBody,
                 });
                 const setCookieHeaders = (result as Response).headers.getSetCookie();
@@ -701,7 +707,7 @@ describe('shopper-context.server', () => {
                     cookieForNextRequest ? { headers: { Cookie: cookieForNextRequest } } : {}
                 );
                 const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-                expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+                expectPatch({
                     couponCodes: expectedBody,
                 });
                 const setCookieHeaders = (result as Response).headers.getSetCookie();
@@ -718,7 +724,7 @@ describe('shopper-context.server', () => {
             vi.clearAllMocks();
             mockRequest = new Request(`${baseUrl}?deviceType=`);
             let result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+            expectPatch({
                 customQualifiers: { deviceType: '' },
             });
             expect((result as Response).headers.getSetCookie().length).toEqual(1);
@@ -730,7 +736,7 @@ describe('shopper-context.server', () => {
             vi.clearAllMocks();
             mockRequest = new Request(`${baseUrl}?deviceType=%20%20`);
             result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+            expectPatch({
                 customQualifiers: { deviceType: '' },
             });
             expect((result as Response).headers.getSetCookie().length).toEqual(1);
@@ -742,7 +748,7 @@ describe('shopper-context.server', () => {
             vi.clearAllMocks();
             mockRequest = new Request(`${baseUrl}?deviceType=null`);
             result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+            expectPatch({
                 customQualifiers: { deviceType: 'null' },
             });
             const setCookieHeadersNull = (result as Response).headers.getSetCookie();
@@ -753,7 +759,7 @@ describe('shopper-context.server', () => {
             vi.clearAllMocks();
             mockRequest = new Request(`${baseUrl}?deviceType=mobile`);
             result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+            expectPatch({
                 customQualifiers: { deviceType: 'mobile' },
             });
             const setCookieHeadersValid = (result as Response).headers.getSetCookie();
@@ -768,7 +774,7 @@ describe('shopper-context.server', () => {
             vi.clearAllMocks();
             mockRequest = new Request(`${baseUrl}?store=`);
             let result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+            expectPatch({
                 assignmentQualifiers: { store: '' },
             });
             expect((result as Response).headers.getSetCookie().length).toEqual(1);
@@ -778,7 +784,7 @@ describe('shopper-context.server', () => {
             vi.clearAllMocks();
             mockRequest = new Request(`${baseUrl}?store=%20%20`);
             result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+            expectPatch({
                 assignmentQualifiers: { store: '' },
             });
             expect((result as Response).headers.getSetCookie().length).toEqual(1);
@@ -788,7 +794,7 @@ describe('shopper-context.server', () => {
             vi.clearAllMocks();
             mockRequest = new Request(`${baseUrl}?store=store123`);
             result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', {
+            expectPatch({
                 assignmentQualifiers: { store: 'store123' },
             });
             const setCookieHeadersValid = (result as Response).headers.getSetCookie();
@@ -801,9 +807,7 @@ describe('shopper-context.server', () => {
             vi.clearAllMocks();
             mockRequest = new Request(`${baseUrl}?src=email`);
             await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
-            expect(createShopperContext).toHaveBeenCalledWith(
-                mockContext,
-                'test-usid',
+            expectPatch(
                 expect.objectContaining({
                     sourceCode: 'email',
                 })
@@ -821,7 +825,7 @@ describe('shopper-context.server', () => {
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', { sourceCode: 'email' });
+            expectPatch({ sourceCode: 'email' });
             expect(result).toBeInstanceOf(Response);
             const setCookieHeaders = (result as Response).headers.getSetCookie();
             expect(setCookieHeaders.length).toBe(1);
@@ -839,7 +843,7 @@ describe('shopper-context.server', () => {
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
             expect(mockNext).toHaveBeenCalledOnce();
-            expect(createShopperContext).toHaveBeenCalledWith(mockContext, 'test-usid', { sourceCode: 'email' });
+            expectPatch({ sourceCode: 'email' });
             expect(result).toBeInstanceOf(Response);
             const setCookieHeaders = (result as Response).headers.getSetCookie();
             expect(setCookieHeaders.length).toBe(1);
@@ -864,7 +868,7 @@ describe('shopper-context.server', () => {
             // No URL params
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
             // No new qualifiers, so API should not be called
-            expect(createShopperContext).not.toHaveBeenCalled();
+            expect(patchShopperContext).not.toHaveBeenCalled();
             // Verify no cookies were set since no new qualifiers
             expect(result).toBeInstanceOf(Response);
             const setCookieHeaders = (result as Response).headers.getSetCookie();

@@ -30,6 +30,7 @@ import type { EngagementAdapterConfig } from '@/lib/adapters';
 // verbatimModuleSyntax; do not promote to `import { ClientAppConfig }`.
 import type { ClientAppConfig } from '@/lib/app-config-client';
 import type { EmbeddedAgentConfig } from '@/components/embedded-agent';
+
 import type { TrackingConsent } from '@/types/tracking-consent';
 // Auto-generated barrel of installed extensions' config defaults. Its type is the source
 // for `AppConfig['extension']`, so the type and the runtime value (config.server.ts) can't drift.
@@ -43,6 +44,25 @@ import type GeneratedExtensionConfig from '@/extensions/config/index';
 import type GeneratedServerExtensionConfig from '@/extensions/config/server';
 
 import type { DetectionConfig, Site, SiteConfig } from '@salesforce/storefront-next-runtime/site-context';
+
+/** Server-only merchant selection policy, keyed by site then store; omitted from browser configuration. */
+export type StoreSelectionConfig = {
+    qualifierKeys: string[];
+    /** Successful restore validation cache lifetime, 0–300 seconds. Default 30; 0 disables. */
+    storeValidationTtlSeconds?: number;
+    storesBySite: Record<
+        string,
+        Record<
+            string,
+            {
+                inventoryId: string;
+                assignmentQualifiers: Record<string, string>;
+            }
+        >
+    >;
+    /** Drain previously set qualifiers while enabled=false. Retain mappings until drain completes. */
+    cleanup: boolean;
+};
 
 export type BadgeDetail = {
     propertyName: string;
@@ -296,6 +316,10 @@ export type AppConfig = {
         guestCheckout: boolean;
         shopperContext: {
             enabled: boolean;
+            /** Opt in to native store ownership separately from generic URL qualifiers. */
+            storeSelectionEnabled?: boolean;
+            /** Server-only selection policy; removed from ClientAppConfig. */
+            storeSelection?: StoreSelectionConfig;
         };
         googleCloudAPI: {
             apiKey: string;
@@ -589,8 +613,8 @@ export type Config = BaseConfig<AppConfig>;
  * without a generic argument at every call site. `getConfig(context)` (server)
  * returns the full `AppConfig` so server callers correctly read `serverExtension`;
  * `getConfig()` (no context, client) and `useConfig()` return the narrowed
- * `ClientAppConfig` (`Omit<AppConfig, ServerOnlyNamespace>`), so client modules
- * see a TypeScript error on `.serverExtension`. Both slots are filled from
+ * `ClientAppConfig`, so client modules cannot read `.serverExtension` or the
+ * server-only store-selection policy. Both slots are filled from
  * types defined in `src/lib/app-config-client.ts`, which keeps
  * `SERVER_ONLY_NAMESPACES` the single source: the runtime extractor and the
  * type narrow can't drift. Customers writing additional templates augment both

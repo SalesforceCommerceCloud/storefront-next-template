@@ -337,6 +337,16 @@ export default defineConfig<Config>(
                 guestCheckout: true,
                 shopperContext: {
                     enabled: false,
+                    storeSelectionEnabled: false,
+                    storeSelection: {
+                        qualifierKeys: ['store'],
+                        // Server-side restore validation only; explicit selections and native repair stay fresh.
+                        storeValidationTtlSeconds: 30,
+                        // Populate per-site trusted assignments before enabling store qualification.
+                        storesBySite: {},
+                        // Keep mappings during a controlled native cleanup; see README-STORE-SELECTION.md.
+                        cleanup: false,
+                    },
                 },
                 googleCloudAPI: {
                     apiKey: '',

@@ -20,8 +20,9 @@ import { useTranslation } from 'react-i18next';
  * Visually hidden until focused, this should be the first focusable element on the page.
  *
  * WCAG 2.1 SC 2.4.1 Bypass Blocks (Level A)
+ * An explicit label supports error pages that render before locale data loads.
  */
-export function SkipLink() {
+export function SkipLink({ label }: { label?: string } = {}) {
     const { t } = useTranslation('common');
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -38,7 +39,7 @@ export function SkipLink() {
             href="#main-content"
             onClick={handleClick}
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-ui focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-            {t('skipToMainContent')}
+            {label ?? t('skipToMainContent')}
         </a>
     );
 }

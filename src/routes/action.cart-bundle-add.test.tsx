@@ -93,6 +93,7 @@ describe('action.cart-bundle-add', () => {
     };
 
     const mockConfig = {
+        features: { shopperContext: { enabled: false } },
         commerce: {
             api: {
                 organizationId: 'test-org',

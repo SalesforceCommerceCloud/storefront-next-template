@@ -27,6 +27,7 @@ import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
 import { getLogger } from '@/lib/logger.server';
 import { isSiteOutOfStock, isStoreOutOfStock } from '@/lib/product/inventory-utils';
+import { rejectUnconfirmedStoreChange } from '@/extensions/bopis/lib/actions/store-context-guard.server';
 import type { CartItemUpdateData } from '@/lib/cart/basket-schemas';
 
 type DeliveryOptionResponse = ReturnType<typeof data<BasketActionResponse>>;
@@ -46,6 +47,8 @@ export async function handleCartItemDeliveryOptionChange(
     let inventoryId = requestedInventoryId;
 
     if (!deliveryOption) return null;
+    const confirmationRequired = rejectUnconfirmedStoreChange(context);
+    if (confirmationRequired) return confirmationRequired;
 
     try {
         const basketResource = await getBasket(context);

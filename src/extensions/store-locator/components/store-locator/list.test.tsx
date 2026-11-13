@@ -36,6 +36,7 @@ const baseState = {
     hasSearched: true,
     hasError: false,
     isLoading: false,
+    isSelecting: false,
     stores: [
         {
             id: 'a',
@@ -128,6 +129,15 @@ describe('StoreLocatorList', () => {
                 inventoryId: 'inv-a',
             })
         );
+    });
+
+    test('disables all choices while native selection is pending', async () => {
+        vi.mocked(useStoreLocatorList).mockReturnValueOnce({ ...baseState, isSelecting: true } as any);
+        render(<StoreLocatorList />);
+        expect(screen.getByRole('radiogroup')).toHaveAttribute('aria-busy', 'true');
+        for (const radio of screen.getAllByRole('radio')) expect(radio).toBeDisabled();
+        await userEvent.click(screen.getAllByRole('radio')[0]);
+        expect(baseState.setSelectedStoreInfo).not.toHaveBeenCalled();
     });
 
     test('clicking Load More requests next page', async () => {

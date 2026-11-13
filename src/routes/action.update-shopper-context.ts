@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import type { Route } from './+types/action.update-shopper-context';
 import { data } from 'react-router';
 import { extractQualifiersFromInput, updateShopperContext } from '@/lib/shopper-context/server-utils.server';
@@ -38,6 +39,18 @@ export async function action({
     context,
 }: Route.ActionArgs): Promise<ReturnType<typeof data<UpdateShopperContextResponse>>> {
     const logger = getLogger(context);
+    if (!getConfig(context).features.shopperContext.enabled) {
+        logger.warn('UpdateShopperContext: update denied', {
+            actor: getAuth(context).customerId ?? 'anonymous',
+            action: 'update_shopper_context',
+            target: 'shopper_context',
+            timestamp: new Date().toISOString(),
+            outcome: 'denied',
+            reason: 'feature_disabled',
+            method: request.method,
+        });
+        return data({ success: false, message: 'Shopper context is disabled.' }, { status: 403 });
+    }
 
     logger.debug('UpdateShopperContext: starting', { method: request.method });
 

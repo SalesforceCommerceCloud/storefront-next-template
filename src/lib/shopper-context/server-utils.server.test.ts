@@ -34,6 +34,13 @@ vi.mock('@/lib/shopper-context/constants', async (importOriginal) => {
         ...actual,
         SHOPPER_CONTEXT_SEARCH_PARAMS: {
             ...actual.SHOPPER_CONTEXT_SEARCH_PARAMS,
+            customQualifiers: {
+                ...actual.SHOPPER_CONTEXT_SEARCH_PARAMS.customQualifiers,
+                device: {
+                    [actual.QUALIFIER_MAPPING_PARAM_NAME]: 'device',
+                    [actual.QUALIFIER_MAPPING_API_FIELD_NAME]: 'clientDevice',
+                },
+            },
             effectiveDateTime: {
                 [actual.QUALIFIER_MAPPING_PARAM_NAME]: 'effectiveDateTime',
                 [actual.QUALIFIER_MAPPING_API_FIELD_NAME]: 'effectiveDateTime',
@@ -50,8 +57,9 @@ vi.mock('@salesforce/storefront-next-runtime/config', () => ({
     getConfig: vi.fn(),
 }));
 
+const mockPatchContext = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/api/shopper-context.server', () => ({
-    createShopperContext: vi.fn(),
+    getShopperContextHelpers: vi.fn(() => ({ update: mockPatchContext })),
 }));
 
 const mockLogger = vi.hoisted(() => ({
@@ -835,10 +843,8 @@ describe('shopper-context-utils', () => {
         let mockContext: RouterContextProvider;
         let mockCreateShopperContext: ReturnType<typeof vi.fn>;
 
-        beforeEach(async () => {
-            const { createShopperContext } = await import('@/lib/api/shopper-context.server');
-
-            mockCreateShopperContext = vi.mocked(createShopperContext);
+        beforeEach(() => {
+            mockCreateShopperContext = mockPatchContext;
 
             mockContext = {
                 get: vi.fn(),
@@ -876,17 +882,79 @@ describe('shopper-context-utils', () => {
 
             expect(mockCreateShopperContext).toHaveBeenCalledTimes(1);
             expect(mockCreateShopperContext).toHaveBeenCalledWith(
-                mockContext,
-                'test-usid',
                 expect.objectContaining({
                     customQualifiers: {
                         deviceType: 'mobile',
                     },
-                })
+                }),
+                expect.objectContaining({ initialContext: { customQualifiers: { deviceType: 'mobile' } } })
             );
 
             expect(mockSerialize).toHaveBeenCalledTimes(1);
             expect(result.setCookieHeaders).toHaveLength(1);
+        });
+
+        test('keeps legacy URL store qualification when store selection is not opted in', async () => {
+            vi.mocked(getConfig).mockReturnValue({
+                features: {
+                    shopperContext: {
+                        enabled: true,
+                        storeSelection: { qualifierKeys: ['store'], storesBySite: {}, cleanup: false },
+                    },
+                },
+            } as any);
+            const input = extractQualifiersFromUrl(new URL('https://example.com/?store=Boston'));
+            await updateShopperContext({
+                context: mockContext,
+                usid: 'test-usid',
+                newShopperContext: input.qualifiers,
+                newSourceCodeContext: input.sourceCodeQualifiers,
+                cookieHeader: null,
+            });
+            expect(mockCreateShopperContext.mock.calls[0]?.[0]).toEqual({ assignmentQualifiers: { store: 'Boston' } });
+        });
+
+        test('provides permitted cookie qualifiers only as missing-context creation defaults', async () => {
+            vi.mocked(getConfig).mockReturnValue({
+                features: {
+                    shopperContext: {
+                        enabled: true,
+                        storeSelectionEnabled: true,
+                        storeSelection: { qualifierKeys: ['store'] },
+                    },
+                },
+            } as any);
+            mockParse
+                .mockResolvedValueOnce(JSON.stringify({ deviceType: 'mobile', store: 'untrusted', unknown: 'discard' }))
+                .mockResolvedValueOnce('old-source');
+            await updateShopperContext({
+                context: mockContext,
+                usid: 'test-usid',
+                newShopperContext: {},
+                newSourceCodeContext: { sourceCode: 'new-source' },
+                cookieHeader: 'cookies',
+            });
+            expect(mockCreateShopperContext).toHaveBeenCalledWith(
+                { sourceCode: 'new-source' },
+                {
+                    initialContext: { sourceCode: 'new-source', customQualifiers: { deviceType: 'mobile' } },
+                }
+            );
+        });
+
+        test('restores cookie qualifiers by canonical API field rather than URL alias', async () => {
+            mockParse.mockResolvedValueOnce(JSON.stringify({ clientDevice: 'mobile' })).mockResolvedValueOnce(null);
+            await updateShopperContext({
+                context: mockContext,
+                usid: 'test-usid',
+                newShopperContext: {},
+                newSourceCodeContext: { sourceCode: 'new' },
+                cookieHeader: 'cookies',
+            });
+            expect(mockCreateShopperContext).toHaveBeenCalledWith(
+                { sourceCode: 'new' },
+                { initialContext: { sourceCode: 'new', customQualifiers: { clientDevice: 'mobile' } } }
+            );
         });
 
         test('should update source code context', async () => {
@@ -903,11 +971,10 @@ describe('shopper-context-utils', () => {
 
             expect(mockCreateShopperContext).toHaveBeenCalledTimes(1);
             expect(mockCreateShopperContext).toHaveBeenCalledWith(
-                mockContext,
-                'test-usid',
                 expect.objectContaining({
                     sourceCode: 'email',
-                })
+                }),
+                { initialContext: { sourceCode: 'email' } }
             );
 
             expect(mockSerialize).toHaveBeenCalledTimes(1);
@@ -1097,13 +1164,13 @@ describe('shopper-context-utils', () => {
             });
 
             expect(mockCreateShopperContext).toHaveBeenCalledTimes(1);
-            const apiBody = mockCreateShopperContext.mock.calls[0][2];
+            const apiBody = mockCreateShopperContext.mock.calls[0][0];
             expect(apiBody).not.toHaveProperty('sourceCode');
         });
 
-        test('preserves persisted source code on qualifier-only updates and does not rewrite the source-code cookie', async () => {
-            // A persisted bare-string `dwsourcecode_*` cookie must be merged into the SCAPI body,
-            // and a qualifier-only update (no newSourceCodeContext) must NOT re-serialize it.
+        test('leaves native source code unchanged on qualifier-only updates and does not rewrite its cookie', async () => {
+            // A qualifier-only PATCH leaves native source code unchanged and must not
+            // re-serialize the persisted bare-string `dwsourcecode_*` cookie.
             mockParse
                 .mockResolvedValueOnce(null) // shopper context cookie (empty)
                 .mockResolvedValueOnce('persisted-source'); // source code cookie (bare string)
@@ -1119,10 +1186,10 @@ describe('shopper-context-utils', () => {
                 cookieHeader: 'some-header',
             });
 
-            // SCAPI body includes the persisted source code (merged from the cookie).
+            // PATCH leaves the authoritative native source code unchanged.
             expect(mockCreateShopperContext).toHaveBeenCalledTimes(1);
-            const apiBody = mockCreateShopperContext.mock.calls[0][2];
-            expect(apiBody.sourceCode).toBe('persisted-source');
+            const apiBody = mockCreateShopperContext.mock.calls[0][0];
+            expect(apiBody).not.toHaveProperty('sourceCode');
 
             // Only the shopper-context cookie was re-serialized; source-code cookie was left alone.
             expect(mockSerialize).toHaveBeenCalledTimes(1);

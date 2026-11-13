@@ -45,6 +45,12 @@ describe('SkipLink', () => {
         expect(link).toHaveAttribute('href', '#main-content');
     });
 
+    test('uses an explicit fallback label before translations are available', () => {
+        render(<SkipLink label="Skip to page content" />);
+
+        expect(screen.getByRole('link', { name: 'Skip to page content' })).toHaveAttribute('href', '#main-content');
+    });
+
     test('focuses and scrolls to main content on click', async () => {
         const user = userEvent.setup();
 

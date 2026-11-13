@@ -43,6 +43,7 @@ export default function StoreLocatorList(): ReactElement | null {
         hasSearched,
         hasError,
         isLoading,
+        isSelecting,
         stores,
         storesPaginated,
         setPage,
@@ -106,6 +107,8 @@ export default function StoreLocatorList(): ReactElement | null {
                 </div>
             )}
             <RadioGroup
+                aria-busy={isSelecting || undefined}
+                disabled={isSelecting}
                 className="store-locator-square-radio-group"
                 name={`selectedStore-${instanceId}`}
                 value={selectedStoreInfo?.id ?? ''}

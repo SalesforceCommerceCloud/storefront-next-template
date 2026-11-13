@@ -27,6 +27,12 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import type { ShopperBasketsV2, ShopperProducts } from '@/scapi';
 
+const nativeMode = vi.hoisted(() => ({ enabled: false, storeSelectionEnabled: true }));
+vi.mock('@salesforce/storefront-next-runtime/config', async (original) => ({
+    ...(await original<typeof import('@salesforce/storefront-next-runtime/config')>()),
+    getConfig: () => ({ features: { shopperContext: nativeMode } }),
+}));
+vi.mock('@/middlewares/auth.server', () => ({ getAuth: () => ({ customerId: 'test-customer' }) }));
 vi.mock('@/middlewares/basket.server');
 vi.mock('@/extensions/bopis/lib/api/shipment.server');
 vi.mock('@/lib/product/inventory-utils');
@@ -153,6 +159,7 @@ describe('action.cart-pickup-store-update', () => {
     } as unknown as Readonly<RouterContextProvider>;
 
     beforeEach(() => {
+        nativeMode.enabled = false;
         vi.clearAllMocks();
         vi.mocked(getBasket).mockResolvedValue(
             createBasketResource(mockBasketWithPickupItems as ShopperBasketsV2.schemas['Basket']) as any
@@ -180,6 +187,16 @@ describe('action.cart-pickup-store-update', () => {
     });
 
     describe('action', () => {
+        test('requires the confirmed-change integration before native pickup-store mutations', async () => {
+            nativeMode.enabled = true;
+            const request = new Request(`http://localhost${resourceRoutes.cartPickupStoreUpdate}`, { method: 'PATCH' });
+            const result = await action({ request, context: mockContext });
+            expectStatus(result, 409);
+            expect(result.data.success).toBe(false);
+            expect(getBasket).not.toHaveBeenCalled();
+            expect(updateShipmentForPickup).not.toHaveBeenCalled();
+        });
+
         test('returns error for non-PATCH requests', async () => {
             const request = new Request(`http://localhost${resourceRoutes.cartPickupStoreUpdate}`, {
                 method: 'POST',

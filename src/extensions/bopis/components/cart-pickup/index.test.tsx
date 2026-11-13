@@ -20,6 +20,7 @@ import type { ReactNode } from 'react';
 import type { ShopperStores } from '@/scapi';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
 import CartPickup from './index';
+import { mockConfig } from '@/test-utils/config';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
 // Mock useFetcher from react-router
@@ -199,6 +200,26 @@ describe('CartPickup', () => {
             // Verify that openStoreLocator was called (unscoped when no pickupContext is provided)
             expect(mockOpenStoreLocator).toHaveBeenCalledTimes(1);
             expect(mockOpenStoreLocator).toHaveBeenCalledWith(undefined);
+        });
+
+        it('disables native store switching until the confirmed-change flow is available', async () => {
+            const nativeConfig = {
+                ...mockConfig,
+                features: { ...mockConfig.features, shopperContext: { enabled: true, storeSelectionEnabled: true } },
+            };
+            mockSelectedStoreInfo.mockReturnValue({ id: 'other-store', inventoryId: 'other-inventory' });
+            const view = (
+                <AllProvidersWrapper config={nativeConfig}>
+                    <CartPickup store={mockStore} pickupCount={1} totalCount={4} />
+                </AllProvidersWrapper>
+            );
+            const { rerender } = render(view);
+            expect(screen.getByRole('button', { name: 'Change Store' })).toBeDisabled();
+            await userEvent.click(screen.getByText('Change Store'));
+            expect(mockOpenStoreLocator).not.toHaveBeenCalled();
+            expect(mockSetSelectedStoreInfoRaw).not.toHaveBeenCalled();
+            rerender(view);
+            expect(mockChangeStore).not.toHaveBeenCalled();
         });
 
         it('forwards the pickup context to the store locator so it can scope by inventory', async () => {

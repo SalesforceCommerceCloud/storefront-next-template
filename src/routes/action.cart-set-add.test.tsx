@@ -18,6 +18,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { action } from './action.cart-set-add';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { createApiClients } from '@/lib/api-clients.server';
+import { mockConfig } from '@/test-utils/config';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 
 vi.mock('@/middlewares/basket.server');
@@ -89,7 +90,7 @@ describe('action.cart-set-add', () => {
         vi.mocked(getBasket).mockResolvedValue({ current: emptyBasket, snapshot: null } as any);
         vi.mocked(updateBasketResource).mockImplementation(() => {});
         vi.mocked(createApiClients).mockReturnValue(mockClients as any);
-        vi.mocked(getConfig).mockReturnValue({} as any);
+        vi.mocked(getConfig).mockReturnValue(mockConfig as any);
     });
 
     test('adds multiple regular items to the basket', async () => {

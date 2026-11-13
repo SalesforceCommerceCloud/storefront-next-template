@@ -15,58 +15,38 @@
  */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
 import { data } from 'react-router';
-import type { Route } from './+types/action.set-selected-store';
-import { updateSelectedStore } from '@/extensions/store-locator/middlewares/selected-store.server';
 import { getLogger } from '@/lib/logger.server';
+import type { Route } from './+types/action.set-selected-store';
+import {
+    parseSelectedStore,
+    getStoreSelectionFailure,
+    selectStore,
+    StoreSelectionError,
+} from '@/extensions/store-locator/lib/store-selection.server';
 
-/**
- * Server action to set or clear the selected store cookie.
- *
- * Called when the user selects or clears a store from the store locator.
- * Validates the store info and delegates to middleware for Set-Cookie.
- *
- * Form data:
- * - `storeInfo`: JSON string of SelectedStoreInfo, or empty string to clear
- */
+/** Select, change or clear through the shared service; only native success publishes cookies. */
 export const action = async ({ request, context }: Route.ActionArgs) => {
-    const logger = getLogger(context);
+    if (request.method !== 'POST') return data({ success: false, code: 'METHOD_NOT_ALLOWED' }, { status: 405 });
     const formData = await request.formData();
-    const storeInfoRaw = formData.get('storeInfo') as string;
-
-    logger.debug('SetSelectedStore: starting', { hasStoreInfo: storeInfoRaw !== null && storeInfoRaw !== undefined });
-
-    if (storeInfoRaw === null || storeInfoRaw === undefined) {
-        logger.warn('SetSelectedStore: storeInfo parameter missing');
-        throw new Response('storeInfo is required', { status: 400 });
-    }
-
-    if (!storeInfoRaw) {
-        logger.info('SetSelectedStore: clearing selected store');
-        // Clear the selected store
-        updateSelectedStore(context, null);
-        return data({ success: true });
-    }
-
-    let storeInfo: { id?: string; name?: string; inventoryId?: string };
+    const raw = formData.get('storeInfo');
+    if (typeof raw !== 'string') return data({ success: false, code: 'STORE_INFO_REQUIRED' }, { status: 400 });
     try {
-        storeInfo = JSON.parse(storeInfoRaw);
+        let candidate = null;
+        if (raw) {
+            const parsed: unknown = JSON.parse(raw);
+            candidate = parseSelectedStore(parsed);
+            if (!candidate) throw new StoreSelectionError('INVALID_STORE');
+            // Reject a submitted mismatched inventory instead of silently trusting it.
+            if (parsed && typeof parsed === 'object' && 'inventoryId' in parsed) {
+                if (typeof parsed.inventoryId !== 'string') throw new StoreSelectionError('INVALID_STORE_INVENTORY');
+                candidate.inventoryId = parsed.inventoryId;
+            }
+        }
+        const result = await selectStore(context, candidate);
+        return data(result, { status: result.success ? 200 : 409 });
     } catch (error) {
-        logger.warn('SetSelectedStore: invalid JSON', { error });
-        throw new Response('Invalid storeInfo JSON', { status: 400 });
+        const failure = getStoreSelectionFailure(error);
+        getLogger(context).error('Store selection failed', { error, code: failure.code });
+        return data({ success: false, code: failure.code }, { status: failure.status, headers: failure.headers });
     }
-
-    if (!storeInfo.id) {
-        logger.warn('SetSelectedStore: storeInfo missing id');
-        throw new Response('storeInfo must have an id', { status: 400 });
-    }
-
-    logger.info('SetSelectedStore: succeeded', {
-        storeId: storeInfo.id,
-        hasName: !!storeInfo.name,
-        hasInventoryId: !!storeInfo.inventoryId,
-    });
-
-    updateSelectedStore(context, { id: storeInfo.id, name: storeInfo.name, inventoryId: storeInfo.inventoryId });
-
-    return data({ success: true });
 };

@@ -15,7 +15,7 @@
  */
 import { describe, expect, test, vi, beforeEach } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
-import { createShopperContext } from './shopper-context.server';
+import { createShopperContext, getShopperContextHelpers } from './shopper-context.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { createTestContext } from '@/lib/test-utils';
@@ -46,6 +46,7 @@ describe('shopper-context API', () => {
         mockContext = createTestContext();
         mockShopperContextClient = {
             createShopperContext: vi.fn().mockResolvedValue(undefined),
+            updateShopperContext: vi.fn().mockResolvedValue({ data: { sourceCode: 'current-session' } }),
         };
 
         vi.mocked(getConfig).mockReturnValue({
@@ -59,6 +60,52 @@ describe('shopper-context API', () => {
         vi.mocked(createApiClients).mockReturnValue({
             shopperContext: mockShopperContextClient,
         } as any);
+    });
+
+    describe('getShopperContextHelpers', () => {
+        test('shares the helper and resolved snapshot for an unchanged USID within one request', async () => {
+            const first = getShopperContextHelpers(mockContext, 'session-a');
+            const second = getShopperContextHelpers(mockContext, 'session-a');
+
+            expect(second).toBe(first);
+            await first.resolve();
+            await second.resolve();
+            expect(mockShopperContextClient.updateShopperContext).toHaveBeenCalledOnce();
+        });
+
+        test('discards the old snapshot and targets the new USID after a session change', async () => {
+            mockShopperContextClient.updateShopperContext
+                .mockResolvedValueOnce({ data: { sourceCode: 'session-a' } })
+                .mockResolvedValueOnce({ data: { sourceCode: 'session-b' } });
+            const first = getShopperContextHelpers(mockContext, 'session-a');
+            expect(await first.resolve()).toEqual({ sourceCode: 'session-a' });
+
+            const second = getShopperContextHelpers(mockContext, 'session-b');
+            expect(second).not.toBe(first);
+            expect(await second.resolve()).toEqual({ sourceCode: 'session-b' });
+            await second.update({ sourceCode: 'email' });
+            expect(mockShopperContextClient.updateShopperContext).toHaveBeenLastCalledWith({
+                params: { path: { usid: 'session-b' } },
+                body: { sourceCode: 'email' },
+            });
+
+            // Returning to an earlier identity must not resurrect its pre-transition snapshot.
+            const third = getShopperContextHelpers(mockContext, 'session-a');
+            expect(third).not.toBe(first);
+            expect(third).not.toBe(second);
+            await third.resolve();
+            expect(mockShopperContextClient.updateShopperContext).toHaveBeenCalledTimes(4);
+        });
+
+        test('does not share helpers or snapshots between requests with the same USID', async () => {
+            const first = getShopperContextHelpers(mockContext, 'session-a');
+            const second = getShopperContextHelpers(createTestContext(), 'session-a');
+
+            expect(second).not.toBe(first);
+            await first.resolve();
+            await second.resolve();
+            expect(mockShopperContextClient.updateShopperContext).toHaveBeenCalledTimes(2);
+        });
     });
 
     describe('createShopperContext', () => {

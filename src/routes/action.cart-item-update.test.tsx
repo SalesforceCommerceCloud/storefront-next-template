@@ -19,6 +19,10 @@ import { action } from './action.cart-item-update';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { createApiClients } from '@/lib/api-clients.server';
 
+vi.mock('@salesforce/storefront-next-runtime/config', async (original) => ({
+    ...(await original<typeof import('@salesforce/storefront-next-runtime/config')>()),
+    getConfig: () => ({ features: { shopperContext: { enabled: false } } }),
+}));
 vi.mock('@/middlewares/basket.server');
 
 const { createContext: reactCreateContext, actualReactRouter } = vi.hoisted(() => {
