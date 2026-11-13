@@ -1,3 +1,4 @@
+import "./modeDetection.js";
 import "./env2.js";
 import "./cookie-domain2.js";
 import { i as siteContext } from "./site-context2.js";

@@ -207,7 +207,10 @@ export const getCookieConfig = <T extends object = CookieConfig>(
         // upgrade-insecure-requests, so cookies, HSTS, and CSP all agree on "is this real
         // HTTPS?". It is NOT NODE_ENV: `pnpm preview` is a production build over http.
         secure: isRemote(),
-        ...(modeDetection?.isDesignMode && {
+        // EDIT and PREVIEW both render the storefront in a cross-site Business Manager
+        // iframe. Lax cookies are dropped there, so the auth session (including usid)
+        // must be SameSite=None and partitioned or every reload starts a new guest.
+        ...((modeDetection?.isDesignMode || modeDetection?.isPreviewMode) && {
             sameSite: 'none',
             partitioned: true,
         }),
@@ -220,9 +223,9 @@ export const getCookieConfig = <T extends object = CookieConfig>(
     };
 
     // `SameSite=None` cookies are rejected by browsers unless they are also `Secure`.
-    // Page Designer design-mode cookies are embedded cross-site in the Business Manager
-    // iframe (always HTTPS) and must be `SameSite=None`, so they stay `Secure` even in
-    // local dev where the default is otherwise non-secure.
+    // Page Designer EDIT and PREVIEW cookies are embedded cross-site in the Business
+    // Manager iframe (always HTTPS) and must be `SameSite=None`, so they stay `Secure`
+    // even in local dev where the default is otherwise non-secure.
     if (merged.sameSite === 'none') {
         merged.secure = true;
     }

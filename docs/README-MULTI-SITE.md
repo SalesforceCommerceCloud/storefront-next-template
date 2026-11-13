@@ -52,6 +52,23 @@ The homepage lives at the prefixed path (e.g., `/global/en-GB/`). Bare `/` redir
 | `/us/en-US/` | Renders homepage for RefArch, en-US |
 | `/` | Redirects to `/{defaultSiteAlias}/{defaultLocale}/` (e.g., `/global/en-GB/`) |
 
+### Page Designer/Storefront Preview Integration
+
+Storefront Preview passes `__siteId` when initially opened so the storefront can load the selected site's homepage in its default locale. The template supplies the URL configuration and base path to the site-context middleware; custom integrations should do the same:
+
+```typescript
+createSiteContextMiddleware(siteContextConfig, {
+    urlConfig: config.url,
+    basePath: getBasePath(),
+});
+```
+
+- In **EDIT** or **PREVIEW** mode, a GET with `__siteId` (a site ID or alias) redirects to that site's homepage at its `defaultLocale`. An unknown ID falls back to the configured `defaultSiteId`; `url.prefix`, `url.search`, and the base path shape the destination.
+- The redirect keeps `mode` and `pdToken`, and drops other incoming query parameters. Do not configure `__siteId`, `mode`, or `pdToken` in `url.search` for the initial handoff. After the redirect, normal detection applies; keep URL settings aligned with [detection config](#detection-config).
+- Without a non-empty `__siteId`, or on non-GET requests, normal site and locale detection applies.
+
+In both modes, site-context cookies use `SameSite=None`, `Secure`, and `Partitioned` as the site is loaded in an iframe.
+
 ### Request Flow
 
 1. User requests `/global/en-GB/p/123`

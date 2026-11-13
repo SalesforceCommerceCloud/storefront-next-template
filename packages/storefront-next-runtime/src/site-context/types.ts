@@ -15,7 +15,7 @@
  */
 
 import type { Cookie, CookieOptions } from 'react-router';
-import type { Locale as BaseLocale, Site as BaseSite } from '../config/types';
+import type { Locale as BaseLocale, Site as BaseSite, Url } from '../config/types';
 
 // extended Site/Locale to use for site context feature.
 export type Locale = BaseLocale & {
@@ -47,6 +47,20 @@ export type SiteConfig = {
     localeDetectionConfig?: DetectionConfig;
     currencyCookieName?: string;
     cookieOptions?: CookieOptions;
+};
+
+/**
+ * URL configuration for Page Designer storefront handoffs.
+ *
+ * Providing these options enables handoff handling in EDIT/PREVIEW.
+ * The site comes from the request's `__siteId` parameter; these options
+ * define how its canonical URL is built.
+ */
+export type PreviewOptions = {
+    /** URL prefix and search configuration for the redirect destination. */
+    urlConfig?: Url;
+    /** Application base path for the redirect destination; defaults to `/`. */
+    basePath?: string;
 };
 
 /**

@@ -15,7 +15,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { MiddlewareFunction, RouterContextProvider } from 'react-router';
+import { type MiddlewareFunction, RouterContextProvider } from 'react-router';
 
 // Capture the SiteConfig the template middleware builds and hands to the SDK,
 // and short-circuit the real SDK middleware with a passthrough.
@@ -23,13 +23,15 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', () => ({
     createSiteContextMiddleware: vi.fn(() => (_args: unknown, next: () => Promise<Response>) => next()),
 }));
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({ getConfig: vi.fn() }));
+vi.mock('@/lib/utils', () => ({ getBasePath: vi.fn(() => '') }));
 vi.mock('@/lib/logger.server', () => ({
     getLogger: () => ({ debug: vi.fn(), error: vi.fn(), info: vi.fn(), warn: vi.fn() }),
 }));
 
 import { siteContextMiddleware } from './site-context.server';
-import { createSiteContextMiddleware } from '@salesforce/storefront-next-runtime/site-context';
+import { createSiteContextMiddleware, type PreviewOptions } from '@salesforce/storefront-next-runtime/site-context';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { getBasePath } from '@/lib/utils';
 
 type MiddlewareNext = Parameters<MiddlewareFunction<Response>>[1];
 
@@ -45,7 +47,7 @@ async function runWith(configOverrides: Record<string, unknown>) {
         {
             request: new Request('https://example.com/'),
             url: new URL('https://example.com/'),
-            context: {} as RouterContextProvider,
+            context: new RouterContextProvider(),
             params: {},
             pattern: '',
         } as Parameters<MiddlewareFunction<Response>>[0],
@@ -87,5 +89,24 @@ describe('siteContextMiddleware cookie domain', () => {
     it('omits domain entirely when neither is set (host-only)', async () => {
         const config = await runWith({});
         expect(config.cookieOptions?.domain).toBeUndefined();
+    });
+});
+
+describe('siteContextMiddleware preview options', () => {
+    beforeEach(() => {
+        vi.mocked(createSiteContextMiddleware).mockClear();
+        vi.mocked(getBasePath).mockReturnValue('');
+    });
+
+    it('passes preview options to the site context middleware', async () => {
+        vi.mocked(getBasePath).mockReturnValue('/shop');
+
+        await runWith({ url: { prefix: '/:siteId/:localeId', search: '?lng=:localeId' } });
+
+        const options = vi.mocked(createSiteContextMiddleware).mock.calls[0][1] as PreviewOptions;
+        expect(options).toEqual({
+            urlConfig: { prefix: '/:siteId/:localeId', search: '?lng=:localeId' },
+            basePath: '/shop',
+        });
     });
 });

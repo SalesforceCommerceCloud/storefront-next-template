@@ -1,7 +1,7 @@
 import { i as Url, r as Site$1, t as Locale$1 } from "./types.js";
 import { PropsWithChildren } from "react";
-import * as react_jsx_runtime2 from "react/jsx-runtime";
-import * as react_router18 from "react-router";
+import * as react_jsx_runtime1 from "react/jsx-runtime";
+import * as react_router2 from "react-router";
 import { Cookie, CookieOptions, MiddlewareFunction, RouterContextProvider } from "react-router";
 import { RouteConfigEntry } from "@react-router/dev/routes";
 
@@ -33,6 +33,19 @@ type SiteConfig = {
   localeDetectionConfig?: DetectionConfig;
   currencyCookieName?: string;
   cookieOptions?: CookieOptions;
+};
+/**
+ * URL configuration for Page Designer storefront handoffs.
+ *
+ * Providing these options enables handoff handling in EDIT/PREVIEW.
+ * The site comes from the request's `__siteId` parameter; these options
+ * define how its canonical URL is built.
+ */
+type PreviewOptions = {
+  /** URL prefix and search configuration for the redirect destination. */
+  urlConfig?: Url;
+  /** Application base path for the redirect destination; defaults to `/`. */
+  basePath?: string;
 };
 /**
  * Resolved settings used by site/locale/currency resolution (all detection options have values).
@@ -100,7 +113,7 @@ declare function SiteProvider({
   language,
   currency,
   children
-}: PropsWithChildren<SiteContextValue>): react_jsx_runtime2.JSX.Element;
+}: PropsWithChildren<SiteContextValue>): react_jsx_runtime1.JSX.Element;
 /**
  * React hook to get the current site context.
  * Returns `{ site, locale, language, currency }`.
@@ -227,7 +240,7 @@ declare function buildUrl({
 }): string;
 //#endregion
 //#region src/site-context/middleware.d.ts
-declare const siteContext: react_router18.RouterContext<SiteContext | null>;
+declare const siteContext: react_router2.RouterContext<SiteContext | null>;
 /**
  * Resolved site context result from {@link resolveSiteContext}.
  */
@@ -275,9 +288,9 @@ declare function resolveSiteContext(request: Request, settings: SiteSettings): P
  * ```
  */
 declare function getSiteContextCookies(context: Readonly<RouterContextProvider>): {
-  siteCookie: react_router18.Cookie;
-  localeCookie: react_router18.Cookie;
-  currencyCookie: react_router18.Cookie;
+  siteCookie: react_router2.Cookie;
+  localeCookie: react_router2.Cookie;
+  currencyCookie: react_router2.Cookie;
 } | null;
 /**
  * Creates a site context middleware that resolves the current site from
@@ -286,7 +299,7 @@ declare function getSiteContextCookies(context: Readonly<RouterContextProvider>)
  *
  * Does not import or read from app config context; the consumer supplies config.
  */
-declare function createSiteContextMiddleware(config: SiteConfig): MiddlewareFunction<Response>;
+declare function createSiteContextMiddleware(config: SiteConfig, previewOptions?: PreviewOptions): MiddlewareFunction<Response>;
 //#endregion
 //#region src/site-context/cookies.d.ts
 /**
@@ -296,5 +309,5 @@ declare function createSiteContextMiddleware(config: SiteConfig): MiddlewareFunc
  */
 declare const requestToLocaleMap: WeakMap<Request, string>;
 //#endregion
-export { type DetectionConfig, type Locale, type ResolvedSiteContext, type Site, type SiteConfig, type SiteContext, type SiteContextValue, SiteProvider, type SiteSettings, applyUrlConfig, buildUrl, createSiteContextMiddleware, extractPrefixParamValues, getSiteContextCookies, requestToLocaleMap, resolvePrefix, resolveSiteContext, siteContext, stripPathPrefix, useSite };
+export { type DetectionConfig, type Locale, type PreviewOptions, type ResolvedSiteContext, type Site, type SiteConfig, type SiteContext, type SiteContextValue, SiteProvider, type SiteSettings, applyUrlConfig, buildUrl, createSiteContextMiddleware, extractPrefixParamValues, getSiteContextCookies, requestToLocaleMap, resolvePrefix, resolveSiteContext, siteContext, stripPathPrefix, useSite };
 //# sourceMappingURL=site-context.d.ts.map

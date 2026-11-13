@@ -1,6 +1,7 @@
 import "./messaging-api.js";
 import { a as useComponentDiscovery, n as useDesignSelector, r as useThrottledCallback } from "./DesignContext.js";
 import "./modeDetection.js";
+import "./PreviewContext.js";
 import { n as useDesignContext } from "./DesignContext2.js";
 import { i as useRegionContext, n as useIsWithinEmbeddedSubtree } from "./EmbeddedSubtreeContext.js";
 import { n as RootComponentResetProvider, r as useIsRootComponent } from "./RootComponentContext.js";

@@ -1,12 +1,27 @@
 import { n as isDesignModeActive, r as isPreviewModeActive } from "./modeDetection.js";
+import { n as usePreviewContext } from "./PreviewContext.js";
 import React, { Suspense, createContext, lazy, useContext, useEffect, useMemo, useState } from "react";
-import { Fragment, jsx } from "react/jsx-runtime";
+import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 
 //#region src/design/react/core/PageDesignerProvider.tsx
 const LazyDesignProvider = lazy(() => import("./DesignContext3.js").then((module) => ({ default: module.DesignProvider })));
 const LazyPreviewProvider = lazy(() => import("./PreviewContext2.js").then((module) => ({ default: module.PreviewProvider })));
 const LoadingFallback = () => null;
 const noopLogger = () => {};
+/** Reports browser navigations to the Page Designer host. */
+const PreviewRouteReporter = () => {
+	const { isPreviewMode, notifyClientRouteChanged } = usePreviewContext();
+	useEffect(() => {
+		if (!isPreviewMode) return;
+		const reportCurrentUrl = () => notifyClientRouteChanged(window.location.href);
+		const navigation = window.navigation;
+		reportCurrentUrl();
+		if (!navigation) return;
+		navigation.addEventListener("currententrychange", reportCurrentUrl);
+		return () => navigation.removeEventListener("currententrychange", reportCurrentUrl);
+	}, [isPreviewMode, notifyClientRouteChanged]);
+	return null;
+};
 const PageDesignerContext = createContext({
 	isDesignMode: false,
 	isPreviewMode: false
@@ -38,7 +53,7 @@ const PageDesignerProvider = ({ children, targetOrigin, clientId, usid, pageUpda
 			clientLogger,
 			clientConnectionTimeout,
 			clientConnectionInterval,
-			children: content
+			children: /* @__PURE__ */ jsxs(Fragment, { children: [content, /* @__PURE__ */ jsx(PreviewRouteReporter, {})] })
 		})
 	});
 	if (isDesignMode) content = /* @__PURE__ */ jsx(Suspense, {

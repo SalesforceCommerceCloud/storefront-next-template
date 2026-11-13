@@ -1,6 +1,7 @@
 import "./messaging-api.js";
 import { i as isComponentTypeAllowedInRegion, n as useDesignSelector } from "./DesignContext.js";
 import "./modeDetection.js";
+import "./PreviewContext.js";
 import "./DesignContext2.js";
 import { n as useIsWithinEmbeddedSubtree, r as RegionContext } from "./EmbeddedSubtreeContext.js";
 import { i as useLabels, n as useComponentContext, o as useNodeToTargetStore, r as DesignFrame } from "./ComponentContext.js";

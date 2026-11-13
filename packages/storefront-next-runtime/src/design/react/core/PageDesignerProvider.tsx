@@ -17,6 +17,7 @@ import { Suspense, lazy, useEffect, useMemo, useState, createContext, useContext
 import { isDesignModeActive, isPreviewModeActive } from '../../modeDetection';
 import type { IsomorphicConfiguration } from '../../messaging-api';
 import type { PageUpdateMode } from './component.types';
+import { usePreviewContext } from './PreviewContext';
 
 // Lazy load the context providers so that they are only loaded when needed and don't impact runtime performance
 const LazyDesignProvider = lazy(() =>
@@ -39,6 +40,28 @@ const LoadingFallback: React.FC = () => null;
 // PreviewProvider / DesignProvider that keys on `clientLogger`.
 const noopLogger: IsomorphicConfiguration['logger'] = () => {
     /* noop */
+};
+
+/** Reports browser navigations to the Page Designer host. */
+const PreviewRouteReporter = () => {
+    const { isPreviewMode, notifyClientRouteChanged } = usePreviewContext();
+
+    useEffect(() => {
+        if (!isPreviewMode) return;
+
+        const reportCurrentUrl = () => notifyClientRouteChanged(window.location.href);
+        const navigation = (window as Window & { navigation?: EventTarget }).navigation;
+
+        // Report the initial URL explicitly; currententrychange only covers later navigations.
+        reportCurrentUrl();
+
+        if (!navigation) return;
+
+        navigation.addEventListener('currententrychange', reportCurrentUrl);
+        return () => navigation.removeEventListener('currententrychange', reportCurrentUrl);
+    }, [isPreviewMode, notifyClientRouteChanged]);
+
+    return null;
 };
 
 // PageDesigner context to expose mode information to children
@@ -130,7 +153,10 @@ export const PageDesignerProvider = ({
                     clientLogger={clientLogger}
                     clientConnectionTimeout={clientConnectionTimeout}
                     clientConnectionInterval={clientConnectionInterval}>
-                    {content}
+                    <>
+                        {content}
+                        <PreviewRouteReporter />
+                    </>
                 </LazyPreviewProvider>
             </Suspense>
         );

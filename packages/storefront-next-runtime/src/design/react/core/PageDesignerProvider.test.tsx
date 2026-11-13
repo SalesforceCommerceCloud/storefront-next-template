@@ -16,15 +16,25 @@
 import { useContext } from 'react';
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { render, cleanup, screen, act } from '@testing-library/react';
+import { PreviewContext } from './PreviewContext';
+
+const { notifyClientRouteChangedMock } = vi.hoisted(() => ({ notifyClientRouteChangedMock: vi.fn() }));
 
 // Mock the lazy-loaded context modules with lightweight test doubles that
 // expose the props they receive so we can assert them, and unmount cleanly
 // so we can assert mount/unmount transitions.
 vi.mock('../context/PreviewContext', () => ({
     PreviewProvider: vi.fn(({ children, ...props }: { children: React.ReactNode } & Record<string, unknown>) => (
-        <div data-testid="preview-provider" data-props={JSON.stringify(props)}>
-            {children}
-        </div>
+        <PreviewContext.Provider
+            value={{
+                isPreviewMode: true,
+                isConnected: false,
+                notifyClientRouteChanged: notifyClientRouteChangedMock,
+            }}>
+            <div data-testid="preview-provider" data-props={JSON.stringify(props)}>
+                {children}
+            </div>
+        </PreviewContext.Provider>
     )),
 }));
 
@@ -61,6 +71,7 @@ describe('PageDesignerProvider', () => {
     beforeEach(() => {
         asMock(isDesignModeActive).mockReturnValue(false);
         asMock(isPreviewModeActive).mockReturnValue(false);
+        notifyClientRouteChangedMock.mockClear();
     });
 
     afterEach(() => {
@@ -344,6 +355,84 @@ describe('PageDesignerProvider', () => {
                     </PageDesignerProvider>
                 )
             ).not.toThrow();
+        });
+    });
+
+    describe('preview route reporting', () => {
+        let navigation = new EventTarget();
+        let navigationDescriptor: PropertyDescriptor | undefined;
+
+        beforeEach(() => {
+            navigationDescriptor = Object.getOwnPropertyDescriptor(window, 'navigation');
+            navigation = new EventTarget();
+            Object.defineProperty(window, 'navigation', { configurable: true, value: navigation });
+        });
+
+        afterEach(() => {
+            if (navigationDescriptor) {
+                Object.defineProperty(window, 'navigation', navigationDescriptor);
+            } else {
+                Reflect.deleteProperty(window, 'navigation');
+            }
+        });
+
+        it('reports the initial browser URL and subsequent Navigation API entries, preserving search and hash', () => {
+            window.history.replaceState({}, '', '/shop/?mode=PREVIEW&pdToken=fake#home');
+            render(
+                <PageDesignerProvider clientId="test-client" targetOrigin="https://host.example.com" mode="PREVIEW">
+                    <Child />
+                </PageDesignerProvider>
+            );
+
+            expect(notifyClientRouteChangedMock).toHaveBeenCalledWith(
+                new URL('/shop/?mode=PREVIEW&pdToken=fake#home', window.location.origin).href
+            );
+
+            act(() => {
+                window.history.replaceState({}, '', '/shop/product/abc?color=blue#details');
+                navigation.dispatchEvent(new Event('currententrychange'));
+            });
+
+            expect(notifyClientRouteChangedMock).toHaveBeenLastCalledWith(
+                new URL('/shop/product/abc?color=blue#details', window.location.origin).href
+            );
+            expect(notifyClientRouteChangedMock).toHaveBeenCalledTimes(2);
+        });
+
+        it('reports the initial URL in PREVIEW without a router provider', async () => {
+            window.history.replaceState({}, '', '/shop/?mode=PREVIEW');
+
+            render(
+                <PageDesignerProvider clientId="test-client" targetOrigin="https://host.example.com" mode="PREVIEW">
+                    <Child />
+                </PageDesignerProvider>
+            );
+
+            await screen.findByTestId('preview-provider');
+            expect(notifyClientRouteChangedMock).toHaveBeenCalledWith(
+                new URL('/shop/?mode=PREVIEW', window.location.origin).href
+            );
+        });
+
+        it.each(['EDIT', 'runtime'] as const)('does not report routes in %s mode', async (mode) => {
+            window.history.replaceState({}, '', '/shop/');
+            render(
+                <PageDesignerProvider
+                    clientId="test-client"
+                    targetOrigin="https://host.example.com"
+                    mode={mode === 'EDIT' ? 'EDIT' : undefined}>
+                    <Child />
+                </PageDesignerProvider>
+            );
+
+            if (mode === 'EDIT') await screen.findByTestId('design-provider');
+
+            act(() => {
+                window.history.replaceState({}, '', '/shop/product/abc');
+                navigation.dispatchEvent(new Event('currententrychange'));
+            });
+
+            expect(notifyClientRouteChangedMock).not.toHaveBeenCalled();
         });
     });
 });

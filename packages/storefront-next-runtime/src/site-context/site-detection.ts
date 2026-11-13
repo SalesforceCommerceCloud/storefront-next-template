@@ -31,7 +31,7 @@ export async function readSiteFromCookie(request: Request, cookie: Cookie): Prom
  * 2. Else check against each site's id; if matched, return that site.
  * 3. If no match, return null.
  */
-function getSiteFromIdOrAlias(siteIdentifier: string | null, sites: Site[]): Site | null {
+export function getSiteFromIdOrAlias(siteIdentifier: string | null, sites: Site[]): Site | null {
     if (!siteIdentifier) return null;
     return sites.find((site) => site.alias === siteIdentifier || site.id === siteIdentifier) ?? null;
 }

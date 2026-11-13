@@ -49,7 +49,9 @@ vi.mock('@salesforce/storefront-next-runtime/env', () => ({
 
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { isRemote } from '@salesforce/storefront-next-runtime/env';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import type { AppConfig } from '@/types/config';
+import { modeDetectionContext } from '@/middlewares/mode-detection';
 
 describe('cookie-utils', () => {
     const mockAppConfig = {
@@ -516,8 +518,17 @@ describe('cookie-utils', () => {
                 })),
             });
 
-            it('should apply partitioned cookie attributes in design mode', () => {
-                const mockContext = createMockContext(true) as any;
+            it.each([
+                {
+                    name: 'EDIT',
+                    mode: { isDesignMode: true, isPreviewMode: false },
+                },
+                {
+                    name: 'PREVIEW',
+                    mode: { isDesignMode: false, isPreviewMode: true },
+                },
+            ])('should apply partitioned cookie attributes in $name mode', ({ mode }) => {
+                const mockContext = { get: vi.fn(() => mode) } as any;
 
                 const config = getCookieConfig({}, mockContext);
 
@@ -761,6 +772,29 @@ describe('cookie-utils', () => {
             const header = await cookie.serialize('', { maxAge: 0 });
             expect(header).toContain(`token_${mockAltSiteObject.id}=`);
             expect(header).toContain('Max-Age=0');
+        });
+
+        it('serializes PREVIEW auth session cookies with the cross-site partitioned policy', async () => {
+            const previewContext = {
+                get: vi.fn((key: unknown) => {
+                    if (key === modeDetectionContext) {
+                        return { isDesignMode: false, isPreviewMode: true };
+                    }
+                    if (key === siteContext) {
+                        return { site: { id: mockAltSiteObject.id } };
+                    }
+                    return undefined;
+                }),
+            } as any;
+
+            const usidCookie = createCookie<string>('usid', { path: '/' }, previewContext);
+            const header = await usidCookie.serialize('guest-usid');
+
+            expect(header).toContain(`usid_${mockAltSiteObject.id}=guest-usid`);
+            expect(header).toContain('SameSite=None');
+            expect(header).toContain('Secure');
+            expect(header).toContain('Partitioned');
+            expect(header).not.toContain('SameSite=Lax');
         });
 
         it('should store values as-is without encoding', async () => {

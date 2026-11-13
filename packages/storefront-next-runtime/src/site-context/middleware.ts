@@ -16,12 +16,18 @@
 
 import { createContext, type MiddlewareFunction, type RouterContextProvider } from 'react-router';
 import { isValidCookieDomain } from '../cookie-domain';
-import { resolveSite } from './site-detection';
-import type { SiteConfig, SiteContext, SiteSettings, Site, Locale } from './types';
+import { getSiteFromIdOrAlias, resolveSite } from './site-detection';
+import type { SiteConfig, SiteContext, SiteSettings, Site, Locale, PreviewOptions } from './types';
 import { DEFAULT_SITE_DETECTION, DEFAULT_LOCALE_DETECTION, DEFAULT_CURRENCY_COOKIE_NAME } from './configs';
 import { createSiteContextCookie, createCurrencyCookie, requestToLocaleMap } from './cookies';
-import { resolveLocale } from './locale-detection';
+import { getLocaleFromIdOrAlias, resolveLocale } from './locale-detection';
 import { resolveCurrency } from './currency-detection';
+import { buildUrl, parseSearchConfig } from './build-url';
+import { isDesignModeActive, isPreviewModeActive } from '../design/modeDetection.js';
+
+const PREVIEW_SITE_PARAM = '__siteId';
+const PREVIEW_MODE_PARAM = 'mode';
+const PREVIEW_TOKEN_PARAM = 'pdToken';
 
 export const siteContext = createContext<SiteContext | null>(null);
 
@@ -151,7 +157,10 @@ async function shouldSetCookies(
  *
  * Does not import or read from app config context; the consumer supplies config.
  */
-export function createSiteContextMiddleware(config: SiteConfig): MiddlewareFunction<Response> {
+export function createSiteContextMiddleware(
+    config: SiteConfig,
+    previewOptions?: PreviewOptions
+): MiddlewareFunction<Response> {
     // Merge config with defaults so every detection option has a value
     const siteDetectionConfig: SiteSettings['siteDetectionConfig'] = {
         ...DEFAULT_SITE_DETECTION,
@@ -162,30 +171,41 @@ export function createSiteContextMiddleware(config: SiteConfig): MiddlewareFunct
         ...config.localeDetectionConfig,
     };
 
-    // Create cookies based on configured names and optional cookie options
-    const siteCookie = createSiteContextCookie(siteDetectionConfig.lookupCookie, config.cookieOptions);
-    const localeCookie = createSiteContextCookie(localeDetectionConfig.lookupCookie, config.cookieOptions);
-    // Currency is JS-readable so the client can restore the selected currency under a
-    // cached app shell. Scoped to this cookie only — site/locale stay httpOnly.
-    const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, {
-        ...config.cookieOptions,
-        httpOnly: false,
-    });
-
-    const settings: SiteSettings = {
-        ...config,
-        siteDetectionConfig,
-        localeDetectionConfig,
-        siteCookie,
-        localeCookie,
-        currencyCookie,
-    };
-
     const siteContextMiddleware: MiddlewareFunction<Response> = async (
         { request, context }: MiddlewareArgs,
         next: () => Promise<Response>
     ): Promise<Response> => {
-        const { site, locale, currency } = await resolveSiteContext(request, settings);
+        // Preview runs inside the Page Designer iframe, so its site-context cookies
+        // need cross-site attributes. Create cookie instances per request so preview
+        // policy cannot leak through this middleware's shared configuration.
+        const isPageDesignerRequest = isPreviewModeActive(request) || isDesignModeActive(request);
+        const cookieOptions = isPageDesignerRequest
+            ? { ...config.cookieOptions, sameSite: 'none' as const, secure: true, partitioned: true }
+            : config.cookieOptions;
+        const siteCookie = createSiteContextCookie(siteDetectionConfig.lookupCookie, cookieOptions);
+        const localeCookie = createSiteContextCookie(localeDetectionConfig.lookupCookie, cookieOptions);
+        // Currency is JS-readable so the client can restore the selected currency under a
+        // cached app shell. Scoped to this cookie only — site/locale stay httpOnly.
+        const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, {
+            ...cookieOptions,
+            httpOnly: false,
+        });
+        const settings: SiteSettings = {
+            ...config,
+            siteDetectionConfig,
+            localeDetectionConfig,
+            siteCookie,
+            localeCookie,
+            currencyCookie,
+        };
+
+        const selected = resolvePreviewSiteLocale(request, settings, previewOptions);
+        const { site, locale, currency } = selected
+            ? {
+                  ...selected,
+                  currency: await resolveCurrency(request, settings.currencyCookie, selected.site, selected.locale),
+              }
+            : await resolveSiteContext(request, settings);
 
         // Store full Site, Locale, Currency, and Cookie objects in context
         context.set(siteContext, {
@@ -201,7 +221,9 @@ export function createSiteContextMiddleware(config: SiteConfig): MiddlewareFunct
         // This is necessary because findLocale only receives Request and cannot access the router context
         requestToLocaleMap.set(request, locale.id);
 
-        const response = await next();
+        const previewRedirect =
+            selected && previewOptions && createPreviewRedirect(request, previewOptions, site, locale);
+        const response = previewRedirect ?? (await next());
 
         // Determine if cookies should be set.
         // Actions that change currency (or site/locale) set their cookies directly on the response;
@@ -250,4 +272,62 @@ export function createSiteContextMiddleware(config: SiteConfig): MiddlewareFunct
     };
 
     return siteContextMiddleware;
+}
+
+function resolvePreviewSiteLocale(
+    request: Request,
+    settings: SiteSettings,
+    previewOptions?: PreviewOptions
+): Pick<ResolvedSiteContext, 'site' | 'locale'> | null {
+    if (request.method !== 'GET' || !previewOptions || !(isPreviewModeActive(request) || isDesignModeActive(request))) {
+        return null;
+    }
+
+    const url = new URL(request.url);
+    const siteId = url.searchParams.get(PREVIEW_SITE_PARAM);
+    if (!siteId) return null;
+
+    const site =
+        getSiteFromIdOrAlias(siteId, settings.sites) ?? getSiteFromIdOrAlias(settings.defaultSiteId, settings.sites);
+    if (!site) return null;
+
+    // Preview should always load the site's configured default locale.
+    const locale = getLocaleFromIdOrAlias(site.defaultLocale, site.supportedLocales);
+    return locale ? { site, locale } : null;
+}
+
+function createPreviewRedirect(
+    request: Request,
+    previewOptions: PreviewOptions,
+    site: Site,
+    locale: Locale
+): Response | null {
+    if (previewOptions.urlConfig?.search) {
+        const searchConfig = parseSearchConfig(previewOptions.urlConfig.search);
+        if (PREVIEW_SITE_PARAM in searchConfig) {
+            throw new Error(`${PREVIEW_SITE_PARAM} is reserved for the initial storefront preview handoff.`);
+        }
+        // buildUrl sets configured search after the allowlist, so these keys would
+        // replace the incoming preview activation.
+        if (PREVIEW_MODE_PARAM in searchConfig || PREVIEW_TOKEN_PARAM in searchConfig) {
+            throw new Error(
+                `${PREVIEW_MODE_PARAM} and ${PREVIEW_TOKEN_PARAM} are reserved for storefront preview and cannot be configured in previewOptions.urlConfig.search.`
+            );
+        }
+    }
+
+    const requestUrl = new URL(request.url);
+    // Initial handoff only. Keep mode and pdToken; drop other query params.
+    const allowed = new URLSearchParams();
+    const mode = requestUrl.searchParams.get(PREVIEW_MODE_PARAM);
+    const pdToken = requestUrl.searchParams.get(PREVIEW_TOKEN_PARAM);
+    if (mode) allowed.set(PREVIEW_MODE_PARAM, mode);
+    if (pdToken) allowed.set(PREVIEW_TOKEN_PARAM, pdToken);
+    const target = buildUrl({
+        to: `/${allowed.size ? `?${allowed.toString()}` : ''}`,
+        urlConfig: previewOptions.urlConfig,
+        params: { siteId: site.alias ?? site.id, localeId: locale.alias ?? locale.id },
+    });
+    const basePath = !previewOptions.basePath || previewOptions.basePath === '/' ? '' : previewOptions.basePath;
+    return new Response(null, { status: 302, headers: { Location: `${basePath}${target}` } });
 }

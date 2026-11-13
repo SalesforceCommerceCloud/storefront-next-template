@@ -1,3 +1,4 @@
+import "./modeDetection.js";
 import "./env2.js";
 import "./cookie-domain2.js";
 import { a as requestToLocaleMap } from "./site-context2.js";

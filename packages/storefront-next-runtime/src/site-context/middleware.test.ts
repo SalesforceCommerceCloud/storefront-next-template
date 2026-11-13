@@ -17,6 +17,7 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterEach } from 'vitest';
 import type { MiddlewareFunction, RouterContextProvider } from 'react-router';
 import type { DetectionConfig, SiteConfig, SiteContext } from './types';
+import type { PreviewOptions } from './index';
 
 const cookieSerialize = vi.fn((value: string, name: string) => Promise.resolve(`${name}=${value}; Path=/`));
 
@@ -62,7 +63,7 @@ const DEFAULT_CONFIG: SiteConfig = {
             defaultLocale: 'es-MX',
             supportedLocales: [
                 { id: 'es-MX', preferredCurrency: 'MXN' },
-                { id: 'en-MX', preferredCurrency: 'MXN' },
+                { id: 'en-MX', alias: 'en', preferredCurrency: 'MXN' },
             ],
             supportedCurrencies: ['MXN'],
             defaultCurrency: 'MXN',
@@ -80,6 +81,7 @@ describe('createSiteContextMiddleware', () => {
     let defaultSiteDetection: Required<DetectionConfig>;
     let defaultLocaleDetection: Required<DetectionConfig>;
     let requestToLocaleMap: WeakMap<Request, string>;
+    let actualCreateSiteContextCookie: typeof import('./cookies').createSiteContextCookie;
 
     beforeAll(async () => {
         const configs = await vi.importActual<typeof import('./configs')>('./configs');
@@ -87,6 +89,7 @@ describe('createSiteContextMiddleware', () => {
         defaultSiteDetection = configs.DEFAULT_SITE_DETECTION;
         defaultLocaleDetection = configs.DEFAULT_LOCALE_DETECTION;
         requestToLocaleMap = cookies.requestToLocaleMap;
+        actualCreateSiteContextCookie = cookies.createSiteContextCookie;
     });
 
     beforeEach(() => {
@@ -99,9 +102,9 @@ describe('createSiteContextMiddleware', () => {
         cookieSerialize.mockClear();
     });
 
-    async function run(config: SiteConfig, request: Request) {
+    async function run(config: SiteConfig, request: Request, options?: PreviewOptions) {
         const { createSiteContextMiddleware, siteContext: ctx } = await getMiddleware();
-        const middleware = createSiteContextMiddleware(config);
+        const middleware = createSiteContextMiddleware(config, options);
         const response = (await middleware(
             { request, context, params: {}, pattern: '', url: new URL(request.url) } as Parameters<
                 MiddlewareFunction<Response>
@@ -164,6 +167,371 @@ describe('createSiteContextMiddleware', () => {
         expect(requestToLocaleMap.get(request)).toBe('es-MX');
         expect(cookieSerialize).toHaveBeenCalledWith('site-mx', 'site_id');
         expect(cookieSerialize).toHaveBeenCalledWith('es-MX', 'lng');
+    });
+
+    it.each([
+        'EDIT',
+        'PREVIEW',
+    ] as const)('applies cross-site cookie policy for %s without leaking it to a later shopper request', async (mode) => {
+        const { createSiteContextMiddleware } = await getMiddleware();
+        const cookies = await import('./cookies');
+        const cookieOptions = {
+            path: '/store',
+            domain: '.example.com',
+            httpOnly: true,
+            maxAge: 300,
+            sameSite: 'lax' as const,
+            secure: false,
+        };
+        const config: SiteConfig = { ...DEFAULT_CONFIG, cookieOptions };
+        const middleware = createSiteContextMiddleware(config);
+
+        const invoke = async (search: string) => {
+            const request = new Request(`https://example.com/us/en-US/${search}`);
+            return middleware(
+                { request, context, params: {}, pattern: '', url: new URL(request.url) } as Parameters<
+                    MiddlewareFunction<Response>
+                >[0],
+                next as MiddlewareNext
+            );
+        };
+
+        await invoke(`?mode=${mode}`);
+
+        expect(vi.mocked(cookies.createSiteContextCookie).mock.calls.slice(-2)).toEqual([
+            ['site_id', { ...cookieOptions, sameSite: 'none', secure: true, partitioned: true }],
+            ['lng', { ...cookieOptions, sameSite: 'none', secure: true, partitioned: true }],
+        ]);
+        expect(vi.mocked(cookies.createCurrencyCookie).mock.calls.at(-1)).toEqual([
+            'currency',
+            { ...cookieOptions, sameSite: 'none', secure: true, partitioned: true, httpOnly: false },
+        ]);
+        expect(cookieOptions).toEqual({
+            path: '/store',
+            domain: '.example.com',
+            httpOnly: true,
+            maxAge: 300,
+            sameSite: 'lax',
+            secure: false,
+        });
+
+        await invoke('');
+        expect(vi.mocked(cookies.createSiteContextCookie).mock.calls.slice(-2)).toEqual([
+            ['site_id', cookieOptions],
+            ['lng', cookieOptions],
+        ]);
+        expect(vi.mocked(cookies.createCurrencyCookie).mock.calls.at(-1)).toEqual([
+            'currency',
+            { ...cookieOptions, httpOnly: false },
+        ]);
+    });
+
+    describe('initial Page Designer site handoff', () => {
+        const previewOptions: PreviewOptions = {
+            urlConfig: { prefix: '/:siteId/:localeId', search: '?lng=:localeId' },
+        };
+
+        it.each([
+            ['mode is missing', '?__siteId=mx', previewOptions],
+            ['mode is invalid', '?__siteId=mx&mode=VIEW', { urlConfig: { search: '?mode=VIEW' } }],
+            ['__siteId is empty', '?__siteId=&mode=EDIT', previewOptions],
+            ['preview options are omitted', '?__siteId=mx&mode=EDIT', undefined],
+        ] as const)('uses normal root detection when %s', async (_caseName, search, options) => {
+            const request = new Request(`https://example.com/${search}`);
+
+            const { response, context: ctx } = await run(DEFAULT_CONFIG, request, options);
+
+            expect(next).toHaveBeenCalledOnce();
+            expect(ctx.site.id).toBe('site-us');
+            expect(ctx.locale.id).toBe('en-US');
+            expect(response.status).toBe(200);
+            expect(response.headers.get('Location')).toBeNull();
+        });
+
+        describe('site and default-locale selection', () => {
+            it.each([
+                'EDIT',
+                'PREVIEW',
+            ] as const)('uses the selected site default instead of path or cookie locale during %s handoff', async (mode) => {
+                const cookies = await import('./cookies');
+                const siteContextCookie = vi.mocked(cookies.createSiteContextCookie);
+                const originalImplementation = siteContextCookie.getMockImplementation();
+                siteContextCookie.mockImplementation(actualCreateSiteContextCookie);
+                try {
+                    const siteCookie = cookies.createSiteContextCookie(defaultSiteDetection.lookupCookie);
+                    const localeCookie = cookies.createSiteContextCookie(defaultLocaleDetection.lookupCookie);
+                    const cookieHeader = [await siteCookie.serialize('site-us'), await localeCookie.serialize('en-MX')]
+                        .map((cookie) => cookie.split(';', 1)[0])
+                        .join('; ');
+                    expect(await localeCookie.parse(cookieHeader)).toBe('en-MX');
+                    const request = new Request(`https://example.com/us/en-US?__siteId=mx&mode=${mode}`, {
+                        headers: { Cookie: cookieHeader },
+                    });
+
+                    const { response, context: ctx } = await run(DEFAULT_CONFIG, request, previewOptions);
+
+                    expect(next).not.toHaveBeenCalled();
+                    expect(ctx.site.id).toBe('site-mx');
+                    expect(ctx.locale.id).toBe('es-MX');
+                    expect(response.headers.get('Location')).toBe(`/mx/es-MX/?mode=${mode}&lng=es-MX`);
+                } finally {
+                    if (originalImplementation) {
+                        siteContextCookie.mockImplementation(originalImplementation);
+                    }
+                }
+            });
+
+            it('uses configured default site and locale for unknown __siteId', async () => {
+                const request = new Request('https://example.com/mx/en-MX/?__siteId=unknown&mode=EDIT');
+
+                const { response, context: ctx } = await run(DEFAULT_CONFIG, request, previewOptions);
+
+                expect(next).not.toHaveBeenCalled();
+                expect(ctx.site.id).toBe('site-us');
+                expect(ctx.locale.id).toBe('en-US');
+                expect(response.status).toBe(302);
+                expect(response.headers.get('Location')).toBe('/us/en-US/?mode=EDIT&lng=en-US');
+            });
+
+            it('uses normal detection for an unknown __siteId when the configured default site is invalid', async () => {
+                const request = new Request('https://example.com/mx/en-MX/?__siteId=unknown&mode=EDIT');
+
+                const { response, context: ctx } = await run(
+                    { ...DEFAULT_CONFIG, defaultSiteId: 'nonexistent' },
+                    request,
+                    previewOptions
+                );
+
+                expect(next).toHaveBeenCalledOnce();
+                expect(ctx.site.id).toBe('site-mx');
+                expect(ctx.locale.id).toBe('en-MX');
+                expect(response.status).toBe(200);
+                expect(response.headers.get('Location')).toBeNull();
+            });
+
+            it('resolves the selected site default locale when configured as an alias', async () => {
+                const config: SiteConfig = {
+                    ...DEFAULT_CONFIG,
+                    sites: DEFAULT_CONFIG.sites.map((site) =>
+                        site.id === 'site-mx' ? { ...site, defaultLocale: 'en' } : site
+                    ),
+                };
+                const request = new Request('https://example.com/?__siteId=mx&mode=EDIT');
+
+                const { response, context: ctx } = await run(config, request, previewOptions);
+
+                expect(next).not.toHaveBeenCalled();
+                expect(ctx.site.id).toBe('site-mx');
+                expect(ctx.locale.id).toBe('en-MX');
+                expect(response.status).toBe(302);
+                expect(response.headers.get('Location')).toBe('/mx/en/?mode=EDIT&lng=en');
+            });
+
+            it('uses normal root detection when the selected site has an invalid default locale', async () => {
+                const config: SiteConfig = {
+                    ...DEFAULT_CONFIG,
+                    sites: DEFAULT_CONFIG.sites.map((site) =>
+                        site.id === 'site-mx' ? { ...site, defaultLocale: 'fr-FR' } : site
+                    ),
+                };
+                const request = new Request('https://example.com/?__siteId=mx&mode=EDIT');
+
+                const { response, context: ctx } = await run(config, request, previewOptions);
+
+                expect(next).toHaveBeenCalledOnce();
+                expect(ctx.site.id).toBe('site-us');
+                expect(ctx.locale.id).toBe('en-US');
+                expect(response.status).toBe(200);
+                expect(response.headers.get('Location')).toBeNull();
+            });
+        });
+
+        describe('redirecting', () => {
+            it('redirects a root request to the configured site/default-locale URL and sets cookies', async () => {
+                const request = new Request(
+                    'https://example.com/?__siteId=site-mx&mode=EDIT&pdToken=testToken&__customerGroup=vip&unrelated=drop&pageId=home&componentId=hero&cid=campaign'
+                );
+
+                const { response, context: ctx } = await run(DEFAULT_CONFIG, request, previewOptions);
+
+                expect(next).not.toHaveBeenCalled();
+                expect(ctx.site.id).toBe('site-mx');
+                expect(ctx.locale.id).toBe('es-MX');
+                expect(ctx.currency).toBe('MXN');
+                expect(response.status).toBe(302);
+                expect(response.headers.get('Location')).toBe('/mx/es-MX/?mode=EDIT&pdToken=testToken&lng=es-MX');
+                expect(response.headers.getSetCookie()).toHaveLength(3);
+            });
+
+            it('composes the homepage with the application base path', async () => {
+                const request = new Request(
+                    'https://example.com/unrelated/category/path?__siteId=mx&mode=EDIT&pageId=home&componentId=hero'
+                );
+
+                const { response, context: ctx } = await run(DEFAULT_CONFIG, request, {
+                    ...previewOptions,
+                    basePath: '/store',
+                });
+
+                expect(next).not.toHaveBeenCalled();
+                expect(ctx.site.id).toBe('site-mx');
+                expect(ctx.locale.id).toBe('es-MX');
+                expect(response.status).toBe(302);
+                expect(response.headers.get('Location')).toBe('/store/mx/es-MX/?mode=EDIT&lng=es-MX');
+
+                const prefixOnly = new Request('https://example.com/shop/?__siteId=mx&mode=EDIT');
+                const { response: mounted } = await run(DEFAULT_CONFIG, prefixOnly, {
+                    urlConfig: { prefix: '/:siteId/:localeId' },
+                    basePath: '/shop',
+                });
+
+                expect(mounted.headers.get('Location')).toBe('/shop/mx/es-MX/?mode=EDIT');
+            });
+
+            it('redirects the root using the configured locale query without a path prefix', async () => {
+                const request = new Request('https://example.com/?__siteId=mx&mode=EDIT');
+
+                const { response, context: ctx } = await run(DEFAULT_CONFIG, request, {
+                    urlConfig: { search: '?lng=:localeId' },
+                });
+
+                expect(ctx.site.id).toBe('site-mx');
+                expect(ctx.locale.id).toBe('es-MX');
+                expect(response.headers.get('Location')).toBe('/?mode=EDIT&lng=es-MX');
+            });
+
+            it.each([
+                ['PREVIEW', 'EDIT'],
+                ['EDIT', 'PREVIEW'],
+            ] as const)('uses the first %s mode and pdToken when the handoff repeats them', async (first, second) => {
+                const request = new Request(
+                    `https://example.com/?mode=${first}&mode=${second}&pdToken=first&pdToken=second&__siteId=mx`
+                );
+
+                const { response } = await run(DEFAULT_CONFIG, request, previewOptions);
+
+                expect(response.headers.get('Location')).toBe(`/mx/es-MX/?mode=${first}&pdToken=first&lng=es-MX`);
+            });
+        });
+
+        describe('after initial site handoff', () => {
+            it('replays the query-only site/default-locale URL and honors a later locale query', async () => {
+                const cookies = await import('./cookies');
+                const siteContextCookie = vi.mocked(cookies.createSiteContextCookie);
+                const originalImplementation = siteContextCookie.getMockImplementation();
+                siteContextCookie.mockImplementation(actualCreateSiteContextCookie);
+                try {
+                    const queryOnly: Pick<SiteConfig, 'siteDetectionConfig' | 'localeDetectionConfig'> = {
+                        siteDetectionConfig: {
+                            order: ['querystring', 'cookie', 'path', 'header'],
+                            lookupQuerystring: 'site',
+                        },
+                        localeDetectionConfig: {
+                            order: ['querystring', 'cookie', 'path', 'header'],
+                            lookupQuerystring: 'lng',
+                        },
+                    };
+                    const queryPreviewOptions = { urlConfig: { search: '?site=:siteId&lng=:localeId' } };
+                    const request = new Request('https://example.com/?__siteId=mx&mode=EDIT&pdToken=tok');
+
+                    const { response } = await run({ ...DEFAULT_CONFIG, ...queryOnly }, request, queryPreviewOptions);
+
+                    expect(response.headers.get('Location')).toBe('/?mode=EDIT&pdToken=tok&site=mx&lng=es-MX');
+
+                    next.mockClear();
+                    const replaySiteCookie = cookies.createSiteContextCookie(defaultSiteDetection.lookupCookie);
+                    const replayLocaleCookie = cookies.createSiteContextCookie(defaultLocaleDetection.lookupCookie);
+                    const replayCookieHeader = [
+                        await replaySiteCookie.serialize('site-mx'),
+                        await replayLocaleCookie.serialize('en-MX'),
+                    ]
+                        .map((cookie) => cookie.split(';', 1)[0])
+                        .join('; ');
+                    expect(await replayLocaleCookie.parse(replayCookieHeader)).toBe('en-MX');
+                    const location = response.headers.get('Location');
+                    if (!location) throw new Error('Expected redirect Location header');
+                    const replay = new Request(`https://example.com${location}`, {
+                        headers: { Cookie: replayCookieHeader },
+                    });
+                    const { context: ctx } = await run(
+                        { ...DEFAULT_CONFIG, ...queryOnly },
+                        replay,
+                        queryPreviewOptions
+                    );
+
+                    expect(next).toHaveBeenCalledOnce();
+                    expect(ctx.site.id).toBe('site-mx');
+                    expect(ctx.locale.id).toBe('es-MX');
+
+                    next.mockClear();
+                    const switchedSiteCookie = cookies.createSiteContextCookie(defaultSiteDetection.lookupCookie);
+                    const switchedLocaleCookie = cookies.createSiteContextCookie(defaultLocaleDetection.lookupCookie);
+                    const switchedCookieHeader = [
+                        await switchedSiteCookie.serialize('site-mx'),
+                        await switchedLocaleCookie.serialize('es-MX'),
+                    ]
+                        .map((cookie) => cookie.split(';', 1)[0])
+                        .join('; ');
+                    expect(await switchedLocaleCookie.parse(switchedCookieHeader)).toBe('es-MX');
+                    const switched = new Request('https://example.com/?mode=EDIT&pdToken=tok&site=mx&lng=en', {
+                        headers: { Cookie: switchedCookieHeader },
+                    });
+                    const { context: switchedCtx } = await run(
+                        { ...DEFAULT_CONFIG, ...queryOnly },
+                        switched,
+                        queryPreviewOptions
+                    );
+                    expect(switchedCtx.site.id).toBe('site-mx');
+                    expect(switchedCtx.locale.id).toBe('en-MX');
+                    expect(requestToLocaleMap.get(switched)).toBe('en-MX');
+                } finally {
+                    if (originalImplementation) {
+                        siteContextCookie.mockImplementation(originalImplementation);
+                    }
+                }
+            });
+
+            it('hands off a base-path-only request and persists its selected site and locale in cookies', async () => {
+                const noPathDetection: Pick<SiteConfig, 'siteDetectionConfig' | 'localeDetectionConfig'> = {
+                    siteDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
+                    localeDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
+                };
+                const request = new Request('https://example.com/shop/?__siteId=mx&mode=EDIT&pdToken=token&drop=me');
+
+                const { response, context: initialContext } = await run(
+                    { ...DEFAULT_CONFIG, ...noPathDetection },
+                    request,
+                    {
+                        urlConfig: {},
+                        basePath: '/shop',
+                    }
+                );
+
+                expect(initialContext.site.id).toBe('site-mx');
+                expect(initialContext.locale.id).toBe('es-MX');
+                expect(response.status).toBe(302);
+                expect(response.headers.get('Location')).toBe('/shop/?mode=EDIT&pdToken=token');
+                expect(response.headers.getSetCookie()).toEqual(
+                    expect.arrayContaining(['site_id=site-mx; Path=/', 'lng=es-MX; Path=/'])
+                );
+            });
+        });
+
+        describe('reserved search config', () => {
+            it.each([
+                ['mode', '?mode=VIEW'],
+                ['pdToken', '?pdToken=configured'],
+                ['__siteId', '?__siteId=:siteId'],
+            ])('rejects URL search config that replaces reserved %s', async (key, search) => {
+                const request = new Request('https://example.com/?__siteId=mx&mode=PREVIEW&pdToken=tok');
+
+                await expect(
+                    run(DEFAULT_CONFIG, request, {
+                        urlConfig: key === '__siteId' ? { prefix: '/:siteId', search } : { search },
+                    })
+                ).rejects.toThrow(key === '__siteId' ? '__siteId' : 'mode and pdToken are reserved');
+            });
+        });
     });
 
     it('resolves site from header when siteDetectionConfig.lookupHeader is provided', async () => {

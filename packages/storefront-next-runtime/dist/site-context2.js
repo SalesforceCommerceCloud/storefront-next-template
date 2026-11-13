@@ -1,3 +1,4 @@
+import { n as isDesignModeActive, r as isPreviewModeActive } from "./modeDetection.js";
 import { t as isRemote } from "./env2.js";
 import { t as isValidCookieDomain } from "./cookie-domain2.js";
 import { createContext, useContext, useMemo } from "react";
@@ -460,6 +461,9 @@ async function resolveCurrency(request, currencyCookie, site, locale) {
 
 //#endregion
 //#region src/site-context/middleware.ts
+const PREVIEW_SITE_PARAM = "__siteId";
+const PREVIEW_MODE_PARAM = "mode";
+const PREVIEW_TOKEN_PARAM = "pdToken";
 const siteContext = createContext$1(null);
 /**
 * Resolve site, locale, and currency from a request in one call.
@@ -556,7 +560,7 @@ async function shouldSetCookies(request, response, settings, site, locale, curre
 *
 * Does not import or read from app config context; the consumer supplies config.
 */
-function createSiteContextMiddleware(config) {
+function createSiteContextMiddleware(config, previewOptions) {
 	const siteDetectionConfig = {
 		...DEFAULT_SITE_DETECTION,
 		...config.siteDetectionConfig
@@ -565,22 +569,32 @@ function createSiteContextMiddleware(config) {
 		...DEFAULT_LOCALE_DETECTION,
 		...config.localeDetectionConfig
 	};
-	const siteCookie = createSiteContextCookie(siteDetectionConfig.lookupCookie, config.cookieOptions);
-	const localeCookie = createSiteContextCookie(localeDetectionConfig.lookupCookie, config.cookieOptions);
-	const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, {
-		...config.cookieOptions,
-		httpOnly: false
-	});
-	const settings = {
-		...config,
-		siteDetectionConfig,
-		localeDetectionConfig,
-		siteCookie,
-		localeCookie,
-		currencyCookie
-	};
 	const siteContextMiddleware = async ({ request, context }, next) => {
-		const { site, locale, currency } = await resolveSiteContext(request, settings);
+		const cookieOptions = isPreviewModeActive(request) || isDesignModeActive(request) ? {
+			...config.cookieOptions,
+			sameSite: "none",
+			secure: true,
+			partitioned: true
+		} : config.cookieOptions;
+		const siteCookie = createSiteContextCookie(siteDetectionConfig.lookupCookie, cookieOptions);
+		const localeCookie = createSiteContextCookie(localeDetectionConfig.lookupCookie, cookieOptions);
+		const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, {
+			...cookieOptions,
+			httpOnly: false
+		});
+		const settings = {
+			...config,
+			siteDetectionConfig,
+			localeDetectionConfig,
+			siteCookie,
+			localeCookie,
+			currencyCookie
+		};
+		const selected = resolvePreviewSiteLocale(request, settings, previewOptions);
+		const { site, locale, currency } = selected ? {
+			...selected,
+			currency: await resolveCurrency(request, settings.currencyCookie, selected.site, selected.locale)
+		} : await resolveSiteContext(request, settings);
 		context.set(siteContext, {
 			site,
 			locale,
@@ -590,7 +604,7 @@ function createSiteContextMiddleware(config) {
 			currencyCookie: settings.currencyCookie
 		});
 		requestToLocaleMap.set(request, locale.id);
-		const response = await next();
+		const response = (selected && previewOptions && createPreviewRedirect(request, previewOptions, site, locale)) ?? await next();
 		const { shouldSetSiteCookie, shouldSetLocaleCookie, shouldSetCurrencyCookie } = await shouldSetCookies(request, response, settings, site, locale, currency);
 		if (!shouldSetSiteCookie && !shouldSetLocaleCookie && !shouldSetCurrencyCookie) return response;
 		const cookieDomain = site.cookies?.domain || settings.cookieOptions?.domain;
@@ -612,6 +626,44 @@ function createSiteContextMiddleware(config) {
 		return response;
 	};
 	return siteContextMiddleware;
+}
+function resolvePreviewSiteLocale(request, settings, previewOptions) {
+	if (request.method !== "GET" || !previewOptions || !(isPreviewModeActive(request) || isDesignModeActive(request))) return null;
+	const siteId = new URL(request.url).searchParams.get(PREVIEW_SITE_PARAM);
+	if (!siteId) return null;
+	const site = getSiteFromIdOrAlias(siteId, settings.sites) ?? getSiteFromIdOrAlias(settings.defaultSiteId, settings.sites);
+	if (!site) return null;
+	const locale = getLocaleFromIdOrAlias(site.defaultLocale, site.supportedLocales);
+	return locale ? {
+		site,
+		locale
+	} : null;
+}
+function createPreviewRedirect(request, previewOptions, site, locale) {
+	if (previewOptions.urlConfig?.search) {
+		const searchConfig = parseSearchConfig(previewOptions.urlConfig.search);
+		if (PREVIEW_SITE_PARAM in searchConfig) throw new Error(`${PREVIEW_SITE_PARAM} is reserved for the initial storefront preview handoff.`);
+		if (PREVIEW_MODE_PARAM in searchConfig || PREVIEW_TOKEN_PARAM in searchConfig) throw new Error(`${PREVIEW_MODE_PARAM} and ${PREVIEW_TOKEN_PARAM} are reserved for storefront preview and cannot be configured in previewOptions.urlConfig.search.`);
+	}
+	const requestUrl = new URL(request.url);
+	const allowed = new URLSearchParams();
+	const mode = requestUrl.searchParams.get(PREVIEW_MODE_PARAM);
+	const pdToken = requestUrl.searchParams.get(PREVIEW_TOKEN_PARAM);
+	if (mode) allowed.set(PREVIEW_MODE_PARAM, mode);
+	if (pdToken) allowed.set(PREVIEW_TOKEN_PARAM, pdToken);
+	const target = buildUrl({
+		to: `/${allowed.size ? `?${allowed.toString()}` : ""}`,
+		urlConfig: previewOptions.urlConfig,
+		params: {
+			siteId: site.alias ?? site.id,
+			localeId: locale.alias ?? locale.id
+		}
+	});
+	const basePath = !previewOptions.basePath || previewOptions.basePath === "/" ? "" : previewOptions.basePath;
+	return new Response(null, {
+		status: 302,
+		headers: { Location: `${basePath}${target}` }
+	});
 }
 
 //#endregion

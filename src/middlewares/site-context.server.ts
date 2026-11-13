@@ -17,6 +17,7 @@ import { type MiddlewareFunction } from 'react-router';
 import { createSiteContextMiddleware, type SiteConfig } from '@salesforce/storefront-next-runtime/site-context';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getLogger } from '@/lib/logger.server';
+import { getBasePath } from '@/lib/utils';
 
 /**
  * Creates and returns the site context middleware configured with the app's site, locale, and currency settings.
@@ -78,6 +79,9 @@ export const siteContextMiddleware: MiddlewareFunction<Response> = async (args, 
     // Create and invoke the site context middleware.
     // Wrap next() so we can intercept after site/locale resolution but BEFORE downstream
     // loaders/rendering execute — this avoids wasted rendering when we redirect.
-    const middleware = createSiteContextMiddleware(siteContextConfig);
+    const middleware = createSiteContextMiddleware(siteContextConfig, {
+        urlConfig: config.url,
+        basePath: getBasePath(),
+    });
     return middleware(args, next);
 };

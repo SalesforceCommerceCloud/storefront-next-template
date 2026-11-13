@@ -1,6 +1,7 @@
 import "./messaging-api.js";
 import "./DesignContext.js";
 import "./modeDetection.js";
+import "./PreviewContext.js";
 import { i as usePageDesignerMode, n as useDesignContext } from "./DesignContext2.js";
 import { useEffect } from "react";
 import { Fragment, jsx } from "react/jsx-runtime";

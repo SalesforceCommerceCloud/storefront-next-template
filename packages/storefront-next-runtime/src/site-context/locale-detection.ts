@@ -36,7 +36,7 @@ export async function readLocaleFromCookie(request: Request, cookie: Cookie): Pr
  * @param locales - The list of locales to search through.
  * @returns The locale object if found, otherwise null.
  */
-function getLocaleFromIdOrAlias(localeIdentifier: string | undefined | null, locales: Locale[]): Locale | null {
+export function getLocaleFromIdOrAlias(localeIdentifier: string | undefined | null, locales: Locale[]): Locale | null {
     if (!localeIdentifier) return null;
     return locales.find((locale) => locale.alias === localeIdentifier || locale.id === localeIdentifier) ?? null;
 }

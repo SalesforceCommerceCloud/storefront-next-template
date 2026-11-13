@@ -20,4 +20,12 @@ export { buildUrl, resolvePrefix, stripPathPrefix, extractPrefixParamValues } fr
 export { createSiteContextMiddleware, resolveSiteContext, siteContext, getSiteContextCookies } from './middleware';
 export type { ResolvedSiteContext } from './middleware';
 export { requestToLocaleMap } from './cookies';
-export type { SiteConfig, SiteContext, SiteSettings, Site, Locale, DetectionConfig } from './types';
+export type {
+    SiteConfig,
+    SiteContext,
+    SiteSettings,
+    Site,
+    Locale,
+    DetectionConfig,
+    PreviewOptions,
+} from './types';
