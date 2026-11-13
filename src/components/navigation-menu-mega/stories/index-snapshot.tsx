@@ -37,6 +37,22 @@ vi.mock('@/hooks/use-navigate', () => ({
     useNavigate: () => vi.fn(),
 }));
 
+// The luxury overlay calls `useConfig` directly and renders `@/components/link`.
+// Stub both so the snapshot doesn't require ConfigProvider.
+vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@salesforce/storefront-next-runtime/config')>();
+    return { ...actual, useConfig: () => ({ features: {}, url: {}, hybrid: undefined }) };
+});
+
+vi.mock('@/components/link', () => ({
+    Link: vi.fn(({ to, className, children }: { to: string; className?: string; children: React.ReactNode }) => (
+        <a href={to} className={className}>{children}</a>
+    )),
+    NavLink: vi.fn(({ to, className, children }: { to: string; className?: string; children: React.ReactNode }) => (
+        <a href={to} className={className}>{children}</a>
+    )),
+}));
+
 import * as MegaMenuStories from './index.stories';
 
 const composed = composeStories(MegaMenuStories);

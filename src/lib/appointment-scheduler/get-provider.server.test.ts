@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/** @sfdc-extension-file SFDC_EXT_APPOINTMENT_SCHEDULING */
 import { describe, it, expect, vi } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
 import { getAppointmentProvider } from './get-provider.server';
 import type { Config } from '@/types/config';
+
+vi.mock('@/lib/logger.server', () => ({
+    getLogger: vi.fn(() => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn() })),
+}));
 
 vi.mock('./bff-provider.server', () => ({
     createBffAppointmentProvider: vi.fn(() => ({ name: 'bff' })),

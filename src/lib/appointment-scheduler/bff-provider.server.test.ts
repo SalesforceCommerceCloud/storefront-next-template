@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/** @sfdc-extension-file SFDC_EXT_APPOINTMENT_SCHEDULING */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
 import { createBffAppointmentProvider } from './bff-provider.server';
@@ -43,7 +44,12 @@ vi.mock('@/lib/correlation', () => ({
 
 vi.mock('@/lib/scheduler/scheduler.server');
 
-import { bookAppointment, resolveSchedulerCoreConfig, getAvailability } from '@/lib/scheduler/scheduler.server';
+import {
+    bookAppointment,
+    resolveSchedulerCoreConfig,
+    getAvailability,
+    getWorkTypes,
+} from '@/lib/scheduler/scheduler.server';
 
 const mockContext = {
     get: vi.fn(() => 'test-correlation-id'),
@@ -59,7 +65,6 @@ describe('createBffAppointmentProvider', () => {
             apiVersion: 'v64.0',
             territoryId: 'test-territory',
             workTypeGroupId: 'test-group',
-            workTypeId: 'test-work-type',
             parentRecordId: 'test-parent',
         });
     });
@@ -116,7 +121,6 @@ describe('createBffAppointmentProvider', () => {
                 apiVersion: 'v64.0',
                 territoryId: '',
                 workTypeGroupId: '',
-                workTypeId: '',
                 parentRecordId: '',
             });
 
@@ -221,6 +225,72 @@ describe('createBffAppointmentProvider', () => {
         });
     });
 
+    describe('getWorkTypes', () => {
+        it('delegates to schedulerGetWorkTypes and returns work types on success', async () => {
+            vi.mocked(getWorkTypes).mockResolvedValue({
+                success: true,
+                workTypes: [
+                    { id: 'view', name: 'Private Viewing', durationMinutes: 30, workTypeGroupId: 'wtg-1' },
+                    { id: 'service', name: 'Watch Servicing', durationMinutes: 15, workTypeGroupId: 'wtg-1' },
+                ],
+            });
+
+            const provider = createBffAppointmentProvider(mockContext);
+            const result = await provider.getWorkTypes({});
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.workTypes).toHaveLength(2);
+                expect(result.workTypes[0]).toMatchObject({ id: 'view', name: 'Private Viewing', durationMinutes: 30 });
+            }
+        });
+
+        it('maps SCHEDULER_NOT_CONFIGURED to NOT_CONFIGURED error code with status 503', async () => {
+            vi.mocked(getWorkTypes).mockResolvedValue({
+                success: false,
+                error: { code: 'SCHEDULER_NOT_CONFIGURED', retryable: false },
+            });
+
+            const provider = createBffAppointmentProvider(mockContext);
+            const result = await provider.getWorkTypes({});
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.code).toBe('NOT_CONFIGURED');
+                expect(result.error.status).toBe(503);
+            }
+        });
+
+        it('maps SCHEDULER_UNAVAILABLE to UNAVAILABLE error code with status 502', async () => {
+            vi.mocked(getWorkTypes).mockResolvedValue({
+                success: false,
+                error: { code: 'SCHEDULER_UNAVAILABLE', retryable: true },
+            });
+
+            const provider = createBffAppointmentProvider(mockContext);
+            const result = await provider.getWorkTypes({});
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.code).toBe('UNAVAILABLE');
+                expect(result.error.status).toBe(502);
+            }
+        });
+
+        it('returns NOT_CONFIGURED when scheduler config is missing', async () => {
+            vi.mocked(resolveSchedulerCoreConfig).mockReturnValue(null);
+
+            const provider = createBffAppointmentProvider(mockContext);
+            const result = await provider.getWorkTypes({});
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.code).toBe('NOT_CONFIGURED');
+                expect(result.error.status).toBe(503);
+            }
+        });
+    });
+
     describe('bookAppointment', () => {
         it('returns serviceAppointmentId on success', async () => {
             vi.mocked(bookAppointment).mockResolvedValue({
@@ -236,7 +306,7 @@ describe('createBffAppointmentProvider', () => {
                 schedStartTime: '2026-10-26T10:00:00Z',
                 schedEndTime: '2026-10-26T10:30:00Z',
                 email: 'test@example.com',
-                b2cCustomerId: 'cust-123',
+                shopperExternalId: 'cust-123',
                 subject: 'Test appointment',
             });
 
@@ -255,7 +325,7 @@ describe('createBffAppointmentProvider', () => {
                 schedStartTime: '2026-10-26T10:00:00Z',
                 schedEndTime: '2026-10-26T10:30:00Z',
                 email: 'test@example.com',
-                b2cCustomerId: 'cust-123',
+                shopperExternalId: 'cust-123',
             });
 
             expect(result.success).toBe(false);
@@ -278,7 +348,7 @@ describe('createBffAppointmentProvider', () => {
                 schedStartTime: '2026-10-26T10:00:00Z',
                 schedEndTime: '2026-10-26T10:30:00Z',
                 email: 'test@example.com',
-                b2cCustomerId: 'cust-123',
+                shopperExternalId: 'cust-123',
             });
 
             expect(result.success).toBe(false);

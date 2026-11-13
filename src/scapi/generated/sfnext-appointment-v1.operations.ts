@@ -13,5 +13,7 @@ export const BASE_PATH = '/appointment' as const;
 
 export const operations = {
   getAppointmentAvailability: { m: 'GET' as const, b: BASE_PATH, s: '-availability' },
-  createAppointment: { m: 'POST' as const, b: BASE_PATH, s: 's' }
+  createAppointment: { m: 'POST' as const, b: BASE_PATH, s: 's' },
+  getServiceTerritories: { m: 'GET' as const, b: '/territories' as const, s: '' as const },
+  getWorkTypes: { m: 'GET' as const, b: '/work-types' as const, s: '' as const },
 } as const;

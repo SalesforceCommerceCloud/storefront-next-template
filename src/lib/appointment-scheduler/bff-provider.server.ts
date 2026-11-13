@@ -22,11 +22,15 @@ import {
     resolveSchedulerCoreConfig,
     getAvailability as schedulerGetAvailability,
     bookAppointment as schedulerBookAppointment,
+    getWorkTypes as schedulerGetWorkTypes,
+    getServiceTerritories as schedulerGetServiceTerritories,
 } from '@/lib/scheduler/scheduler.server';
 import type {
     AppointmentSchedulerProvider,
     AvailabilityResult,
     BookingResult,
+    WorkTypesResult,
+    ServiceTerritoriesResult,
     AppointmentAvailabilityInput,
     AppointmentBookingInput,
     AppointmentProviderErrorCode,
@@ -44,6 +48,40 @@ export function createBffAppointmentProvider(
     return {
         name: 'bff',
 
+        async getWorkTypes(input: { territoryId?: string }): Promise<WorkTypesResult> {
+            const core = resolveSchedulerCoreConfig(getConfig(context));
+            if (!core || !core.enabled) {
+                return {
+                    success: false,
+                    error: { code: 'NOT_CONFIGURED', status: 503, message: 'Scheduler not configured' },
+                };
+            }
+            const result = await schedulerGetWorkTypes(core, input, {
+                logger: getLogger(context),
+                correlationId: context.get(correlationContext),
+            });
+            if (result.success) return { success: true, workTypes: result.workTypes };
+            const entry = ERROR_MAP[result.error.code as keyof typeof ERROR_MAP] ?? ERROR_MAP.SCHEDULER_UNAVAILABLE;
+            return { success: false, error: { code: entry.code, status: entry.status, message: entry.message } };
+        },
+
+        async getServiceTerritories(input: { siteId?: string } = {}): Promise<ServiceTerritoriesResult> {
+            const core = resolveSchedulerCoreConfig(getConfig(context));
+            if (!core || !core.enabled) {
+                return {
+                    success: false,
+                    error: { code: 'NOT_CONFIGURED', status: 503, message: 'Scheduler not configured' },
+                };
+            }
+            const result = await schedulerGetServiceTerritories(core, input, {
+                logger: getLogger(context),
+                correlationId: context.get(correlationContext),
+            });
+            if (result.success) return { success: true, territories: result.territories };
+            const entry = ERROR_MAP[result.error.code as keyof typeof ERROR_MAP] ?? ERROR_MAP.SCHEDULER_UNAVAILABLE;
+            return { success: false, error: { code: entry.code, status: entry.status, message: entry.message } };
+        },
+
         async getAvailability(input: AppointmentAvailabilityInput): Promise<AvailabilityResult> {
             const core = resolveSchedulerCoreConfig(getConfig(context));
             if (!core || !core.enabled) {
@@ -55,7 +93,12 @@ export function createBffAppointmentProvider(
 
             const result = await schedulerGetAvailability(
                 core,
-                { startTime: input.startTime, endTime: input.endTime, storeId: input.storeId },
+                {
+                    startTime: input.startTime,
+                    endTime: input.endTime,
+                    territoryId: input.territoryId,
+                    workTypeGroupId: input.workTypeGroupId,
+                },
                 {
                     logger: getLogger(context),
                     correlationId: context.get(correlationContext),
@@ -98,10 +141,10 @@ export function createBffAppointmentProvider(
                     schedStartTime: input.schedStartTime,
                     schedEndTime: input.schedEndTime,
                     email: input.email,
-                    b2cCustomerId: input.b2cCustomerId,
+                    shopperExternalId: input.shopperExternalId,
                     subject: input.subject,
-                    serviceId: input.serviceId,
-                    storeId: input.storeId,
+                    workTypeId: input.workTypeId,
+                    territoryId: input.territoryId,
                 },
                 {
                     logger: getLogger(context),

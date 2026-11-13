@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/** @sfdc-extension-file SFDC_EXT_APPOINTMENT_SCHEDULING */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
 import { createScapiAppointmentProvider } from './scapi-provider.server';
@@ -25,12 +26,16 @@ vi.mock('@/lib/utils', () => ({
 import { createApiClients } from '@/lib/api-clients.server';
 import { extractResponseError } from '@/lib/utils';
 
-const mockContext = {} as RouterContextProvider;
+const mockContext = {
+    get: vi.fn().mockReturnValue({ site: { id: 'TestSite' }, locale: { id: 'en-US' } }),
+} as unknown as RouterContextProvider;
 
 describe('createScapiAppointmentProvider', () => {
     const mockAppointmentsClient = {
         getAppointmentAvailability: vi.fn(),
         createAppointment: vi.fn(),
+        getServiceTerritories: vi.fn(),
+        getWorkTypes: vi.fn(),
     };
 
     beforeEach(() => {
@@ -65,6 +70,14 @@ describe('createScapiAppointmentProvider', () => {
                     endTime: '2026-10-26T10:30:00Z',
                 });
             }
+            // siteId must be passed explicitly (SCAPI gateway requires it)
+            expect(mockAppointmentsClient.getAppointmentAvailability).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    params: expect.objectContaining({
+                        query: expect.objectContaining({ siteId: expect.any(String) }),
+                    }),
+                })
+            );
         });
 
         it('filters out invalid slots', async () => {
@@ -164,7 +177,7 @@ describe('createScapiAppointmentProvider', () => {
                 schedStartTime: '2026-10-26T10:00:00Z',
                 schedEndTime: '2026-10-26T10:30:00Z',
                 email: 'test@example.com',
-                b2cCustomerId: 'cust-123',
+                shopperExternalId: 'cust-123',
                 subject: 'Test appointment',
             });
 
@@ -184,7 +197,7 @@ describe('createScapiAppointmentProvider', () => {
                 schedStartTime: '2026-10-26T10:00:00Z',
                 schedEndTime: '2026-10-26T10:30:00Z',
                 email: 'test@example.com',
-                b2cCustomerId: 'cust-123',
+                shopperExternalId: 'cust-123',
             });
 
             expect(result.success).toBe(false);
@@ -207,7 +220,7 @@ describe('createScapiAppointmentProvider', () => {
                 schedStartTime: '2026-10-26T10:00:00Z',
                 schedEndTime: '2026-10-26T10:30:00Z',
                 email: 'test@example.com',
-                b2cCustomerId: 'cust-123',
+                shopperExternalId: 'cust-123',
             });
 
             expect(result.success).toBe(false);
@@ -228,7 +241,7 @@ describe('createScapiAppointmentProvider', () => {
                 schedStartTime: '2026-10-26T10:00:00Z',
                 schedEndTime: '2026-10-26T10:30:00Z',
                 email: 'test@example.com',
-                b2cCustomerId: 'cust-123',
+                shopperExternalId: 'cust-123',
             });
 
             expect(result.success).toBe(false);
@@ -237,6 +250,89 @@ describe('createScapiAppointmentProvider', () => {
                 expect(result.error.status).toBe(502);
                 expect(result.error.message).toBe('Booking failed');
             }
+        });
+    });
+
+    describe('getServiceTerritories', () => {
+        it('returns territories on success', async () => {
+            mockAppointmentsClient.getServiceTerritories.mockResolvedValue({
+                data: {
+                    territories: [
+                        {
+                            id: 'ln-boutique-london',
+                            sfId: '0HhSB001',
+                            name: 'London Boutique',
+                            timezone: 'Europe/London',
+                            externalId: 'ln-boutique-london',
+                        },
+                    ],
+                },
+            });
+
+            const provider = createScapiAppointmentProvider(mockContext);
+            const result = await provider.getServiceTerritories({ siteId: 'Luxury' });
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.territories).toHaveLength(1);
+                expect(result.territories[0].name).toBe('London Boutique');
+            }
+        });
+
+        it('filters out territories missing id or name', async () => {
+            mockAppointmentsClient.getServiceTerritories.mockResolvedValue({
+                data: {
+                    territories: [
+                        { id: 'valid-id', name: 'Valid', timezone: 'UTC' },
+                        { id: '', name: 'No ID' },
+                        { id: 'no-name' },
+                    ],
+                },
+            });
+
+            const provider = createScapiAppointmentProvider(mockContext);
+            const result = await provider.getServiceTerritories({});
+            expect(result.success).toBe(true);
+            if (result.success) expect(result.territories).toHaveLength(1);
+        });
+
+        it('returns error on failure', async () => {
+            mockAppointmentsClient.getServiceTerritories.mockRejectedValue(new Error('API error'));
+            vi.mocked(extractResponseError).mockResolvedValue({ status_code: '503' } as any);
+
+            const provider = createScapiAppointmentProvider(mockContext);
+            const result = await provider.getServiceTerritories({});
+            expect(result.success).toBe(false);
+        });
+    });
+
+    describe('getWorkTypes', () => {
+        it('returns work types with workTypeGroupId on success', async () => {
+            mockAppointmentsClient.getWorkTypes.mockResolvedValue({
+                data: {
+                    workTypes: [
+                        { id: '08qSB001', name: 'See a Timepiece', durationMinutes: 30, workTypeGroupId: '0VSSB001' },
+                    ],
+                },
+            });
+
+            const provider = createScapiAppointmentProvider(mockContext);
+            const result = await provider.getWorkTypes({ territoryId: 'ln-boutique-london' });
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.workTypes).toHaveLength(1);
+                expect(result.workTypes[0].workTypeGroupId).toBe('0VSSB001');
+            }
+        });
+
+        it('returns error on failure', async () => {
+            mockAppointmentsClient.getWorkTypes.mockRejectedValue(new Error('API error'));
+            vi.mocked(extractResponseError).mockResolvedValue({ status_code: '503' } as any);
+
+            const provider = createScapiAppointmentProvider(mockContext);
+            const result = await provider.getWorkTypes({});
+            expect(result.success).toBe(false);
         });
     });
 });

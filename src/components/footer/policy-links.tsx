@@ -18,6 +18,9 @@ import { useTranslation } from 'react-i18next';
 import { Link } from '@/components/link';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { cn } from '@/lib/utils';
+// @sfdc-extension-block-start SFDC_EXT_APPOINTMENT_SCHEDULING
+import AppointmentAffordance from '@/extensions/appointment-scheduling/components/AppointmentAffordance';
+// @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING
 
 export default function PolicyLinks({ className }: { className?: string }): ReactElement {
     const { t } = useTranslation('footer');
@@ -29,6 +32,9 @@ export default function PolicyLinks({ className }: { className?: string }): Reac
                 'flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-normal leading-5 text-muted-foreground',
                 className
             )}>
+            {/* @sfdc-extension-block-start SFDC_EXT_APPOINTMENT_SCHEDULING */}
+            <AppointmentAffordance />
+            {/* @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING */}
             <Link to="/about-us" className="hover:text-foreground transition-colors">
                 {t('links.aboutUs')}
             </Link>

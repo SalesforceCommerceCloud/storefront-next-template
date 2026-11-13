@@ -18,7 +18,7 @@ import { expect } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import { action } from 'storybook/actions';
-import StoreLocator from '../index';
+import StoreLocator from '@/extensions/store-locator/components/store-locator';
 import StoreLocatorProvider from '@/extensions/store-locator/providers/store-locator';
 
 function ActionLogger({ children }: { children: ReactNode }): ReactElement {
@@ -101,6 +101,11 @@ const meta: Meta<typeof StoreLocator> = {
             {
                 path: '/resource/boutiques',
                 loader: () => ({ success: true, stores: [] }),
+            },
+            {
+                // use-boutique-list now also fetches from territories as primary source.
+                path: '/resource/appointment-territories',
+                loader: () => ({ success: false, error: 'SCHEDULER_NOT_CONFIGURED' }),
             },
         ],
         docs: {

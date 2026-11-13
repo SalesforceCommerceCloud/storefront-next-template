@@ -20,6 +20,7 @@ import {
     _resetSchedulerTokenCacheForTest,
     bookAppointment,
     getAvailability,
+    getWorkTypes,
     resolveSchedulerCoreConfig,
 } from './scheduler.server';
 import type { SchedulerCoreConfig } from './types';
@@ -30,9 +31,7 @@ const core: SchedulerCoreConfig = {
     apiVersion: 'v64.0',
     territoryId: '0HhSB0000044Z3J0AU',
     workTypeGroupId: '0VSSB0000002ojt4AA',
-    workTypeId: '08qSB000000HdEfYAK',
     parentRecordId: '001SB000026inYPYAY',
-    serviceResourceId: '0HnSB000000ZkUb0AK',
 };
 
 function mockResponse(opts: { ok?: boolean; status?: number; json?: unknown; retryAfter?: string | null }): Response {
@@ -183,15 +182,25 @@ describe('scheduler.server', () => {
             schedStartTime: '2026-10-26T09:00:00.000Z',
             schedEndTime: '2026-10-26T10:00:00.000Z',
             email: 'shopper@example.com',
-            b2cCustomerId: 'cust-abc',
+            shopperExternalId: 'cust-abc',
         };
 
-        it('creates the ServiceAppointment and assigns the required resource', async () => {
+        const advisorId = '0HnSB000000advisor1';
+        const membersOk = mockResponse({ json: { records: [{ ServiceResourceId: advisorId }] } });
+        const noBusyAdvisors = mockResponse({ json: { records: [] } });
+
+        it('creates the ServiceAppointment and assigns the advisor (dynamic path)', async () => {
             const fetchImpl = vi
                 .fn()
                 .mockResolvedValueOnce(tokenOk())
-                .mockResolvedValueOnce(mockResponse({ status: 201, json: { id: 'sa-1', success: true } }))
-                .mockResolvedValueOnce(mockResponse({ status: 201, json: { id: 'ar-1', success: true } }));
+                // territory members query
+                .mockResolvedValueOnce(membersOk)
+                // busy advisors query → none busy
+                .mockResolvedValueOnce(noBusyAdvisors)
+                // SA create
+                .mockResolvedValueOnce(mockResponse({ status: 201, json: { id: 'sa-1' } }))
+                // AR create
+                .mockResolvedValueOnce(mockResponse({ status: 201, json: { id: 'ar-1' } }));
 
             const result = await bookAppointment(core, booking, { fetchImpl });
 
@@ -199,10 +208,11 @@ describe('scheduler.server', () => {
                 success: true,
                 data: { serviceAppointmentId: 'sa-1', assignedResourceId: 'ar-1' },
             });
-            const saCall = fetchImpl.mock.calls[1];
+            // SA was posted to the correct endpoint with the shopper correlation id
+            const saCall = fetchImpl.mock.calls[3];
             expect(saCall[0]).toBe('https://acme.my.salesforce.com/services/data/v64.0/sobjects/ServiceAppointment');
-            const saBody = JSON.parse(saCall[1].body);
-            expect(saBody.b2cCustomerId__c).toBe('cust-abc');
+            const saBody = JSON.parse(saCall[1].body as string);
+            expect(saBody.ExternalId__c).toBe('cust-abc');
             expect(saBody.Status).toBe('Scheduled');
         });
 
@@ -210,6 +220,8 @@ describe('scheduler.server', () => {
             const fetchImpl = vi
                 .fn()
                 .mockResolvedValueOnce(tokenOk())
+                .mockResolvedValueOnce(membersOk)
+                .mockResolvedValueOnce(noBusyAdvisors)
                 .mockResolvedValueOnce(mockResponse({ status: 201, json: { id: 'sa-1' } }))
                 .mockResolvedValueOnce(mockResponse({ ok: false, status: 500 }));
 
@@ -218,10 +230,12 @@ describe('scheduler.server', () => {
             expect(result).toEqual({ success: true, data: { serviceAppointmentId: 'sa-1' } });
         });
 
-        it('maps a 400 from the Core booking call to INVALID_REQUEST', async () => {
+        it('maps a 400 from the SA creation call to INVALID_REQUEST', async () => {
             const fetchImpl = vi
                 .fn()
                 .mockResolvedValueOnce(tokenOk())
+                .mockResolvedValueOnce(membersOk)
+                .mockResolvedValueOnce(noBusyAdvisors)
                 .mockResolvedValueOnce(mockResponse({ ok: false, status: 400 }));
 
             const result = await bookAppointment(core, booking, { fetchImpl });
@@ -230,7 +244,7 @@ describe('scheduler.server', () => {
         });
 
         describe('dynamic advisor selection (no serviceResourceId in config)', () => {
-            const coreNoResource = { ...core, serviceResourceId: undefined };
+            const coreNoResource = { ...core };
             const advisorA = '0HnSB000000advisor1';
             const advisorB = '0HnSB000000advisor2';
 
@@ -337,6 +351,98 @@ describe('scheduler.server', () => {
         });
     });
 
+    describe('getWorkTypes', () => {
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
+
+        const WTG_ID = '0VSSB0000002ojt4AA';
+        const ANCHOR_WT_ID = 'wt-anchor-001';
+        // Step 1: STWT query → returns anchor WorkTypeId
+        const stwtOk = () => mockResponse({ json: { records: [{ WorkTypeId: ANCHOR_WT_ID }] } });
+        // Step 2: WorkTypeGroupMember for anchor → returns WorkTypeGroupId
+        const wtgForAnchorOk = () => mockResponse({ json: { records: [{ WorkTypeGroupId: WTG_ID }] } });
+        // Step 3: WorkTypeGroupMember with group → returns nested WorkType objects
+        function finalWtgOk(workTypes: { Id: string; Name: string; EstimatedDuration?: number }[]): Response {
+            return mockResponse({ json: { records: workTypes.map((wt) => ({ WorkType: wt })) } });
+        }
+
+        it('resolves territory WorkTypeGroup via two-step STWT lookup (STWT → WorkTypeGroupMember)', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi
+                    .fn()
+                    .mockResolvedValueOnce(tokenOk())
+                    .mockResolvedValueOnce(stwtOk()) // Step 1: STWT anchor
+                    .mockResolvedValueOnce(wtgForAnchorOk()) // Step 2: WorkTypeGroupId for anchor
+                    .mockResolvedValueOnce(
+                        finalWtgOk([
+                            // Step 3: all WorkTypes in group
+                            { Id: 'wt-001', Name: 'Private Viewing', EstimatedDuration: 30 },
+                            { Id: 'wt-002', Name: 'Watch Servicing', EstimatedDuration: 15 },
+                        ])
+                    )
+            );
+
+            const result = await getWorkTypes(core, { territoryId: 'ln-boutique-london' });
+
+            expect(result).toEqual({
+                success: true,
+                workTypes: [
+                    { id: 'wt-001', name: 'Private Viewing', durationMinutes: 30, workTypeGroupId: WTG_ID },
+                    { id: 'wt-002', name: 'Watch Servicing', durationMinutes: 15, workTypeGroupId: WTG_ID },
+                ],
+            });
+        });
+
+        it('falls back to config workTypeGroupId when STWT anchor returns no results', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi
+                    .fn()
+                    .mockResolvedValueOnce(tokenOk())
+                    .mockResolvedValueOnce(mockResponse({ json: { records: [] } })) // empty STWT
+                    // no step 2 (skipped when STWT empty)
+                    .mockResolvedValueOnce(
+                        finalWtgOk([{ Id: 'wt-001', Name: 'Private Viewing', EstimatedDuration: 30 }])
+                    )
+            );
+
+            const result = await getWorkTypes(core, { territoryId: 'ln-boutique-paris' });
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.workTypes[0].id).toBe('wt-001');
+                expect(result.workTypes[0].workTypeGroupId).toBe(core.workTypeGroupId);
+            }
+        });
+
+        it('returns SCHEDULER_UNAVAILABLE when Core returns a non-OK status', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi
+                    .fn()
+                    .mockResolvedValueOnce(tokenOk())
+                    .mockResolvedValueOnce(mockResponse({ ok: false, status: 503 }))
+            );
+
+            const result = await getWorkTypes(core);
+
+            expect(result).toEqual({ success: false, error: { code: 'SCHEDULER_UNAVAILABLE', retryable: true } });
+        });
+
+        it('returns SCHEDULER_NOT_CONFIGURED when the secret is missing (no outbound call)', async () => {
+            vi.stubEnv('SCHEDULER_CLIENT_SECRET', '');
+            const fetchMock = vi.fn();
+            vi.stubGlobal('fetch', fetchMock);
+
+            const result = await getWorkTypes(core);
+
+            expect(result).toEqual({ success: false, error: { code: 'SCHEDULER_NOT_CONFIGURED', retryable: false } });
+            expect(fetchMock).not.toHaveBeenCalled();
+        });
+    });
+
     describe('resolveSchedulerCoreConfig', () => {
         it('returns null when the scheduler config block is absent', () => {
             expect(resolveSchedulerCoreConfig({} as AppConfig)).toBeNull();
@@ -352,7 +458,6 @@ describe('scheduler.server', () => {
                     apiVersion: 'v64.0',
                     territoryId: 't1',
                     workTypeGroupId: 'g1',
-                    workTypeId: 'w1',
                     parentRecordId: 'a1',
                 },
             } as AppConfig;
@@ -364,7 +469,6 @@ describe('scheduler.server', () => {
                 apiVersion: 'v64.0',
                 territoryId: 't1',
                 workTypeGroupId: 'g1',
-                workTypeId: 'w1',
                 parentRecordId: 'a1',
                 allowedHost: 'orgfarm.test1.my.pc-rnd.salesforce.com',
             });

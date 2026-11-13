@@ -16,6 +16,34 @@
 import { vi, expect, test, describe, afterEach } from 'vitest';
 import type React from 'react';
 
+// The luxury overlay uses extStoreLocator translations. In the mirror's storybook context
+// only the canonical extStoreLocator translations are loaded ("Find a Store"), not the
+// luxury override ("Find a Boutique"). Stub only this namespace with canonical values so
+// template and mirror produce identical snapshots. All other namespaces use real translations.
+vi.mock('react-i18next', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('react-i18next')>();
+    const realUseTranslation = actual.useTranslation as (...args: unknown[]) => unknown;
+    return {
+        ...actual,
+        useTranslation: (...args: unknown[]) => {
+            const ns = Array.isArray(args[0]) ? args[0][0] : args[0];
+            if (ns === 'extStoreLocator') {
+                return {
+                    t: (key: string) => ({ 'storeLocator.title': 'Find a Store' })[key] ?? key,
+                    i18n: { language: 'en-US' },
+                };
+            }
+            return realUseTranslation(...args);
+        },
+    };
+});
+
+// The luxury overlay's useBoutiqueList calls useFetcher twice (territories + boutiques).
+// Stub the hook directly so no route fetches are attempted in the snapshot context.
+vi.mock('@/extensions/store-locator/hooks/use-boutique-list', () => ({
+    useBoutiqueList: () => ({ stores: [], availability: undefined, isLoading: false, hasError: false }),
+}));
+
 vi.mock('react-router', () => ({
     href: (path: string) => path,
     createContext: vi.fn().mockImplementation(() => ({})),

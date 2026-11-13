@@ -441,10 +441,15 @@ export default defineConfig<Config>(
                 apiVersion: process.env.PUBLIC__app__scheduler__apiVersion ?? 'v64.0',
                 territoryId: process.env.PUBLIC__app__scheduler__territoryId ?? '',
                 workTypeGroupId: process.env.PUBLIC__app__scheduler__workTypeGroupId ?? '',
-                workTypeId: process.env.PUBLIC__app__scheduler__workTypeId ?? '',
                 parentRecordId: process.env.PUBLIC__app__scheduler__parentRecordId ?? '',
                 schedulingPolicyId: process.env.PUBLIC__app__scheduler__schedulingPolicyId || undefined,
-                serviceResourceId: process.env.PUBLIC__app__scheduler__serviceResourceId || undefined,
+                /**
+                 * @env PUBLIC__app__scheduler__siteId - Optional. Scopes `getServiceTerritories()` to
+                 *   territories with this `SN_SiteId__c` value. When absent, all active territories
+                 *   in the Core org are returned (zero-provisioning path).
+                 *   Example: `PUBLIC__app__scheduler__siteId=Fashion`
+                 */
+                siteId: process.env.PUBLIC__app__scheduler__siteId || undefined,
             },
             // @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING
             // Internationalization configuration
@@ -547,7 +552,19 @@ export default defineConfig<Config>(
                 fallbackFormat: 'jpg',
                 host: DIS_DEFAULT_HOST,
                 enableDis: true,
-                realmHostMappings: [],
+                /**
+                 * @env PUBLIC__app__images__realmHostMappings - Optional. JSON array mapping
+                 *   non-standard hostnames (e.g. MRT staging URLs) to DIS realms when the realm
+                 *   cannot be auto-derived from the hostname.
+                 *   Example: `[{"hostSuffix":"my-env.exp-delivery-soak.com","realm":"ZZRF_001"}]`
+                 */
+                realmHostMappings: (() => {
+                    try {
+                        return JSON.parse(process.env.PUBLIC__app__images__realmHostMappings ?? '[]');
+                    } catch {
+                        return [];
+                    }
+                })(),
             },
             // Search-specific settings
             // See CONFIG-OPTIONS.md#search for detailed documentation

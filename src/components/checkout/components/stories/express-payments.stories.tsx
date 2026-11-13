@@ -15,7 +15,7 @@
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Title, Description, Controls } from '@storybook/addon-docs/blocks';
-import ExpressPayments from '../express-payments';
+import ExpressPayments from '@/components/checkout/components/express-payments';
 import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';

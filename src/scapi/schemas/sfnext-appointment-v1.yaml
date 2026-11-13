@@ -30,19 +30,25 @@ paths:
             type: string
             minLength: 1
         - in: query
-          name: startTime
+          name: c_startTime
           required: true
           description: ISO 8601 start of the search window.
           schema:
             type: string
             minLength: 1
         - in: query
-          name: endTime
+          name: c_endTime
           required: true
-          description: ISO 8601 end of the search window (Core caps results to 31 days from startTime).
+          description: ISO 8601 end of the search window (Core caps results to 31 days from c_startTime).
           schema:
             type: string
             minLength: 1
+        - in: query
+          name: c_storeId
+          required: false
+          description: B2C store id (matches ServiceTerritory.StoreId__c). Falls back to site-pref territoryId.
+          schema:
+            type: string
       responses:
         '200':
           description: Availability returned

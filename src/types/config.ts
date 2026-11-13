@@ -352,14 +352,11 @@ export type AppConfig = {
         territoryId: string;
         /** Work type group whose availability is queried (WorkTypeGroup Id). */
         workTypeGroupId: string;
-        /** Work type booked on the ServiceAppointment (WorkType Id). */
-        workTypeId: string;
         /** Anchor Account used as `ParentRecordId` (no-Contact correlation design). */
         parentRecordId: string;
         /** Optional AppointmentSchedulingPolicy Id applied to availability lookups. */
         schedulingPolicyId?: string;
-        /** Optional ServiceResource required on the booking so the slot is consumed. */
-        serviceResourceId?: string;
+        siteId?: string;
     };
     // @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING
     global: {

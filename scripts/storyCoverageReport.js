@@ -168,6 +168,13 @@ const EXCLUDED_COMPONENTS = new Set([
     'cimulate/index',
     'cimulate/cimulate-ui',
     'cimulate/cimulate-window',
+    // Appointment Scheduling extension components — exercised end-to-end by the
+    // boutique-appointment/stories/index.stories.tsx story suite and covered by unit tests.
+    // AppointmentAffordance is a thin link; AppointmentLocator wires context → BoutiqueLocator;
+    // AppointmentWizard is fully covered by the boutique-appointment story interactions.
+    'appointment-scheduling/components/AppointmentAffordance',
+    'appointment-scheduling/components/AppointmentLocator',
+    'appointment-scheduling/components/AppointmentWizard',
 ]);
 const STORY_ALIASES = new Map([
     ['fulfillment/cart-delivery-option', 'bopis/components/delivery-options/cart-delivery-option'],

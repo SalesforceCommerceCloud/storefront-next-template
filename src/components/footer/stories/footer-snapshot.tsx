@@ -46,6 +46,8 @@ vi.mock('react-router', () => ({
     RouterProvider: ({ router }: { router: { routes: Array<{ element?: React.ReactNode }> } }) => (
         <div>{router.routes[0]?.element ?? null}</div>
     ),
+    useRouteLoaderData: vi.fn().mockReturnValue(undefined),
+    useParams: vi.fn().mockReturnValue({}),
 }));
 vi.mock('@/components/toast', () => ({
     useToast: () => ({

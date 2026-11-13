@@ -18,7 +18,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import type { ShopperProducts } from '@/scapi';
-import CategoryNavigationMenuMega from '../index';
+import CategoryNavigationMenuMega from '@/components/navigation-menu-mega';
 import { mockMegaMenuRootCategory, mockMegaMenuSubCategories } from './mock-menu-data';
 
 const megaMenu = {

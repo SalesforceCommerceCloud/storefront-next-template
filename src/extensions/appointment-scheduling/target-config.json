@@ -1,0 +1,9 @@
+{
+    "components": [
+        {
+            "targetId": "sfcc.scheduler.appointment-locator",
+            "path": "extensions/appointment-scheduling/components/AppointmentLocator.tsx",
+            "order": 0
+        }
+    ]
+}

@@ -15,6 +15,7 @@
  */
 /** @sfdc-extension-file SFDC_EXT_APPOINTMENT_SCHEDULING */
 import { normalizeSalesforceMyDomain } from '@/lib/salesforce-domains.server';
+import type { ServiceTerritoryOption } from '@/lib/appointment-scheduler/types';
 import type { Logger } from '@/lib/logger';
 import type { AppConfig } from '@/types/config';
 import type {
@@ -29,8 +30,15 @@ import type {
 } from './types';
 
 /** Escape a value for use inside a SOQL single-quoted string literal. */
+/** Returns true when the value is a 15- or 18-character Salesforce record Id (alphanumeric only). */
+function isSfRecordId(value: string): boolean {
+    return /^[a-zA-Z0-9]{15}$/.test(value) || /^[a-zA-Z0-9]{18}$/.test(value);
+}
+
 function escapeSoql(value: string): string {
-    return value.replace(/'/g, "\\'");
+    // Escape backslashes first, then single quotes — order matters.
+    // In SOQL, \ is the escape char so a trailing \ would cancel the closing '.
+    return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
 /** Extract the first Salesforce Id from a SOQL query response, validating the shape at runtime. */
@@ -86,10 +94,8 @@ export function resolveSchedulerCoreConfig(config: AppConfig): ResolvedScheduler
         apiVersion: scheduler.apiVersion,
         territoryId: scheduler.territoryId,
         workTypeGroupId: scheduler.workTypeGroupId,
-        workTypeId: scheduler.workTypeId,
         parentRecordId: scheduler.parentRecordId,
         ...(scheduler.schedulingPolicyId ? { schedulingPolicyId: scheduler.schedulingPolicyId } : {}),
-        ...(scheduler.serviceResourceId ? { serviceResourceId: scheduler.serviceResourceId } : {}),
         ...(process.env.SCHEDULER_MYDOMAIN_ALLOWED_HOST
             ? { allowedHost: process.env.SCHEDULER_MYDOMAIN_ALLOWED_HOST }
             : {}),
@@ -264,14 +270,14 @@ export async function getAvailability(
     const url = `${origin}/services/data/${core.apiVersion}/connect/scheduling/available-territory-slots`;
 
     try {
-        // Resolve the ServiceTerritory Salesforce Id from the B2C store id when provided.
+        // Resolve the ServiceTerritory Salesforce Id from the territory external id when provided.
         let territoryId = core.territoryId;
-        if (input.storeId) {
+        if (input.territoryId) {
             try {
-                const storeIdSafe = input.storeId;
+                const territoryIdSafe = input.territoryId;
                 const resp = await withAuthRetry(origin, core.clientId, options, (token) =>
                     fetchImpl(
-                        `${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(`SELECT Id FROM ServiceTerritory WHERE StoreId__c = '${escapeSoql(storeIdSafe)}' LIMIT 1`)}`,
+                        `${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(isSfRecordId(territoryIdSafe) ? `SELECT Id FROM ServiceTerritory WHERE Id = '${escapeSoql(territoryIdSafe)}' LIMIT 1` : `SELECT Id FROM ServiceTerritory WHERE ExternalId__c = '${escapeSoql(territoryIdSafe)}' LIMIT 1`)}`,
                         {
                             headers: {
                                 Authorization: `Bearer ${token}`,
@@ -289,11 +295,13 @@ export async function getAvailability(
                 if (resp.ok) {
                     const json: unknown = await resp.json();
                     const resolved = extractFirstId(json);
-                    if (resolved) territoryId = resolved;
+                    // When ExternalId__c lookup returns nothing, the input is already
+                    // a Salesforce record Id (zero-provisioning: no ExternalId__c set).
+                    territoryId = resolved ?? input.territoryId;
                 }
             } catch (lookupError) {
                 logger?.warn('Scheduler: territory lookup failed, using config fallback', {
-                    storeId: input.storeId,
+                    territoryId: input.territoryId,
                     error: lookupError,
                 });
             }
@@ -332,13 +340,16 @@ export async function getAvailability(
             // non-fatal — component falls back to 'UTC'
         }
 
+        // workTypeGroupId: prefer value carried from the shopper's WorkTypeOption selection
+        // (passed via input.workTypeGroupId) — no extra SOQL needed. Falls back to config.
+        const workTypeGroupId = input.workTypeGroupId ?? core.workTypeGroupId;
+
         const requestBody = JSON.stringify({
             startTime: input.startTime,
             endTime: input.endTime,
             territoryIds: [territoryId],
-            workTypeGroupId: core.workTypeGroupId,
+            workTypeGroupId,
             ...(core.schedulingPolicyId ? { schedulingPolicyId: core.schedulingPolicyId } : {}),
-            ...(core.serviceResourceId ? { requiredResourceIds: [core.serviceResourceId] } : {}),
         });
 
         const response = await withAuthRetry(origin, core.clientId, options, (token) =>
@@ -428,13 +439,13 @@ export async function bookAppointment(
     try {
         // Resolve ServiceTerritory, WorkType, and Advisor Salesforce Ids from external IDs in parallel.
         let territoryId = core.territoryId;
-        let workTypeId = core.workTypeId;
+        let workTypeId: string | undefined;
         let advisorResourceId: string | undefined;
 
         // Capture optional inputs as locals so closures inside .then() retain the narrowed type.
         const advisorId = input.advisorId;
-        const storeId = input.storeId;
-        const serviceId = input.serviceId;
+        const territoryExternalId = input.territoryId;
+        const workTypeExternalId = input.workTypeId;
 
         // Resolve all external IDs in parallel (token is cached so the acquireToken calls are near-instant).
         const [advisorJson, territoryJson, workTypeJson] = await Promise.all([
@@ -442,7 +453,7 @@ export async function bookAppointment(
                 ? acquireToken(origin, core.clientId, options)
                       .then((tok) =>
                           fetchImpl(
-                              `${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(`SELECT Id FROM ServiceResource WHERE AdvisorId__c = '${escapeSoql(advisorId)}' LIMIT 1`)}`,
+                              `${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(isSfRecordId(advisorId) ? `SELECT Id FROM ServiceResource WHERE Id = '${escapeSoql(advisorId)}' LIMIT 1` : `SELECT Id FROM ServiceResource WHERE ExternalId__c = '${escapeSoql(advisorId)}' LIMIT 1`)}`,
                               {
                                   headers: jsonHeaders(tok),
                                   signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -459,11 +470,11 @@ export async function bookAppointment(
                           return null;
                       })
                 : null,
-            storeId
+            territoryExternalId
                 ? acquireToken(origin, core.clientId, options)
                       .then((tok) =>
                           fetchImpl(
-                              `${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(`SELECT Id FROM ServiceTerritory WHERE StoreId__c = '${escapeSoql(storeId)}' LIMIT 1`)}`,
+                              `${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(isSfRecordId(territoryExternalId) ? `SELECT Id FROM ServiceTerritory WHERE Id = '${escapeSoql(territoryExternalId)}' LIMIT 1` : `SELECT Id FROM ServiceTerritory WHERE ExternalId__c = '${escapeSoql(territoryExternalId)}' LIMIT 1`)}`,
                               {
                                   headers: jsonHeaders(tok),
                                   signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -474,17 +485,17 @@ export async function bookAppointment(
                       .then(async (r) => (r.ok ? ((await r.json()) as unknown) : null))
                       .catch((err: unknown) => {
                           logger?.warn('Scheduler: territory lookup failed, using config fallback', {
-                              storeId,
+                              territoryId: territoryExternalId,
                               error: err,
                           });
                           return null;
                       })
                 : null,
-            serviceId
+            workTypeExternalId
                 ? acquireToken(origin, core.clientId, options)
                       .then((tok) =>
                           fetchImpl(
-                              `${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(`SELECT Id FROM WorkType WHERE ServiceId__c = '${escapeSoql(serviceId)}' LIMIT 1`)}`,
+                              `${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(isSfRecordId(workTypeExternalId) ? `SELECT Id FROM WorkType WHERE Id = '${escapeSoql(workTypeExternalId)}' LIMIT 1` : `SELECT Id FROM WorkType WHERE ExternalId__c = '${escapeSoql(workTypeExternalId)}' LIMIT 1`)}`,
                               {
                                   headers: jsonHeaders(tok),
                                   signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -495,7 +506,7 @@ export async function bookAppointment(
                       .then(async (r) => (r.ok ? ((await r.json()) as unknown) : null))
                       .catch((err: unknown) => {
                           logger?.warn('Scheduler: work type lookup failed, using config fallback', {
-                              serviceId: input.serviceId,
+                              workTypeId: input.workTypeId,
                               error: err,
                           });
                           return null;
@@ -522,8 +533,8 @@ export async function bookAppointment(
         // selection (core.serviceResourceId absent), find the free advisor BEFORE creating
         // the SA. If all advisors are booked for this slot, return 409 immediately to avoid
         // creating orphan ServiceAppointments that cannot be assigned.
-        let preselectedResourceId: string | undefined = advisorResourceId ?? core.serviceResourceId;
-        if (!advisorResourceId && !core.serviceResourceId && territoryId) {
+        let preselectedResourceId: string | undefined = advisorResourceId;
+        if (!advisorResourceId && territoryId) {
             try {
                 const token = await acquireToken(origin, core.clientId, options);
                 const membersResp = await fetchImpl(
@@ -588,7 +599,7 @@ export async function bookAppointment(
                         SchedStartTime: input.schedStartTime,
                         SchedEndTime: input.schedEndTime,
                         Email: input.email,
-                        b2cCustomerId__c: input.b2cCustomerId,
+                        ExternalId__c: input.shopperExternalId,
                         ...(input.subject ? { Subject: input.subject } : {}),
                     }),
                     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -653,6 +664,227 @@ export async function bookAppointment(
             return { success: false, error: { code: 'SCHEDULER_NOT_CONFIGURED', retryable: false } };
         }
         logger?.error('Scheduler: booking request failed', { error });
+        return { success: false, error: { code: 'SCHEDULER_UNAVAILABLE', retryable: true } };
+    }
+}
+
+interface WorkTypesSuccess {
+    success: true;
+    workTypes: { id: string; name: string; durationMinutes: number; workTypeGroupId: string }[];
+}
+interface WorkTypesFailure {
+    success: false;
+    error: { code: string; retryable: boolean };
+}
+
+/**
+ * Fetch the WorkType options for the appointment wizard's "Why Are You Visiting" step.
+ *
+ * Queries all WorkTypes in the configured WorkTypeGroup via `WorkTypeGroupMember` (org-level).
+ * When `storeId` is provided, first resolves the territory's WorkTypeGroup from its
+ * `ServiceTerritoryWorkType` anchor record — uses that group instead of the global config.
+ *
+ * Each returned work type includes `workTypeGroupId` so `getAvailability()` can use it
+ * directly without an additional SOQL lookup.
+ */
+export async function getWorkTypes(
+    core: SchedulerCoreConfig,
+    input: { territoryId?: string } = {},
+    options: SchedulerOptions = {}
+): Promise<WorkTypesSuccess | WorkTypesFailure> {
+    const { logger } = options;
+    try {
+        const origin = resolveCoreOrigin(core);
+        if (!origin) throw new SchedulerNotConfiguredError('Core My Domain not configured');
+
+        // Resolve workTypeGroupId per territory using two sequential SOQL queries:
+        // Step 1: get the territory's STWT anchor WorkTypeId (territory-specific)
+        // Step 2: get that WorkType's WorkTypeGroupId via WorkTypeGroupMember
+        // ServiceTerritoryWorkType now has READ in the permission set.
+        let workTypeGroupId: string | undefined;
+        if (input.territoryId) {
+            try {
+                // Step 1 — territory's STWT anchor
+                const stwtFilter = isSfRecordId(input.territoryId)
+                    ? `ServiceTerritoryId = '${escapeSoql(input.territoryId)}'`
+                    : `ServiceTerritory.ExternalId__c = '${escapeSoql(input.territoryId)}'`;
+                const stwtResp = await withAuthRetry(origin, core.clientId, options, (token) =>
+                    fetch(
+                        `${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(`SELECT WorkTypeId FROM ServiceTerritoryWorkType WHERE ${stwtFilter} LIMIT 1`)}`,
+                        {
+                            headers: { Authorization: `Bearer ${token}` },
+                            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+                        }
+                    )
+                );
+                if (stwtResp.ok) {
+                    const stwtJson = (await stwtResp.json()) as { records?: Array<{ WorkTypeId: string }> };
+                    const anchorWtId = stwtJson.records?.[0]?.WorkTypeId;
+                    if (anchorWtId) {
+                        // Step 2 — WorkTypeGroup for that specific WorkType
+                        const wtgResp = await withAuthRetry(origin, core.clientId, options, (token) =>
+                            fetch(
+                                `${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(`SELECT WorkTypeGroupId FROM WorkTypeGroupMember WHERE WorkTypeId = '${escapeSoql(anchorWtId)}' LIMIT 1`)}`,
+                                {
+                                    headers: { Authorization: `Bearer ${token}` },
+                                    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+                                }
+                            )
+                        );
+                        if (wtgResp.ok) {
+                            const wtgJson = (await wtgResp.json()) as { records?: Array<{ WorkTypeGroupId: string }> };
+                            workTypeGroupId = wtgJson.records?.[0]?.WorkTypeGroupId;
+                            if (workTypeGroupId)
+                                logger?.info('Scheduler: resolved WorkTypeGroupId for territory', {
+                                    territoryId: input.territoryId,
+                                    workTypeGroupId,
+                                });
+                        }
+                    }
+                }
+            } catch (lookupError) {
+                logger?.warn('Scheduler: territory WorkTypeGroup lookup failed', {
+                    territoryId: input.territoryId,
+                    error: lookupError,
+                });
+            }
+        }
+
+        workTypeGroupId ??= core.workTypeGroupId;
+
+        if (!workTypeGroupId) {
+            return { success: false, error: { code: 'SCHEDULER_NOT_CONFIGURED', retryable: false } };
+        }
+
+        // Fetch all WorkTypes via WorkTypeGroupMember relationship — avoids nested-subquery
+        // FLS issues with certain fields. Results are scoped to the resolved group.
+        const soql = `SELECT WorkType.Id, WorkType.Name, WorkType.EstimatedDuration FROM WorkTypeGroupMember WHERE WorkTypeGroupId = '${escapeSoql(workTypeGroupId)}' ORDER BY WorkType.Name ASC`;
+        const resp = await withAuthRetry(origin, core.clientId, options, (token) =>
+            fetch(`${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(soql)}`, {
+                headers: { Authorization: `Bearer ${token}` },
+                signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+            })
+        );
+        if (!resp.ok) {
+            logger?.warn('Scheduler: WorkType query failed', { status: resp.status });
+            return { success: false, error: { code: 'SCHEDULER_UNAVAILABLE', retryable: true } };
+        }
+
+        const json = (await resp.json()) as {
+            records?: Array<{ WorkType?: { Id: string; Name: string; EstimatedDuration?: number } }>;
+        };
+        if (!json || !Array.isArray(json.records)) {
+            return { success: false, error: { code: 'SCHEDULER_UNAVAILABLE', retryable: true } };
+        }
+        logger?.info('Scheduler: WorkType records returned', {
+            count: json.records?.length ?? 0,
+            groupId: workTypeGroupId,
+        });
+        const effectiveGroupId = workTypeGroupId;
+        // Deduplicate by WorkType.Name — re-seeding can create multiple WorkType records with the
+        // same name but different Salesforce IDs, all in the same WorkTypeGroup.
+        const seen = new Set<string>();
+        const workTypes = (json.records ?? [])
+            .filter((r) => r.WorkType?.Id && r.WorkType.Name && !seen.has(r.WorkType.Name) && seen.add(r.WorkType.Name))
+            .map((r) => ({
+                id: r.WorkType?.Id ?? '',
+                name: r.WorkType?.Name ?? '',
+                durationMinutes: r.WorkType?.EstimatedDuration ?? 30,
+                workTypeGroupId: effectiveGroupId,
+            }));
+        return { success: true, workTypes };
+    } catch (error) {
+        if (error instanceof SchedulerNotConfiguredError) {
+            return { success: false, error: { code: 'SCHEDULER_NOT_CONFIGURED', retryable: false } };
+        }
+        logger?.error('Scheduler: getWorkTypes failed', { error });
+        return { success: false, error: { code: 'SCHEDULER_UNAVAILABLE', retryable: true } };
+    }
+}
+
+/** Shape returned by the Core SOQL ServiceTerritory query. */
+interface ServiceTerritoryRecord {
+    Id: string;
+    Name: string;
+    ExternalId__c?: string;
+    SN_SiteId__c?: string;
+    SN_Address1__c?: string;
+    SN_City__c?: string;
+    SN_PostalCode__c?: string;
+    SN_StateCode__c?: string;
+    SN_CountryCode__c?: string;
+    SN_Phone__c?: string;
+    SN_Latitude__c?: number;
+    SN_Longitude__c?: number;
+    OperatingHours?: { TimeZone?: string };
+}
+
+interface ServiceTerritoriesSuccess {
+    success: true;
+    territories: ServiceTerritoryOption[];
+}
+interface ServiceTerritoriesFailure {
+    success: false;
+    error: { code: string; retryable: boolean };
+}
+
+/**
+ * Fetch all active service territories (boutiques) that have a `StoreId__c` set.
+ *
+ * Used by the appointment wizard's store-selection step to let shoppers choose
+ * a boutique. Returns each territory's B2C store id, display name, timezone (from
+ * its linked OperatingHours), and optional per-territory WorkTypeGroupId.
+ */
+export async function getServiceTerritories(
+    core: SchedulerCoreConfig,
+    input: { siteId?: string } = {},
+    options: SchedulerOptions = {}
+): Promise<ServiceTerritoriesSuccess | ServiceTerritoriesFailure> {
+    const { logger } = options;
+    try {
+        const origin = resolveCoreOrigin(core);
+        if (!origin) throw new SchedulerNotConfiguredError('Core My Domain not configured');
+
+        // Filter by SN_SiteId__c when siteId is provided — scopes territories per B2C site.
+        // Without siteId, returns all active territories (zero-provisioning: no ExternalId__c filter).
+        const siteFilter = input.siteId ? ` AND SN_SiteId__c = '${escapeSoql(input.siteId)}'` : '';
+        const soql = `SELECT Id, Name, ExternalId__c, SN_SiteId__c, SN_Address1__c, SN_City__c, SN_PostalCode__c, SN_StateCode__c, SN_CountryCode__c, SN_Phone__c, SN_Latitude__c, SN_Longitude__c, OperatingHours.TimeZone FROM ServiceTerritory WHERE IsActive = true${siteFilter} ORDER BY Name ASC`;
+        const resp = await withAuthRetry(origin, core.clientId, options, (token) =>
+            fetch(`${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(soql)}`, {
+                headers: { Authorization: `Bearer ${token}` },
+                signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+            })
+        );
+        if (!resp.ok) {
+            logger?.warn('Scheduler: ServiceTerritory query failed', { status: resp.status });
+            return { success: false, error: { code: 'SCHEDULER_UNAVAILABLE', retryable: true } };
+        }
+        const json = (await resp.json()) as { records?: ServiceTerritoryRecord[] };
+        if (!json || !Array.isArray(json.records)) {
+            return { success: false, error: { code: 'SCHEDULER_UNAVAILABLE', retryable: true } };
+        }
+        const territories = (json.records ?? []).map((r) => ({
+            id: r.ExternalId__c ?? r.Id,
+            sfId: r.Id,
+            name: r.Name,
+            timezone: r.OperatingHours?.TimeZone ?? 'UTC',
+            ...(r.ExternalId__c ? { externalId: r.ExternalId__c } : {}),
+            ...(r.SN_SiteId__c ? { siteId: r.SN_SiteId__c } : {}),
+            ...(r.SN_Address1__c ? { address1: r.SN_Address1__c } : {}),
+            ...(r.SN_City__c ? { city: r.SN_City__c } : {}),
+            ...(r.SN_PostalCode__c ? { postalCode: r.SN_PostalCode__c } : {}),
+            ...(r.SN_StateCode__c ? { stateCode: r.SN_StateCode__c } : {}),
+            ...(r.SN_CountryCode__c ? { countryCode: r.SN_CountryCode__c } : {}),
+            ...(r.SN_Phone__c ? { phone: r.SN_Phone__c } : {}),
+            ...(r.SN_Latitude__c != null ? { latitude: r.SN_Latitude__c } : {}),
+            ...(r.SN_Longitude__c != null ? { longitude: r.SN_Longitude__c } : {}),
+        }));
+        return { success: true, territories };
+    } catch (error) {
+        if (error instanceof SchedulerNotConfiguredError) {
+            return { success: false, error: { code: 'SCHEDULER_NOT_CONFIGURED', retryable: false } };
+        }
+        logger?.error('Scheduler: getServiceTerritories failed', { error });
         return { success: false, error: { code: 'SCHEDULER_UNAVAILABLE', retryable: true } };
     }
 }

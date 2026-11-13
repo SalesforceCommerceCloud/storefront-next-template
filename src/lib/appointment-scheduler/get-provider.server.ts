@@ -16,6 +16,7 @@
 import type { RouterContextProvider } from 'react-router';
 import type { Config } from '@/types/config';
 import type { AppointmentSchedulerProvider } from './types';
+import { getLogger } from '@/lib/logger.server';
 import { createBffAppointmentProvider } from './bff-provider.server';
 import { createScapiAppointmentProvider } from './scapi-provider.server';
 
@@ -33,7 +34,10 @@ export function getAppointmentProvider(
     config: Config['app'],
     context: RouterContextProvider | Readonly<RouterContextProvider>
 ): AppointmentSchedulerProvider {
-    switch (config.features.appointment.provider) {
+    const provider = config.features.appointment.provider ?? 'scapi';
+    const logger = getLogger(context);
+    logger.info('AppointmentScheduler: provider selected', { provider });
+    switch (provider) {
         case 'bff':
             return createBffAppointmentProvider(context);
         case 'scapi':

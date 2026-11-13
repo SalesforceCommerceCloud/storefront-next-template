@@ -115,6 +115,9 @@ export const routes = {
     buyItAgain: '/buy-it-again',
     aboutUs: '/about-us',
     storeLocator: '/store-locator',
+    // @sfdc-extension-block-start SFDC_EXT_APPOINTMENT_SCHEDULING
+    appointments: '/appointments',
+    // @sfdc-extension-block-end SFDC_EXT_APPOINTMENT_SCHEDULING
     maintenance: '/maintenance',
     logout: '/logout',
     componentPreview: '/preview/component',

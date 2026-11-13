@@ -1,5 +1,11 @@
 {
     "extensions": {
+        "SFDC_EXT_APPOINTMENT_SCHEDULING": {
+            "name": "Appointment Scheduling",
+            "description": "Enables shoppers to book in-store appointments via Salesforce Scheduler (Core) or the CAP Custom SCAPI extension.",
+            "folder": "appointment-scheduling",
+            "dependencies": []
+        },
         "SFDC_EXT_STORE_LOCATOR": {
             "name": "Store Locator",
             "description": "Enables a shopper to find a store based on a given location.",

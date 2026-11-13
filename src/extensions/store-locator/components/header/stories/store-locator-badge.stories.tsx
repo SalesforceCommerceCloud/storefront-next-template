@@ -18,7 +18,7 @@ import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import { action } from 'storybook/actions';
-import StoreLocatorBadge from '../store-locator-badge';
+import StoreLocatorBadge from '@/extensions/store-locator/components/header/store-locator-badge';
 import StoreLocatorProvider from '@/extensions/store-locator/providers/store-locator';
 
 function ActionLogger({ children }: { children: ReactNode }): ReactElement {

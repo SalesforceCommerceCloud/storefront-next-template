@@ -137,6 +137,10 @@ export const Default: Story = {
                 path: '/resource/boutiques',
                 loader: () => ({ success: true, stores: [] }),
             },
+            {
+                path: '/resource/appointment-territories',
+                loader: () => ({ success: false, error: 'SCHEDULER_NOT_CONFIGURED' }),
+            },
         ],
         docs: {
             description: {
@@ -183,6 +187,10 @@ export const MobileLayout: Story = {
             {
                 path: '/resource/boutiques',
                 loader: () => ({ success: true, stores: [] }),
+            },
+            {
+                path: '/resource/appointment-territories',
+                loader: () => ({ success: false, error: 'SCHEDULER_NOT_CONFIGURED' }),
             },
         ],
         docs: {
@@ -232,6 +240,10 @@ export const DesktopLayout: Story = {
             {
                 path: '/resource/boutiques',
                 loader: () => ({ success: true, stores: [] }),
+            },
+            {
+                path: '/resource/appointment-territories',
+                loader: () => ({ success: false, error: 'SCHEDULER_NOT_CONFIGURED' }),
             },
         ],
         docs: {

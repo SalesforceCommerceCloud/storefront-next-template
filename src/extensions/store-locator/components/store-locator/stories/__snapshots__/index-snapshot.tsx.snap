@@ -7,7 +7,7 @@ exports[`StoreLocator stories snapshot > Default story renders and matches snaps
     class="p-4"
   >
     <form
-      aria-label="Store search form"
+      aria-label="storeLocator.form.searchFormAriaLabel"
     >
       <div
         class="flex flex-col gap-3"
@@ -22,7 +22,7 @@ exports[`StoreLocator stories snapshot > Default story renders and matches snaps
             data-slot="form-label"
             for="_r_0_-form-item"
           >
-            Country
+            storeLocator.form.countryLabel
           </label>
           <div
             aria-invalid="false"
@@ -35,7 +35,7 @@ exports[`StoreLocator stories snapshot > Default story renders and matches snaps
               data-slot="native-select-wrapper"
             >
               <select
-                aria-label="Country"
+                aria-label="storeLocator.form.countryLabel"
                 class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
                 data-size="default"
                 data-slot="native-select"
@@ -44,7 +44,7 @@ exports[`StoreLocator stories snapshot > Default story renders and matches snaps
                   disabled=""
                   value=""
                 >
-                  Select a country
+                  storeLocator.form.selectCountry
                 </option>
                 <option
                   value="US"
@@ -91,28 +91,28 @@ exports[`StoreLocator stories snapshot > Default story renders and matches snaps
               data-slot="form-label"
               for="_r_1_-form-item"
             >
-              Postal Code
+              storeLocator.form.postalCodeLabel
             </label>
             <input
               aria-invalid="false"
-              aria-label="Postal Code"
+              aria-label="storeLocator.form.postalCodeLabel"
               class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
               data-slot="form-control"
               id="_r_1_-form-item"
               name="postalCode"
-              placeholder="Enter postal code"
+              placeholder="storeLocator.form.postalCodePlaceholder"
               value=""
             />
           </div>
           <button
-            aria-label="Find"
+            aria-label="storeLocator.form.findButton"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 py-2 has-[>svg]:px-3 h-9 px-5"
             data-size="default"
             data-slot="button"
             data-variant="default"
             type="submit"
           >
-            Find
+            storeLocator.form.findButton
           </button>
         </div>
         <div
@@ -127,18 +127,18 @@ exports[`StoreLocator stories snapshot > Default story renders and matches snaps
           <span
             class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
           >
-            Or
+            storeLocator.form.or
           </span>
         </div>
         <button
-          aria-label="Use My Location"
+          aria-label="storeLocator.form.useMyLocationButton"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
           data-size="default"
           data-slot="button"
           data-variant="default"
           type="button"
         >
-          Use My Location
+          storeLocator.form.useMyLocationButton
         </button>
       </div>
     </form>
@@ -153,7 +153,7 @@ exports[`StoreLocator stories snapshot > DesktopLayout story renders and matches
     class="p-4"
   >
     <form
-      aria-label="Store search form"
+      aria-label="storeLocator.form.searchFormAriaLabel"
     >
       <div
         class="flex flex-col gap-3"
@@ -168,7 +168,7 @@ exports[`StoreLocator stories snapshot > DesktopLayout story renders and matches
             data-slot="form-label"
             for="_r_6_-form-item"
           >
-            Country
+            storeLocator.form.countryLabel
           </label>
           <div
             aria-invalid="false"
@@ -181,7 +181,7 @@ exports[`StoreLocator stories snapshot > DesktopLayout story renders and matches
               data-slot="native-select-wrapper"
             >
               <select
-                aria-label="Country"
+                aria-label="storeLocator.form.countryLabel"
                 class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
                 data-size="default"
                 data-slot="native-select"
@@ -190,7 +190,7 @@ exports[`StoreLocator stories snapshot > DesktopLayout story renders and matches
                   disabled=""
                   value=""
                 >
-                  Select a country
+                  storeLocator.form.selectCountry
                 </option>
                 <option
                   value="US"
@@ -237,28 +237,28 @@ exports[`StoreLocator stories snapshot > DesktopLayout story renders and matches
               data-slot="form-label"
               for="_r_7_-form-item"
             >
-              Postal Code
+              storeLocator.form.postalCodeLabel
             </label>
             <input
               aria-invalid="false"
-              aria-label="Postal Code"
+              aria-label="storeLocator.form.postalCodeLabel"
               class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
               data-slot="form-control"
               id="_r_7_-form-item"
               name="postalCode"
-              placeholder="Enter postal code"
+              placeholder="storeLocator.form.postalCodePlaceholder"
               value=""
             />
           </div>
           <button
-            aria-label="Find"
+            aria-label="storeLocator.form.findButton"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 py-2 has-[>svg]:px-3 h-9 px-5"
             data-size="default"
             data-slot="button"
             data-variant="default"
             type="submit"
           >
-            Find
+            storeLocator.form.findButton
           </button>
         </div>
         <div
@@ -273,18 +273,18 @@ exports[`StoreLocator stories snapshot > DesktopLayout story renders and matches
           <span
             class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
           >
-            Or
+            storeLocator.form.or
           </span>
         </div>
         <button
-          aria-label="Use My Location"
+          aria-label="storeLocator.form.useMyLocationButton"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
           data-size="default"
           data-slot="button"
           data-variant="default"
           type="button"
         >
-          Use My Location
+          storeLocator.form.useMyLocationButton
         </button>
       </div>
     </form>
@@ -299,7 +299,7 @@ exports[`StoreLocator stories snapshot > MobileLayout story renders and matches 
     class="p-4"
   >
     <form
-      aria-label="Store search form"
+      aria-label="storeLocator.form.searchFormAriaLabel"
     >
       <div
         class="flex flex-col gap-3"
@@ -314,7 +314,7 @@ exports[`StoreLocator stories snapshot > MobileLayout story renders and matches 
             data-slot="form-label"
             for="_r_3_-form-item"
           >
-            Country
+            storeLocator.form.countryLabel
           </label>
           <div
             aria-invalid="false"
@@ -327,7 +327,7 @@ exports[`StoreLocator stories snapshot > MobileLayout story renders and matches 
               data-slot="native-select-wrapper"
             >
               <select
-                aria-label="Country"
+                aria-label="storeLocator.form.countryLabel"
                 class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
                 data-size="default"
                 data-slot="native-select"
@@ -336,7 +336,7 @@ exports[`StoreLocator stories snapshot > MobileLayout story renders and matches 
                   disabled=""
                   value=""
                 >
-                  Select a country
+                  storeLocator.form.selectCountry
                 </option>
                 <option
                   value="US"
@@ -383,28 +383,28 @@ exports[`StoreLocator stories snapshot > MobileLayout story renders and matches 
               data-slot="form-label"
               for="_r_4_-form-item"
             >
-              Postal Code
+              storeLocator.form.postalCodeLabel
             </label>
             <input
               aria-invalid="false"
-              aria-label="Postal Code"
+              aria-label="storeLocator.form.postalCodeLabel"
               class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
               data-slot="form-control"
               id="_r_4_-form-item"
               name="postalCode"
-              placeholder="Enter postal code"
+              placeholder="storeLocator.form.postalCodePlaceholder"
               value=""
             />
           </div>
           <button
-            aria-label="Find"
+            aria-label="storeLocator.form.findButton"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 py-2 has-[>svg]:px-3 h-9 px-5"
             data-size="default"
             data-slot="button"
             data-variant="default"
             type="submit"
           >
-            Find
+            storeLocator.form.findButton
           </button>
         </div>
         <div
@@ -419,18 +419,18 @@ exports[`StoreLocator stories snapshot > MobileLayout story renders and matches 
           <span
             class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
           >
-            Or
+            storeLocator.form.or
           </span>
         </div>
         <button
-          aria-label="Use My Location"
+          aria-label="storeLocator.form.useMyLocationButton"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
           data-size="default"
           data-slot="button"
           data-variant="default"
           type="button"
         >
-          Use My Location
+          storeLocator.form.useMyLocationButton
         </button>
       </div>
     </form>

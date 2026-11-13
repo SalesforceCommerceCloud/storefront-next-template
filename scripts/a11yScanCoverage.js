@@ -136,7 +136,8 @@ const ALLOWLIST = {
     '_app.privacy': 'deferred:auto-discovery,vertical-exclusive (luxury) static content page, no Scenario yet',
     '_app.privacy-choices': 'deferred:auto-discovery,vertical-exclusive (luxury) static content page, no Scenario yet',
     '_app.terms': 'deferred:auto-discovery,vertical-exclusive (luxury) static content page, no Scenario yet',
-    '_app.boutiques': 'deferred:auto-discovery,vertical-exclusive (luxury) boutique locator, no Scenario yet',
+    '_app.appointments':
+        'deferred:auto-discovery,vertical-exclusive (luxury) appointment booking page, no Scenario yet',
     '_app.find-your-watch': 'deferred:auto-discovery,vertical-exclusive (luxury) watch-finder page, no Scenario yet',
     '_app.collections._index': 'deferred:auto-discovery,vertical-exclusive (luxury) collections index, no Scenario yet',
     '_app.collections.$collection':

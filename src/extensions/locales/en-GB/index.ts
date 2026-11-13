@@ -17,6 +17,8 @@
 // NOTE: This file is auto-generated. Do not edit manually.
 // Run 'pnpm locales:aggregate-extensions' to regenerate this file.
 
+// @sfdc-extension-line SFDC_EXT_APPOINTMENT_SCHEDULING
+import appointmentSchedulingTranslations from '@/extensions/appointment-scheduling/locales/en-GB/translations.json';
 // @sfdc-extension-line SFDC_EXT_BNPL
 import bnplTranslations from '@/extensions/bnpl/locales/en-GB/translations.json';
 // @sfdc-extension-line SFDC_EXT_BOPIS
@@ -36,6 +38,8 @@ import storeLocatorTranslations from '@/extensions/store-locator/locales/en-GB/t
 
 // Namespace is based on the following convention: extPascalCase, and it's the pascal case of the folder name (e.g. store-locator -> extStoreLocator)
 export default {
+    // @sfdc-extension-line SFDC_EXT_APPOINTMENT_SCHEDULING
+    extAppointmentScheduling: appointmentSchedulingTranslations,
     // @sfdc-extension-line SFDC_EXT_BNPL
     extBnpl: bnplTranslations,
     // @sfdc-extension-line SFDC_EXT_BOPIS

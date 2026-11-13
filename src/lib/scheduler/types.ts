@@ -40,16 +40,12 @@ export interface SchedulerCoreConfig {
     apiVersion: string;
     /** Service territory offering the appointments (ServiceTerritory Id). */
     territoryId: string;
-    /** Work type group whose availability is queried (WorkTypeGroup Id). */
+    /** Work type group whose availability is queried (WorkTypeGroup Id). Falls back when a per-territory WorkTypeGroupId__c is absent. */
     workTypeGroupId: string;
-    /** Work type booked on the ServiceAppointment (WorkType Id). */
-    workTypeId: string;
     /** Anchor Account used as `ParentRecordId` (no-Contact correlation design). */
     parentRecordId: string;
     /** Optional AppointmentSchedulingPolicy Id applied to availability lookups. */
     schedulingPolicyId?: string;
-    /** Optional ServiceResource required on the booking (consumes the slot / anti-double-booking). */
-    serviceResourceId?: string;
     /**
      * Optional exact host that authorizes a non-production Core My Domain whose host does not
      * end in the trusted `my.salesforce.com` suffix (e.g. an internal sandbox pod). Sourced
@@ -64,8 +60,13 @@ export interface AvailabilityInput {
     startTime: string;
     /** ISO 8601 end of the search window (Core caps results to 31 days from `startTime`). */
     endTime: string;
-    /** B2C store id (matches ServiceTerritory.StoreId__c on Core). Falls back to config territoryId. */
-    storeId?: string;
+    /** Territory external id (matches ServiceTerritory.ExternalId__c on Core). Falls back to config territoryId. */
+    territoryId?: string;
+    /** WorkType Salesforce Id — kept for reference. */
+    workTypeId?: string;
+    /** WorkTypeGroup.Id carried from WorkTypeOption.workTypeGroupId. Passed directly to the
+     *  Connect REST body — no extra SOQL needed. Falls back to core.workTypeGroupId. */
+    workTypeGroupId?: string;
 }
 
 /** Per-request booking details. Territory/work-type/parent/resource come from {@link SchedulerCoreConfig}. */
@@ -77,17 +78,17 @@ export interface BookingInput {
     /** Shopper email the confirmation is sent to. */
     email: string;
     /**
-     * Correlation id for the shopper, carried on `ServiceAppointment.b2cCustomerId__c`.
+     * Shopper external id, carried on `ServiceAppointment.ExternalId__c`.
      * MUST be derived from the authenticated session (SCAPI customer id), never from client input.
      */
-    b2cCustomerId: string;
+    shopperExternalId: string;
     /** Optional appointment subject. */
     subject?: string;
-    /** Storefront service id (matches WorkType.ServiceId__c on Core). Falls back to config workTypeId. */
-    serviceId?: string;
-    /** B2C store id (matches ServiceTerritory.StoreId__c on Core). Falls back to config territoryId. */
-    storeId?: string;
-    /** Advisor external id (matches ServiceResource.AdvisorId__c on Core). When provided, books a specific
+    /** Work type external id (matches WorkType.ExternalId__c on Core). Falls back to config workTypeId. */
+    workTypeId?: string;
+    /** Territory external id (matches ServiceTerritory.ExternalId__c on Core). Falls back to config territoryId. */
+    territoryId?: string;
+    /** Advisor external id (matches ServiceResource.ExternalId__c on Core). When provided, books a specific
      *  advisor. When absent, the BFF auto-selects the first active Primary resource for the territory. */
     advisorId?: string;
 }

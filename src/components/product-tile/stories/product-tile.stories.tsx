@@ -15,7 +15,7 @@
  */
 import type { ShopperSearch } from '@/scapi';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import ProductTile from '../index';
+import ProductTile from '@/components/product-tile';
 import {
     mockProductSearchItem,
     mockMasterProductHitWithMultipleVariants,
