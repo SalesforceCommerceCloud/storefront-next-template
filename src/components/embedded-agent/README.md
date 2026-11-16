@@ -86,3 +86,9 @@ The default release, `0.1.0`, has SHA-256 `6524a298af02eec7d1b35d69c00c01d04c96b
 After changing the release, reload any already-open storefront tabs. Custom-element registration persists for the life of the page.
 
 Migration: `scriptSourceUrl` is no longer read. Replace it with `cc_embeddedWidgetCdnVersion` (recommended) or move its valid CDN URL to `embeddedWidgetSourceUrl` before deploying this loader. Without the new fields, the loader selects the default release `0.1.0`.
+
+### Script readiness and retry
+
+Concurrent mounts share one readiness wait and reuse the existing script. After 10 seconds without registration, the loader logs one warning but keeps waiting so late registration still renders on the current page. This is a diagnostic threshold, not a hard timeout: a script that never registers stays pending, and a failure missed before listeners attach may require reload. Success or an observed download error clears the timer and error listener. Observed errors reject the attempt and remove the failed tag so a later mount can retry. The published bundle registers its own custom element; there is no separate defineElement fallback.
+
+The loader has a per-file 100% statement, branch, function, and line coverage gate. Full multi-turn storefront E2E validation is separate.

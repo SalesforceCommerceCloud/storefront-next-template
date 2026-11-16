@@ -91,7 +91,18 @@ export default defineConfig((configEnv) =>
                         'src/lib/page-designer/static-registry.ts',
                     ],
                     reportOnFailure: true,
-                    thresholds: { lines: 73, statements: 73, functions: 72, branches: 67 },
+                    thresholds: {
+                        lines: 73,
+                        statements: 73,
+                        functions: 72,
+                        branches: 67,
+                        'src/components/embedded-agent/load-inline-agent-widget.ts': {
+                            lines: 100,
+                            statements: 100,
+                            functions: 100,
+                            branches: 100,
+                        },
+                    },
                 },
             },
         })

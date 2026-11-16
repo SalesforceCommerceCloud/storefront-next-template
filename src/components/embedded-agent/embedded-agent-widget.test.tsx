@@ -16,8 +16,6 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
 import { render, waitFor, act } from '@testing-library/react';
 
-// `readyPromise` is module-scoped in the SUT; reset modules between tests so
-// each test gets a fresh script-load state instead of leaking resolved promises.
 async function loadFreshModule() {
     vi.resetModules();
     return await import('./embedded-agent-widget');
@@ -30,25 +28,22 @@ const baseConfig = {
     esDeveloperName: 'My_Agent',
 } as const;
 
-/**
- * `customElements.whenDefined()` in jsdom returns an unresolved promise until
- * define() is called. Stub it so tests can resolve the ready-promise on demand
- * without actually registering a global custom element (globals leak across files).
- */
 let whenDefinedResolve: () => void;
-let whenDefinedReject: (err: Error) => void;
 let getReturn: CustomElementConstructor | undefined;
 let whenDefinedSpy: ReturnType<typeof vi.spyOn>;
 let getSpy: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
     getReturn = undefined;
-    whenDefinedSpy = vi.spyOn(customElements, 'whenDefined').mockImplementation(() => {
-        return new Promise<CustomElementConstructor>((resolve, reject) => {
-            whenDefinedResolve = () => resolve(class {} as unknown as CustomElementConstructor);
-            whenDefinedReject = reject;
-        });
+    let resolve!: (value: CustomElementConstructor) => void;
+    const registered = new Promise<CustomElementConstructor>((yes) => {
+        resolve = yes;
     });
+    whenDefinedResolve = () => {
+        getReturn = class extends HTMLElement {};
+        resolve(getReturn);
+    };
+    whenDefinedSpy = vi.spyOn(customElements, 'whenDefined').mockReturnValue(registered);
     getSpy = vi.spyOn(customElements, 'get').mockImplementation(() => getReturn);
 });
 
@@ -88,6 +83,9 @@ describe('<EmbeddedAgentWidget>', () => {
         ) as HTMLScriptElement;
         expect(script).not.toBeNull();
         expect(script.async).toBe(true);
+        expect(
+            document.head.querySelector('link[rel="preconnect"][href="https://cdn.search.cimulate.ai"]')
+        ).not.toBeNull();
 
         act(() => whenDefinedResolve());
 
@@ -193,6 +191,37 @@ describe('<EmbeddedAgentWidget>', () => {
         await waitFor(() => expect(el.hasAttribute('pdp-questions')).toBe(false));
     });
 
+    test('late registration mounts all live consumers without navigation or another script', async () => {
+        vi.useFakeTimers();
+        const { EmbeddedAgentWidget } = await loadFreshModule();
+        const first = render(<EmbeddedAgentWidget config={baseConfig} />);
+        const second = render(<EmbeddedAgentWidget config={baseConfig} />);
+        const unmounted = render(<EmbeddedAgentWidget config={baseConfig} />);
+        unmounted.unmount();
+        const script = document.head.querySelector('script[src*="inline-agent-widget"]');
+        try {
+            await act(async () => {
+                vi.advanceTimersByTime(10000);
+                await Promise.resolve();
+            });
+            expect(first.container.querySelector('inline-agent-widget')).toBeNull();
+            await act(async () => {
+                whenDefinedResolve();
+                await Promise.resolve();
+            });
+            expect(first.container.querySelectorAll('inline-agent-widget')).toHaveLength(1);
+            expect(second.container.querySelectorAll('inline-agent-widget')).toHaveLength(1);
+            expect(unmounted.container.querySelector('inline-agent-widget')).toBeNull();
+            expect(document.head.querySelectorAll('script[src*="inline-agent-widget"]')).toHaveLength(1);
+            expect(document.head.querySelector('script[src*="inline-agent-widget"]')).toBe(script);
+            expect(vi.getTimerCount()).toBe(0);
+        } finally {
+            first.unmount();
+            second.unmount();
+            vi.useRealTimers();
+        }
+    });
+
     test('reuses an existing script tag rather than appending a duplicate', async () => {
         const existing = document.createElement('script');
         existing.src = 'https://cdn.search.cimulate.ai/inline-agent-widget/0.1.0/inline-agent-widget.umd.js';
@@ -226,7 +255,6 @@ describe('<EmbeddedAgentWidget>', () => {
         ) as HTMLScriptElement;
         act(() => {
             script.dispatchEvent(new Event('error'));
-            whenDefinedReject(new Error('never defined'));
         });
 
         // Container exists (component rendered) but no custom element inside.
@@ -247,7 +275,6 @@ describe('<EmbeddedAgentWidget>', () => {
 
         act(() => {
             script.dispatchEvent(new Event('error'));
-            whenDefinedReject(new Error('never defined'));
         });
 
         await waitFor(() => {

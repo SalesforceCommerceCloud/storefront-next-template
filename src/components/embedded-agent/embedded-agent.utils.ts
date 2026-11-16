@@ -138,11 +138,3 @@ export function parsePdpQuestions(raw: unknown, maxCount = MAX_PDP_QUESTIONS): s
     }
     return out;
 }
-
-declare global {
-    interface Window {
-        InlineAgentWidget?: {
-            defineElement?: () => void;
-        };
-    }
-}

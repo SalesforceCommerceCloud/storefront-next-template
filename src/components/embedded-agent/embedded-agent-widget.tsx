@@ -15,7 +15,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { createLogger, serializeError } from '@/lib/logger';
+import { loadInlineAgentWidget } from './load-inline-agent-widget';
 import {
     DEFAULT_CAPABILITIES_VERSION,
     DEFAULT_PRODUCT_ID_PATTERN,
@@ -23,53 +23,6 @@ import {
     resolveWidgetScriptSrc,
     type EmbeddedAgentConfig,
 } from './embedded-agent.utils';
-
-const logger = createLogger({ component: 'EmbeddedAgentWidget' });
-
-// Module-scoped so repeated mounts share one load across SPA navigations.
-let readyPromise: Promise<void> | null = null;
-
-function ensureWidget(scriptSrc: string): Promise<void> {
-    if (readyPromise) return readyPromise;
-
-    if (customElements.get('inline-agent-widget')) {
-        readyPromise = Promise.resolve();
-        return readyPromise;
-    }
-
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${scriptSrc}"]`);
-    const script = existing ?? document.createElement('script');
-    if (!existing) {
-        script.src = scriptSrc;
-        script.async = true;
-        document.head.appendChild(script);
-    }
-
-    const pending = new Promise<void>((resolve, reject) => {
-        const onError = (event: Event | string) => {
-            logger.error('inline-agent-widget UMD failed to load', { scriptSrc, ...serializeError(event) });
-            // Drop the failed <script> so the next mount re-requests from scratch
-            // instead of latching onto a stale node that will never fire 'load'.
-            script.remove();
-            readyPromise = null;
-            reject(new Error(`Failed to load inline-agent-widget UMD at ${scriptSrc}`));
-        };
-        script.addEventListener('error', onError, { once: true });
-
-        customElements
-            .whenDefined('inline-agent-widget')
-            .then(() => {
-                if (!customElements.get('inline-agent-widget') && window.InlineAgentWidget?.defineElement) {
-                    window.InlineAgentWidget.defineElement();
-                }
-                resolve();
-            })
-            .catch(reject);
-    });
-
-    readyPromise = pending;
-    return pending;
-}
 
 /** Stable value-key so pdp-questions dep tracks content, not identity. */
 function pdpQuestionsKey(pdpQuestions: string[] | undefined): string {
@@ -110,13 +63,12 @@ export function EmbeddedAgentWidget({ config, pdpQuestions, productName }: Embed
     useEffect(() => {
         if (typeof window === 'undefined' || !configured) return;
         let cancelled = false;
-        ensureWidget(scriptSrc)
+        loadInlineAgentWidget(scriptSrc)
             .then(() => {
                 if (!cancelled) setReady(true);
             })
             .catch(() => {
-                // Error already logged in ensureWidget; leave ready=false so the host
-                // renders nothing visible rather than a broken element shell.
+                // The loader logs registration failures.
             });
         return () => {
             cancelled = true;
@@ -180,7 +132,12 @@ export function EmbeddedAgentWidget({ config, pdpQuestions, productName }: Embed
 
     if (!configured) return null;
 
-    return <div ref={containerRef} data-testid="embedded-agent-widget" />;
+    return (
+        <>
+            <link rel="preconnect" href={new URL(scriptSrc).origin} />
+            <div ref={containerRef} data-testid="embedded-agent-widget" />
+        </>
+    );
 }
 
 export default EmbeddedAgentWidget;
