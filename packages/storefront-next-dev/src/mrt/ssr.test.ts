@@ -43,6 +43,8 @@ vi.mock('./server/index.js', () => ({
 const serverlessExpress = (await import('@codegenie/serverless-express')).default;
 const { createServer } = await import('../server/index');
 
+const okResponse = { statusCode: 200, headers: {}, body: 'ok', isBase64Encoded: false };
+
 describe('mrt/ssr', () => {
     let mockExpressApp: Express;
     let mockServerlessHandler: ReturnType<typeof vi.fn>;
@@ -59,7 +61,7 @@ describe('mrt/ssr', () => {
         } as unknown as Express;
 
         // Mock serverless handler
-        mockServerlessHandler = vi.fn();
+        mockServerlessHandler = vi.fn().mockResolvedValue(okResponse);
         vi.mocked(serverlessExpress).mockReturnValue(mockServerlessHandler as any);
 
         // Mock createServer
@@ -189,15 +191,74 @@ describe('mrt/ssr', () => {
     describe('invokeHandler', () => {
         it('should invoke the handler when it resolves successfully', async () => {
             const { invokeHandler } = await import('./ssr');
-            const mockHandler = vi.fn();
+            const mockHandler = vi.fn().mockResolvedValue(okResponse);
             const handlerPromise = Promise.resolve(mockHandler);
             const testCallback = vi.fn() as Callback;
 
             invokeHandler(handlerPromise, mockEvent, mockContext, testCallback);
 
             await vi.waitFor(() => {
-                expect(mockHandler).toHaveBeenCalledWith(mockEvent, mockContext, testCallback);
+                expect(mockHandler).toHaveBeenCalledWith(mockEvent, mockContext, expect.any(Function));
             });
+        });
+
+        it('should hand the handler a no-op callback so it cannot respond twice', async () => {
+            const { invokeHandler } = await import('./ssr');
+            const mockHandler = vi.fn().mockResolvedValue(okResponse);
+            const testCallback = vi.fn() as Callback;
+
+            invokeHandler(Promise.resolve(mockHandler), mockEvent, mockContext, testCallback);
+
+            await vi.waitFor(() => {
+                expect(testCallback).toHaveBeenCalledTimes(1);
+            });
+            const handlerCallback = mockHandler.mock.calls[0][2];
+            expect(handlerCallback).not.toBe(testCallback);
+            handlerCallback(null, okResponse);
+            expect(testCallback).toHaveBeenCalledTimes(1);
+        });
+
+        it('should call callback with error when the handler resolves without a response', async () => {
+            const { invokeHandler } = await import('./ssr');
+            const mockHandler = vi.fn().mockResolvedValue(undefined);
+            const testCallback = vi.fn() as Callback;
+
+            invokeHandler(Promise.resolve(mockHandler), mockEvent, mockContext, testCallback);
+
+            await vi.waitFor(() => {
+                expect(testCallback).toHaveBeenCalledWith(
+                    expect.objectContaining({ message: 'Serverless Express returned no response' })
+                );
+            });
+            expect(testCallback).toHaveBeenCalledTimes(1);
+        });
+
+        it('should forward the resolved handler result to the callback', async () => {
+            const { invokeHandler } = await import('./ssr');
+            const response = okResponse;
+            const mockHandler = vi.fn().mockResolvedValue(response);
+            const testCallback = vi.fn() as Callback;
+
+            invokeHandler(Promise.resolve(mockHandler), mockEvent, mockContext, testCallback);
+
+            await vi.waitFor(() => {
+                expect(testCallback).toHaveBeenCalledWith(null, response);
+            });
+            expect(testCallback).toHaveBeenCalledTimes(1);
+        });
+
+        it('should call callback with error when the handler rejects', async () => {
+            const { invokeHandler } = await import('./ssr');
+            const handlerError = new Error('render failed');
+            const mockHandler = vi.fn().mockRejectedValue(handlerError);
+            const testCallback = vi.fn() as Callback;
+
+            invokeHandler(Promise.resolve(mockHandler), mockEvent, mockContext, testCallback);
+
+            await vi.waitFor(() => {
+                expect(testCallback).toHaveBeenCalledWith(handlerError);
+            });
+            expect(testCallback).toHaveBeenCalledTimes(1);
         });
 
         it('should call callback with error when handler is null', async () => {
@@ -231,7 +292,7 @@ describe('mrt/ssr', () => {
 
         it('should handle multiple concurrent invocations', async () => {
             const { invokeHandler } = await import('./ssr');
-            const mockHandler = vi.fn();
+            const mockHandler = vi.fn().mockResolvedValue(okResponse);
             const handlerPromise = Promise.resolve(mockHandler);
 
             const callback1 = vi.fn() as Callback;
@@ -250,9 +311,9 @@ describe('mrt/ssr', () => {
                 expect(mockHandler).toHaveBeenCalledTimes(3);
             });
 
-            expect(mockHandler).toHaveBeenCalledWith(mockEvent, context1, callback1);
-            expect(mockHandler).toHaveBeenCalledWith(mockEvent, context2, callback2);
-            expect(mockHandler).toHaveBeenCalledWith(mockEvent, context3, callback3);
+            expect(mockHandler).toHaveBeenCalledWith(mockEvent, context1, expect.any(Function));
+            expect(mockHandler).toHaveBeenCalledWith(mockEvent, context2, expect.any(Function));
+            expect(mockHandler).toHaveBeenCalledWith(mockEvent, context3, expect.any(Function));
         });
     });
 
@@ -275,6 +336,16 @@ describe('mrt/ssr', () => {
             expect(mockBuildLoader).toHaveBeenCalled();
             expect(handler).toBeDefined();
             expect(typeof handler).toBe('function');
+        });
+
+        it('should configure serverless-express with only the app (no resolutionMode)', async () => {
+            const { createHandler } = await import('./ssr');
+            const serverlessExpressMock = (await import('@codegenie/serverless-express')).default;
+            const mockBuildLoader = vi.fn().mockResolvedValue({});
+
+            await createHandler(mockBuildLoader);
+
+            expect(serverlessExpressMock).toHaveBeenCalledWith({ app: mockExpressApp });
         });
 
         it('should propagate errors from build loader', async () => {

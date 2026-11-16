@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { APIGatewayProxyEvent, APIGatewayProxyHandler, Callback, Context } from 'aws-lambda';
+import type {
+    APIGatewayProxyEvent,
+    APIGatewayProxyHandler,
+    APIGatewayProxyResult,
+    Callback,
+    Context,
+} from 'aws-lambda';
 import serverlessExpress from '@codegenie/serverless-express';
 import type { ServerBuild } from 'react-router';
 import { createServer } from '../server/index';
@@ -47,7 +53,7 @@ export const createHandler = async (
         build,
         streaming: false,
     });
-    return serverlessExpress({ app, resolutionMode: 'CALLBACK' });
+    return serverlessExpress({ app });
 };
 
 const getHandler = async (): Promise<typeof handler> => {
@@ -70,14 +76,20 @@ export const invokeHandler = (
     void handlerPromise
         .then((handlerInstance) => {
             if (!handlerInstance) {
-                callback(new Error('Serverless Express handler is not available'));
-                return;
+                throw new Error('Serverless Express handler is not available');
             }
-            void handlerInstance(event, context, callback);
+            // serverless-express 5 settles only through its returned promise and ignores the callback
+            // argument. A no-op satisfies the handler type and guarantees the handler can never respond
+            // through the real callback, which is invoked once below with the resolved result.
+            return handlerInstance(event, context, () => undefined) as Promise<APIGatewayProxyResult>;
         })
-        .catch((error) => {
-            callback(error);
-        });
+        // Two-argument form: a throw inside the success callback must not trigger a second callback.
+        .then(
+            // An undefined result would reach API Gateway as an opaque 502 with no logs.
+            (result) =>
+                result ? callback(null, result) : callback(new Error('Serverless Express returned no response')),
+            (error) => callback(error)
+        );
 };
 
 // Important Constraints:

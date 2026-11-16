@@ -468,8 +468,8 @@ importers:
         specifier: 2.5.3
         version: 2.5.3
       '@codegenie/serverless-express':
-        specifier: 4.17.0
-        version: 4.17.0
+        specifier: 5.0.0
+        version: 5.0.0
       '@h4ad/serverless-adapter':
         specifier: 4.4.0
         version: 4.4.0(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
@@ -1282,9 +1282,9 @@ packages:
   '@codeceptjs/helper@2.0.4':
     resolution: {integrity: sha512-mXRBrgCD134hXK53cU3GDJoY1pU2EY0whkOzyJQUMy8FWyXkNXhNt7W6Q2cdaQ2SU+A5d22VWexHipSdGq2uqg==}
 
-  '@codegenie/serverless-express@4.17.0':
-    resolution: {integrity: sha512-KebLJ34yHNWFoC9D+iF1Ft+6T8hj0mdylP9d2SFERNuVPOc6UqAvgxm9mY6r2V3wCJ+BPpG2vEHihpUtCT3dEg==}
-    engines: {node: '>=18'}
+  '@codegenie/serverless-express@5.0.0':
+    resolution: {integrity: sha512-7+PvSBj4KmPC8PVFDoXZp2cwTr13YIgFsZT55uJhpt7Ml1hJ3IK1Xnw36hr6GYVzLDrEW26oBZt50jamfu6kkw==}
+    engines: {node: '>=24'}
 
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -11145,7 +11145,7 @@ snapshots:
     dependencies:
       typescript: 5.9.2
 
-  '@codegenie/serverless-express@4.17.0': {}
+  '@codegenie/serverless-express@5.0.0': {}
 
   '@colors/colors@1.5.0':
     optional: true
