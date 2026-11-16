@@ -462,6 +462,40 @@ describe('root.tsx', () => {
     describe('ErrorBoundary Component', () => {
         const stackText = 'Error: Test error with stack';
 
+        describe('production mode', () => {
+            beforeEach(async () => {
+                vi.stubEnv('DEV', false);
+                const reactRouter = await import('react-router');
+                vi.mocked(reactRouter.useRouteLoaderData).mockReturnValue({
+                    errorTranslations: enGBRouteError,
+                    appConfig: { i18n: { fallbackLng: 'en-GB' } },
+                    locale: { id: 'en-GB' },
+                    site: mockSite,
+                } as any);
+            });
+
+            afterEach(() => {
+                vi.unstubAllEnvs();
+            });
+
+            it('does not render the stack trace', () => {
+                const error = new Error('Test error');
+                error.stack = stackText;
+
+                const { getByText, queryByText, queryByRole } = render(<ErrorBoundary error={error} />);
+
+                expect(getByText(enGBRouteError.defaultTitle)).toBeInTheDocument();
+                expect(queryByText(stackText)).not.toBeInTheDocument();
+                expect(queryByRole('heading', { name: 'Stack Trace' })).not.toBeInTheDocument();
+            });
+
+            it('does not render thrown string errors', () => {
+                const { queryByText } = render(<ErrorBoundary error={'secret internal detail' as any} />);
+
+                expect(queryByText('secret internal detail')).not.toBeInTheDocument();
+            });
+        });
+
         describe('development mode', () => {
             beforeEach(async () => {
                 const reactRouter = await import('react-router');

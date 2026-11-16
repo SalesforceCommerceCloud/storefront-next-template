@@ -288,10 +288,19 @@ async function createSSRHandler(
             patchedBuild = patchReactRouterBuild(build, bundleId);
         }
 
-        // When source maps are enabled (via MRT's enable_source_maps toggle or local preview),
-        // use 'development' mode so React Router sends unsanitized errors to the browser.
+        // React Router sends unsanitized errors (message and stack) to the browser, including in
+        // `.data` responses, whenever its request handler runs in 'development' mode. That is only
+        // acceptable for local `preview`. The root ErrorBoundary does not render the stack there
+        // (a production build has `import.meta.env.DEV` false), but the stack is still visible in
+        // devtools via the `.data` and hydration payloads. A deployed (Managed Runtime,
+        // `production`) server must never leave sanitized mode, even when MRT's enable_source_maps
+        // toggle adds `--enable-source-maps` to NODE_OPTIONS: server errors can carry secrets (for
+        // example malformed JSON from an environment variable).
         const sourceMapsEnabled = process.env.NODE_OPTIONS?.includes('--enable-source-maps');
-        const requestHandlerMode = sourceMapsEnabled ? 'development' : process.env.NODE_ENV;
+        let requestHandlerMode = sourceMapsEnabled ? 'development' : process.env.NODE_ENV;
+        if (mode === 'production') {
+            requestHandlerMode = 'production';
+        }
 
         return createRequestHandler({
             build: patchedBuild,

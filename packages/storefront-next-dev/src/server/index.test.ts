@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
 import type { ServerBuild } from 'react-router';
 import type { ViteDevServer, DevEnvironment } from 'vite';
@@ -753,12 +753,54 @@ describe('server/index', () => {
 
                 expect(vi.mocked(createRequestHandler)).toHaveBeenCalledWith({
                     build: mockBuild,
-                    mode: process.env.NODE_ENV,
+                    mode: 'production',
                 });
 
                 const ssrHandlerCall = mockExpressApp.all.mock.calls.find((call) => call[0] === '*splat');
                 // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 expect(ssrHandlerCall![1]).toBe(mockHandler);
+            });
+
+            describe('error sanitization with source maps', () => {
+                const originalNodeOptions = process.env.NODE_OPTIONS;
+
+                afterEach(() => {
+                    if (originalNodeOptions === undefined) {
+                        delete process.env.NODE_OPTIONS;
+                    } else {
+                        process.env.NODE_OPTIONS = originalNodeOptions;
+                    }
+                });
+
+                it('keeps production mode (sanitized errors) when source maps are enabled', async () => {
+                    process.env.NODE_OPTIONS = '--enable-source-maps';
+
+                    await createServer({
+                        mode: 'production',
+                        projectDirectory: '/test/project',
+                        build: mockBuild,
+                    });
+
+                    expect(vi.mocked(createRequestHandler)).toHaveBeenCalledWith({
+                        build: mockBuild,
+                        mode: 'production',
+                    });
+                });
+
+                it('uses development mode in local preview when source maps are enabled', async () => {
+                    process.env.NODE_OPTIONS = '--enable-source-maps';
+
+                    await createServer({
+                        mode: 'preview',
+                        projectDirectory: '/test/project',
+                        build: mockBuild,
+                    });
+
+                    expect(vi.mocked(createRequestHandler)).toHaveBeenCalledWith({
+                        build: mockBuild,
+                        mode: 'development',
+                    });
+                });
             });
 
             it('should use patched build when enableAssetUrlPatching is true', async () => {

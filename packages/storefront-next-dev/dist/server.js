@@ -754,7 +754,8 @@ async function createSSRHandler(mode, bundleId, vite, build, enableAssetUrlPatch
 	} else if (build) {
 		let patchedBuild = build;
 		if (enableAssetUrlPatching) patchedBuild = patchReactRouterBuild(build, bundleId);
-		const requestHandlerMode = process.env.NODE_OPTIONS?.includes("--enable-source-maps") ? "development" : process.env.NODE_ENV;
+		let requestHandlerMode = process.env.NODE_OPTIONS?.includes("--enable-source-maps") ? "development" : process.env.NODE_ENV;
+		if (mode === "production") requestHandlerMode = "production";
 		return createRequestHandler({
 			build: patchedBuild,
 			mode: requestHandlerMode

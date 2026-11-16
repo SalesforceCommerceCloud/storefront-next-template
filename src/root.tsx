@@ -511,8 +511,7 @@ function ErrorPageContent({
                                 </pre>
                                 <div className="px-4 py-3 border-t border-border">
                                     <p className="text-xs text-muted-foreground">
-                                        To disable stack traces in production, turn off{' '}
-                                        <code className="text-xs">unstable_devTools</code> in your router config.
+                                        Stack traces are shown in development only.
                                     </p>
                                 </div>
                             </div>
@@ -659,8 +658,14 @@ export function ErrorBoundary({ error }: { error: unknown }) {
         details = error.statusText;
     } else if (error instanceof Error) {
         details = error.message;
-        stack = error.stack;
-    } else if (typeof error === 'string') {
+        // Stack traces are development-only. Source maps are emitted for every build, so a
+        // production stack can expose source paths and server internals to shoppers.
+        if (import.meta.env.DEV) {
+            stack = error.stack;
+        }
+    } else if (typeof error === 'string' && import.meta.env.DEV) {
+        // Thrown strings are not sanitized by React Router, so they can carry server internals.
+        // Show them in development only; production falls back to the generic message.
         details = error;
     }
 
