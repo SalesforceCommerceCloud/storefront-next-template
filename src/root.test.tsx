@@ -693,6 +693,50 @@ describe('root.tsx', () => {
                 expect(getByTestId('error-page')).toBeInTheDocument();
                 expect(queryByText('STORE_CONTEXT_UNAVAILABLE')).not.toBeInTheDocument();
             });
+
+            it.each([
+                [409, 'STORE_CHANGE_CONFIRMATION_REQUIRED', 'Store confirmation required'],
+                [503, 'ACCOUNT_DEFAULT_UNAVAILABLE', 'Your shopping session needs attention'],
+            ])('offers safe recovery for a %s commerce failure before the root loader', (status, code, title) => {
+                const { getByRole, getByText, queryByText } = render(
+                    <ErrorBoundary
+                        error={{
+                            status,
+                            statusText: '',
+                            internal: false,
+                            data: {
+                                code,
+                                recovery: {
+                                    retryUrl: '/MarketStreet/en-US/login',
+                                    logoutAction: '/MarketStreet/en-US/logout',
+                                },
+                            },
+                        }}
+                    />
+                );
+                expect(getByRole('heading', { name: title })).toBeInTheDocument();
+                expect(getByRole('link', { name: 'Try again' })).toHaveAttribute('href', '/MarketStreet/en-US/login');
+                const form = getByRole('button', { name: 'Sign out' }).closest('form');
+                expect(form).toHaveAttribute('method', 'post');
+                expect(form).toHaveAttribute('action', '/MarketStreet/en-US/logout');
+                expect(getByText(/Signing out clears your current basket/)).toBeInTheDocument();
+                expect(queryByText(code)).not.toBeInTheDocument();
+            });
+
+            it('rejects external recovery destinations', () => {
+                const { queryByRole } = render(
+                    <ErrorBoundary
+                        error={{
+                            status: 409,
+                            statusText: '',
+                            internal: false,
+                            data: { recovery: { retryUrl: '//example.org', logoutAction: '/logout' } },
+                        }}
+                    />
+                );
+                expect(queryByRole('link', { name: 'Try again' })).not.toBeInTheDocument();
+                expect(queryByRole('button', { name: 'Sign out' })).not.toBeInTheDocument();
+            });
         });
 
         // W-23493124: a campaign link landing directly on a 404/route error renders ErrorBoundary

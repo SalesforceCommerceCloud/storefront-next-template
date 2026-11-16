@@ -69,6 +69,17 @@ describe('isContextMutation', () => {
 });
 
 describe('isIdentityMutation', () => {
+    test.each([
+        resourceRoutes.verifyPasswordlessOtp,
+        resourceRoutes.passkeyFinishAuthentication,
+        resourceRoutes.postOrderRegister,
+        routes.resetPassword,
+    ])('refreshes identity-dependent reads after %s', (path) => {
+        expect(isIdentityMutation(path)).toBe(true);
+        expect(isIdentityMutation(`/MarketStreet/en-US${path}`)).toBe(true);
+        expect(isAmbientMutation(path)).toBe(true);
+    });
+
     test('matches the unprefixed login path', () => {
         expect(isIdentityMutation(routes.login)).toBe(true);
     });

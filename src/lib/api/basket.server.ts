@@ -17,6 +17,8 @@ import { createApiClients } from '@/lib/api-clients.server';
 import type { RouterContextProvider } from 'react-router';
 import type { ShopperBasketsV2 } from '@/scapi';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { updateBasketResource } from '@/middlewares/basket.server';
 
 /**
  * Get the appropriate currency for basket calculations
@@ -180,5 +182,14 @@ export async function mergeBasket(
             },
         },
     });
-    return basket;
+    if (!basket?.basketId) return basket;
+    // Transfer alone does not establish current registered qualification. Reprice
+    // and replace any hydrated guest resource even when the store is unchanged.
+    try {
+        const calculated = await calculateBasket(context, basket.basketId, getBasketCurrency(context, basket));
+        updateBasketResource(context, calculated);
+        return calculated;
+    } catch (cause) {
+        throw new CommerceContextError('BASKET_QUALIFICATION_UNAVAILABLE', 503, { cause });
+    }
 }

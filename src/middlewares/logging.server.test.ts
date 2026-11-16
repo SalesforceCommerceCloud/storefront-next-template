@@ -60,6 +60,22 @@ describe('logging.server', () => {
     });
 
     describe('loggingMiddleware', () => {
+        it('binds the originating client IP to request audit events', async () => {
+            const { loggingMiddleware, pinoLogger } = await importModule();
+            const child = vi.spyOn(pinoLogger, 'child');
+            await loggingMiddleware(
+                {
+                    context: { get: () => '', set: vi.fn() },
+                    request: new Request('http://localhost/login', {
+                        headers: { 'x-forwarded-for': '203.0.113.5, 10.0.0.1' },
+                    }),
+                } as unknown as Parameters<typeof loggingMiddleware>[0],
+                () => Promise.resolve(new Response())
+            );
+            expect(child).toHaveBeenCalledWith(expect.objectContaining({ clientIp: '203.0.113.5' }));
+            child.mockRestore();
+        });
+
         it('sets a wrapped pino logger on loggerContext and dataStoreLoggerContext', async () => {
             process.env.NODE_ENV = 'development';
             const { loggingMiddleware } = await importModule();

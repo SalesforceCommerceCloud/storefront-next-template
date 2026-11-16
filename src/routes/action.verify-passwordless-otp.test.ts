@@ -27,6 +27,19 @@ import { isTrackingConsentEnabled } from '@/middlewares/auth.utils';
 import { expectStatus } from '@/lib/test-utils';
 import { getCustomerProfileForCheckout } from '@/lib/api/customer.server';
 
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+import { reconcileStoreAfterAuthentication } from '@/extensions/store-locator/lib/store-selection.server';
+import { StoreSelectionError } from '@/extensions/store-locator/lib/store-selection-error';
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+vi.mock('@/extensions/store-locator/lib/store-selection.server', () => ({
+    assertStoreSelectionLoginSession: vi.fn(),
+    prepareStoreSelectionForLogin: vi.fn(() => Promise.resolve(false)),
+    reconcileStoreAfterAuthentication: vi.fn(() => Promise.resolve()),
+}));
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
 vi.mock('@/lib/api-clients.server');
 vi.mock('@/middlewares/auth.server');
 vi.mock('@/lib/api/basket.server');
@@ -86,11 +99,24 @@ describe('action.verify-passwordless-otp', () => {
         } as ActionFunctionArgs;
     };
 
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    it('returns the shared consent handoff before transferring or calculating a basket', async () => {
+        vi.mocked(reconcileStoreAfterAuthentication).mockRejectedValueOnce(
+            new StoreSelectionError('STORE_CHANGE_CONFIRMATION_REQUIRED', 409)
+        );
+        const result = await action(createActionArgs({ otpCode: '12345678', email: 'test@example.com' }));
+        expect(result.init?.status).toBe(409);
+        expect(result.data.code).toBe('STORE_CHANGE_CONFIRMATION_REQUIRED');
+        expect(mockMergeBasket).not.toHaveBeenCalled();
+        expect(mockCalculateBasket).not.toHaveBeenCalled();
+    });
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
     beforeEach(() => {
         vi.clearAllMocks();
 
         mockContext = {} as ActionFunctionArgs['context'];
-        mockExchangeToken = vi.fn();
+        mockExchangeToken = vi.fn().mockResolvedValue({ customer_id: 'customer-id', access_token: 'access-token' });
         mockUpdateCustomerForBasket = vi.fn();
 
         mockCreateApiClients.mockReturnValue({
@@ -314,11 +340,13 @@ describe('action.verify-passwordless-otp', () => {
 
         mockExchangeToken.mockResolvedValue(mockTokenResponse);
         mockMergeBasket.mockResolvedValue(mergedBasket);
+        mockGetBasket.mockResolvedValue({ current: mergedBasket } as never);
 
         const result = await action(createActionArgs({ otpCode: '12345678', email: 'test@example.com' }));
 
         expect(mockMergeBasket).toHaveBeenCalledTimes(1);
         expect(mockMergeBasket).toHaveBeenCalledWith(mockContext);
+        expect(mockCalculateBasket).not.toHaveBeenCalled();
         expect(mockUpdateBasketResource).toHaveBeenCalledWith(mockContext, mergedBasket);
         expect(result.data.success).toBe(true);
     });

@@ -20,6 +20,7 @@ import { getPlatformTracer } from '@salesforce/storefront-next-runtime/otel';
 import { correlationContext } from '@/lib/correlation';
 import { processMetadata, resolveLevel, type Logger } from '@/lib/logger';
 import { loggerContext } from '@/lib/logger.server';
+import { getClientRequestInfo } from '@/lib/client-request-info.server';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -91,6 +92,8 @@ export const loggingMiddleware: MiddlewareFunction<Response> = async ({ request,
         path: url.pathname,
     };
     if (correlationId) bindings.correlationId = correlationId;
+    const { clientIp } = getClientRequestInfo(request);
+    if (clientIp) bindings.clientIp = clientIp;
     const child = pinoLogger.child(bindings);
     const wrapped = wrapPinoLogger(child);
     context.set(loggerContext, wrapped);

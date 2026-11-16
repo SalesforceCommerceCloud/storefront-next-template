@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
-import { RouterContextProvider } from 'react-router';
+import { createStaticHandler, RouterContextProvider } from 'react-router';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { commerceContextRecoveryResponse } from '@/lib/auth/commerce-context-recovery.server';
 import type { SessionData as AuthData } from '@/lib/api/types';
 import { type AuthStorageData, AUTH_TOKEN_INVALID_ERROR, authStorageContext } from '@/middlewares/auth.utils';
 import { performanceTimerContext } from '@/middlewares/performance-metrics';
@@ -1735,6 +1737,72 @@ describe('auth middleware (server)', () => {
             mockCreateCookie.mockImplementation(() => ({
                 serialize: vi.fn().mockResolvedValue('Set-Cookie: mock=value'),
             }));
+        });
+
+        it.each([
+            'GET',
+            'POST',
+        ])('persists committed auth cookies when a %s route renders reconciliation recovery', async (method) => {
+            const guestToken = buildMockTokenResponse();
+            const registeredToken = buildMockTokenResponse({ accessToken: { rcid: 'registered-customer' } });
+            mockParseAllCookies.mockReturnValue({
+                'cc-at': guestToken.access_token,
+                'cc-nx-g': guestToken.refresh_token,
+            });
+            mockCreateCookie.mockImplementation((name: string) => ({
+                serialize: (value: string) => Promise.resolve(`${name}=${encodeURIComponent(value)}`),
+            }));
+            mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(guestToken));
+            const context = new RouterContextProvider();
+            context.set(appConfigContext, structuredClone(mockConfig));
+            const get = context.get.bind(context);
+            vi.spyOn(context, 'get').mockImplementation((key) =>
+                key === performanceTimerContext ? mockPerformanceTimer : get(key)
+            );
+            const request = new Request('https://example.com/login', { method });
+            const failAfterLogin = () => {
+                updateAuth(context, registeredToken);
+                // oxlint-disable-next-line typescript/only-throw-error -- Exercise React Router's thrown response path.
+                throw commerceContextRecoveryResponse(
+                    new CommerceContextError('STORE_CHANGE_CONFIRMATION_REQUIRED', 409),
+                    context
+                );
+            };
+            const router = createStaticHandler([
+                {
+                    id: 'login',
+                    path: '/login',
+                    hasErrorBoundary: true,
+                    middleware: [
+                        (args, next) =>
+                            authMiddleware(args, async () => {
+                                const response = await next();
+                                if (!(response instanceof Response)) throw new Error('Expected server response');
+                                return response;
+                            }),
+                    ],
+                    loader: failAfterLogin,
+                    action: failAfterLogin,
+                },
+            ]);
+            const result = await router.query(request, {
+                requestContext: context,
+                generateMiddlewareResponse: async (query) => {
+                    const document = await query(request);
+                    if (document instanceof Response) return document;
+                    return new Response('Recovery page', {
+                        status: document.statusCode,
+                        headers: { 'Content-Type': 'text/html' },
+                    });
+                },
+            });
+            if (!(result instanceof Response)) throw new Error('Expected document response');
+            expect(result.status).toBe(409);
+            expect(result.headers.get('Content-Type')).toBe('text/html');
+            expect(result.headers.getSetCookie()).toContain(
+                `cc-at=${encodeURIComponent(registeredToken.access_token)}`
+            );
+            expect(getAuth(context).userType).toBe('registered');
         });
 
         it('should parse cookies and reconstruct auth data from separate cookies', async () => {

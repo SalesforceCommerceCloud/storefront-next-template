@@ -17,6 +17,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ActionFunctionArgs } from 'react-router';
 import { action } from './action.post-order-register';
 import { registerCustomer } from '@/lib/api/auth/register.server';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { createApiClients } from '@/lib/api-clients.server';
 import { isPasswordValid } from '@/lib/utils';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
@@ -89,6 +91,13 @@ function createArgs(formFields: Record<string, string>): ActionFunctionArgs {
     };
 }
 
+async function submitRegistration(formFields: Record<string, string>) {
+    const result = await action(createArgs(formFields));
+    expect(result).not.toBeInstanceOf(Response);
+    if (result instanceof Response) throw new Error('Expected registration form result');
+    return result;
+}
+
 const validFormData = {
     email: 'guest@example.com',
     firstName: 'Jane',
@@ -106,7 +115,7 @@ describe('action.post-order-register', () => {
 
     describe('validation', () => {
         it('returns error when email is missing', async () => {
-            const result = await action(createArgs({ password: 'x', confirmPassword: 'x' }));
+            const result = await submitRegistration({ password: 'x', confirmPassword: 'x' });
 
             expect(result.success).toBe(false);
             expect(result.error).toBe(t('signup:allFieldsRequired'));
@@ -114,21 +123,21 @@ describe('action.post-order-register', () => {
         });
 
         it('returns error when password is missing', async () => {
-            const result = await action(createArgs({ email: 'a@b.com', confirmPassword: 'x' }));
+            const result = await submitRegistration({ email: 'a@b.com', confirmPassword: 'x' });
 
             expect(result.success).toBe(false);
             expect(result.error).toBe(t('signup:allFieldsRequired'));
         });
 
         it('returns error when confirmPassword is missing', async () => {
-            const result = await action(createArgs({ email: 'a@b.com', password: 'x' }));
+            const result = await submitRegistration({ email: 'a@b.com', password: 'x' });
 
             expect(result.success).toBe(false);
             expect(result.error).toBe(t('signup:allFieldsRequired'));
         });
 
         it('returns error when passwords do not match', async () => {
-            const result = await action(createArgs({ ...validFormData, confirmPassword: 'Different1!' }));
+            const result = await submitRegistration({ ...validFormData, confirmPassword: 'Different1!' });
 
             expect(result.success).toBe(false);
             expect(result.error).toBe(t('signup:passwordsDoNotMatch'));
@@ -137,7 +146,7 @@ describe('action.post-order-register', () => {
         it('returns error when password is not secure', async () => {
             mockIsPasswordValid.mockReturnValue(false);
 
-            const result = await action(createArgs(validFormData));
+            const result = await submitRegistration(validFormData);
 
             expect(result.success).toBe(false);
             expect(result.error).toBe(t('signup:passwordNotSecure'));
@@ -145,6 +154,32 @@ describe('action.post-order-register', () => {
     });
 
     describe('registration', () => {
+        it.each([
+            ['ACCOUNT_DEFAULT_UNAVAILABLE', 503],
+            ['STORE_CHANGE_CONFIRMATION_REQUIRED', 409],
+        ] as const)('preserves the %s handoff after registration', async (code, status) => {
+            const change =
+                status === 409
+                    ? {
+                          success: false as const,
+                          code: 'STORE_CHANGE_CONFIRMATION_REQUIRED' as const,
+                          current: { id: 'A' },
+                          candidate: { id: 'B' },
+                      }
+                    : undefined;
+            mockRegisterCustomer.mockRejectedValueOnce(new CommerceContextError(code, status, { change }));
+
+            const args = createArgs(validFormData);
+            const result = await action(args);
+
+            expect(result).toBeInstanceOf(Response);
+            if (!(result instanceof Response)) throw new Error('Expected commerce reconciliation response');
+            expect(result.status).toBe(status);
+            expect(result.headers.get('Cache-Control')).toBe('private, no-store');
+            expect(await result.json()).toEqual(change ?? { success: false, code });
+            expect(createApiClients).not.toHaveBeenCalled();
+        });
+
         it('calls registerCustomer with correct parameters', async () => {
             mockRegisterCustomer.mockResolvedValue({ success: true });
 
@@ -164,7 +199,7 @@ describe('action.post-order-register', () => {
         it('returns success when registration succeeds', async () => {
             mockRegisterCustomer.mockResolvedValue({ success: true });
 
-            const result = await action(createArgs(validFormData));
+            const result = await submitRegistration(validFormData);
 
             expect(result.success).toBe(true);
             expect(result.error).toBeUndefined();
@@ -176,7 +211,7 @@ describe('action.post-order-register', () => {
                 error: 'Email already exists',
             });
 
-            const result = await action(createArgs(validFormData));
+            const result = await submitRegistration(validFormData);
 
             expect(result.success).toBe(false);
             expect(result.error).toBe('Email already exists');
@@ -185,7 +220,7 @@ describe('action.post-order-register', () => {
         it('returns generic error when registration fails without message', async () => {
             mockRegisterCustomer.mockResolvedValue({ success: false });
 
-            const result = await action(createArgs(validFormData));
+            const result = await submitRegistration(validFormData);
 
             expect(result.success).toBe(false);
             expect(result.error).toBe(t('errors:genericTryAgain'));

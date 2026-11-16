@@ -18,6 +18,14 @@ import type { ActionFunctionArgs } from 'react-router';
 import { loginRegisteredUser } from './standard-login.server';
 import { loginRegisteredUser as authLoginRegisteredUser, updateAuth } from '@/middlewares/auth.server';
 
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+vi.mock('@/extensions/store-locator/lib/store-selection.server', () => ({
+    assertStoreSelectionLoginSession: vi.fn(),
+    prepareStoreSelectionForLogin: vi.fn(() => Promise.resolve(false)),
+    reconcileStoreAfterAuthentication: vi.fn(() => Promise.resolve()),
+}));
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
 vi.mock('@/middlewares/auth.server', () => ({
     loginRegisteredUser: vi.fn(),
     updateAuth: vi.fn(),

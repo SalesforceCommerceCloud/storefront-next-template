@@ -20,6 +20,9 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { createTestContext } from '@/lib/test-utils';
 import config from '@/config/server';
+import { getAuth } from '@/middlewares/auth.server';
+
+vi.mock('@/middlewares/auth.server', () => ({ getAuth: vi.fn() }));
 
 // Mock dependencies
 vi.mock('@/lib/api-clients.server', () => ({
@@ -44,6 +47,7 @@ describe('shopper-context API', () => {
         vi.clearAllMocks();
 
         mockContext = createTestContext();
+        vi.mocked(getAuth).mockReturnValue({ usid: 'session-a' });
         mockShopperContextClient = {
             createShopperContext: vi.fn().mockResolvedValue(undefined),
             updateShopperContext: vi.fn().mockResolvedValue({ data: { sourceCode: 'current-session' } }),
@@ -80,6 +84,7 @@ describe('shopper-context API', () => {
             const first = getShopperContextHelpers(mockContext, 'session-a');
             expect(await first.resolve()).toEqual({ sourceCode: 'session-a' });
 
+            vi.mocked(getAuth).mockReturnValue({ usid: 'session-b' });
             const second = getShopperContextHelpers(mockContext, 'session-b');
             expect(second).not.toBe(first);
             expect(await second.resolve()).toEqual({ sourceCode: 'session-b' });
@@ -90,6 +95,7 @@ describe('shopper-context API', () => {
             });
 
             // Returning to an earlier identity must not resurrect its pre-transition snapshot.
+            vi.mocked(getAuth).mockReturnValue({ usid: 'session-a' });
             const third = getShopperContextHelpers(mockContext, 'session-a');
             expect(third).not.toBe(first);
             expect(third).not.toBe(second);

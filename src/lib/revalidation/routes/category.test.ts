@@ -61,6 +61,13 @@ describe.each(LISTINGS)('$name shouldRevalidate', ({ listing, otherListing }) =>
     const args = (overrides: Partial<ShouldRevalidateFunctionArgs> = {}): ShouldRevalidateFunctionArgs =>
         buildArgs({ currentUrl: new URL(listing), nextUrl: new URL(listing), ...overrides });
 
+    test.each([
+        resourceRoutes.verifyPasswordlessOtp,
+        resourceRoutes.passkeyFinishAuthentication,
+    ])('refreshes listing qualification after %s without changing store or URL', (formAction) => {
+        expect(shouldRevalidate(args({ formMethod: 'POST', formAction }))).toBe(true);
+    });
+
     describe('client-only param toggles', () => {
         test('skips when only the filters panel flag changes', () => {
             expect(

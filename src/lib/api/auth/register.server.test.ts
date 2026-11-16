@@ -16,11 +16,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ActionFunctionArgs } from 'react-router';
 import { registerCustomer } from './register.server';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 import { loginRegisteredUser } from './standard-login.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();
+const logger = vi.hoisted(() => ({ info: vi.fn() }));
+vi.mock('@/lib/logger.server', () => ({ getLogger: () => logger }));
 
 // Mock standard-login module
 vi.mock('./standard-login.server', () => ({
@@ -39,6 +42,34 @@ vi.mock('@/lib/api-clients.server', () => ({
 }));
 
 describe('registerCustomer', () => {
+    it.each([
+        ['ACCOUNT_DEFAULT_UNAVAILABLE', 503],
+        ['STORE_CHANGE_CONFIRMATION_REQUIRED', 409],
+    ] as const)('propagates %s after account creation and auto-login', async (code, status) => {
+        const error = new CommerceContextError(code, status);
+        mockRegisterCustomer.mockResolvedValue({ data: { customerId: 'created-customer' } });
+        mockLoginRegisteredUser.mockRejectedValueOnce(error);
+
+        await expect(
+            registerCustomer(mockContext, {
+                customer: { login: 'shopper@example.com', firstName: 'Jane', lastName: 'Doe' },
+                password: 'SecurePassword123!',
+            })
+        ).rejects.toBe(error);
+        expect(mockRegisterCustomer).toHaveBeenCalledOnce();
+        expect(mockLoginRegisteredUser).toHaveBeenCalledOnce();
+        expect(logger.info).toHaveBeenCalledWith(
+            'Account created',
+            expect.objectContaining({
+                actor: 'created-customer',
+                action: 'register_customer',
+                target: 'created-customer',
+                outcome: 'success',
+            })
+        );
+        expect(logger.info).toHaveBeenCalledBefore(mockLoginRegisteredUser);
+    });
+
     const mockContext = {} as unknown as ActionFunctionArgs['context'];
     const mockLoginRegisteredUser = vi.mocked(loginRegisteredUser);
     const mockCreateApiClients = vi.mocked(createApiClients);
@@ -63,7 +94,7 @@ describe('registerCustomer', () => {
                 password: 'SecurePassword123!',
             };
 
-            mockRegisterCustomer.mockResolvedValue({});
+            mockRegisterCustomer.mockResolvedValue({ data: { customerId: 'created-customer' } });
             mockLoginRegisteredUser.mockResolvedValue({ success: true });
 
             const result = await registerCustomer(mockContext, registrationData);
@@ -111,7 +142,7 @@ describe('registerCustomer', () => {
                 c_customArray: ['item1', 'item2'],
             };
 
-            mockRegisterCustomer.mockResolvedValue({});
+            mockRegisterCustomer.mockResolvedValue({ data: { customerId: 'created-customer' } });
             mockLoginRegisteredUser.mockResolvedValue({ success: true });
 
             const result = await registerCustomer(mockContext, registrationData);

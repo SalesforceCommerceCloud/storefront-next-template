@@ -19,6 +19,8 @@ import type { CustomQueryParameters } from '@/lib/api/types';
 import { createApiClients } from '@/lib/api-clients.server';
 import { loginRegisteredUser } from './standard-login.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { getLogger } from '@/lib/logger.server';
 
 // Helper to extract custom parameters (keys starting with c_ with allowed value types)
 const extractCustomParameters = (parameters: {
@@ -50,12 +52,19 @@ export const registerCustomer = async (
         // The registerCustomer endpoint currently does not support custom parameters
         // so we make sure not to send any custom params here
         const clients = createApiClients(context);
-        await clients.shopperCustomers.registerCustomer({
+        const { data: createdCustomer } = await clients.shopperCustomers.registerCustomer({
             params: {},
             body: {
                 customer,
                 password,
             },
+        });
+        getLogger(context).info('Account created', {
+            actor: createdCustomer.customerId,
+            action: 'register_customer',
+            target: createdCustomer.customerId,
+            timestamp: new Date().toISOString(),
+            outcome: 'success',
         });
 
         // After registration, log the user in automatically
@@ -76,7 +85,10 @@ export const registerCustomer = async (
             // Login after registration failed
             throw new Error(t('errors:autoLoginAfterRegistrationFailed'));
         }
-    } catch {
+    } catch (error) {
+        // Registration and authentication may already have succeeded. Preserve
+        // the reconciliation status and consent handoff for the route boundary.
+        if (error instanceof CommerceContextError) throw error;
         const errorMessage = t('errors:genericTryAgain');
 
         return {

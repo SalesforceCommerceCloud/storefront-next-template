@@ -81,6 +81,13 @@ describe('productShouldRevalidate', () => {
     });
 
     describe('action axis — mutations that feed the loader revalidate', () => {
+        test.each([
+            resourceRoutes.verifyPasswordlessOtp,
+            resourceRoutes.passkeyFinishAuthentication,
+        ])('refreshes registered product qualification after %s', (formAction) => {
+            expect(productShouldRevalidate(buildArgs({ formMethod: 'POST', formAction }))).toBe(true);
+        });
+
         test('resolves a product-relevant action even when formAction is absolute with a query string', () => {
             expect(
                 productShouldRevalidate(

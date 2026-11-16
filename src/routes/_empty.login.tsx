@@ -20,6 +20,9 @@ import { usePasskeyLogin } from '@/hooks/use-passkey-login';
 import type { Route } from './+types/_empty.login';
 import { Link } from '@/components/link';
 import { Card } from '@/components/ui/card';
+import { completeRegisteredLogin } from '@/lib/api/auth/complete-registered-login.server';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { commerceContextRecoveryResponse } from '@/lib/auth/commerce-context-recovery.server';
 import { routes } from '@/route-paths';
 import { SeoMeta } from '@/components/seo-meta';
 import { buildCanonicalUrl } from '@/utils/canonical-url';
@@ -42,12 +45,7 @@ import { FormSubmitButton } from '@/components/buttons/form-submit-button';
 import { getTurnstileSiteKey, getTurnstileMode, isTurnstileEnabled } from '@/lib/turnstile/utils';
 
 // services
-import {
-    getAuth,
-    authorizePasswordless,
-    getPasswordLessAccessToken,
-    updateAuth as updateAuthServer,
-} from '@/middlewares/auth.server';
+import { getAuth, authorizePasswordless, getPasswordLessAccessToken } from '@/middlewares/auth.server';
 import { loginRegisteredUser } from '@/lib/api/auth/standard-login.server';
 import { authorizeIDP } from '@/lib/api/auth/social-login.server';
 import { mergeBasket } from '@/lib/api/basket.server';
@@ -120,17 +118,13 @@ async function completePasswordlessLogin(
     guestWishlistSnapshot: Awaited<ReturnType<typeof captureGuestWishlistSnapshot>>
 ): Promise<Response> {
     const logger = getLogger(context);
-    const tokenResponse = await getPasswordLessAccessToken(context, token, loginId);
-
-    // Update session with auth data. userType, customerId, usid, and the refresh-token
-    // expiry cap all derive from the access-token JWT inside updateAuth; no follow-up
-    // call is needed.
-    updateAuthServer(context, tokenResponse);
+    await completeRegisteredLogin(context, () => getPasswordLessAccessToken(context, token, loginId));
 
     // Merge guest basket with registered user basket
     try {
         await mergeBasket(context);
     } catch (basketError) {
+        if (basketError instanceof CommerceContextError) throw basketError;
         logger.error('Login: basket merge failed during passwordless login', { error: basketError });
     }
 
@@ -229,6 +223,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         try {
             return await completePasswordlessLogin(context, token, loginId, returnUrl, guestWishlistSnapshot);
         } catch (verifyError) {
+            // React Router renders thrown route Responses.
+            if (verifyError instanceof CommerceContextError)
+                throw commerceContextRecoveryResponse(verifyError, context);
             // Auto-verification failed - show error with OTP form
             logger.warn('Login: passwordless auto-verification failed');
             const errorMessage = extractErrorMessage(verifyError);
@@ -455,6 +452,7 @@ export async function action({
             try {
                 return await completePasswordlessLogin(context, token, email, returnUrl, guestWishlistSnapshot);
             } catch (error) {
+                if (error instanceof CommerceContextError) throw error;
                 logger.warn('Login: passwordless verification with confirmed email failed');
                 return { success: false, error: t(getPasswordlessErrorMessageKey(extractErrorMessage(error))) };
             }
@@ -480,6 +478,7 @@ export async function action({
                     updateBasketResource(context, mergedBasket);
                 }
             } catch (error) {
+                if (error instanceof CommerceContextError) throw error;
                 logger.error('Login: basket merge failed', { error });
             }
 
@@ -577,7 +576,9 @@ export async function action({
 
             return prepareRedirect(buildUrlFromContext(routes.home, context));
         }
-    } catch {
+    } catch (error) {
+        // React Router renders thrown route Responses.
+        if (error instanceof CommerceContextError) throw commerceContextRecoveryResponse(error, context);
         return { success: false, error: genericError };
     }
 }

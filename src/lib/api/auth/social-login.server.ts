@@ -31,6 +31,9 @@ import {
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { trackingConsentToBoolean } from '@/types/tracking-consent';
 import { getLogger } from '@/lib/logger.server';
+import { completeRegisteredLogin } from '@/lib/api/auth/complete-registered-login.server';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { commerceContextRecoveryResponse } from '@/lib/auth/commerce-context-recovery.server';
 import { routes } from '@/route-paths';
 
 export interface AuthorizeIDPParams {
@@ -136,26 +139,22 @@ export const loginIDPUser = async (
         }
 
         // SDK automatically extracts dwsid from Set-Cookie header
-        const result = await clients.auth.social.exchangeCode({
-            code,
-            codeVerifier,
-            redirectUri: parameters.redirectURI,
-            ...(usid && { usid: String(usid) }),
-            ...(dnt !== undefined && { dnt }),
-        });
-
-        // Update session with user tokens and info (similar to standard login). userType,
-        // customerId, usid, and the refresh-token expiry cap all derive from the access-token
-        // JWT inside updateAuth. The PKCE code verifier is wiped because updateAuth clears
-        // non-meta storage keys before writing the new token-response state — no follow-up
-        // call is needed.
-        updateAuth(context, result);
+        await completeRegisteredLogin(context, () =>
+            clients.auth.social.exchangeCode({
+                code,
+                codeVerifier,
+                redirectUri: parameters.redirectURI,
+                ...(usid && { usid: String(usid) }),
+                ...(dnt !== undefined && { dnt }),
+            })
+        );
 
         logger.info('SocialLogin: IDP login succeeded');
         return {
             success: true,
         };
     } catch (error) {
+        if (error instanceof CommerceContextError) throw error;
         logger.error('SocialLogin: code exchange failed', { error });
         return {
             success: false,
@@ -207,6 +206,7 @@ export async function handleSocialLoginLanding({ request, context }: LoaderFunct
                 try {
                     await mergeBasket(context);
                 } catch (err) {
+                    if (err instanceof CommerceContextError) throw err;
                     logger.error('SocialLogin: basket merge failed', { error: err });
                 }
 
@@ -241,6 +241,8 @@ export async function handleSocialLoginLanding({ request, context }: LoaderFunct
             return redirect(`${routes.login}?error=${encodeURIComponent(errorMessage)}`);
         }
     } catch (error) {
+        // oxlint-disable-next-line typescript/only-throw-error -- A document callback must render the router error boundary.
+        if (error instanceof CommerceContextError) throw commerceContextRecoveryResponse(error, context);
         logger.error('SocialLogin: landing handler failed', { error });
         const errorMessage = t('errors:genericTryAgain');
         return redirect(`${routes.login}?error=${encodeURIComponent(errorMessage)}`);

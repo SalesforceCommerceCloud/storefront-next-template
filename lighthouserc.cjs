@@ -102,10 +102,19 @@ const lighthousePaths = (process.env.LIGHTHOUSE_PATHS ?? '/,/cart')
 module.exports = {
     ci: {
         collect: {
-            numberOfRuns: 5,
-            startServerCommand: 'cross-env NODE_OPTIONS=--conditions=dev-data-store pnpm start --port 3001',
-            startServerReadyPattern: 'SFCC Storefront Next',
-            startServerReadyTimeout: 30000,
+            // Seven runs per URL: scores swing widely run to run (0.28-0.90 observed on one URL), and the
+            // median of seven is far less sensitive to a single cold or CPU-starved run than the median of five.
+            numberOfRuns: 7,
+            // CI starts and warms the server itself (LIGHTHOUSE_SERVER_RUNNING=true) so the first measured
+            // run does not pay for cold SSR. Locally, LHCI boots the server.
+            ...(process.env.LIGHTHOUSE_SERVER_RUNNING === 'true'
+                ? {}
+                : {
+                      startServerCommand:
+                          'cross-env NODE_OPTIONS=--conditions=dev-data-store pnpm start --port 3001',
+                      startServerReadyPattern: 'SFCC Storefront Next',
+                      startServerReadyTimeout: 30000,
+                  }),
             url: lighthousePaths.map((pathname) => new URL(pathname, lighthouseBaseUrl).toString()),
             settings: {
                 chromeFlags: '--no-sandbox --disable-dev-shm-usage',
@@ -137,6 +146,10 @@ module.exports = {
             // (home) / ~0.75 (product) on every branch — no code change can fix it here.
             // RESTORE to 0.96 once the cookie is removed at the CDN. Mirrors the retail-app
             // baseline (`template-retail-rsc-app/lighthouserc.cjs`, #2074).
+            //
+            // LHCI tests each `matchingUrlPattern` against the page's final URL after redirects. A URL
+            // that matches no pattern is scored but never asserted, so a pattern must name the route
+            // segment the app actually serves (`/p/` for products, `/c/` for categories).
             assertMatrix: [
                 {
                     matchingUrlPattern: '.*\\/$',
@@ -159,7 +172,7 @@ module.exports = {
                     },
                 },
                 {
-                    matchingUrlPattern: '.*category.*',
+                    matchingUrlPattern: '/c/',
                     assertions: {
                         'is-on-https': 'off',
                         'redirects-http': 'off',
@@ -179,7 +192,7 @@ module.exports = {
                     },
                 },
                 {
-                    matchingUrlPattern: '.*product.*',
+                    matchingUrlPattern: '/p/',
                     assertions: {
                         'is-on-https': 'off',
                         'redirects-http': 'off',

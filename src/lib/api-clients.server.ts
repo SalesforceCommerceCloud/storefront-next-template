@@ -41,6 +41,7 @@ import {
     type ScapiClientProvenance,
 } from '@/lib/scapi/non-personalized-response.server';
 import { defaultNonPersonalizedResponseClassifier } from '@/lib/scapi/non-personalized-response-policy.server';
+import { onAuthenticationChange } from '@/lib/auth/commerce-context.server';
 
 type CustomClientConfigEntry = {
     key: string;
@@ -66,6 +67,7 @@ const DWSID_HEADER = 'sfdc_dwsid';
 
 /** Module-local registry. See `createApiClients` for lifetime/TTL semantics. */
 const REGISTRIES = new WeakMap<ContextLike, Map<string, Promise<Response>>>();
+const AUTH_INVALIDATION_REGISTERED = new WeakSet<ContextLike>();
 
 /**
  * Query keys whose values are global SCAPI request parameters (site/locale routing). They are not PII or secrets and
@@ -193,12 +195,13 @@ export function getMrtRequestTimeoutMs(): number | null {
  * The registry is `WeakMap<RouterContextProvider, Map>`. Two requests cannot share entries even when their
  * URLs are byte-identical, and the per-request Map is dropped at end-of-request when the context is GC'd.
  *
- * # Cache key — what is keyed and what is not
+ * # Cache key
  *
- * The key is `METHOD URL` with sorted query params. It does **not** include request headers or request body.
- * That is safe for this template because every header that varies between callers is derived from per-request context
- * inside `openapi-fetch` middleware, not from per-call state. Two concurrent calls under the same context produce
- * identical headers, and collapsing them into one network call doesn't change semantics.
+ * Reads vary by method, URL and the current server-side authentication tuple
+ * (access token, customer ID and user type). A login, logout or refresh inside
+ * one BFF request cannot reuse reads authorized by the previous credential.
+ * Request bodies and other headers are not included. Middleware-derived headers
+ * must otherwise remain consistent for callers under the same authentication.
  *
  * Customer extensions that add headers via custom middleware MUST follow the same discipline: derive header
  * values from `context`, not from per-call arguments. A header derived from per-call state (e.g. a multi-tenant
@@ -253,6 +256,10 @@ export function getMrtRequestTimeoutMs(): number | null {
  * @param baseFetch - The underlying `fetch` implementation to call when a cache miss occurs.
  */
 export function createDedupedFetch(context: ContextLike, baseFetch: typeof fetch): typeof fetch {
+    if (!AUTH_INVALIDATION_REGISTERED.has(context)) {
+        AUTH_INVALIDATION_REGISTERED.add(context);
+        onAuthenticationChange(context, () => REGISTRIES.delete(context));
+    }
     return async (input, init) => {
         const isRequest = input instanceof Request;
         const method = (init?.method ?? (isRequest ? input.method : 'GET')).toString().toUpperCase();
@@ -287,7 +294,18 @@ export function createDedupedFetch(context: ContextLike, baseFetch: typeof fetch
         }
 
         const map = getRegistry(context);
-        const key = buildDedupeKey(method, url);
+        // Authentication can change inside a single action (including with the
+        // same USID). Never reuse a guest/previous-account response afterwards.
+        const storage = context.get(authStorageContext);
+        const headers = new Headers(init?.headers ?? (isRequest ? input.headers : undefined));
+        const key = JSON.stringify([
+            storage?.get('accessToken'),
+            storage?.get('customerId'),
+            storage?.get('userType'),
+            headers.get('Authorization'),
+            headers.get(DWSID_HEADER),
+            buildDedupeKey(method, url),
+        ]);
 
         const cached = map.get(key);
         if (cached) {

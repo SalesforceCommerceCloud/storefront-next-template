@@ -17,7 +17,7 @@ import { RouterContextProvider } from 'react-router';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Middleware } from '@/scapi';
-import { authContext } from '@/middlewares/auth.utils';
+import { authContext, authStorageContext } from '@/middlewares/auth.utils';
 import { loggerContext } from '@/lib/logger.server';
 import { createMaintenance, maintenanceContext } from '@/lib/maintenance';
 import type { Logger } from '@/lib/logger';
@@ -117,6 +117,13 @@ const createContext = (logger?: Logger) => {
     context.set(authContext, {
         ref: Promise.resolve({ accessToken: 'access-token', userType: 'guest' as const }),
     });
+    context.set(
+        authStorageContext,
+        new Map([
+            ['accessToken', 'access-token'],
+            ['userType', 'guest'],
+        ])
+    );
     context.set(maintenanceContext, createMaintenance());
     context.set(
         loggerContext,

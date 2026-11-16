@@ -21,6 +21,7 @@ import {
 } from 'react-router';
 import { ApiError, type AuthResponse, AuthTokenInvalidError, type ShopperLogin } from '@/scapi';
 import type { SessionData as AuthData } from '@/lib/api/types';
+import { invalidateAuthenticatedCommerce } from '@/lib/auth/commerce-context.server';
 import { clearStorage, type StorageErrorData, unpackStorage } from '@/lib/storage-map';
 import {
     authContext,
@@ -1659,6 +1660,7 @@ export const updateAuth = (
 
     // Update storage data
     updateAuthStorageData(storage, updater, appConfig);
+    invalidateAuthenticatedCommerce(context);
     cache.ref = storage.has('error') ? undefined : unpackStorage<AuthData>(storage);
     promiseCache.ref = storage.has('error')
         ? createAuthPromise(context, undefined)
@@ -1675,6 +1677,7 @@ export const destroyAuth = (context: Readonly<RouterContextProvider>): void => {
 
     // Unset storage data
     clearStorage(storage);
+    invalidateAuthenticatedCommerce(context);
     cache.ref = undefined;
     promiseCache.ref = createAuthPromise(context, cache.ref);
 
@@ -1692,6 +1695,7 @@ export const flashAuth = (context: Readonly<RouterContextProvider>, message?: st
 
     // Unset storage data
     clearStorage(storage);
+    invalidateAuthenticatedCommerce(context);
     cache.ref = undefined;
     promiseCache.ref = createAuthPromise(context, cache.ref);
 
@@ -1720,6 +1724,7 @@ export const clearInvalidSessionAndRestoreGuest = async (context: Readonly<Route
 
     // Clear in-memory storage and cache
     clearStorage(storage);
+    invalidateAuthenticatedCommerce(context);
     cache.ref = undefined;
 
     try {

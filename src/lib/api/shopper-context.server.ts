@@ -18,6 +18,8 @@ import { createShopperContextHelpers, type ShopperContext as ShopperContextNames
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { createApiClients } from '@/lib/api-clients.server';
+import { onAuthenticationChange, CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { getAuth } from '@/middlewares/auth.server';
 
 /**
  * ShopperContext request body type — uses the API schema directly.
@@ -91,18 +93,63 @@ export async function createShopperContext(
 
 const shopperContextHelpersContext = createContext<{
     usid: string;
+    accessToken: string | undefined;
+    customerId: string | undefined;
+    userType: string | undefined;
     helpers: ReturnType<typeof createShopperContextHelpers>;
 } | null>(null);
 
-/** Share native state within a request, discarding the snapshot when its shopper session changes. */
+/**
+ * Share native state within a request. Logical identity epochs survive token
+ * refresh, but helpers are credential-bound: reacquire them after any auth change.
+ * An in-flight helper rejects rather than publishing a previous credential's result.
+ */
 export function getShopperContextHelpers(context: Readonly<RouterContextProvider>, usid: string) {
+    const session = getAuth(context);
+    const { accessToken, customerId, userType } = session;
+    if (session.usid !== usid) throw new CommerceContextError('STORE_CONTEXT_IDENTITY_CHANGED', 409);
     let cached = context.get(shopperContextHelpersContext);
-    if (!cached || cached.usid !== usid) {
+    if (
+        !cached ||
+        cached.usid !== usid ||
+        cached.accessToken !== accessToken ||
+        cached.customerId !== customerId ||
+        cached.userType !== userType
+    ) {
+        const native = createShopperContextHelpers({ client: createApiClients(context).shopperContext, usid });
+        const assertIdentity = () => {
+            const current = getAuth(context);
+            if (
+                current.usid !== usid ||
+                current.accessToken !== accessToken ||
+                current.customerId !== customerId ||
+                current.userType !== userType
+            ) {
+                throw new CommerceContextError('STORE_CONTEXT_IDENTITY_CHANGED', 409);
+            }
+        };
         cached = {
             usid,
-            helpers: createShopperContextHelpers({ client: createApiClients(context).shopperContext, usid }),
+            accessToken,
+            customerId,
+            userType,
+            helpers: {
+                resolve: async () => {
+                    assertIdentity();
+                    const result = await native.resolve();
+                    assertIdentity();
+                    return result;
+                },
+                update: async (body, options) => {
+                    assertIdentity();
+                    const result = await native.update(body, options);
+                    assertIdentity();
+                    return result;
+                },
+            },
         };
         context.set(shopperContextHelpersContext, cached);
+        onAuthenticationChange(context, () => context.set(shopperContextHelpersContext, null));
     }
     return cached.helpers;
 }

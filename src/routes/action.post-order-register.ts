@@ -15,6 +15,7 @@
  */
 import type { Route } from './+types/action.post-order-register';
 import { registerCustomer } from '@/lib/api/auth/register.server';
+import { CommerceContextError, commerceContextErrorResponse } from '@/lib/auth/commerce-context.server';
 import { isPasswordValid } from '@/lib/utils';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { getLogger } from '@/lib/logger.server';
@@ -37,7 +38,7 @@ export type PostOrderRegisterResponse = {
  * Registers the guest shopper with their order email and chosen password,
  * then auto-logs them in and saves order data (addresses, payment) to the new profile.
  */
-export async function action({ request, context }: Route.ActionArgs): Promise<PostOrderRegisterResponse> {
+export async function action({ request, context }: Route.ActionArgs): Promise<PostOrderRegisterResponse | Response> {
     const logger = getLogger(context);
     const { t } = getTranslation(context);
 
@@ -74,8 +75,12 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Po
             email,
         },
         password,
+    }).catch((error: unknown) => {
+        if (error instanceof CommerceContextError) return commerceContextErrorResponse(error);
+        throw error;
     });
 
+    if (result instanceof Response) return result;
     if (!result.success) {
         logger.warn('PostOrderRegister: registration failed');
         return { success: false, error: result.error || t('errors:genericTryAgain') };

@@ -27,13 +27,19 @@ import { siteContext, type SiteContext } from '@salesforce/storefront-next-runti
 import { ApiError, AuthTokenInvalidError, type NativeShopperContext } from '@/scapi';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { createApiClients } from '@/lib/api-clients.server';
-import { getAuth } from '@/middlewares/auth.server';
+import { getAuth, updateAuth } from '@/middlewares/auth.server';
+import { completeRegisteredLogin } from '@/lib/api/auth/complete-registered-login.server';
+import { buildMockTokenResponse } from '@/test-utils/auth';
 import {
     selectedStoreMiddleware,
     selectedStoreContext,
     createSelectedStoreCookie,
 } from '@/extensions/store-locator/middlewares/selected-store.server';
 import {
+    assertStoreSelectionLoginSession,
+    prepareStoreSelectionForLogin,
+    reconcileStoreAfterAuthentication,
+    prepareStoreSelectionForLogout,
     storeSelectionMiddleware,
     selectStore,
     validateSelectedStore,
@@ -48,7 +54,7 @@ import storeSelectionFixture from '@/extensions/store-locator/tests/fixtures/sto
 import { processMetadata } from '@/lib/logger';
 
 vi.mock('@/lib/api-clients.server', () => ({ createApiClients: vi.fn() }));
-vi.mock('@/middlewares/auth.server', () => ({ getAuth: vi.fn() }));
+vi.mock('@/middlewares/auth.server', () => ({ getAuth: vi.fn(), updateAuth: vi.fn() }));
 vi.mock('@salesforce/storefront-next-runtime/config', async (original) => ({
     ...(await original<typeof import('@salesforce/storefront-next-runtime/config')>()),
     getConfig: vi.fn(),
@@ -69,6 +75,7 @@ const patch = vi.fn();
 const create = vi.fn();
 const basketRead = vi.fn();
 const storeRead = vi.fn();
+const defaultRead = vi.fn();
 const missing = () =>
     new ApiError({
         status: 404,
@@ -143,6 +150,22 @@ const responseCookies = (response: Response) =>
         .getSetCookie()
         .map((value) => value.split(';')[0])
         .join('; ');
+const mergeCookies = (...headers: string[]) =>
+    [
+        ...new Map(
+            headers.flatMap((header) =>
+                header
+                    .split('; ')
+                    .filter(Boolean)
+                    .map((cookie) => {
+                        const separator = cookie.indexOf('=');
+                        return [cookie.slice(0, separator), cookie.slice(separator + 1)] as const;
+                    })
+            )
+        ).entries(),
+    ]
+        .map(([name, value]) => `${name}=${value}`)
+        .join('; ');
 async function remembered(id = 'A', inventoryId = 'inventory-a') {
     return (
         await createSelectedStoreCookie(context()).serialize(encodeURIComponent(JSON.stringify({ id, inventoryId })))
@@ -165,6 +188,8 @@ async function clientPreferences(
 
 beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(updateAuth).mockReset();
+    defaultRead.mockResolvedValue({ data: { preferredStoreId: 'B' } });
     enabled = true;
     cleanup = false;
     items = [];
@@ -205,9 +230,12 @@ beforeEach(() => {
                 },
             }) as ReturnType<typeof getConfig>
     );
-    vi.mocked(getAuth).mockReturnValue({ usid: 'guest-usid', customerId: 'guest-customer' } as ReturnType<
-        typeof getAuth
-    >);
+    vi.mocked(getAuth).mockReturnValue({
+        usid: 'guest-usid',
+        customerId: 'guest-customer',
+        userType: 'guest',
+        accessToken: 'guest-token',
+    } as ReturnType<typeof getAuth>);
     vi.mocked(createApiClients).mockReturnValue({
         shopperContext: {
             updateShopperContext: patch,
@@ -215,7 +243,7 @@ beforeEach(() => {
             getShopperContext: vi.fn(() => Promise.resolve({ data: structuredClone(native) })),
         },
         shopperStores: { getStores: storeRead },
-        shopperCustomers: { getCustomerBaskets: basketRead },
+        shopperCustomers: { getCustomerBaskets: basketRead, getCustomer: defaultRead },
     } as unknown as ReturnType<typeof createApiClients>);
 });
 
@@ -744,7 +772,7 @@ describe('native store selection', () => {
         const next = vi.fn();
         const { response } = await run(next);
         expect(response.status).toBe(502);
-        expect(await response.json()).toEqual({ success: false, code: 'INVALID_NATIVE_STORE_CONTEXT' });
+        expect(await response.json()).toMatchObject({ success: false, code: 'INVALID_NATIVE_STORE_CONTEXT' });
         expect(next).not.toHaveBeenCalled();
         const metadata = logger.error.mock.calls.at(-1)?.[1];
         const error = metadata.error;
@@ -1296,5 +1324,592 @@ describe('legacy flag off selection', () => {
         expect(ctx.get(selectedStoreContext)).toBeNull();
         expect(storeRead).not.toHaveBeenCalled();
         expect(patch).not.toHaveBeenCalled();
+    });
+});
+
+describe.each([true, false])('authentication reconciliation (native=%s)', (nativeEnabled) => {
+    const registered = () =>
+        vi.mocked(getAuth).mockReturnValue({
+            usid: 'guest-usid',
+            customerId: 'registered-customer',
+            userType: 'registered',
+            accessToken: 'registered-token',
+        } as ReturnType<typeof getAuth>);
+    beforeEach(() => {
+        enabled = nativeEnabled;
+    });
+
+    it.each([
+        { hasItems: true, tokenUsid: 'guest-usid', responseUsid: 'other-usid', allowed: true },
+        { hasItems: true, tokenUsid: 'other-usid', responseUsid: 'guest-usid', allowed: false },
+        { hasItems: false, tokenUsid: 'other-usid', responseUsid: 'other-usid', allowed: true },
+    ])('gates basket session migration using JWT identity: %j', ({ hasItems, tokenUsid, responseUsid, allowed }) => {
+        const token = buildMockTokenResponse({
+            accessToken: { usid: tokenUsid, rcid: 'registered-customer' },
+            usid: responseUsid,
+        });
+        const check = () => assertStoreSelectionLoginSession(context(), token, hasItems);
+        if (allowed) expect(check).not.toThrow();
+        else expect(check).toThrow('STORE_CHANGE_CONFIRMATION_REQUIRED');
+    });
+
+    async function login(ctx: RouterContextProvider) {
+        const sourceHasItems = await prepareStoreSelectionForLogin(ctx);
+        registered();
+        try {
+            await reconcileStoreAfterAuthentication(ctx, sourceHasItems);
+            return new Response('ok');
+        } catch (error) {
+            if (!(error instanceof StoreSelectionError)) throw error;
+            return Response.json({ code: error.code }, { status: error.status });
+        }
+    }
+
+    it('allows registered credential renewal without reading baskets with the old credential', async () => {
+        registered();
+        const result = await run(async (ctx) => {
+            basketRead.mockClear();
+            basketRead.mockRejectedValue(new Error('credential invalidated by email/password change'));
+            expect(await prepareStoreSelectionForLogin(ctx)).toBe(false);
+            expect(basketRead).not.toHaveBeenCalled();
+        });
+        expect(result.response.status).toBe(200);
+    });
+
+    it('refreshes the guest source guard after a failed login when the shopper empties the basket', async () => {
+        const seedCookie = await remembered();
+        const first = await run(async (ctx) => {
+            items = [{ productId: 'sku' }];
+            expect(await prepareStoreSelectionForLogin(ctx)).toBe(true);
+            // Credential exchange failed; the shopper is still a guest.
+            return new Response('Invalid credentials', { status: 401 });
+        }, seedCookie);
+        items = [];
+        const next = await run(login, mergeCookies(seedCookie, responseCookies(first.response)));
+        expect(next.response.status).toBe(200);
+        expect(next.ctx.get(selectedStoreContext)?.id).toBe('B');
+    });
+
+    it('retains the active store during same-account credential renewal with a new USID', async () => {
+        registered();
+        const first = await run(async (ctx) => {
+            await selectStore(ctx, { id: 'A' });
+        });
+        defaultRead.mockClear();
+        const result = await run(async (ctx) => {
+            const sourceHasItems = await prepareStoreSelectionForLogin(ctx);
+            vi.mocked(getAuth).mockReturnValue({ ...getAuth(ctx), usid: 'renewed-usid', accessToken: 'renewed-token' });
+            native = {};
+            await reconcileStoreAfterAuthentication(ctx, sourceHasItems);
+        }, responseCookies(first.response));
+        expect(result.response.status).toBe(200);
+        expect(result.ctx.get(selectedStoreContext)?.id).toBe('A');
+        expect(defaultRead).not.toHaveBeenCalled();
+        if (nativeEnabled) expect(native.assignmentQualifiers?.store).toBe('store-a');
+    });
+
+    it.each([
+        'resolve',
+        'guard write',
+    ])('does not publish a changed USID with a nonempty guest source before destination %s can fail', async (failure) => {
+        const guest = getAuth(context());
+        registered();
+        vi.mocked(getAuth).mockReturnValue({ ...getAuth(context()), usid: 'destination-usid' });
+        await run(async (ctx) => {
+            await selectStore(ctx, { id: 'B' });
+        });
+        const destination = structuredClone(native);
+        native = {};
+        vi.mocked(getAuth).mockReturnValue(guest);
+        const restored = await run(undefined, await remembered());
+        items = [{ productId: 'sku' }];
+        const update = patch.getMockImplementation();
+        if (!update) throw new Error('Expected native update implementation');
+        const destinationFailure = vi.fn();
+        vi.mocked(updateAuth).mockImplementation(() => {
+            registered();
+            vi.mocked(getAuth).mockReturnValue({ ...getAuth(context()), usid: 'destination-usid' });
+            native = destination;
+            patch.mockImplementation((args: { body: NativeShopperContext }) => {
+                const matches =
+                    failure === 'resolve'
+                        ? Object.keys(args.body).length === 0
+                        : args.body.customQualifiers?.[STORE_SELECTION_QUALIFIER] != null;
+                if (matches) {
+                    destinationFailure();
+                    return Promise.reject(new Error('destination unavailable'));
+                }
+                return update(args);
+            });
+        });
+        const transfer = vi.fn();
+        const first = await run(async (ctx) => {
+            try {
+                await completeRegisteredLogin(ctx, () =>
+                    Promise.resolve(
+                        buildMockTokenResponse({
+                            accessToken: { usid: 'destination-usid', rcid: 'registered-customer' },
+                        })
+                    )
+                );
+                transfer();
+                return new Response('unexpected completion');
+            } catch (error) {
+                if (!(error instanceof Error) || !('status' in error)) throw error;
+                return new Response('recovery required', { status: Number(error.status) });
+            }
+        }, responseCookies(restored.response));
+        expect(first.response.status).toBe(409);
+        expect(updateAuth).not.toHaveBeenCalled();
+        expect(destinationFailure).not.toHaveBeenCalled();
+        expect(transfer).not.toHaveBeenCalled();
+        expect(getAuth(first.ctx)).toEqual(guest);
+        const handler = vi.fn();
+        const retry = await run(handler); // Lose every preference cookie.
+        expect(retry.response.status).toBe(200);
+        expect(getAuth(retry.ctx)).toEqual(guest);
+        expect(retry.ctx.get(selectedStoreContext)?.id ?? null).toBe(nativeEnabled ? 'A' : null);
+        if (nativeEnabled) {
+            expect(native.assignmentQualifiers?.store).toBe('store-a');
+            expect(JSON.parse(native.customQualifiers?.[STORE_SELECTION_QUALIFIER] ?? '{}').pendingSourceBasket).toBe(
+                true
+            );
+        }
+    });
+
+    it('reads the new account default when registered authentication changes the customer', async () => {
+        registered();
+        const first = await run(async (ctx) => {
+            await selectStore(ctx, { id: 'A' });
+        });
+        const result = await run(async (ctx) => {
+            const sourceHasItems = await prepareStoreSelectionForLogin(ctx);
+            vi.mocked(getAuth).mockReturnValue({
+                ...getAuth(ctx),
+                customerId: 'another-customer',
+                accessToken: 'another-token',
+            });
+            await reconcileStoreAfterAuthentication(ctx, sourceHasItems);
+        }, responseCookies(first.response));
+        expect(result.ctx.get(selectedStoreContext)?.id).toBe('B');
+        expect(defaultRead).toHaveBeenCalledOnce();
+        expect(defaultRead).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: { path: { customerId: 'another-customer' }, query: { expand: ['none'] } },
+            })
+        );
+    });
+
+    it('keeps an explicit guest choice, refreshes identity/revision, and never reads or writes a default', async () => {
+        let before: unknown;
+        const { ctx, response } = await run(async (requestContext) => {
+            await selectStore(requestContext, { id: 'A' });
+            before = requestContext.get(shoppingContext);
+            items = [{ productId: 'sku' }];
+            return login(requestContext);
+        });
+        expect(response.status).toBe(200);
+        expect(ctx.get(selectedStoreContext)?.id).toBe('A');
+        expect(ctx.get(shoppingContext)?.identityEpoch).not.toBe((before as { identityEpoch: string }).identityEpoch);
+        expect(ctx.get(shoppingContext)?.contextRevision).not.toBe(
+            (before as { contextRevision: string }).contextRevision
+        );
+        expect(defaultRead).not.toHaveBeenCalled();
+        if (!nativeEnabled) expect(patch).not.toHaveBeenCalled();
+    });
+
+    it('uses the saved default instead of a restored cookie', async () => {
+        const { ctx, response } = await run(login, await remembered());
+        expect(response.status).toBe(200);
+        expect(ctx.get(selectedStoreContext)?.id).toBe('B');
+        expect(ctx.get(shoppingContext)?.selectionOrigin).toBe('remembered');
+        expect(defaultRead).toHaveBeenCalledWith({
+            params: { path: { customerId: 'registered-customer' }, query: { expand: ['none'] } },
+        });
+    });
+
+    it('uses the account default on a second device without cookies', async () => {
+        const { ctx } = await run(login);
+        expect(ctx.get(selectedStoreContext)?.id).toBe('B');
+    });
+
+    it('uses the account default after the preference session expires', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-11-12T00:00:00Z'));
+        const selected = await runSelectionAction('A');
+        vi.setSystemTime(new Date('2026-11-13T00:00:00Z'));
+
+        const { ctx, response } = await run(login, responseCookies(selected.response));
+
+        expect(response.status).toBe(200);
+        expect(ctx.get(selectedStoreContext)?.id).toBe('B');
+        expect(ctx.get(shoppingContext)?.selectionOrigin).toBe('remembered');
+        expect(defaultRead).toHaveBeenCalledOnce();
+    });
+
+    it.each([null, 'deleted-store', '  '])('follows the unselected entry policy for default %s', async (id) => {
+        defaultRead.mockResolvedValue({ data: { preferredStoreId: id } });
+        const { ctx, response } = await run(login, await remembered());
+        expect(response.status).toBe(200);
+        expect(ctx.get(selectedStoreContext)).toBeNull();
+    });
+
+    it('surfaces a failed read and retries under the new identity before the next commerce handler', async () => {
+        defaultRead.mockRejectedValueOnce(new Error('profile unavailable'));
+        const first = await run(login, await remembered());
+        expect(first.response.status).toBe(503);
+        expect(await first.response.json()).toEqual({ code: 'ACCOUNT_DEFAULT_UNAVAILABLE' });
+        expect(first.ctx.get(shoppingContext)).toBeNull();
+        const next = await run(undefined, responseCookies(first.response));
+        expect(next.response.status).toBe(200);
+        expect(next.ctx.get(selectedStoreContext)?.id).toBe('B');
+    });
+
+    it('blocks a different default before changing a source basket and keeps the boundary on retry', async () => {
+        const first = await run(
+            async (ctx) => {
+                items = [{ productId: 'sku' }];
+                return login(ctx);
+            },
+            await remembered()
+        );
+        expect(first.response.status).toBe(409);
+        expect(await first.response.json()).toEqual({ code: 'STORE_CHANGE_CONFIRMATION_REQUIRED' });
+        expect(first.ctx.get(selectedStoreContext)?.id).toBe('A');
+        if (nativeEnabled) expect(native.assignmentQualifiers?.store).toBe('store-a');
+        const handler = vi.fn();
+        const next = await run(handler, responseCookies(first.response));
+        expect(next.response.status).toBe(409);
+        expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('retains the source-basket barrier across a profile failure when the registered basket is empty', async () => {
+        defaultRead.mockRejectedValueOnce(new TypeError('fetch failed'));
+        const first = await run(
+            async (ctx) => {
+                basketRead.mockResolvedValueOnce({ data: { baskets: [{ productItems: [{ productId: 'sku' }] }] } });
+                basketRead.mockResolvedValue({ data: { baskets: [] } });
+                return login(ctx);
+            },
+            await remembered()
+        );
+        expect(first.response.status).toBe(503);
+        const next = await run(undefined, responseCookies(first.response));
+        expect(next.response.status).toBe(409);
+        expect(await next.response.json()).toMatchObject({ code: 'STORE_CHANGE_CONFIRMATION_REQUIRED' });
+    });
+
+    it.skipIf(!nativeEnabled).each(['resolve', 'guard write'])(
+        'retains source-basket consent when the post-auth native %s fails',
+        async (failure) => {
+            const restored = await run(undefined, await remembered());
+            const first = await run(async (ctx) => {
+                basketRead.mockResolvedValueOnce({ data: { baskets: [{ productItems: [{ productId: 'sku' }] }] } });
+                basketRead.mockResolvedValue({ data: { baskets: [] } });
+                const sourceHasItems = await prepareStoreSelectionForLogin(ctx);
+                registered();
+                const update = patch.getMockImplementation();
+                if (!update) throw new Error('Expected native update implementation');
+                let failed = false;
+                patch.mockImplementation((args: { body: NativeShopperContext }) => {
+                    const matches =
+                        failure === 'resolve'
+                            ? Object.keys(args.body).length === 0
+                            : args.body.customQualifiers?.[STORE_SELECTION_QUALIFIER] != null;
+                    if (matches && !failed) {
+                        failed = true;
+                        return Promise.reject(new Error('native unavailable after authentication'));
+                    }
+                    return update(args);
+                });
+                try {
+                    await reconcileStoreAfterAuthentication(ctx, sourceHasItems);
+                    return new Response('unexpected completion');
+                } catch (error) {
+                    return Response.json({ error: String(error) }, { status: 502 });
+                }
+            }, responseCookies(restored.response));
+            expect(first.response.status).toBeGreaterThanOrEqual(400);
+            const handler = vi.fn();
+            const next = await run(handler, responseCookies(first.response));
+            expect(next.response.status).toBe(409);
+            expect(handler).not.toHaveBeenCalled();
+            expect(native.assignmentQualifiers?.store).toBe('store-a');
+        }
+    );
+
+    it.skipIf(!nativeEnabled)('drains native qualifiers before reconciling an identity mismatch', async () => {
+        const first = await run(undefined, await remembered());
+        registered();
+        enabled = false;
+        cleanup = true;
+        const handler = vi.fn();
+        const result = await run(handler, responseCookies(first.response));
+        expect(result.response.status).toBe(200);
+        expect(handler).toHaveBeenCalledOnce();
+        expect(native.assignmentQualifiers).toEqual({ campaign: 'summer' });
+        expect(native.customQualifiers).toEqual({ device: 'mobile' });
+        expect(result.ctx.get(selectedStoreContext)?.id).toBe('B');
+    });
+
+    it.skipIf(!nativeEnabled)(
+        'does not drain mismatched identity qualifiers without nonempty-basket consent',
+        async () => {
+            const first = await run(undefined, await remembered());
+            registered();
+            enabled = false;
+            cleanup = true;
+            items = [{ productId: 'sku' }];
+            const handler = vi.fn();
+            const result = await run(handler, responseCookies(first.response));
+            expect(result.response.status).toBe(409);
+            expect(handler).not.toHaveBeenCalled();
+            expect(native.assignmentQualifiers?.store).toBe('store-a');
+        }
+    );
+
+    it.skipIf(!nativeEnabled)(
+        'retains a matching replica-only source-basket guard from an older deployment',
+        async () => {
+            const first = await run(undefined, await remembered());
+            const rawRecord = native.customQualifiers?.[STORE_SELECTION_QUALIFIER];
+            if (!rawRecord) throw new Error('Expected committed native selection');
+            const record = JSON.parse(rawRecord);
+            registered();
+            const cookie = responseCookies(first.response).replace(
+                /storeChoiceRecord_GroceryNext=[^;]+/,
+                `storeChoiceRecord_GroceryNext=${encodeURIComponent(JSON.stringify({ ...record, pendingSourceBasket: true }))}`
+            );
+            const handler = vi.fn();
+            const result = await run(handler, cookie);
+            expect(result.response.status).toBe(409);
+            expect(handler).not.toHaveBeenCalled();
+            expect(native.assignmentQualifiers?.store).toBe('store-a');
+        }
+    );
+
+    it.skipIf(!nativeEnabled)(
+        'retains source consent when login changes USID to an existing native context',
+        async () => {
+            await run(async (ctx) => {
+                await selectStore(ctx, { id: 'B' });
+            });
+            const previousNative = structuredClone(native);
+            native = {};
+            const restored = await run(undefined, await remembered());
+            const first = await run(async (ctx) => {
+                basketRead.mockResolvedValueOnce({ data: { baskets: [{ productItems: [{ productId: 'sku' }] }] } });
+                basketRead.mockResolvedValue({ data: { baskets: [] } });
+                const sourceHasItems = await prepareStoreSelectionForLogin(ctx);
+                registered();
+                vi.mocked(getAuth).mockReturnValue({ ...getAuth(ctx), usid: 'different-registered-usid' });
+                native = previousNative;
+                patch.mockRejectedValueOnce(new Error('post-auth resolve unavailable'));
+                try {
+                    await reconcileStoreAfterAuthentication(ctx, sourceHasItems);
+                    return new Response('unexpected completion');
+                } catch {
+                    return new Response('retry later', { status: 502 });
+                }
+            }, responseCookies(restored.response));
+            const handler = vi.fn();
+            const next = await run(handler, responseCookies(first.response));
+            expect(next.response.status).toBe(409);
+            expect(handler).not.toHaveBeenCalled();
+            expect(native.assignmentQualifiers?.store).toBe('store-b');
+        }
+    );
+
+    it.skipIf(!nativeEnabled)(
+        'preserves an existing new-USID selection while guarding its separate guest source without cookies',
+        async () => {
+            await run(async (ctx) => {
+                await selectStore(ctx, { id: 'B' });
+            });
+            const previousNative = structuredClone(native);
+            native = {};
+            const restored = await run(undefined, await remembered());
+            const first = await run(async (ctx) => {
+                basketRead.mockResolvedValueOnce({ data: { baskets: [{ productItems: [{ productId: 'sku' }] }] } });
+                basketRead.mockResolvedValue({ data: { baskets: [] } });
+                const sourceHasItems = await prepareStoreSelectionForLogin(ctx);
+                registered();
+                vi.mocked(getAuth).mockReturnValue({ ...getAuth(ctx), usid: 'different-registered-usid' });
+                native = previousNative;
+                try {
+                    await reconcileStoreAfterAuthentication(ctx, sourceHasItems);
+                    return new Response('unexpected completion');
+                } catch (error) {
+                    if (!(error instanceof StoreSelectionError)) throw error;
+                    return Response.json({ code: error.code }, { status: error.status });
+                }
+            }, responseCookies(restored.response));
+            expect(first.response.status).toBe(409);
+            expect(native.assignmentQualifiers?.store).toBe('store-b');
+            expect(JSON.parse(native.customQualifiers?.[STORE_SELECTION_QUALIFIER] ?? '{}')).toMatchObject({
+                storeId: 'B',
+                pendingSourceStoreId: 'A',
+                pendingSourceBasket: true,
+            });
+            const handler = vi.fn();
+            const next = await run(handler); // Replica loss must not discard the source guard.
+            expect(next.response.status).toBe(409);
+            expect(handler).not.toHaveBeenCalled();
+            expect(native.assignmentQualifiers?.store).toBe('store-b');
+            enabled = false;
+            cleanup = true;
+            const logout = await run(
+                (ctx) => {
+                    prepareStoreSelectionForLogout(ctx);
+                    return new Response('signed out');
+                },
+                '',
+                new Request('https://example.com/GroceryNext/en-US/logout', { method: 'POST' })
+            );
+            const recordCookie = responseCookies(logout.response).match(/storeChoiceRecord_GroceryNext=([^;]+)/)?.[1];
+            if (!recordCookie) throw new Error('Expected preserved guest intent');
+            expect(JSON.parse(decodeURIComponent(recordCookie))).toMatchObject({ storeId: 'A' });
+            expect(JSON.parse(decodeURIComponent(recordCookie)).pendingSourceBasket).toBeUndefined();
+        }
+    );
+
+    it('can sign out of pending consent and restore a fresh guest after existing basket destruction', async () => {
+        const seedCookie = await remembered();
+        const first = await run(async (ctx) => {
+            items = [{ productId: 'sku' }];
+            return login(ctx);
+        }, seedCookie);
+        expect(first.response.status).toBe(409);
+        const pendingCookies = mergeCookies(seedCookie, responseCookies(first.response));
+        const logout = await run(
+            (ctx) => {
+                prepareStoreSelectionForLogout(ctx);
+                return new Response('signed out');
+            },
+            pendingCookies,
+            new Request('https://example.com/GroceryNext/en-US/logout', {
+                method: 'POST',
+                headers: { Cookie: pendingCookies },
+            })
+        );
+        expect(logout.response.status).toBe(200);
+        // The real logout action destroys auth and the basket before responding.
+        items = [];
+        native = {};
+        vi.mocked(getAuth).mockReturnValue({
+            userType: 'guest',
+            usid: 'fresh-guest-usid',
+            customerId: 'fresh-guest-customer',
+            accessToken: 'fresh-token',
+        } as ReturnType<typeof getAuth>);
+        const guest = await run(undefined, mergeCookies(pendingCookies, responseCookies(logout.response)));
+        expect(guest.response.status).toBe(200);
+        expect(guest.ctx.get(selectedStoreContext)?.id).toBe('A');
+        expect(guest.ctx.get(shoppingContext)?.selectionOrigin).toBe('remembered');
+    });
+
+    it('checks the registered basket even when the guest has none', async () => {
+        basketRead.mockImplementation(() =>
+            Promise.resolve({
+                data: {
+                    baskets: [
+                        {
+                            productItems:
+                                vi.mocked(getAuth).mock.results.at(-1)?.value.userType === 'registered'
+                                    ? [{ productId: 'sku' }]
+                                    : [],
+                        },
+                    ],
+                },
+            })
+        );
+        const { response, ctx } = await run(login, await remembered());
+        expect(response.status).toBe(409);
+        expect(ctx.get(selectedStoreContext)?.id).toBe('A');
+    });
+
+    it('preserves explicit provenance through token refresh without rereading the account default', async () => {
+        const selected = await run((ctx) => selectStore(ctx, { id: 'A' }).then(() => undefined));
+        vi.mocked(getAuth).mockReturnValue({
+            usid: 'guest-usid',
+            customerId: 'guest-customer',
+            userType: 'guest',
+            accessToken: 'refreshed-guest-token',
+        } as ReturnType<typeof getAuth>);
+        const refreshed = await run(login, responseCookies(selected.response));
+        expect(refreshed.ctx.get(selectedStoreContext)?.id).toBe('A');
+        expect(defaultRead).not.toHaveBeenCalled();
+    });
+
+    it('does not make a remembered cookie explicit through refresh', async () => {
+        const restored = await run(undefined, await remembered());
+        const loggedIn = await run(login, responseCookies(restored.response));
+        expect(loggedIn.ctx.get(selectedStoreContext)?.id).toBe('B');
+        expect(defaultRead).toHaveBeenCalledTimes(1);
+    });
+
+    it('restores store intent on a fresh guest without registered native eligibility', async () => {
+        const loggedIn = await run(login, await remembered());
+        const loggedOut = await run((ctx) => {
+            prepareStoreSelectionForLogout(ctx);
+            return new Response('logout');
+        }, responseCookies(loggedIn.response));
+        // Existing logout destroys auth/basket; the following request obtains a fresh USID.
+        vi.mocked(getAuth).mockReturnValue({
+            usid: 'new-guest-usid',
+            customerId: 'new-guest',
+            userType: 'guest',
+            accessToken: 'new-guest-token',
+        } as ReturnType<typeof getAuth>);
+        native = {};
+        defaultRead.mockClear();
+        const guest = await run(
+            undefined,
+            [responseCookies(loggedIn.response), responseCookies(loggedOut.response)].join('; ')
+        );
+        expect(guest.ctx.get(selectedStoreContext)?.id).toBe('B');
+        expect(guest.ctx.get(shoppingContext)?.selectionOrigin).toBe('remembered');
+        expect(defaultRead).not.toHaveBeenCalled();
+        expect(native.customerGroupIds).toBeUndefined();
+        expect(native.sourceCode).toBeUndefined();
+    });
+});
+
+describe('logout store intent', () => {
+    it('uses the committed native store when the browser has a stale selection cookie', async () => {
+        const first = await run(async (ctx) => {
+            await selectStore(ctx, { id: 'A' });
+        });
+        const oldCookies = responseCookies(first.response);
+        await run(async (ctx) => {
+            await selectStore(ctx, { id: 'B' });
+        }, oldCookies);
+        const request = new Request('https://example.com/MarketStreet/en-US/logout', {
+            method: 'POST',
+            headers: { Cookie: oldCookies },
+        });
+        const result = await run(
+            (ctx) => {
+                prepareStoreSelectionForLogout(ctx);
+                return new Response('logout');
+            },
+            oldCookies,
+            request
+        );
+        expect(result.ctx.get(selectedStoreContext)?.id).toBe('B');
+    });
+
+    it('allows logout when native reconciliation is unavailable', async () => {
+        const cookie = await remembered();
+        patch.mockRejectedValueOnce(new Error('native unavailable'));
+        const request = new Request('https://example.com/MarketStreet/en-US/logout', {
+            method: 'POST',
+            headers: { Cookie: cookie },
+        });
+        const handler = vi.fn(() => new Response('logout'));
+        const result = await run(handler, cookie, request);
+        expect(result.response.status).toBe(200);
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(result.ctx.get(shoppingContext)).toBeNull();
     });
 });

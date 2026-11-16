@@ -89,9 +89,18 @@ describe('home shouldRevalidate', () => {
     // asserted separately below.
     const FORM_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
     const LOADER_RELEVANT: string[] = [resourceRoutes.setSiteContext, resourceRoutes.updateShopperContext];
+    const AUTH_COMPLETION: string[] = [
+        resourceRoutes.verifyPasswordlessOtp,
+        resourceRoutes.passkeyFinishAuthentication,
+        resourceRoutes.postOrderRegister,
+    ];
+    test.each(AUTH_COMPLETION)('refreshes identity-dependent data after %s', (formAction) => {
+        expect(shouldRevalidate(buildArgs({ formMethod: 'POST', formAction }))).toBe(true);
+    });
     const resourceRouteMethodCombos = Object.entries(resourceRoutes)
         .filter(([, formAction]) => !LOADER_RELEVANT.includes(formAction))
-        .flatMap(([name, formAction]) => FORM_METHODS.map((formMethod) => [formMethod, name, formAction] as const));
+        .flatMap(([name, formAction]) => FORM_METHODS.map((formMethod) => [formMethod, name, formAction] as const))
+        .filter(([method, , path]) => method === 'GET' || !AUTH_COMPLETION.includes(path));
 
     test.each(resourceRouteMethodCombos)('opts out on a %s submission to %s (%s)', (formMethod, _name, formAction) => {
         expect(shouldRevalidate(buildArgs({ formMethod, formAction }))).toBe(false);

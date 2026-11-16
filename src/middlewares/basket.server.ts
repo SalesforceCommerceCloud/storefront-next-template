@@ -15,6 +15,7 @@
  */
 import { createContext, createCookie, type MiddlewareFunction, type RouterContextProvider } from 'react-router';
 import { type ShopperBasketsV2 } from '@/scapi';
+import { onAuthenticationChange } from '@/lib/auth/commerce-context.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { BASKET_COOKIE_NAME, validateBasketSnapshot } from '@/lib/basket/cookie';
 import { getCookieConfig } from '@/lib/cookie-utils.server';
@@ -82,6 +83,8 @@ export type BasketMetadata = {
     calculateSnapshot?: BasketSnapshotCalculator;
     currency: string;
     basketMarkedForDeletion: boolean;
+    /** Opaque lookup hint after auth changes; SCAPI must reauthorize before any basket data is exposed. */
+    lookupBasketId?: string;
 };
 
 // Constants
@@ -297,6 +300,19 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
 
         // Build and set the basket in the context.
         context.set(basketResourceContext, createBasketResource(snapshot, basket));
+        onAuthenticationChange(context, () => {
+            const current = context.get(basketResourceContext);
+            const metadata = context.get(basketMetadataContext);
+            if (metadata) {
+                context.set(basketMetadataContext, {
+                    ...metadata,
+                    lookupBasketId: metadata.basketMarkedForDeletion
+                        ? undefined
+                        : (current?.current?.basketId ?? current?.snapshot?.basketId ?? metadata.lookupBasketId),
+                });
+            }
+            context.set(basketResourceContext, createBasketResource(null, undefined, false, null));
+        });
         context.set(basketMetadataContext, {
             calculateSnapshot: calculateBasketSnapshot,
             currency,
@@ -381,13 +397,13 @@ export const getBasket = async (
     }
 
     // If there's no existing basket ID, but read hydration is requested, skip and return the resource.
-    const basketId = basketResource.snapshot?.basketId;
+    const metadata = context.get(basketMetadataContext);
+    const basketId = basketResource.snapshot?.basketId ?? metadata?.lookupBasketId;
     if (ensureBasket === 'read' && !basketId) {
         logger.debug('Basket: hydration skipped, no existing basket ID');
         return basketResource;
     }
 
-    const metadata = context.get(basketMetadataContext);
     const currency = metadata?.currency ?? context.get(siteContext)?.currency ?? '';
     const calculateBasketSnapshot = metadata?.calculateSnapshot;
     logger.debug('Basket: hydration starting', { hasExistingBasketId: Boolean(basketId) });
@@ -450,8 +466,12 @@ export const getBasket = async (
         // basketMarkedForDeletion. Clear it on success so the response phase serializes the fresh
         // snapshot instead of expiring a cookie for a basket that is now hydrated and valid.
         const successMetadata = context.get(basketMetadataContext);
-        if (successMetadata?.basketMarkedForDeletion) {
-            context.set(basketMetadataContext, { ...successMetadata, basketMarkedForDeletion: false });
+        if (successMetadata) {
+            context.set(basketMetadataContext, {
+                ...successMetadata,
+                basketMarkedForDeletion: false,
+                lookupBasketId: undefined,
+            });
         }
         logger.debug('Basket: hydration succeeded');
         return context.get(basketResourceContext) as BasketResource;

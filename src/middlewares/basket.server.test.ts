@@ -16,7 +16,8 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { createCookie, RouterContextProvider, type MiddlewareFunction } from 'react-router';
 import { createLoaderArgs, createTestContext } from '@/lib/test-utils';
-import { ApiError } from '@/scapi';
+import { ApiError, createBasketHelpers } from '@/scapi';
+import { invalidateAuthenticatedCommerce } from '@/lib/auth/commerce-context.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { getCookieConfig } from '@/lib/cookie-utils.server';
@@ -96,6 +97,107 @@ describe('basket.server middleware', () => {
         const basketResource = mockContext.get(basketResourceContext);
         expect(basketResource?.hydrated).toBe(false);
         expect(response.headers.get('Set-Cookie')).toBeNull();
+    });
+
+    test.each([
+        'lazy',
+        'eager',
+    ] as const)('%s mode reauthorizes the inherited basket after authentication without creating an empty replacement', async (mode) => {
+        const cookie = createCookie('__sfdc_basket', getCookieConfig({}, mockContext));
+        const cookieHeader = await cookie.serialize({
+            basketId: 'inherited-basket',
+            totalItemCount: 2,
+            uniqueProductCount: 1,
+            lastModified: '',
+        });
+        mockRequest = new Request('https://example.com', { headers: { Cookie: cookieHeader } });
+        let registered = false;
+        const read = vi.fn().mockImplementation(() =>
+            Promise.resolve({
+                data: {
+                    basketId: 'inherited-basket',
+                    currency: 'GBP',
+                    orderTotal: registered ? 80 : 100,
+                    productItems: [{ productId: 'sku', quantity: 2 }],
+                },
+            })
+        );
+        const create = vi.fn().mockResolvedValue({ data: { basketId: 'empty-replacement', currency: 'GBP' } });
+        const basket = createBasketHelpers({ shopperBasketsClient: { getBasket: read, createBasket: create } as any });
+        vi.mocked(createApiClients).mockReturnValue({ basket, shopperBasketsV2: { getBasket: read } } as any);
+        const middleware = createBasketMiddleware({ mode, currency: 'GBP' });
+        const response = (await middleware(createArgs(mockRequest, mockContext), async () => {
+            registered = true;
+            invalidateAuthenticatedCommerce(mockContext);
+            expect(mockContext.get(basketResourceContext)).toMatchObject({
+                snapshot: null,
+                current: null,
+                hydrated: false,
+            });
+            expect(getBasketSnapshot(mockContext)).toBeNull();
+            // Repeated invalidation, such as another auth update, must retain only the lookup hint.
+            invalidateAuthenticatedCommerce(mockContext);
+            const fresh = await getBasket(mockContext);
+            expect(fresh.current).toMatchObject({ basketId: 'inherited-basket', orderTotal: 80 });
+            return new Response('ok');
+        })) as Response;
+        expect(create).not.toHaveBeenCalled();
+        expect(read).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({ path: { basketId: 'inherited-basket' } }),
+            })
+        );
+        const saved = await cookie.parse(response.headers.get('Set-Cookie')?.split(';')[0] ?? '');
+        expect(saved.basketId).toBe('inherited-basket');
+        expect(saved.totalItemCount).toBe(2);
+    });
+
+    test('does not expose the old snapshot or create a basket when the new identity cannot authorize its lookup', async () => {
+        const cookie = createCookie('__sfdc_basket', getCookieConfig({}, mockContext));
+        const header = await cookie.serialize({
+            basketId: 'old-basket',
+            totalItemCount: 2,
+            uniqueProductCount: 1,
+            lastModified: '',
+        });
+        mockRequest = new Request('https://example.com', { headers: { Cookie: header } });
+        const read = vi.fn().mockRejectedValue(createApiError(403));
+        const create = vi.fn();
+        const basket = createBasketHelpers({ shopperBasketsClient: { getBasket: read, createBasket: create } as any });
+        vi.mocked(createApiClients).mockReturnValue({ basket, shopperBasketsV2: { getBasket: read } } as any);
+        const middleware = createBasketMiddleware({ mode: 'lazy' });
+        const response = (await middleware(createArgs(mockRequest, mockContext), async () => {
+            invalidateAuthenticatedCommerce(mockContext);
+            await expect(getBasket(mockContext)).rejects.toBeInstanceOf(NormalizedApiError);
+            expect(getBasketSnapshot(mockContext)).toBeNull();
+            expect(mockContext.get(basketResourceContext)?.current).toBeNull();
+            return new Response('unavailable', { status: 503 });
+        })) as Response;
+        expect(read).toHaveBeenCalledOnce();
+        expect(create).not.toHaveBeenCalled();
+        expect(response.headers.get('Set-Cookie')).toBeNull();
+    });
+
+    test('logout destruction clears the lookup hint across further authentication changes', async () => {
+        const cookie = createCookie('__sfdc_basket', getCookieConfig({}, mockContext));
+        const header = await cookie.serialize({
+            basketId: 'old-basket',
+            totalItemCount: 2,
+            uniqueProductCount: 1,
+            lastModified: '',
+        });
+        mockRequest = new Request('https://example.com', { headers: { Cookie: header } });
+        const middleware = createBasketMiddleware({ mode: 'lazy' });
+        const response = (await middleware(createArgs(mockRequest, mockContext), async () => {
+            invalidateAuthenticatedCommerce(mockContext);
+            destroyBasket(mockContext);
+            invalidateAuthenticatedCommerce(mockContext);
+            expect(mockContext.get(basketMetadataContext)?.lookupBasketId).toBeUndefined();
+            expect((await getBasket(mockContext, { ensureBasket: 'read' })).current).toBeNull();
+            return new Response('signed out');
+        })) as Response;
+        expect(createApiClients).not.toHaveBeenCalled();
+        expect(response.headers.get('Set-Cookie')).toContain('Expires=Thu, 01 Jan 1970');
     });
 
     test('eager mode loads basket and sets cookie', async () => {

@@ -47,9 +47,13 @@ function isDataRequest(request: Request, response: Response): boolean {
  * A 503 is treated as a transient overload signal (e.g., SCAPI load shedding): we let it cache for `max-age=2` so the
  * brief shared cache acts as a system-wide cool-down that shields the origin from a retry stampede, while still
  * clearing within a couple of seconds. Every other cached 5xx (500–502, 504) is a genuine error with no backoff value,
- * so we forbid caching outright with `no-store`.
+ * so we forbid caching outright with `no-store`. Existing private/no-store directives always take precedence.
  */
 function handleDataRequest(response: Response): Response {
+    // A personalized error must not become shared cache backoff, even for 503.
+    if (/(?:^|,)\s*(?:private|no-store)(?:\s*(?:,|$|=))/i.test(response.headers.get(HEADER_CACHE_CONTROL) ?? '')) {
+        return response;
+    }
     if (response.status === 503) {
         response.headers.set(HEADER_CACHE_CONTROL, 'max-age=2');
     } else {

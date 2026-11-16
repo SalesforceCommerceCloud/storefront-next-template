@@ -415,6 +415,7 @@ function ErrorPageContent({
     goToHomepageLabel,
     allRightsReservedLabel,
     skipToMainContentLabel,
+    recoveryAction,
 }: {
     status: number | undefined;
     details: string | undefined;
@@ -427,6 +428,7 @@ function ErrorPageContent({
     goToHomepageLabel: string;
     allRightsReservedLabel: string;
     skipToMainContentLabel?: string;
+    recoveryAction?: { action: string; label: string };
 }) {
     return (
         <>
@@ -479,6 +481,14 @@ function ErrorPageContent({
                                 className="inline-block bg-primary px-12 py-3 text-base font-semibold text-primary-foreground no-underline transition-colors hover:bg-primary/90">
                                 {goToHomepageLabel}
                             </a>
+                            {recoveryAction && (
+                                // Keep sign-out usable on an early error before hydration or loader providers.
+                                <form method="post" action={recoveryAction.action} className="mt-4">
+                                    <button type="submit" className="underline underline-offset-4">
+                                        {recoveryAction.label}
+                                    </button>
+                                </form>
+                            )}
                         </div>
 
                         {/* Stack trace (only in dev mode with stack) */}
@@ -652,6 +662,53 @@ export function ErrorBoundary({ error }: { error: unknown }) {
         stack = error.stack;
     } else if (typeof error === 'string') {
         details = error;
+    }
+
+    // Recovery destinations come from server context, never the failed callback
+    // URL: retry must not exchange an already-consumed token/code or repeat a POST.
+    const failureData = isRouteErrorResponse(error) ? error.data : undefined;
+    const recovery = failureData?.recovery;
+    const internalPath = (value: unknown): value is string =>
+        typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') && !/[\\\r\n]/.test(value);
+    if (recovery && internalPath(recovery.retryUrl) && internalPath(recovery.logoutAction)) {
+        const confirmation = failureData.code === 'STORE_CHANGE_CONFIRMATION_REQUIRED';
+        const translate = (key: string, fallback: string) =>
+            i18nextInstance?.t(key, { ns: 'routeError', defaultValue: fallback }) ?? fallback;
+        return (
+            <ErrorPageContent
+                status={status}
+                details={undefined}
+                stack={undefined}
+                homepageUrl={recovery.retryUrl}
+                title={
+                    confirmation
+                        ? translate('commerceContext.confirmationTitle', 'Store confirmation required')
+                        : translate('commerceContext.unavailableTitle', 'Your shopping session needs attention')
+                }
+                message={
+                    confirmation
+                        ? translate(
+                              'commerceContext.confirmationMessage',
+                              'Your current store and basket are unchanged. A store change needs confirmation before you can continue.'
+                          )
+                        : translate(
+                              'commerceContext.unavailableMessage',
+                              'We couldn’t finish preparing your shopping session. You can retry without signing in again.'
+                          )
+                }
+                secondaryMessage={translate(
+                    'commerceContext.signOutMessage',
+                    'You can sign out to continue as a guest. Signing out clears your current basket.'
+                )}
+                goToHomepageLabel={translate('commerceContext.retry', 'Try again')}
+                recoveryAction={{
+                    action: recovery.logoutAction,
+                    label: translate('commerceContext.signOut', 'Sign out'),
+                }}
+                allRightsReservedLabel={translate('allRightsReserved', 'All rights reserved.')}
+                skipToMainContentLabel="Skip to main content"
+            />
+        );
     }
 
     // Root loader ran — render with active locale translations.

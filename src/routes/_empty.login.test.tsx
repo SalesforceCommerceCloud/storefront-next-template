@@ -33,6 +33,7 @@ import { isAbsoluteURL, extractResponseError } from '@/lib/utils';
 import { getAppOrigin } from '@/lib/origin';
 import { buildUrlFromContext, stripMrtBasePathFromUrl } from '@/lib/url.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 
 // Loader results that are plain data (not a redirect Response or a data() wrapper that sets headers)
 const isPlainLoaderData = <T,>(result: T): result is Exclude<T, Response | UNSAFE_DataWithResponseInit<unknown>> =>
@@ -596,6 +597,31 @@ describe('Login Route', () => {
                 if (!(result instanceof Response) && 'redirectTo' in result) {
                     expect(result.redirectTo).toBe('/account');
                 }
+            });
+
+            it.each([
+                ['STORE_CHANGE_CONFIRMATION_REQUIRED', 409],
+                ['ACCOUNT_DEFAULT_UNAVAILABLE', 503],
+            ] as const)('throws a %s route response for a magic-link document navigation', async (code, status) => {
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetPasswordLessAccessToken.mockResolvedValue({ access_token: 'registered-token' } as any);
+                mockMergeBasket.mockRejectedValueOnce(new CommerceContextError(code, status));
+                const completion = loader(
+                    createLoaderArgs<Route.LoaderArgs>(
+                        new Request('http://localhost/login?token=consumed-token&email=shopper@example.com'),
+                        { get: vi.fn(), set: vi.fn() },
+                        { pattern: ROUTE_PATTERN }
+                    )
+                );
+                await expect(completion).rejects.toBeInstanceOf(Response);
+                const failure = await completion.catch((error: unknown) => error);
+                if (!(failure instanceof Response)) throw new Error('Expected thrown route response');
+                expect(failure.status).toBe(status);
+                expect(await failure.json()).toMatchObject({
+                    code,
+                    recovery: { retryUrl: '/login', logoutAction: '/logout' },
+                });
+                expect(mockGetPasswordLessAccessToken).toHaveBeenCalledOnce();
             });
 
             it('should show OTP form with error when token verification fails (permission enabled)', async () => {
@@ -1814,6 +1840,28 @@ describe('Login Route', () => {
                 expect(mockMergeBasket).toHaveBeenCalledWith(mockContext);
                 expect(result).toBeInstanceOf(Response);
                 expect((result as Response).headers.get('Location')).toBe('/checkout');
+            });
+
+            it('preserves the basket consent handoff after email confirmation', async () => {
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetPasswordLessAccessToken.mockResolvedValue({ access_token: 'registered-token' } as any);
+                mockMergeBasket.mockRejectedValue(new CommerceContextError('STORE_CHANGE_CONFIRMATION_REQUIRED', 409));
+
+                const completion = action(
+                    createActionArgs<Route.ActionArgs>(
+                        confirmRequest({ token: 'otp-token-123', email: 'shopper@example.com' }),
+                        { get: vi.fn(), set: vi.fn() },
+                        { pattern: '/login' }
+                    )
+                );
+                await expect(completion).rejects.toBeInstanceOf(Response);
+                const result = await completion.catch((error: unknown) => error);
+                expect(result).toBeInstanceOf(Response);
+                expect((result as Response).status).toBe(409);
+                expect((result as Response).headers.get('Cache-Control')).toBe('private, no-store');
+                expect(await (result as Response).json()).toMatchObject({
+                    code: 'STORE_CHANGE_CONFIRMATION_REQUIRED',
+                });
             });
 
             it('maps a login_id mismatch to the invalid-token message', async () => {

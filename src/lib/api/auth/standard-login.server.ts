@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import type { ActionFunctionArgs } from 'react-router';
-import type { ShopperLogin } from '@/scapi';
 import type { CustomQueryParameters } from '@/lib/api/types';
-import { updateAuth, loginRegisteredUser as authLoginRegisteredUser } from '@/middlewares/auth.server';
+import { loginRegisteredUser as authLoginRegisteredUser } from '@/middlewares/auth.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import { completeRegisteredLogin } from '@/lib/api/auth/complete-registered-login.server';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 import { getLogger } from '@/lib/logger.server';
 
 export const loginRegisteredUser = async (
@@ -33,22 +34,15 @@ export const loginRegisteredUser = async (
     const { t } = getTranslation(context);
 
     try {
-        const tokenResponse: ShopperLogin.schemas['TokenResponse'] = await authLoginRegisteredUser(
-            context,
-            credentials.email,
-            credentials.password,
-            options
+        await completeRegisteredLogin(context, () =>
+            authLoginRegisteredUser(context, credentials.email, credentials.password, options)
         );
-        // Update session with user tokens and info. userType, customerId, usid, and the
-        // refresh-token expiry cap all derive from the access-token JWT inside updateAuth —
-        // no follow-up call is needed.
-        updateAuth(context, tokenResponse);
-
         logger.info('StandardLogin: succeeded');
         return {
             success: true,
         };
     } catch (error) {
+        if (error instanceof CommerceContextError) throw error;
         const errorMessageDetails = error instanceof Error ? error.message : String(error);
         logger.error('StandardLogin: failed', { error });
 

@@ -14,60 +14,50 @@
  * limitations under the License.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Route } from './+types/_empty.logout';
+import { RouterContextProvider } from 'react-router';
+import { action } from './_empty.logout';
+import { getAuth, destroyAuth } from '@/middlewares/auth.server';
+import { createApiClients } from '@/lib/api-clients.server';
+import { destroyBasket } from '@/middlewares/basket.server';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import { prepareStoreSelectionForLogout } from '@/extensions/store-locator/lib/store-selection.server';
 
-const { mockGetAuth, mockDestroyAuth, mockDestroyBasket, mockLogout } = vi.hoisted(() => ({
-    mockGetAuth: vi.fn(),
-    mockDestroyAuth: vi.fn(),
-    mockDestroyBasket: vi.fn(),
-    mockLogout: vi.fn(),
-}));
-
-vi.mock('@/middlewares/auth.server', () => ({ getAuth: mockGetAuth, destroyAuth: mockDestroyAuth }));
-vi.mock('@/middlewares/basket.server', () => ({ destroyBasket: mockDestroyBasket }));
-vi.mock('@/lib/api-clients.server', () => ({ createApiClients: () => ({ auth: { logout: mockLogout } }) }));
-vi.mock('@/lib/logger.server', () => ({ getLogger: () => ({ info: vi.fn(), warn: vi.fn() }) }));
+vi.mock('@/middlewares/auth.server', () => ({ getAuth: vi.fn(), destroyAuth: vi.fn() }));
+vi.mock('@/lib/api-clients.server', () => ({ createApiClients: vi.fn() }));
+vi.mock('@/middlewares/basket.server', () => ({ destroyBasket: vi.fn() }));
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+vi.mock('@/extensions/store-locator/lib/store-selection.server', () => ({ prepareStoreSelectionForLogout: vi.fn() }));
+vi.mock('@/lib/logger.server', () => ({ getLogger: () => ({ warn: vi.fn(), info: vi.fn() }) }));
 vi.mock('@/lib/auth/remembered-email-cookie.server', () => ({
     clearPasswordlessEmailCookie: () => Promise.resolve('cc-pwdless-email=; Max-Age=0'),
     clearPasswordResetEmailCookie: () => Promise.resolve('cc-pwreset-email=; Max-Age=0'),
 }));
+const logout = vi.fn();
+beforeEach(() => {
+    vi.clearAllMocks();
+    logout.mockResolvedValue({});
+    vi.mocked(getAuth).mockReturnValue({ accessToken: 'registered-access', refreshToken: 'registered-refresh' });
+    vi.mocked(createApiClients).mockReturnValue({ auth: { logout } } as unknown as ReturnType<typeof createApiClients>);
+});
 
-import { action } from './_empty.logout';
-
-const runLogout = () =>
-    action({ context: {}, request: new Request('http://localhost/logout', { method: 'POST' }) } as Route.ActionArgs);
-
-describe('logout action', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        mockGetAuth.mockReturnValue({ accessToken: 'access', refreshToken: 'refresh' });
-        mockLogout.mockResolvedValue(undefined);
-    });
-
-    it('destroys the session and redirects home', async () => {
-        const response = await runLogout();
-
-        expect(mockLogout).toHaveBeenCalledWith({ accessToken: 'access', refreshToken: 'refresh' });
-        expect(mockDestroyAuth).toHaveBeenCalled();
-        expect(mockDestroyBasket).toHaveBeenCalled();
+describe('logout reconciliation', () => {
+    it.each([false, true])('keeps auth and basket destruction when SLAS logout fails=%s', async (fails) => {
+        if (fails) logout.mockRejectedValueOnce(new Error('SLAS unavailable'));
+        const context = new RouterContextProvider();
+        const response = await action({ context } as unknown as Parameters<typeof action>[0]);
         expect(response.status).toBe(302);
         expect(response.headers.get('Location')).toBe('/');
-    });
-
-    it('clears both remembered magic-link emails', async () => {
-        const response = await runLogout();
-
-        const setCookie = response.headers.get('Set-Cookie');
-        expect(setCookie).toContain('cc-pwdless-email=; Max-Age=0');
-        expect(setCookie).toContain('cc-pwreset-email=; Max-Age=0');
-    });
-
-    it('still clears the remembered emails when SLAS logout fails', async () => {
-        mockLogout.mockRejectedValue(new Error('SLAS down'));
-
-        const response = await runLogout();
-
-        expect(mockDestroyAuth).toHaveBeenCalled();
         expect(response.headers.get('Set-Cookie')).toContain('cc-pwdless-email=; Max-Age=0');
+        expect(response.headers.get('Set-Cookie')).toContain('cc-pwreset-email=; Max-Age=0');
+        expect(logout).toHaveBeenCalledWith({ accessToken: 'registered-access', refreshToken: 'registered-refresh' });
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        expect(prepareStoreSelectionForLogout).toHaveBeenCalledWith(context);
+        expect(destroyAuth).toHaveBeenCalledWith(context);
+        expect(destroyBasket).toHaveBeenCalledWith(context);
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        expect(vi.mocked(prepareStoreSelectionForLogout).mock.invocationCallOrder[0]).toBeLessThan(
+            vi.mocked(destroyAuth).mock.invocationCallOrder[0]
+        );
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
     });
 });

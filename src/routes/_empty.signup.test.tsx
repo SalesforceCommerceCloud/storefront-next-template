@@ -19,6 +19,7 @@ import userEvent from '@testing-library/user-event';
 import { createRoutesStub } from 'react-router';
 import Signup, { loader, action } from './_empty.signup';
 import { registerCustomer } from '@/lib/api/auth/register.server';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 import { isPasswordValid } from '@/lib/utils';
 import { getAuth, authorizePasswordless, requestOtp } from '@/middlewares/auth.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
@@ -666,6 +667,32 @@ describe('signup route', () => {
         });
 
         describe('failed registration', () => {
+            it.each([
+                ['ACCOUNT_DEFAULT_UNAVAILABLE', 503],
+                ['STORE_CHANGE_CONFIRMATION_REQUIRED', 409],
+            ] as const)('preserves %s from registration auto-login', async (code, status) => {
+                mockRegisterCustomer.mockRejectedValueOnce(new CommerceContextError(code, status));
+                const request = new Request('http://localhost/signup', {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        firstName: 'Jane',
+                        lastName: 'Doe',
+                        email: 'shopper@example.com',
+                        password: 'SecurePassword123!',
+                        confirmPassword: 'SecurePassword123!',
+                    }),
+                });
+
+                const completion = action({ request, context: mockContext } as Parameters<typeof action>[0]);
+                await expect(completion).rejects.toBeInstanceOf(Response);
+                const result: unknown = await completion.catch((error: unknown) => error);
+                expect(result).toBeInstanceOf(Response);
+                if (!(result instanceof Response)) throw new Error('Expected commerce reconciliation response');
+                expect(result.status).toBe(status);
+                expect(result.headers.get('Cache-Control')).toBe('private, no-store');
+                expect(await result.json()).toMatchObject({ success: false, code });
+            });
+
             it('should return error on registration failure', async () => {
                 mockIsPasswordValid.mockReturnValue(true);
                 mockRegisterCustomer.mockResolvedValue({ success: false, error: 'Email already exists' } as any);

@@ -22,6 +22,8 @@ import { Card } from '@/components/ui/card';
 import { resourceRoutes, routes } from '@/route-paths';
 // services
 import { registerCustomer } from '@/lib/api/auth/register.server';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { commerceContextRecoveryResponse } from '@/lib/auth/commerce-context-recovery.server';
 import {
     appendWishlistMergeFlag,
     captureGuestWishlistSnapshot,
@@ -177,8 +179,13 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Si
             email,
         },
         password,
+    }).catch((error: unknown) => {
+        // Render recovery instead of reporting account creation as failed.
+        if (error instanceof CommerceContextError) throw commerceContextRecoveryResponse(error, context);
+        throw error;
     });
 
+    if (result instanceof Response) return result;
     if (!result.success) {
         logger.warn('Signup: registration failed');
         return { error: result.error || t('errors:genericTryAgain') };

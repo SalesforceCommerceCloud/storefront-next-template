@@ -16,7 +16,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
-import { authContext } from '@/middlewares/auth.utils';
+import { authContext, authStorageContext } from '@/middlewares/auth.utils';
 import type { SessionData } from '@/lib/api/types';
 import type { Logger } from '@/lib/logger';
 import { loggerContext } from '@/lib/logger.server';
@@ -773,6 +773,28 @@ describe('createDedupedFetch', () => {
             );
         });
     }
+
+    it('does not reuse reads after authentication changes within the request', async () => {
+        const ctx = makeContext();
+        const storage = new Map([
+            ['accessToken', 'guest-token'],
+            ['customerId', 'guest'],
+            ['userType', 'guest'],
+        ]);
+        ctx.set(authStorageContext, storage as never);
+        const baseFetch = makeBaseFetch();
+        const fetch = createDedupedFetch(ctx, baseFetch as unknown as typeof globalThis.fetch);
+        const url = 'https://api.example.com/products/product';
+        expect(await (await fetch(url)).json()).toEqual({ id: 1 });
+        storage.set('accessToken', 'registered-token');
+        storage.set('customerId', 'registered');
+        storage.set('userType', 'registered');
+        expect(await (await fetch(url)).json()).toEqual({ id: 2 });
+        expect(await (await fetch(url)).json()).toEqual({ id: 2 });
+        storage.clear();
+        expect(await (await fetch(url)).json()).toEqual({ id: 3 });
+        expect(baseFetch).toHaveBeenCalledTimes(3);
+    });
 
     it('shares one underlying fetch for two parallel identical GETs', async () => {
         const ctx = makeContext();

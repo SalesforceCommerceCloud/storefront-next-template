@@ -22,6 +22,7 @@ import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { mergeBasket } from '@/lib/api/basket.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { TrackingConsent } from '@/types/tracking-consent';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 
 const { t } = getTranslation();
 
@@ -30,6 +31,14 @@ const mockAuthSocial = {
     getAuthorizationUrl: vi.fn(),
     exchangeCode: vi.fn(),
 };
+
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+vi.mock('@/extensions/store-locator/lib/store-selection.server', () => ({
+    assertStoreSelectionLoginSession: vi.fn(),
+    prepareStoreSelectionForLogin: vi.fn(() => Promise.resolve(false)),
+    reconcileStoreAfterAuthentication: vi.fn(() => Promise.resolve()),
+}));
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
 vi.mock('@/lib/api-clients.server', () => ({
     createApiClients: vi.fn(() => ({
@@ -401,6 +410,27 @@ describe('handleSocialLoginCallback', () => {
     });
 
     describe('Successful Login Flow', () => {
+        it.each([
+            ['STORE_CHANGE_CONFIRMATION_REQUIRED', 409],
+            ['ACCOUNT_DEFAULT_UNAVAILABLE', 503],
+        ] as const)('throws a %s route response instead of displaying JSON after the IdP redirect', async (code, status) => {
+            mockMergeBasket.mockRejectedValueOnce(new CommerceContextError(code, status));
+            const completion = handleSocialLoginLanding({
+                request: new Request('http://localhost/social-callback?code=consumed-code'),
+                params: {},
+                context: { get: vi.fn(), set: vi.fn() },
+            } as unknown as LoaderFunctionArgs);
+            await expect(completion).rejects.toBeInstanceOf(Response);
+            const failure = await completion.catch((error: unknown) => error);
+            if (!(failure instanceof Response)) throw new Error('Expected thrown route response');
+            expect(failure.status).toBe(status);
+            expect(await failure.json()).toMatchObject({
+                code,
+                recovery: { retryUrl: '/login', logoutAction: '/logout' },
+            });
+            expect(mockAuthSocial.exchangeCode).toHaveBeenCalledOnce();
+        });
+
         it('should handle successful login with code and usid', async () => {
             mockMergeBasket.mockResolvedValue({
                 basketId: 'merged-basket-123',

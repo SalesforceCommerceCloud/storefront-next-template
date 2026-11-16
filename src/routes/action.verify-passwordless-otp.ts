@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { completeRegisteredLogin } from '@/lib/api/auth/complete-registered-login.server';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 import type { Route } from './+types/action.verify-passwordless-otp';
 import type { ShopperLogin } from '@/scapi';
 import { data } from 'react-router';
 import { createApiClients } from '@/lib/api-clients.server';
-import { getAuth, updateAuth } from '@/middlewares/auth.server';
+import { getAuth } from '@/middlewares/auth.server';
 import { calculateBasket, getBasketCurrency, mergeBasket } from '@/lib/api/basket.server';
 import { captureGuestWishlistSnapshot, mergeWishlist } from '@/lib/api/wishlist.server';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
@@ -32,6 +34,7 @@ import { getCustomerProfileForCheckout } from '@/lib/api/customer.server';
 /** Response shape returned by the verify-passwordless-otp action. */
 export type VerifyPasswordlessOtpResponse = {
     success: boolean;
+    code?: string;
     error?: ActionError;
     message?: string;
     tokenResponse?: ShopperLogin.schemas['TokenResponse'];
@@ -86,24 +89,22 @@ export async function action({
             dnt = trackingConsentToBoolean(session.trackingConsent);
         }
 
-        const tokenResponse = await clients.auth.passwordless.exchangeToken({
-            pwdlessLoginToken: otpCode,
-            loginId: email.trim(),
-            ...(dnt !== undefined && { dnt }),
-        });
-
-        // Update auth with token response. userType, customerId, usid, and the refresh-token
-        // expiry cap all derive from the access-token JWT inside updateAuth — no follow-up
-        // call is needed.
-        updateAuth(context, tokenResponse);
+        const tokenResponse = await completeRegisteredLogin(context, () =>
+            clients.auth.passwordless.exchangeToken({
+                pwdlessLoginToken: otpCode,
+                loginId: email.trim(),
+                ...(dnt !== undefined && { dnt }),
+            })
+        );
 
         // For registrations, mergeBasket is not needed — SLAS creates the account under the same
         // guest usid, so the basket is already owned by the new registered customer.
+        let mergedBasket: Awaited<ReturnType<typeof mergeBasket>> | undefined;
         if (!isRegistration) {
-            let mergedBasket: Awaited<ReturnType<typeof mergeBasket>> | undefined;
             try {
                 mergedBasket = await mergeBasket(context);
             } catch (error) {
+                if (error instanceof CommerceContextError) throw error;
                 logger.error('VerifyPasswordlessOtp: basket merge failed', { error });
             }
 
@@ -112,12 +113,11 @@ export async function action({
             }
         }
 
-        // Fetch and recalculate basket to apply registered-user promotions and update totals.
-        // Even if mergeBasket returned undefined, we fetch here because the guest basket
-        // was transferred to the registered user and we need to retrieve it.
+        // mergeBasket already recalculates transferred baskets. Registration or
+        // a missing transfer result still needs qualification of the current basket.
         try {
             const { current } = await getBasket(context);
-            if (current?.basketId) {
+            if (current?.basketId && current.basketId !== mergedBasket?.basketId) {
                 const currency = getBasketCurrency(context, current);
                 const recalculatedBasket = await calculateBasket(context, current.basketId, currency);
                 updateBasketResource(context, recalculatedBasket);
@@ -126,7 +126,7 @@ export async function action({
                     itemCount: recalculatedBasket.productItems?.length ?? 0,
                     orderTotal: recalculatedBasket.orderTotal,
                 });
-            } else {
+            } else if (!current?.basketId) {
                 logger.warn('VerifyPasswordlessOtp: no basket found after auth swap');
             }
         } catch (error) {
@@ -183,6 +183,17 @@ export async function action({
             ...(wishlistMerge ? { wishlistMerge } : {}),
         });
     } catch (error: unknown) {
+        if (error instanceof CommerceContextError) {
+            return data(
+                {
+                    ...error.change,
+                    success: false,
+                    code: error.code,
+                    error: createActionError({ code: ErrorCode.OPERATION_FAILED, message: error.code }),
+                },
+                { status: error.status, headers: { 'Cache-Control': 'private, no-store' } }
+            );
+        }
         logger.error('VerifyPasswordlessOtp: failed', { error });
         const errorMessage = extractErrorMessage(error);
         return data(

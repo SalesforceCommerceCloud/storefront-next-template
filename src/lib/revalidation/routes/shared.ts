@@ -30,7 +30,7 @@ import { resourceRoutes, routes } from '@/route-paths';
  *   switches hard-reload and bypass `shouldRevalidate`) and `update-shopper-context` (a cross-cutting input to every
  *   SCAPI response: pricing, promotions, A/B segments). These are unprefixed `/action/*` resource routes, matched
  *   exactly.
- * - **Auth identity** ({@link isIdentityMutation}) — `/login`, `/signup`, `/logout`. An identity transition re-scopes
+ * - **Auth identity** ({@link isIdentityMutation}) — password, OTP, passkey and registration completion, plus logout. An identity transition re-scopes
  *   every customer-scoped read and any customer-group-scoped SCAPI output (pricing / promotions) a page loader reads.
  *   These are site/locale-prefixed (`buildUrl` prefixes them; they are not in `url.excludeRoutes`), so they are matched
  *   on the trailing path segment, anchored on a leading slash so a route like `/account/auto-logout` cannot match
@@ -51,7 +51,15 @@ import { resourceRoutes, routes } from '@/route-paths';
 const CONTEXT_MUTATIONS: readonly string[] = [resourceRoutes.setSiteContext, resourceRoutes.updateShopperContext];
 
 /** Auth identity — site/locale-prefixed routes, matched on the trailing path segment, anchored on a leading slash. */
-const IDENTITY_MUTATIONS: readonly string[] = [routes.login, routes.signup, routes.logout];
+const IDENTITY_MUTATIONS: readonly string[] = [
+    routes.login,
+    routes.signup,
+    routes.logout,
+    routes.resetPassword,
+    resourceRoutes.verifyPasswordlessOtp,
+    resourceRoutes.passkeyFinishAuthentication,
+    resourceRoutes.postOrderRegister,
+];
 
 /**
  * Normalizes a form action to a pathname for comparison: resolves it against the current origin (handling both a bare
@@ -71,7 +79,7 @@ export function isContextMutation(actionPath: string): boolean {
 }
 
 /**
- * Whether a submitted action path is an auth identity transition (`/login`, `/signup`, `/logout`). Matches the
+ * Whether a submitted action path completes authentication or logs out. Matches the
  * site/locale-prefixed routes on their anchored trailing segment (leading slash), so `/account/auto-logout` does not
  * match `/logout`.
  */

@@ -27,6 +27,19 @@ import { captureGuestWishlistSnapshot, mergeWishlist } from '@/lib/api/wishlist.
 import { getCustomerProfileForCheckout } from '@/lib/api/customer.server';
 import { expectStatus } from '@/lib/test-utils';
 
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+import { reconcileStoreAfterAuthentication } from '@/extensions/store-locator/lib/store-selection.server';
+import { StoreSelectionError } from '@/extensions/store-locator/lib/store-selection-error';
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+vi.mock('@/extensions/store-locator/lib/store-selection.server', () => ({
+    assertStoreSelectionLoginSession: vi.fn(),
+    prepareStoreSelectionForLogin: vi.fn(() => Promise.resolve(false)),
+    reconcileStoreAfterAuthentication: vi.fn(() => Promise.resolve()),
+}));
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
 vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@salesforce/storefront-next-runtime/config')>();
     return {
@@ -78,8 +91,25 @@ describe('action.passkey-finish-authentication', () => {
         } as ActionFunctionArgs;
     };
 
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    it('returns the shared consent handoff before transferring or calculating a basket', async () => {
+        vi.mocked(reconcileStoreAfterAuthentication).mockRejectedValueOnce(
+            new StoreSelectionError('STORE_CHANGE_CONFIRMATION_REQUIRED', 409)
+        );
+        const result = await action(createActionArgs({ credential: { id: 'cred', type: 'public-key' } }));
+        expect(result.init?.status).toBe(409);
+        expect(result.data.code).toBe('STORE_CHANGE_CONFIRMATION_REQUIRED');
+        expect(mockMergeBasket).not.toHaveBeenCalled();
+        expect(mockCalculateBasket).not.toHaveBeenCalled();
+    });
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
     beforeEach(() => {
         vi.clearAllMocks();
+        mockFinishPasskeyAuthentication.mockResolvedValue({
+            customer_id: 'customer-id',
+            access_token: 'access-token',
+        } as Awaited<ReturnType<typeof finishPasskeyAuthentication>>);
         mockGetConfig.mockReturnValue({ features: { passkey: { enabled: true } } } as never);
 
         mockContext = {} as ActionFunctionArgs['context'];
@@ -173,8 +203,9 @@ describe('action.passkey-finish-authentication', () => {
         expect(mockUpdateBasketResource).toHaveBeenCalledWith(mockContext, mergedBasket);
 
         expect(mockGetBasket).toHaveBeenCalledWith(mockContext);
-        expect(mockGetBasketCurrency).toHaveBeenCalledWith(mockContext, { basketId: 'basket-1', currency: 'USD' });
-        expect(mockCalculateBasket).toHaveBeenCalledWith(mockContext, 'basket-1', 'USD');
+        // mergeBasket already calculated this basket under the registered identity.
+        expect(mockGetBasketCurrency).not.toHaveBeenCalled();
+        expect(mockCalculateBasket).not.toHaveBeenCalled();
 
         expect(result.data).toEqual({
             success: true,

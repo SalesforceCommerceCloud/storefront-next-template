@@ -211,6 +211,24 @@ describe('middlewares/error-cache-control.server.ts', () => {
                 expect(result.headers.get('Cache-Control')).toBe('max-age=2');
             });
 
+            it.each([
+                'private, no-store',
+                'no-store',
+                'private',
+            ])('preserves %s on a 503 data response', async (cacheControl) => {
+                const response = asData(
+                    new Response('Service Unavailable', {
+                        status: 503,
+                        headers: { 'Cache-Control': cacheControl },
+                    })
+                );
+                mockNext.mockResolvedValue(response);
+
+                const result = await callMiddleware(request);
+
+                expect(result.headers.get('Cache-Control')).toBe(cacheControl);
+            });
+
             it('should not set no-cache headers on a 499 data response (just below the 5xx boundary)', async () => {
                 const response = asData(new Response('Client Closed Request', { status: 499 }));
                 mockNext.mockResolvedValue(response);

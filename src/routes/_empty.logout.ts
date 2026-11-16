@@ -19,6 +19,8 @@ import { destroyAuth as destroyAuthServer, getAuth } from '@/middlewares/auth.se
 import { createApiClients } from '@/lib/api-clients.server';
 import { destroyBasket } from '@/middlewares/basket.server';
 import { getLogger } from '@/lib/logger.server';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import { prepareStoreSelectionForLogout } from '@/extensions/store-locator/lib/store-selection.server';
 import { clearPasswordlessEmailCookie, clearPasswordResetEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
 import { routes } from '@/route-paths';
 
@@ -41,6 +43,8 @@ export async function action({ context }: Route.ActionArgs) {
             logger.warn('Logout: SLAS logout failed, continuing with session cleanup', { error });
         }
     }
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    prepareStoreSelectionForLogout(context);
     destroyAuthServer(context);
     destroyBasket(context);
     logger.info('Logout: session destroyed');

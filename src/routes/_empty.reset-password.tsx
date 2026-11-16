@@ -23,6 +23,9 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { getPasswordResetErrorMessageKey, extractErrorMessage } from '@/lib/auth/error-handler';
 import { buildUrlFromContext } from '@/lib/url.server';
 import { isPasswordValid } from '@/lib/utils';
+import { completeRegisteredLogin } from '@/lib/api/auth/complete-registered-login.server';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { commerceContextRecoveryResponse } from '@/lib/auth/commerce-context-recovery.server';
 import { resetPasswordWithToken } from '@/middlewares/auth.server';
 import { getLogger } from '@/lib/logger.server';
 import { clearPasswordResetEmailCookie, readPasswordResetEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
@@ -96,15 +99,18 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Re
         // Auto-login the user with new password to maintain session validity
         // This matches the behavior when hasPassword={true} users change their password
         // and is especially important for users who previously had hasPassword=false
-        const { loginRegisteredUser, updateAuth } = await import('@/middlewares/auth.server');
-        const authResponse = await loginRegisteredUser(context, email, newPassword, { skipUsid: true });
-        updateAuth(context, authResponse);
+        const { loginRegisteredUser } = await import('@/middlewares/auth.server');
+        await completeRegisteredLogin(context, () =>
+            loginRegisteredUser(context, email, newPassword, { skipUsid: true })
+        );
 
         // Password reset successful - redirect to login
         return redirect(buildUrlFromContext(routes.login, context), {
             headers: { 'Set-Cookie': await clearPasswordResetEmailCookie(context) },
         });
     } catch (error) {
+        // Password reset may already have completed; render recovery.
+        if (error instanceof CommerceContextError) throw commerceContextRecoveryResponse(error, context);
         logger.error('ResetPassword: failed', { error });
         const errorMessage = extractErrorMessage(error);
         const errorKey = getPasswordResetErrorMessageKey(errorMessage);
