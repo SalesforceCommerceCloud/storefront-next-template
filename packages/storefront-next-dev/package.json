@@ -220,7 +220,7 @@
     "http-proxy": "1.18.1",
     "http-proxy-middleware": "3.0.7",
     "jiti": "^2.6.1",
-    "minimatch": "10.2.5",
+    "minimatch": "11.0.1",
     "morgan": "1.12.1",
     "negotiator": "1.0.0",
     "npm-run-path": "6.0.0",
