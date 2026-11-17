@@ -222,6 +222,52 @@ describe('basket.server middleware', () => {
         expect(response.headers.get('Set-Cookie')).toContain('__sfdc_basket=');
     });
 
+    describe('basket cookie expiration', () => {
+        const dayInMs = 24 * 60 * 60 * 1000;
+
+        const cases = [
+            ['guest with customerId', { customerId: 'guest-id' }, {}, 7],
+            ['guest with empty customerNo', { customerId: 'guest-id', customerNo: '' }, {}, 7],
+            ['registered shopper', { customerId: 'registered-id', customerNo: '1' }, {}, 30],
+            ['registered with customerNo only', { customerNo: '1' }, {}, 30],
+            ['missing customerInfo', undefined, {}, 7],
+            [
+                'guest with configured durations',
+                { customerId: 'guest-id' },
+                { cookieDurationGuest: 2 * dayInMs, cookieDurationRegistered: 10 * dayInMs },
+                2,
+            ],
+            [
+                'registered with configured durations',
+                { customerId: 'registered-id', customerNo: '1' },
+                { cookieDurationGuest: 2 * dayInMs, cookieDurationRegistered: 10 * dayInMs },
+                10,
+            ],
+            ['guest with zero duration', { customerId: 'guest-id' }, { cookieDurationGuest: 0 }, 0],
+            ['guest with invalid duration', { customerId: 'guest-id' }, { cookieDurationGuest: -1 }, 7],
+        ] as const;
+
+        test.each(cases)('%s', async (_shopper, customerInfo, config, expectedDays) => {
+            const lastModified = '2026-11-17T12:00:00.000Z';
+            const basket = {
+                basketId: 'basket-expiry',
+                currency: 'GBP',
+                productItems: [],
+                customerInfo: customerInfo ? { email: 'shopper@example.com', ...customerInfo } : undefined,
+                lastModified,
+            };
+            vi.mocked(createApiClients).mockReturnValue({
+                basket: { getOrCreateBasket: vi.fn().mockResolvedValue(basket) },
+            } as any);
+
+            const middleware = createBasketMiddleware({ mode: 'eager', ...config });
+            const response = (await middleware(createArgs(mockRequest, mockContext), mockNext)) as Response;
+            const expectedExpiry = new Date(Date.parse(lastModified) + expectedDays * dayInMs);
+
+            expect(response.headers.get('Set-Cookie')).toContain(`Expires=${expectedExpiry.toUTCString()}`);
+        });
+    });
+
     test('default (create) branch forwards expand=approaching_discounts to getOrCreateBasket (AC1/AC10)', async () => {
         // The eager/default hydration path mints-or-reads the basket via getOrCreateBasket. It must
         // opt into the same `approaching_discounts` expansion as the read branch so the banner data

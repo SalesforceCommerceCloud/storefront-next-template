@@ -246,7 +246,7 @@ const getBasketExpiryDate = (
  * Defaults are applied for mode, cookie name, and cookie durations.
  * - `mode: 'lazy' | 'eager'` controls whether the basket is hydrated before `next()`.
  * - `cookieDurationGuest` and `cookieDurationRegistered` are millisecond durations.
- * - Registered detection relies on `basket.customerInfo` when a basket is present.
+ * - Registered detection relies on `basket.customerInfo.customerNo` when a basket is present.
  * - `currency` is used when creating a new basket.
  * - `calculateBasketSnapshot` can add custom snapshot fields.
  *
@@ -361,8 +361,8 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
         }
 
         if (basket) {
-            // Derive expiry from configured duration when available; fall back to lastModified when present.
-            const isRegistered = Boolean(basket.customerInfo?.customerId || basket.customerInfo?.customerNo);
+            // Guest baskets also have customerId, so use customerNo to identify registered shoppers.
+            const isRegistered = Boolean(basket.customerInfo?.customerNo);
             const userType: 'guest' | 'registered' = isRegistered ? 'registered' : 'guest';
             const expires = getBasketExpiryDate(basket, {
                 userType,
