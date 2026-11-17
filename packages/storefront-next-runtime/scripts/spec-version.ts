@@ -15,23 +15,14 @@
  */
 
 /**
- * Pure version-resolution logic for the SCAPI spec updater, split out from
- * update-scapi-specs.ts so it can be unit-tested without network or filesystem
- * access. update-scapi-specs.ts runs `main()` at import time, so it isn't
- * directly importable — these are the parts worth locking down with tests.
+ * Pure version logic for the SCAPI spec updater, split out from update-scapi-specs.ts
+ * so it can be unit-tested without network or filesystem access.
  */
 
-// Only MAJOR.MINOR.PATCH with no pre-release/build suffix — released specs only.
-// See https://semver.org/. Matches raml-toolkit's releaseSemverRegex.
+// Only MAJOR.MINOR.PATCH with no pre-release/build suffix. See https://semver.org/.
 export const RELEASE_SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
-/** Minimal shape of an Exchange asset response (only the fields we read). */
-export interface RawAsset {
-    files?: Array<{ classifier: string; externalLink?: string }>;
-    versionGroups?: Array<{ versions?: Array<{ version: string }> }>;
-}
-
-export type SpecStatus = 'up-to-date' | 'outdated' | 'no-release-found';
+export type SpecStatus = 'up-to-date' | 'outdated' | 'ahead';
 
 /** Compare two clean semver strings. Returns >0 when `a` is newer than `b`. */
 export function compareSemver(a: string, b: string): number {
@@ -43,40 +34,19 @@ export function compareSemver(a: string, b: string): number {
 }
 
 /**
- * Latest released version for a tracked API: the newest clean semver across the
- * asset's version groups whose major matches the tracked apiVersion number
- * (SCAPI convention: shopper-baskets v1 ↔ 1.x.x, v2 ↔ 2.x.x). Returns null when
- * no released version matches (e.g. only pre-releases exist).
- */
-export function latestReleasedVersion(asset: RawAsset, apiVersion: string): string | null {
-    const targetMajor = Number(apiVersion.replace(/^v/, ''));
-    const candidates: string[] = [];
-    for (const group of asset.versionGroups ?? []) {
-        for (const { version } of group.versions ?? []) {
-            if (RELEASE_SEMVER.test(version) && Number(version.split('.')[0]) === targetMajor) {
-                candidates.push(version);
-            }
-        }
-    }
-    if (candidates.length === 0) return null;
-    return candidates.sort(compareSemver).at(-1) ?? null;
-}
-
-/** True when a tracked `exchange.json` version is not clean MAJOR.MINOR.PATCH. */
-export function isMalformedVersion(trackedVersion: string): boolean {
-    return !RELEASE_SEMVER.test(trackedVersion);
-}
-
-/**
- * Decide the update status for one tracked spec.
+ * Decide the update status of one tracked spec against the version ECOM publishes.
  *
  * A malformed tracked version (e.g. a hand-edited "1.50") would make
  * compareSemver parse it as [1, 50, NaN] and silently rank a real "1.5.2"
- * release as older — masking genuine drift. Such a version is treated as
- * outdated so the caller pulls the latest clean release and repairs the data.
+ * as older, masking genuine drift. Such a version is treated as outdated
+ * so the update repairs the data.
+ *
+ * `ahead` means the tracked version is newer than ECOM's, which happens when
+ * `--ref` points at an older ECOM branch.
  */
-export function resolveStatus(latest: string | null, trackedVersion: string): SpecStatus {
-    if (latest === null) return 'no-release-found';
-    if (isMalformedVersion(trackedVersion)) return 'outdated';
-    return compareSemver(latest, trackedVersion) > 0 ? 'outdated' : 'up-to-date';
+export function resolveStatus(published: string, trackedVersion: string): SpecStatus {
+    if (!RELEASE_SEMVER.test(trackedVersion)) return 'outdated';
+    const comparison = compareSemver(published, trackedVersion);
+    if (comparison > 0) return 'outdated';
+    return comparison < 0 ? 'ahead' : 'up-to-date';
 }

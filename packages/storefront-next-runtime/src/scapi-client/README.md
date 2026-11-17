@@ -612,14 +612,14 @@ The following npm scripts are available in `package.json`:
   "scapi:generate-types": "openapi-typescript -c ./openapi-specs/redocly.yaml",
   "scapi:generate-operations": "pnpm dlx tsx scripts/generate-operation-maps.ts",
   "scapi:generate": "pnpm scapi:generate-types && pnpm scapi:generate-operations",
-  "scapi:update-specs": "pnpm dlx tsx scripts/update-scapi-specs.ts"
+  "scapi:update-specs": "node --env-file-if-exists=.env scripts/update-scapi-specs.ts"
 }
 ```
 
 - **`scapi:generate-types`**: Generates TypeScript type definitions from OpenAPI specs
 - **`scapi:generate-operations`**: Generates operation mapping files from generated types
 - **`scapi:generate`**: Runs both generation steps in sequence (recommended)
-- **`scapi:update-specs`**: Downloads the latest released specs from Anypoint Exchange, swaps the spec folders, rewrites `redocly.yaml`, and regenerates the client. Pass `--check` for a dry run that exits non-zero when a spec has drifted. See [Updating to New OpenAPI Specifications](#updating-to-new-openapi-specifications).
+- **`scapi:update-specs`**: Copies the latest public spec bundles from the ECOM monorepo, swaps the spec folders, rewrites `redocly.yaml`, and regenerates the client. Pass `--check` for a dry run that exits non-zero when a spec has drifted. See [Updating to New OpenAPI Specifications](#updating-to-new-openapi-specifications).
 
 ### Usage
 
@@ -717,33 +717,39 @@ clients.shopperStores        // Store locator
 
 ## Updating to New OpenAPI Specifications
 
-Spec updates are **automated** — you should rarely do this by hand.
+Spec updates are **manual for now**. CI runners cannot reach the ECOM git host, so there is no automated job. Run the update locally and open a PR with the result.
 
-### Automated (default)
+### Update specs (current process)
 
-The [`SCAPI Spec Update`](../../../../.github/workflows/scapi-spec-update.yml) workflow runs `pnpm scapi:update-specs` weekly (and on demand via *Run workflow*). For every spec tracked in `openapi-specs/redocly.yaml`, it asks Anypoint Exchange for the latest released (`MAJOR.MINOR.PATCH`) version whose major matches the tracked API version (e.g. `shopper-baskets` `v2` ↔ `2.x.x`), and when a newer one exists it downloads the spec, swaps the folder, rewrites `redocly.yaml`, regenerates the client, and opens a PR. Reviewing the spec + generated diff on that PR is part of the [release process](../../../../CONTRIBUTING.md) so the shipped client never silently drifts behind the live APIs.
+`pnpm scapi:update-specs` copies the public bundle that ECOM's build commits for every spec tracked in `openapi-specs/`. When a bundle's version is newer, it swaps the folder, rewrites `redocly.yaml`, and regenerates the client. Reviewing the spec + generated diff is part of the [release process](../../../../CONTRIBUTING.md) so the shipped client never silently drifts behind the live APIs.
 
-The Exchange coordinates come from each spec folder's `exchange.json` (`groupId` / `assetId` / `version` / `apiVersion`) — that file is the source of truth for what we ship and what to diff against.
+Each folder's `exchange.json` records the API's identity and, once updated from ECOM, the `ecomRef` and `ecomCommit` it came from. `ECOM_BUNDLE_LOCATIONS` in `scripts/ecom-oas.ts` maps each tracked API to its bundle location in ECOM. See [the developer guide](../../../../docs/design/scapi-specs-from-ecom.md).
 
-To run it locally (requires `ANYPOINT_USERNAME` / `ANYPOINT_PASSWORD`):
+To run it locally, your machine's git must be able to clone the ECOM repo, and `ECOM_REPO_URL` and `ECOM_BUNDLES_ROOT` must be set, exported or in a gitignored `.env` in this package (ask the SF Next team for the values):
 
 ```bash
 cd packages/storefront-next-runtime
 
-# Dry run — report drift, exit non-zero if any spec is outdated. No writes.
+# Dry run — report drift, exit 1 if any spec is outdated (2 on error). No writes.
 pnpm scapi:update-specs --check
 
-# Apply: download new specs, swap folders, rewrite redocly.yaml, regenerate.
+# Apply: copy new bundles, swap folders, rewrite redocly.yaml, regenerate.
 pnpm scapi:update-specs
+
+# Pull from an ECOM branch, tag or commit instead of master.
+pnpm scapi:update-specs --ref <ref>
+
+# Replace only the named APIs from a ref, even if the version is not newer.
+pnpm scapi:update-specs --api shopper-seo-oas-v1 --ref <ref>
 ```
 
 Then review `git diff openapi-specs/ src/scapi-client/generated/`, run `pnpm test`, and commit.
 
-### Manual fallback
+### Without the script
 
-If the automation is unavailable (e.g. a spec not yet on Exchange, or a pre-release you need to pin), update by hand:
+If you cannot reach ECOM from your machine, or need to pin a pre-release, update by hand:
 
-1. **Download the spec** and replace the folder under `openapi-specs/` (keep the `<assetId>-<version>` naming and the `exchange.json` descriptor).
+1. **Take the spec** from ECOM's committed bundle and replace the folder under `openapi-specs/` (keep the `<assetId>-<version>` naming and the `exchange.json` descriptor).
 2. **Point `redocly.yaml`** at the new `root:` path for that api entry.
 3. **Regenerate** with `pnpm scapi:generate` (types + operation maps).
 4. **Review** `git diff src/scapi-client/generated/` for breaking vs. non-breaking changes.

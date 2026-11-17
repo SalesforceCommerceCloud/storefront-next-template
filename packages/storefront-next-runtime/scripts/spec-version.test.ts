@@ -16,13 +16,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import {
-    type RawAsset,
-    compareSemver,
-    isMalformedVersion,
-    latestReleasedVersion,
-    resolveStatus,
-} from './spec-version.ts';
+import { RELEASE_SEMVER, compareSemver, resolveStatus } from './spec-version.ts';
 
 describe('compareSemver', () => {
     it('orders by major, then minor, then patch', () => {
@@ -34,92 +28,41 @@ describe('compareSemver', () => {
     });
 });
 
-describe('isMalformedVersion', () => {
-    it('accepts clean MAJOR.MINOR.PATCH', () => {
-        expect(isMalformedVersion('1.5.2')).toBe(false);
-        expect(isMalformedVersion('0.0.0')).toBe(false);
-        expect(isMalformedVersion('10.20.30')).toBe(false);
+describe('RELEASE_SEMVER', () => {
+    it.each(['1.5.2', '0.0.0', '10.20.30'])('accepts %s', (version) => {
+        expect(RELEASE_SEMVER.test(version)).toBe(true);
     });
 
-    it('rejects two-part, pre-release, and build-suffixed versions', () => {
-        // The real bug: shopper-experience shipped "1.50" in exchange.json.
-        expect(isMalformedVersion('1.50')).toBe(true);
-        expect(isMalformedVersion('1.5')).toBe(true);
-        expect(isMalformedVersion('1.2.0-master-b68')).toBe(true);
-        expect(isMalformedVersion('1.1.0-PR-44-b5')).toBe(true);
-        expect(isMalformedVersion('v1.2.3')).toBe(true);
-    });
-
-    it('rejects leading-zero components', () => {
-        // RELEASE_SEMVER's `(0|[1-9]\d*)` alternation forbids leading zeros, so
-        // a typo'd "1.019" is malformed (not 1.0.19). Pinning this guards the
-        // regex against a future "simplification" to `\d+`, which would let a
-        // leading-zero typo silently mis-rank versions.
-        expect(isMalformedVersion('1.019')).toBe(true);
-        expect(isMalformedVersion('01.2.3')).toBe(true);
-        expect(resolveStatus('1.2.0', '1.019')).toBe('outdated');
-    });
-});
-
-describe('latestReleasedVersion', () => {
-    const asset: RawAsset = {
-        versionGroups: [
-            {
-                versions: [
-                    { version: '1.5.2' },
-                    { version: '1.5.1' },
-                    { version: '1.5.0' },
-                    { version: '1.2.0-master-b68' }, // non-release, must be ignored
-                    { version: '2.11.0' }, // different major
-                ],
-            },
-        ],
-    };
-
-    it('returns the newest clean release matching the apiVersion major', () => {
-        expect(latestReleasedVersion(asset, 'v1')).toBe('1.5.2');
-        expect(latestReleasedVersion(asset, 'v2')).toBe('2.11.0');
-    });
-
-    it('ignores pre-release / build-suffixed versions', () => {
-        const onlyPrereleases: RawAsset = {
-            versionGroups: [{ versions: [{ version: '1.2.0-master-b68' }, { version: '1.1.0-PR-44-b5' }] }],
-        };
-        expect(latestReleasedVersion(onlyPrereleases, 'v1')).toBeNull();
-    });
-
-    it('returns null when no version matches the major', () => {
-        expect(latestReleasedVersion(asset, 'v3')).toBeNull();
-    });
-
-    it('tolerates missing versionGroups/versions', () => {
-        expect(latestReleasedVersion({}, 'v1')).toBeNull();
-        expect(latestReleasedVersion({ versionGroups: [{}] }, 'v1')).toBeNull();
+    it.each([
+        '1.50',
+        '1.5',
+        '1.2.0-master-b68',
+        '1.1.0-PR-44-b5',
+        'v1.2.3',
+        '1.019',
+        '01.2.3',
+    ])('rejects %s', (version) => {
+        expect(RELEASE_SEMVER.test(version)).toBe(false);
     });
 });
 
 describe('resolveStatus', () => {
-    it('reports no-release-found when Exchange has no matching release', () => {
-        expect(resolveStatus(null, '1.0.0')).toBe('no-release-found');
-    });
-
-    it('reports outdated when a newer clean release exists', () => {
+    it('reports outdated when ECOM publishes a newer version', () => {
         expect(resolveStatus('1.5.2', '1.5.0')).toBe('outdated');
     });
 
-    it('reports up-to-date when tracked matches latest', () => {
+    it('reports up-to-date when the versions match', () => {
         expect(resolveStatus('1.5.2', '1.5.2')).toBe('up-to-date');
     });
 
-    it('does not downgrade when tracked is somehow ahead', () => {
-        expect(resolveStatus('1.5.0', '1.5.2')).toBe('up-to-date');
+    it('reports ahead, not outdated, when the tracked version is newer than ECOM', () => {
+        expect(resolveStatus('1.5.0', '1.5.2')).toBe('ahead');
     });
 
     it('treats a malformed tracked version as outdated, never up-to-date', () => {
-        // Regression guard for the shopper-experience "1.50" drift: naive
-        // compareSemver('1.5.2', '1.50') parses "1.50" as minor=50 and would
-        // (wrongly) say up-to-date, masking a real 1.5.0 -> 1.5.2 drift forever.
-        expect(compareSemver('1.5.2', '1.50')).toBeLessThan(0); // the trap
-        expect(resolveStatus('1.5.2', '1.50')).toBe('outdated'); // the fix
+        // naive compareSemver('1.5.2', '1.50') parses "1.50" as minor=50 and would
+        // (wrongly) rank the tracked version as newer, masking real drift forever.
+        expect(compareSemver('1.5.2', '1.50')).toBeLessThan(0);
+        expect(resolveStatus('1.5.2', '1.50')).toBe('outdated');
     });
 });
