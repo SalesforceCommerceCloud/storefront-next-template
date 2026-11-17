@@ -19,6 +19,10 @@ import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 import { commerceContextRecoveryResponse } from '@/lib/auth/commerce-context-recovery.server';
 import type { SessionData as AuthData } from '@/lib/api/types';
 import { type AuthStorageData, AUTH_TOKEN_INVALID_ERROR, authStorageContext } from '@/middlewares/auth.utils';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import { authRecoveryReturnContext } from '@/lib/auth/auth-recovery.server';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import { setRecoveryManifest } from '@/test-utils/__mocks__/compiled-routes';
 import { performanceTimerContext } from '@/middlewares/performance-metrics';
 import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
@@ -140,13 +144,17 @@ vi.mock('@salesforce/storefront-next-runtime/i18n', () => ({
     mockI18nContext: vi.fn(),
 }));
 
+const { getBasePath: realGetBasePath } = await vi.importActual<typeof import('@/lib/utils')>('@/lib/utils');
+
 // Mock utils
-vi.mock('@/lib/utils', () => ({
+vi.mock('@/lib/utils', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/lib/utils')>()),
     extractResponseError: vi.fn().mockResolvedValue({
         responseMessage: 'Default error message',
         status_code: '500',
     }),
-    getBasePath: vi.fn(() => ''),
+    // Reads MRT_ENV_BASE_PATH like production; individual tests override with mockReturnValue.
+    getBasePath: vi.fn((await importOriginal<typeof import('@/lib/utils')>()).getBasePath),
     isAbsoluteURL: vi.fn((url: string) => url.startsWith('http')),
     stringToBase64: vi.fn((str: string) => Buffer.from(str).toString('base64')),
 }));
@@ -274,9 +282,250 @@ describe('getSlasLocale', () => {
 });
 
 describe('auth middleware (server)', () => {
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    describe('explicit document recovery context', () => {
+        beforeEach(() => {
+            vi.stubGlobal('window', undefined);
+            setRecoveryManifest();
+        });
+        afterEach(() => {
+            vi.unstubAllGlobals();
+            setRecoveryManifest();
+        });
+        async function recover(
+            destination: string | null,
+            basepath = '',
+            preferenceReferer?: string,
+            endpoint?: string,
+            prefix?: string,
+            registeredRefreshFails = false
+        ) {
+            const cookieUtils = await import('@/lib/cookie-utils.server');
+            const mockParseAllCookies = vi.mocked(cookieUtils.parseAllCookies);
+            const mockCreateCookie = vi.mocked(cookieUtils.createCookie);
+            mockParseAllCookies.mockReturnValue(
+                registeredRefreshFails
+                    ? {
+                          'cc-at': buildMockAccessToken({ rcid: 'reg-cust-1' }),
+                          'cc-nx': 'expired-registered-refresh-token',
+                      }
+                    : { 'cc-at': buildMockAccessToken(), 'cc-nx-g': 'guest-refresh-token' }
+            );
+            if (registeredRefreshFails) mockAuth.refreshToken.mockRejectedValue(new Error('refresh token expired'));
+            else mockAuth.refreshToken.mockResolvedValue(getMockAuthResponse());
+            mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse());
+            mockCreateCookie.mockImplementation(
+                () => ({ serialize: vi.fn().mockResolvedValue('mock=value') }) as never
+            );
+            const context = new RouterContextProvider();
+            if (prefix) setRecoveryManifest({ prefix, excludeRoutes: [] });
+            context.set(appConfigContext, {
+                ...mockConfig,
+                ...(prefix ? { url: { ...mockConfig.url, prefix, excludeRoutes: [] } } : {}),
+                commerce: {
+                    ...mockConfig.commerce,
+                    sites: [...mockConfig.commerce.sites, { ...mockAltSiteObject, id: 'MarketStreet' }],
+                },
+            });
+            context.set(performanceTimerContext, mockPerformanceTimer as never);
+            const request = new Request(
+                `https://example.com${basepath}${endpoint ?? (destination === null ? '/action/set-selected-store' : '/resource/auth-recovery')}`,
+                {
+                    method: destination === null ? 'POST' : 'GET',
+                    headers: preferenceReferer ? { Referer: preferenceReferer } : {},
+                }
+            );
+            return authMiddleware(
+                { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                async () => {
+                    context.set(authRecoveryReturnContext, destination);
+                    context.get(authStorageContext).set('error', AUTH_TOKEN_INVALID_ERROR);
+                    return Promise.resolve(new Response('OK'));
+                }
+            );
+        }
+        it('redirects a registered shopper whose refresh token expired to login instead of failing recovery', async () => {
+            const response = (await recover('/cart', '', undefined, undefined, undefined, true)) as Response;
+            expect(mockAuth.refreshToken).toHaveBeenCalled();
+            expect(response.status).toBe(307);
+            expect(response.headers.get('Location')).toContain('/login?');
+            expect(response.headers.get('Location')).toContain('error=session_expired');
+        });
+        it.each([
+            ['https://example.com/cart?q=shirt', '/cart?q=shirt'],
+            [undefined, '/'],
+        ])('returns a failed preferred-store write to the document after login (Referer %s)', async (referer, expected) => {
+            const response = (await recover(null, '', referer, undefined, undefined, true)) as Response;
+            expect(response.status).toBe(307);
+            const location = response.headers.get('Location') ?? '';
+            expect(location).toContain('error=session_expired');
+            expect(new URL(location, 'https://example.com').searchParams.get('returnUrl')).toBe(expected);
+        });
+        it.each([
+            [undefined, '/site-a/'],
+            ['https://public.example/cart', '/site-a/'],
+            ['https://example.com/action/set-selected-store', '/site-a/'],
+            ['https://example.com/site-a/MarketStreet/en-US/cart?q=shirt', '/site-a/MarketStreet/en-US/cart?q=shirt'],
+        ])('never replays a preferred-store POST with Referer %s', async (referer, expected) => {
+            vi.stubEnv('MRT_ENV_BASE_PATH', '/site-a');
+            try {
+                const response = (await recover(null, '/site-a', referer)) as Response;
+                expect(response.status).toBe(303);
+                expect(response.headers.get('Location')).toBe(expected);
+                expect(response.headers.get('Cache-Control')).toBe('no-store');
+                expect(mockAuth.refreshToken).toHaveBeenCalledOnce();
+                expect(response.headers.getSetCookie().length).toBeGreaterThan(0);
+            } finally {
+                vi.unstubAllEnvs();
+            }
+        });
+        it.each([
+            ['/shop/:merchant?/:siteId?', '/shop/action/set-selected-store'],
+            ['/shop/:merchant?/:siteId?', '/shop/acme/global/action/set-selected-store'],
+            ['/shop/:merchant.json?/:siteId?', '/shop/action/set-selected-store'],
+            ['/shop/:merchant.json?/:siteId?', '/shop/acme.json/global/action/set-selected-store'],
+            ['/shop/:merchant?.json/:siteId?', '/shop/.json/action/set-selected-store'],
+            ['/shop/:merchant?.json/:siteId?', '/shop/0.json/global/action/set-selected-store'],
+        ])('never replays compiled optional-prefix preference POST %s %s', async (prefix, endpoint) => {
+            const response = (await recover(null, '', undefined, endpoint, prefix)) as Response;
+            expect(response.status).toBe(303);
+            expect(response.headers.get('Location')).toBe('/');
+            expect(mockAuth.refreshToken).toHaveBeenCalledOnce();
+        });
+        it('falls back to the root when neither the Referer nor the root resolves to a document', async () => {
+            const recoveryRouting = await import('@/lib/auth/recovery-routes.server');
+            const spy = vi
+                .spyOn(recoveryRouting, 'matchRecoveryRoute')
+                .mockImplementation((pathname) =>
+                    pathname === '/cart' || pathname === '/'
+                        ? null
+                        : ({ metadata: { id: 'x', path: 'action/set-selected-store' }, params: {} } as never)
+                );
+            try {
+                const response = (await recover(null, '', 'https://example.com/cart')) as Response;
+                expect(response.status).toBe(303);
+                expect(response.headers.get('Location')).toBe('/');
+            } finally {
+                spy.mockRestore();
+            }
+        });
+        it('propagates programming errors when validating a preference Referer', async () => {
+            const recoveryRouting = await import('@/lib/auth/recovery-routes.server');
+            const match = recoveryRouting.matchRecoveryRoute;
+            const failure = new Error('compiled matcher failed');
+            const spy = vi.spyOn(recoveryRouting, 'matchRecoveryRoute').mockImplementation((pathname) => {
+                if (pathname === '/cart') throw failure;
+                return match(pathname);
+            });
+            try {
+                await expect(recover(null, '', 'https://example.com/cart')).rejects.toBe(failure);
+            } finally {
+                spy.mockRestore();
+            }
+        });
+        it.each([
+            'https://elsewhere.example/',
+            '//example.com/cart',
+            '///example.com/cart',
+            '/AcTiOn/login',
+            '/MarketStreet/en-US/%61ction/login',
+            '/%72esource/basket',
+            '/category/%ZZ',
+            '/cart.data',
+            '/cart%2edata',
+        ])('rejects unsafe explicit context %s', async (destination) => {
+            await expect(recover(destination)).rejects.toMatchObject({ status: 400 });
+            expect(mockAuth.refreshToken).not.toHaveBeenCalled();
+        });
+        it('canonicalizes a same-origin explicit context to a GET document redirect', async () => {
+            const response = await recover('https://example.com/MarketStreet/en-US/cart?q=red%20shirt');
+            expect(response).toBeInstanceOf(Response);
+            expect((response as Response).status).toBe(303);
+            expect((response as Response).headers.get('Location')).toBe('/MarketStreet/en-US/cart?q=red%20shirt');
+            expect((response as Response).headers.get('Cache-Control')).toBe('no-store');
+        });
+        it.each([
+            '/MarketStreet/en-US/cart',
+            '/site-a/MarketStreet/en-US/cart',
+        ])('restores physical basename once: %s', async (destination) => {
+            vi.stubEnv('MRT_ENV_BASE_PATH', '/site-a');
+            try {
+                const response = (await recover(destination, '/site-a')) as Response;
+                expect(response.headers.get('Location')).toBe('/site-a/MarketStreet/en-US/cart');
+                expect(response.headers.get('Cache-Control')).toBe('no-store');
+                expect(response.headers.getSetCookie().length).toBeGreaterThan(0);
+            } finally {
+                vi.unstubAllEnvs();
+            }
+        });
+        it.each([
+            '/resource/auth-recovery',
+            '/%72esource/auth-recovery',
+            '/resource/auth-recovery/',
+            '/resource/auth-recovery//',
+            '/resource/auth-recovery///',
+            '/site-a/resource/auth-recovery/',
+            '/site-a/resource/auth-recovery//',
+            '/site-a/resource/auth-recovery///',
+        ])('rejects invalid request input before initial expired-token refresh or downstream work: %s', async (endpoint) => {
+            vi.stubEnv('MRT_ENV_BASE_PATH', endpoint.startsWith('/site-a') ? '/site-a' : '');
+            const cookieUtils = await import('@/lib/cookie-utils.server');
+            vi.mocked(cookieUtils.parseAllCookies).mockReturnValue({ 'cc-nx-g': 'single-use-refresh-token' });
+            mockAuth.refreshToken.mockResolvedValue(getMockAuthResponse());
+            const context = new RouterContextProvider();
+            context.set(appConfigContext, mockConfig);
+            const request = new Request(`https://example.com${endpoint}?returnTo=%2Faction%2Flogin`);
+            const next = vi.fn();
+            await expect(
+                authMiddleware({ request, context, params: {}, pattern: '/', url: new URL(request.url) }, next)
+            ).rejects.toMatchObject({ status: 400 });
+            expect(mockAuth.refreshToken).not.toHaveBeenCalled();
+            expect(mockAuth.loginAsGuest).not.toHaveBeenCalled();
+            expect(next).not.toHaveBeenCalled();
+            vi.unstubAllEnvs();
+        });
+        it.each([
+            ['/:siteId/:localeId', '/unknown/xx/resource/auth-recovery///'],
+            ['/:siteId/:localeId?', '/unknown/resource/auth-recovery//'],
+            ['/shop/:localeId/:siteId', '/shop/xx/unknown/resource/auth-recovery///'],
+            ['/:siteId/:localeId', '/%ZZ/en-US/resource/auth-recovery'],
+            ['/:siteId/:localeId?', '/%ZZ/resource/auth-recovery//'],
+            ['/shop/:localeId/:siteId', '/shop/en-US/%ZZ/resource/auth-recovery///'],
+            ['/shop/:merchant?/:siteId?', '/shop/resource/auth-recovery'],
+            ['/shop/:merchant?/:siteId?', '/shop/acme/global/resource/auth-recovery'],
+            ['/shop/:merchant.json?/:siteId?', '/shop/resource/auth-recovery'],
+            ['/shop/:merchant.json?/:siteId?', '/shop/acme.json/global/resource/auth-recovery'],
+            ['/shop/:merchant?.json/:siteId?', '/shop/.json/resource/auth-recovery'],
+            ['/shop/:merchant?.json/:siteId?', '/shop/0.json/global/resource/auth-recovery'],
+        ])('rejects an invalid destination before refresh on configured recovery route %s %s', async (prefix, path) => {
+            vi.stubEnv('MRT_ENV_BASE_PATH', '/site-a');
+            try {
+                const cookieUtils = await import('@/lib/cookie-utils.server');
+                vi.mocked(cookieUtils.parseAllCookies).mockReturnValue({ 'cc-nx-g': 'single-use-refresh-token' });
+                const context = new RouterContextProvider();
+                setRecoveryManifest({ prefix, excludeRoutes: [] });
+                const { matchRecoveryRoute } = await import('@/lib/auth/recovery-routes.server');
+                expect(matchRecoveryRoute(`/site-a${path}`)?.metadata.path).toBe('resource/auth-recovery');
+                context.set(appConfigContext, { ...mockConfig, url: { ...mockConfig.url, prefix, excludeRoutes: [] } });
+                const request = new Request(
+                    `https://example.com/site-a${path}?returnTo=https%3A%2F%2Felsewhere.example%2F`
+                );
+                const next = vi.fn();
+                await expect(
+                    authMiddleware({ request, context, params: {}, pattern: '/', url: new URL(request.url) }, next)
+                ).rejects.toMatchObject({ status: 400 });
+                expect(mockAuth.refreshToken).not.toHaveBeenCalled();
+                expect(mockAuth.loginAsGuest).not.toHaveBeenCalled();
+                expect(next).not.toHaveBeenCalled();
+            } finally {
+                vi.unstubAllEnvs();
+            }
+        });
+    });
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(getBasePath).mockReturnValue('');
+        vi.mocked(getBasePath).mockImplementation(realGetBasePath);
 
         // Set required environment variables
         vi.stubEnv('COMMERCE_API_SLAS_SECRET', 'test-secret');
@@ -435,7 +684,9 @@ describe('auth middleware (server)', () => {
 
             await expect(refreshAccessToken(provider, refreshToken)).rejects.toThrow('Invalid refresh token');
             expect(mockLogger.error).toHaveBeenCalledWith('Auth: refreshAccessToken failed', {
-                error: mockError,
+                category: 'token-refresh',
+                status: undefined,
+                name: 'Error',
             });
         });
 
@@ -2072,6 +2323,58 @@ describe('auth middleware (server)', () => {
             expect(mockSerialize).toHaveBeenCalledWith('id-token-123', expect.any(Object));
             expect(mockSerialize).toHaveBeenCalledWith('idp-refresh-token-789', expect.any(Object));
             expect(mockSerialize).toHaveBeenCalledWith('refresh-dwsid', expect.any(Object));
+        });
+
+        describe('refresh skew window', () => {
+            const run = async (
+                secondsLeft: number,
+                cookies: Record<string, string> = { 'cc-nx-g': 'refresh-token' }
+            ) => {
+                const accessToken = buildMockAccessToken({ exp: Math.floor(Date.now() / 1000) + secondsLeft });
+                mockParseAllCookies.mockReturnValue({ ...cookies, 'cc-at': accessToken });
+                const request = new Request('https://example.com/test');
+                const context = new RouterContextProvider();
+                vi.spyOn(context, 'get').mockImplementation((key) => {
+                    if (key === performanceTimerContext) return mockPerformanceTimer;
+                    if (key === appConfigContext) return mockConfig;
+                    return new Map();
+                });
+                mockCreateCookie.mockReturnValue({ serialize: vi.fn().mockResolvedValue('Set-Cookie: mock=value') });
+                const next = vi.fn().mockResolvedValue(new Response('OK'));
+                const response = await authMiddleware(
+                    { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                    next
+                );
+                return { response, next };
+            };
+
+            it('refreshes a token that expires within the skew window before the request runs', async () => {
+                mockAuth.refreshToken.mockResolvedValue(getMockAuthResponse(getMockTokenResponse()));
+                await run(30);
+                expect(mockAuth.refreshToken).toHaveBeenCalledTimes(1);
+            });
+
+            it('does not refresh a token with more than the skew window left', async () => {
+                await run(600);
+                expect(mockAuth.refreshToken).not.toHaveBeenCalled();
+            });
+
+            it('keeps using a still-valid token when the early refresh fails', async () => {
+                mockAuth.refreshToken.mockRejectedValue(new Error('SLAS unavailable'));
+                const { response, next } = await run(30);
+                expect(mockAuth.refreshToken).toHaveBeenCalledTimes(1);
+                expect(mockAuth.loginAsGuest).not.toHaveBeenCalled();
+                expect(next).toHaveBeenCalledTimes(1);
+                expect((response as Response).status).toBe(200);
+            });
+
+            it('keeps an unexpired token inside the window when there is no refresh token to use', async () => {
+                const { response, next } = await run(30, {});
+                expect(mockAuth.refreshToken).not.toHaveBeenCalled();
+                expect(mockAuth.loginAsGuest).not.toHaveBeenCalled();
+                expect(next).toHaveBeenCalledTimes(1);
+                expect((response as Response).status).toBe(200);
+            });
         });
 
         it('should delete other refresh token cookie when switching user types', async () => {

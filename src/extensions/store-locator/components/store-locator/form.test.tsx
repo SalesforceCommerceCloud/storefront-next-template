@@ -22,6 +22,7 @@ const { t } = getTranslation();
 
 // Mock the store provider hook to supply state and actions
 const mockStore = {
+    generation: 0,
     config: { supportedCountries: [{ countryCode: 'US', countryName: 'United States' }], geoTimeout: 1000 },
     setDeviceCoordinates: vi.fn(),
     setGeoError: vi.fn(),
@@ -31,6 +32,7 @@ const mockStore = {
 
 vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
     useStoreLocator: (selector: any) => selector(mockStore),
+    useStoreLocatorApi: () => ({ getState: () => mockStore }),
 }));
 
 // Use real useStoreLocatorForm implementation (it depends on the mocked store above)
@@ -38,6 +40,7 @@ import StoreLocatorForm from './form';
 
 describe('StoreLocatorForm', () => {
     beforeEach(() => {
+        mockStore.generation = 0;
         mockStore.setDeviceCoordinates.mockClear();
         mockStore.setGeoError.mockClear();
         mockStore.searchByForm.mockClear();
@@ -92,5 +95,43 @@ describe('StoreLocatorForm', () => {
 
         expect(mockStore.setGeoError).toHaveBeenCalledWith(false);
         expect(mockStore.setDeviceCoordinates).toHaveBeenCalledWith({ latitude: 10, longitude: 20 });
+    });
+
+    test.each(['success', 'error'] as const)('ignores delayed geolocation %s after a scope change', async (result) => {
+        let success!: PositionCallback;
+        let error!: PositionErrorCallback;
+        // @ts-expect-error - partial mock
+        global.navigator.geolocation = {
+            getCurrentPosition: vi.fn((onSuccess, onError) => {
+                success = onSuccess;
+                error = onError;
+            }),
+        };
+        render(<StoreLocatorForm />);
+        await userEvent.click(
+            screen.getByRole('button', { name: t('extStoreLocator:storeLocator.form.useMyLocationButton') })
+        );
+        mockStore.setGeoError.mockClear();
+        // The provider updates its live store before consumers necessarily render again.
+        mockStore.generation++;
+        if (result === 'success') {
+            success({ coords: { latitude: 10, longitude: 20 } } as GeolocationPosition);
+        } else {
+            error({ code: 1, message: 'Permission denied' } as GeolocationPositionError);
+        }
+        expect(mockStore.setDeviceCoordinates).not.toHaveBeenCalled();
+        expect(mockStore.setGeoError).not.toHaveBeenCalled();
+    });
+
+    test('reports a geolocation error in the current scope', async () => {
+        // @ts-expect-error - partial mock
+        global.navigator.geolocation = {
+            getCurrentPosition: vi.fn((_success, error) => error({ code: 1, message: 'Permission denied' })),
+        };
+        render(<StoreLocatorForm />);
+        await userEvent.click(
+            screen.getByRole('button', { name: t('extStoreLocator:storeLocator.form.useMyLocationButton') })
+        );
+        expect(mockStore.setGeoError).toHaveBeenLastCalledWith(true);
     });
 });

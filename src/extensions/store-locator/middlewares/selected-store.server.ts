@@ -15,7 +15,9 @@
  */
 import { type MiddlewareFunction, createContext as createRouterContext } from 'react-router';
 import { createCookie, getCookieConfig } from '@/lib/cookie-utils.server';
+import { isHomeStorePromptDismissed } from '@/extensions/store-locator/home-store-prompt-dismissal';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 
 const COOKIE_SELECTED_STORE = 'selectedStoreInfo';
 
@@ -23,6 +25,11 @@ const COOKIE_SELECTED_STORE = 'selectedStoreInfo';
  * Router context holding the resolved selected store info (or null).
  */
 export const selectedStoreContext = createRouterContext<SelectedStoreInfo | null>(null);
+
+/**
+ * Router context holding whether this browser session dismissed the home prompt.
+ */
+export const homeStorePromptDismissedContext = createRouterContext(false);
 
 /**
  * Storage context for tracking updates during the request lifecycle.
@@ -81,6 +88,10 @@ export const selectedStoreMiddleware: MiddlewareFunction<Response> = async ({ re
 
     // Parse selected store info from cookie
     const requestCookieHeader = request.headers.get('Cookie');
+    context.set(
+        homeStorePromptDismissedContext,
+        isHomeStorePromptDismissed(requestCookieHeader, context.get(siteContext)?.site?.id ?? '')
+    );
     const rawValue = requestCookieHeader ? await storeCookie.parse(requestCookieHeader) : null;
 
     let storeInfo: SelectedStoreInfo | null = null;
@@ -103,7 +114,7 @@ export const selectedStoreMiddleware: MiddlewareFunction<Response> = async ({ re
                 };
             }
         } catch {
-            // Invalid JSON in cookie, ignore
+            // Invalid cookies are ignored. Reads never repair persistence.
         }
     }
 

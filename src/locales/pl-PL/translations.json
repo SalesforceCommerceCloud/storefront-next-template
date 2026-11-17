@@ -329,6 +329,7 @@
         "insufficientStock": "Niewystarczająca ilość w magazynie"
     },
     "cart": {
+        "handoffWarning": "Zalogowano, ale nie udało się potwierdzić przeniesienia koszyka. Sprawdź koszyk przed płatnością.",
         "title": "Koszyk",
         "delivery": {
             "heading": "Dostawa – {{deliveryCount}} z {{totalCount}} artykułów",
@@ -726,7 +727,8 @@
                 "changeStore": "Zmień sklep",
                 "noStoreSelected": "Nie wybrano żadnego sklepu. Aby wybrać preferowany sklep do odbioru zakupów, skorzystaj z lokalizatora sklepów.",
                 "storeHoursTitle": "Godziny otwarcia sklepu",
-                "error": "Nie udało się załadować danych sklepu. Spróbuj ponownie później."
+                "error": "Nie udało się załadować danych sklepu. Spróbuj ponownie później.",
+                "savedStoreUnavailable": "Zapisany sklep jest niedostępny w tej witrynie. Możesz go zmienić."
             },
             "authorizedPickupPeople": {
                 "heading": "Autoryzowani odbiorcy",
@@ -1440,6 +1442,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "Coś poszło nie tak",
+        "defaultDescription": "Wystąpił błąd",
+        "goToHomepage": "Przejdź do strony głównej"
     },
     "error": {
         "403": {

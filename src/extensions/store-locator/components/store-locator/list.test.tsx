@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import StoreLocatorList from './list';
@@ -94,7 +94,32 @@ vi.mock('@/extensions/store-locator/hooks/use-store-locator-list', () => ({
 }));
 
 describe('StoreLocatorList', () => {
+    test('retains focus while saving, guards click/space/arrow selection, then restores Radix keyboard selection', async () => {
+        const state = { ...baseState, selectionPending: false, chooserStoreInfo: baseState.storesPaginated[0] };
+        vi.mocked(useStoreLocatorList).mockImplementation(
+            () => state as unknown as ReturnType<typeof useStoreLocatorList>
+        );
+        const { rerender } = render(<StoreLocatorList />);
+        const radios = screen.getAllByRole('radio');
+        act(() => radios[0].focus());
+        state.selectionPending = true;
+        rerender(<StoreLocatorList />);
+        expect(radios[0]).toHaveFocus();
+        expect(radios[0]).not.toBeDisabled();
+        expect(radios[0]).toHaveAttribute('aria-disabled', 'true');
+        await userEvent.click(radios[0]);
+        await userEvent.keyboard(' {ArrowDown}');
+        expect(baseState.setSelectedStoreInfo).not.toHaveBeenCalled();
+        state.selectionPending = false;
+        rerender(<StoreLocatorList />);
+        act(() => radios[1].focus());
+        await userEvent.keyboard(' ');
+        await waitFor(() => expect(baseState.setSelectedStoreInfo).toHaveBeenCalledWith(baseState.storesPaginated[1]));
+    });
     beforeEach(() => {
+        vi.mocked(useStoreLocatorList).mockImplementation(
+            () => baseState as unknown as ReturnType<typeof useStoreLocatorList>
+        );
         baseState.setSelectedStoreInfo.mockClear();
         baseState.setPage.mockClear();
     });
@@ -131,13 +156,16 @@ describe('StoreLocatorList', () => {
         );
     });
 
-    test('disables all choices while native selection is pending', async () => {
-        vi.mocked(useStoreLocatorList).mockReturnValueOnce({ ...baseState, isSelecting: true } as any);
+    test('marks the cookie-selected store in the rendered results', () => {
+        const state = {
+            ...baseState,
+            selectedStoreInfo: { id: 'b', name: 'B', inventoryId: 'inv-b' },
+        };
+        vi.mocked(useStoreLocatorList).mockReturnValueOnce(state as any);
+
         render(<StoreLocatorList />);
-        expect(screen.getByRole('radiogroup')).toHaveAttribute('aria-busy', 'true');
-        for (const radio of screen.getAllByRole('radio')) expect(radio).toBeDisabled();
-        await userEvent.click(screen.getAllByRole('radio')[0]);
-        expect(baseState.setSelectedStoreInfo).not.toHaveBeenCalled();
+
+        expect(screen.getByRole('radio', { name: /B/i })).toBeChecked();
     });
 
     test('clicking Load More requests next page', async () => {

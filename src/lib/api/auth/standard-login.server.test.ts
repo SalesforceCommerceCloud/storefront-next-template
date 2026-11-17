@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ActionFunctionArgs } from 'react-router';
+import { RouterContextProvider, type ActionFunctionArgs } from 'react-router';
 import { loginRegisteredUser } from './standard-login.server';
 import { loginRegisteredUser as authLoginRegisteredUser, updateAuth } from '@/middlewares/auth.server';
 
@@ -29,6 +29,7 @@ vi.mock('@/extensions/store-locator/lib/store-selection.server', () => ({
 vi.mock('@/middlewares/auth.server', () => ({
     loginRegisteredUser: vi.fn(),
     updateAuth: vi.fn(),
+    getAuth: vi.fn(() => ({ customerId: 'customer', usid: 'usid', userType: 'registered' })),
 }));
 
 vi.mock('@salesforce/storefront-next-runtime/i18n', () => ({
@@ -47,7 +48,7 @@ describe('standard-login.server', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        mockContext = {} as ActionFunctionArgs['context'];
+        mockContext = new RouterContextProvider() as ActionFunctionArgs['context'];
     });
 
     afterEach(() => {

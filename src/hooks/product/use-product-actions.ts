@@ -22,6 +22,7 @@ import { useToast } from '@/components/toast';
 import { resourceRoutes } from '@/route-paths';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { usePickup } from '@/extensions/bopis/context/pickup-context';
+import { usePickupInventory } from '@/extensions/bopis/context/pickup-inventory';
 import { getStoreIdForBasketItem } from '@/extensions/bopis/lib/basket-utils';
 import { isSelectedDeliveryOptionValid } from '@/extensions/bopis/lib/product-actions';
 import { getPickupStoreFromMap } from '@/extensions/bopis/lib/store-utils';
@@ -201,6 +202,8 @@ export function useProductActions({
 
     // @sfdc-extension-line SFDC_EXT_BOPIS
     const productId = currentVariant?.productId || product.id;
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    const streamedInventory = usePickupInventory(currentVariant?.productId ?? product.id);
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     // Get pickup store for this basket item (if in edit mode with itemId)
@@ -261,6 +264,13 @@ export function useProductActions({
     useEffect(() => {
         if (
             needsVariantHydration &&
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+            !(
+                streamedInventory.active &&
+                streamedInventory.isInitialSelection &&
+                (streamedInventory.status === 'pending' || streamedInventory.product)
+            ) &&
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
             variantInventoryFetcher.state === 'idle' &&
             !variantInventoryFetcher.errors &&
             variantInventoryFetcher.data?.id !== currentVariant?.productId
@@ -276,6 +286,14 @@ export function useProductActions({
         variantInventoryFetcher.data?.id,
         // @sfdc-extension-line SFDC_EXT_BOPIS
         storeInventoryId,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        streamedInventory.status,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        streamedInventory.product,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        streamedInventory.active,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        streamedInventory.isInitialSelection,
     ]);
 
     // The fetched product IS the selected SKU, so its `inventory` (site) and `inventories`
@@ -293,8 +311,13 @@ export function useProductActions({
     // back to the variant summary's own `orderable` flag for delivery and blocks pickup, since store
     // inventory couldn't be confirmed. The cart-item-add server action stays the authoritative check.
     const variantHydrationFailed = needsVariantHydration && variantInventoryFetcher.errors != null;
-    const isVariantInventoryLoading = needsVariantHydration && hydratedSkuProduct == null && !variantHydrationFailed;
-    const inventoryProduct = hydratedSkuProduct ?? product;
+    const hydratedProduct = { value: hydratedSkuProduct };
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    if (!hydratedProduct.value && streamedInventory.product)
+        hydratedProduct.value = { ...product, ...streamedInventory.product };
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const isVariantInventoryLoading = needsVariantHydration && hydratedProduct.value == null && !variantHydrationFailed;
+    const inventoryProduct = hydratedProduct.value ?? product;
 
     // Inventory and stock calculations - considers delivery option, store/site inventory, and variant
     const actualStockLevel = useMemo(() => {
@@ -439,6 +462,19 @@ export function useProductActions({
         // client-side selection). Prevents validating quantity/orderability against the master's
         // inventory in the gap between selecting a SKU and its inventory arriving.
         if (isVariantInventoryLoading) return false;
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        if (
+            isPickupSelected &&
+            streamedInventory.active &&
+            !(
+                currentVariant && currentVariant.productId !== inventoryProduct.id
+                    ? (currentVariant as unknown as { inventories?: ShopperProducts.schemas['Inventory'][] })
+                          .inventories
+                    : inventoryProduct.inventories
+            )?.some((record) => record.id === storeInventoryId)
+        )
+            return false;
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
         // Quantity must be valid
         // For bonus products with maxQuantity, use that instead of actualStockLevel
@@ -476,7 +512,7 @@ export function useProductActions({
                 //     site/store inventory. (The pending window is already handled by the
                 //     `isVariantInventoryLoading` guard above.)
                 const productIsResolvedSku = product.id === currentVariant.productId;
-                if (productIsResolvedSku || hydratedSkuProduct != null) {
+                if (productIsResolvedSku || hydratedProduct.value != null) {
                     return effectiveInventory?.orderable === true;
                 }
 
@@ -530,7 +566,13 @@ export function useProductActions({
         isProductABundle,
         skipInventoryValidation,
         isVariantInventoryLoading,
-        hydratedSkuProduct,
+        hydratedProduct.value,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        streamedInventory.active,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        storeInventoryId,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        inventoryProduct,
         product.id,
         // @sfdc-extension-line SFDC_EXT_BOPIS
         isPickupSelected,

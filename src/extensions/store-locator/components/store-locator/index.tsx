@@ -16,6 +16,7 @@
 import type { ReactElement } from 'react';
 import StoreLocatorForm from './form';
 import StoreLocatorList from './list';
+import StoreSelectionFeedback from '@/extensions/store-locator/providers/chooser-feedback';
 
 /**
  * StoreLocator
@@ -28,6 +29,7 @@ export default function StoreLocator(): ReactElement {
     return (
         <section aria-labelledby="store-locator-heading" className="p-4">
             <StoreLocatorForm />
+            <StoreSelectionFeedback />
             <StoreLocatorList />
         </section>
     );

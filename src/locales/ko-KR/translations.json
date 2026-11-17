@@ -329,6 +329,7 @@
         "insufficientStock": "재고가 부족합니다"
     },
     "cart": {
+        "handoffWarning": "로그인했지만 장바구니 이전을 확인하지 못했습니다. 결제 전에 장바구니를 확인하세요.",
         "title": "카트",
         "delivery": {
             "heading": "배송 - {{deliveryCount}}/{{totalCount}}개 품목",
@@ -716,7 +717,8 @@
                 "changeStore": "매장 변경",
                 "noStoreSelected": "선택한 매장이 없습니다. 매장 찾기를 사용하여 선호하는 수령 매장을 선택하십시오.",
                 "storeHoursTitle": "매장 영업 시간",
-                "error": "매장 세부 정보를 로드하지 못했습니다. 나중에 다시 시도하십시오."
+                "error": "매장 세부 정보를 로드하지 못했습니다. 나중에 다시 시도하십시오.",
+                "savedStoreUnavailable": "저장된 매장은 이 사이트에서 이용할 수 없습니다. 변경할 수 있습니다."
             },
             "authorizedPickupPeople": {
                 "heading": "허가된 수령 대리자",
@@ -1462,6 +1464,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "문제가 발생했습니다",
+        "defaultDescription": "오류가 발생했습니다",
+        "goToHomepage": "홈페이지로 이동"
     },
     "error": {
         "403": {

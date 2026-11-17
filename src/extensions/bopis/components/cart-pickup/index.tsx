@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { type ReactElement } from 'react';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { isNativeStoreSelectionEnabled } from '@/lib/shopper-context/store-selection';
-import { type ReactElement, useCallback, useEffect, useRef } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import type { ShopperStores } from '@/scapi';
 import { Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/typography';
 import StoreAddress from '@/extensions/store-locator/components/store-locator/address';
-import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
 import type { PickupContext } from '@/extensions/store-locator/stores/store-locator-store';
-import { useChangePickupStore } from '@/extensions/bopis/hooks/use-change-pickup-store';
+import { useConfirmedPickupStore } from '@/extensions/bopis/components/use-confirmed-pickup-store';
 
 interface CartPickupProps {
     /** Store object containing store information */
@@ -59,43 +58,12 @@ interface CartPickupProps {
  */
 export default function CartPickup({ store, pickupCount, totalCount, pickupContext }: CartPickupProps): ReactElement {
     const { t } = useTranslation('extBopis');
-    const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
-    const isStoreLocatorOpen = useStoreLocator((s) => s.isOpen);
-    const openStoreLocator = useStoreLocator((s) => s.open);
     const nativeStoreContextEnabled = isNativeStoreSelectionEnabled(useConfig().features.shopperContext);
-    const setSelectedStoreInfoRaw = useStoreLocator((s) => s.setSelectedStoreInfo);
-    const { changeStore } = useChangePickupStore();
-    // Set only when THIS card's "Change Store" opened the locator, so a store selection applies to this pickup
-    // group when the sheet closes — and a merely-different global selection never changes the store on its own.
-    const pendingChangeRef = useRef(false);
-
-    // Handle "Change Store" button click
-    // Seed the locator with the current store and mark a change as pending for this pickup group.
-    const handleChangeStoreClick = useCallback(() => {
-        if (nativeStoreContextEnabled) return;
-        setSelectedStoreInfoRaw(store);
-        pendingChangeRef.current = true;
-        openStoreLocator(pickupContext);
-    }, [nativeStoreContextEnabled, store, setSelectedStoreInfoRaw, openStoreLocator, pickupContext]);
-
-    // Apply the store change once the shopper closes the picker with a different boutique selected. Gating on the
-    // pending flag (not just isOpen) supports pickers that close on select as well as those that stay open; it
-    // also prevents an unrelated global store selection from silently re-homing this pickup group.
-    useEffect(() => {
-        if (nativeStoreContextEnabled) return;
-        if (isStoreLocatorOpen || !pendingChangeRef.current) return;
-        pendingChangeRef.current = false;
-        if (selectedStoreInfo && selectedStoreInfo.id !== store.id && selectedStoreInfo.inventoryId) {
-            void changeStore(selectedStoreInfo);
-        }
-        // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        nativeStoreContextEnabled,
-        selectedStoreInfo?.id,
-        selectedStoreInfo?.inventoryId,
-        isStoreLocatorOpen,
-        store.id,
-    ]);
+    const handleChangeStoreClick = useConfirmedPickupStore(
+        'cart',
+        store.id ? { ...store, id: store.id } : null,
+        pickupContext
+    );
 
     return (
         <div className="pb-4" data-testid="cart-pickup-card">

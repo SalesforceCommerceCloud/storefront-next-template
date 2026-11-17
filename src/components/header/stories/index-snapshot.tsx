@@ -27,7 +27,8 @@ const fetcherMock = {
     Form: (props: MockFormProps) => <form {...props}>{props.children}</form>,
 };
 
-vi.mock('react-router', () => ({
+vi.mock('react-router', async () => ({
+    UNSAFE_DataRouterContext: (await import('react')).createContext({}),
     href: (path: string) => path,
     createContext: vi.fn().mockImplementation(() => ({})),
     createCookie: vi.fn().mockImplementation((name) => ({ name, parse: vi.fn(), serialize: vi.fn() })),
@@ -70,10 +71,17 @@ vi.mock('@/components/toast', () => ({
     }),
 }));
 vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
+    SelectedStoreBoundary: ({ children }: { children: () => ReactNode }) => children(),
     useStoreLocator: (selector: (store: unknown) => unknown) => {
         const mockStore = {
             selectedStoreInfo: null,
             setSelectedStoreInfo: vi.fn(),
+            homeStorePromptDismissed: false,
+            setHomeStorePromptDismissed: vi.fn(),
+            isOpen: false,
+            open: vi.fn(),
+            openSelectedStore: vi.fn(),
+            config: { radiusUnit: 'km' },
         };
         return selector(mockStore);
     },

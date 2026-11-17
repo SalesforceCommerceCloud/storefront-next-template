@@ -20,6 +20,7 @@ import type { ShopperStores } from '@/scapi';
 import { extractResponseError } from '@/lib/utils';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getLogger } from '@/lib/logger.server';
+import type { StoreSearchResult } from '@/extensions/store-locator/stores/store-locator-store';
 
 /**
  * Result of searchStores API
@@ -27,11 +28,7 @@ import { getLogger } from '@/lib/logger.server';
  * @property stores - Result of searchStores API
  * @property error - Error message if the search was not successful
  */
-export interface SearchStoresResult {
-    success: boolean;
-    stores?: ShopperStores.schemas['StoreResult'];
-    error?: string;
-}
+export type SearchStoresResult = StoreSearchResult;
 
 /**
  * Server-side loader to search for stores.

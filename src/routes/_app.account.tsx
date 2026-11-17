@@ -75,6 +75,9 @@ export function loader(args: Route.LoaderArgs) {
     const customer = getCustomer(args.context, customerId);
     const subscriptions = getSubscriptions(args.context);
 
+    // Observe early rejections while other loaders block rendering, preserving the original streamed promises.
+    void Promise.allSettled([customer, subscriptions]);
+
     return { customer, subscriptions };
 }
 

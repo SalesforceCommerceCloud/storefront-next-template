@@ -47,7 +47,9 @@ describe('CategoryNavigationMenu Component', () => {
                     path: '*',
                     element: (
                         <AllProvidersWrapper config={config}>
-                            <CategoryNavigationMenu {...props} />
+                            <div data-testid="navigation-subject">
+                                <CategoryNavigationMenu {...props} />
+                            </div>
                         </AllProvidersWrapper>
                     ),
                 },
@@ -175,13 +177,13 @@ describe('CategoryNavigationMenu Component', () => {
         });
 
         it('should return null for empty categories array', () => {
-            const { container } = renderComponent({ categories: [] });
-            expect(container.firstChild).toBeNull();
+            const { getByTestId } = renderComponent({ categories: [] });
+            expect(getByTestId('navigation-subject')).toBeEmptyDOMElement();
         });
 
         it('should return null for null/undefined categories', () => {
-            const { container } = renderComponent({ categories: null as any });
-            expect(container.firstChild).toBeNull();
+            const { getByTestId } = renderComponent({ categories: null as any });
+            expect(getByTestId('navigation-subject')).toBeEmptyDOMElement();
         });
 
         it('should render with maxDepth = 1', () => {

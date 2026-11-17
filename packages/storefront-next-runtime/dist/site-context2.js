@@ -43,6 +43,66 @@ function useSite() {
 }
 
 //#endregion
+//#region src/site-context/configs.ts
+const DEFAULT_CURRENCY_COOKIE_NAME = "currency";
+/**
+* Default site detection configuration
+*/
+const DEFAULT_SITE_DETECTION = {
+	order: [
+		"path",
+		"querystring",
+		"cookie",
+		"header"
+	],
+	lookupFromPathIndex: 0,
+	lookupQuerystring: "site",
+	lookupCookie: "site_id",
+	lookupHeader: "X-Site-Id",
+	caches: ["cookie"]
+};
+/**
+* Default locale detection configuration
+*/
+const DEFAULT_LOCALE_DETECTION = {
+	order: [
+		"path",
+		"querystring",
+		"cookie",
+		"header"
+	],
+	lookupFromPathIndex: 1,
+	lookupQuerystring: "lng",
+	lookupCookie: "lng",
+	lookupHeader: "Accept-Language",
+	caches: ["cookie"]
+};
+/** Effective site detection options, using the middleware's shallow-merge contract. */
+function resolveSiteDetectionConfig(config) {
+	const resolved = {
+		...DEFAULT_SITE_DETECTION,
+		...config
+	};
+	return {
+		...resolved,
+		order: resolved.order?.slice(),
+		caches: resolved.caches?.slice()
+	};
+}
+/** Effective locale detection options, using the middleware's shallow-merge contract. */
+function resolveLocaleDetectionConfig(config) {
+	const resolved = {
+		...DEFAULT_LOCALE_DETECTION,
+		...config
+	};
+	return {
+		...resolved,
+		order: resolved.order?.slice(),
+		caches: resolved.caches?.slice()
+	};
+}
+
+//#endregion
 //#region src/site-context/build-url.ts
 /**
 * Parses search config string into key-value pairs, preserving ':param' placeholders.
@@ -293,42 +353,6 @@ async function resolveSite(request, settings) {
 }
 
 //#endregion
-//#region src/site-context/configs.ts
-const DEFAULT_CURRENCY_COOKIE_NAME = "currency";
-/**
-* Default site detection configuration
-*/
-const DEFAULT_SITE_DETECTION = {
-	order: [
-		"path",
-		"querystring",
-		"cookie",
-		"header"
-	],
-	lookupFromPathIndex: 0,
-	lookupQuerystring: "site",
-	lookupCookie: "site_id",
-	lookupHeader: "X-Site-Id",
-	caches: ["cookie"]
-};
-/**
-* Default locale detection configuration
-*/
-const DEFAULT_LOCALE_DETECTION = {
-	order: [
-		"path",
-		"querystring",
-		"cookie",
-		"header"
-	],
-	lookupFromPathIndex: 1,
-	lookupQuerystring: "lng",
-	lookupCookie: "lng",
-	lookupHeader: "Accept-Language",
-	caches: ["cookie"]
-};
-
-//#endregion
 //#region src/site-context/cookies.ts
 /**
 * Base cookie options for site context cookies (site, locale, currency).
@@ -554,6 +578,50 @@ async function shouldSetCookies(request, response, settings, site, locale, curre
 	};
 }
 /**
+* Resolve detection defaults and create the cookie instances for a site context config.
+* Shared by the middleware and by consumers that call {@link resolveSiteContext} or
+* {@link serializeContextCookies} outside the middleware chain.
+*/
+function createSiteSettings(config, cookieOptions = config.cookieOptions) {
+	const siteDetectionConfig = resolveSiteDetectionConfig(config.siteDetectionConfig);
+	const localeDetectionConfig = resolveLocaleDetectionConfig(config.localeDetectionConfig);
+	const siteCookie = createSiteContextCookie(siteDetectionConfig.lookupCookie, cookieOptions);
+	const localeCookie = createSiteContextCookie(localeDetectionConfig.lookupCookie, cookieOptions);
+	const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, {
+		...cookieOptions,
+		httpOnly: false
+	});
+	return {
+		...config,
+		siteDetectionConfig,
+		localeDetectionConfig,
+		siteCookie,
+		localeCookie,
+		currencyCookie
+	};
+}
+/**
+* Serialize the `Set-Cookie` headers the middleware would write for a resolved context:
+* only cookies whose caching is enabled, whose value differs from the request's cookie,
+* and that `response` does not already set. Returns site, locale, then currency cookies.
+*/
+async function serializeContextCookies(request, response, settings, { site, locale, currency }) {
+	const { shouldSetSiteCookie, shouldSetLocaleCookie, shouldSetCurrencyCookie } = await shouldSetCookies(request, response, settings, site, locale, currency);
+	const cookieDomain = site.cookies?.domain || settings.cookieOptions?.domain;
+	const domainOpt = cookieDomain && isValidCookieDomain(cookieDomain) ? { domain: cookieDomain } : {};
+	return (await Promise.all([
+		shouldSetSiteCookie ? settings.siteCookie.serialize(site.id, {
+			path: "/",
+			...domainOpt
+		}) : null,
+		shouldSetLocaleCookie ? settings.localeCookie.serialize(locale.id, {
+			path: "/",
+			...domainOpt
+		}) : null,
+		shouldSetCurrencyCookie ? settings.currencyCookie.serialize(currency, { ...domainOpt }) : null
+	])).filter((cookie) => !!cookie);
+}
+/**
 * Creates a site context middleware that resolves the current site from
 * the request (path, cookie, header, query, or default) and stores the
 * result in the router context.
@@ -561,35 +629,13 @@ async function shouldSetCookies(request, response, settings, site, locale, curre
 * Does not import or read from app config context; the consumer supplies config.
 */
 function createSiteContextMiddleware(config, previewOptions) {
-	const siteDetectionConfig = {
-		...DEFAULT_SITE_DETECTION,
-		...config.siteDetectionConfig
-	};
-	const localeDetectionConfig = {
-		...DEFAULT_LOCALE_DETECTION,
-		...config.localeDetectionConfig
-	};
 	const siteContextMiddleware = async ({ request, context }, next) => {
-		const cookieOptions = isPreviewModeActive(request) || isDesignModeActive(request) ? {
+		const settings = createSiteSettings(config, isPreviewModeActive(request) || isDesignModeActive(request) ? {
 			...config.cookieOptions,
 			sameSite: "none",
 			secure: true,
 			partitioned: true
-		} : config.cookieOptions;
-		const siteCookie = createSiteContextCookie(siteDetectionConfig.lookupCookie, cookieOptions);
-		const localeCookie = createSiteContextCookie(localeDetectionConfig.lookupCookie, cookieOptions);
-		const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, {
-			...cookieOptions,
-			httpOnly: false
-		});
-		const settings = {
-			...config,
-			siteDetectionConfig,
-			localeDetectionConfig,
-			siteCookie,
-			localeCookie,
-			currencyCookie
-		};
+		} : config.cookieOptions);
 		const selected = resolvePreviewSiteLocale(request, settings, previewOptions);
 		const { site, locale, currency } = selected ? {
 			...selected,
@@ -605,24 +651,11 @@ function createSiteContextMiddleware(config, previewOptions) {
 		});
 		requestToLocaleMap.set(request, locale.id);
 		const response = (selected && previewOptions && createPreviewRedirect(request, previewOptions, site, locale)) ?? await next();
-		const { shouldSetSiteCookie, shouldSetLocaleCookie, shouldSetCurrencyCookie } = await shouldSetCookies(request, response, settings, site, locale, currency);
-		if (!shouldSetSiteCookie && !shouldSetLocaleCookie && !shouldSetCurrencyCookie) return response;
-		const cookieDomain = site.cookies?.domain || settings.cookieOptions?.domain;
-		const domainOpt = cookieDomain && isValidCookieDomain(cookieDomain) ? { domain: cookieDomain } : {};
-		const [siteSetCookie, localeSetCookie, currencySetCookie] = await Promise.all([
-			shouldSetSiteCookie ? settings.siteCookie.serialize(site.id, {
-				path: "/",
-				...domainOpt
-			}) : Promise.resolve(null),
-			shouldSetLocaleCookie ? settings.localeCookie.serialize(locale.id, {
-				path: "/",
-				...domainOpt
-			}) : Promise.resolve(null),
-			shouldSetCurrencyCookie ? settings.currencyCookie.serialize(currency, { ...domainOpt }) : Promise.resolve(null)
-		]);
-		if (siteSetCookie) response.headers.append("Set-Cookie", siteSetCookie);
-		if (localeSetCookie) response.headers.append("Set-Cookie", localeSetCookie);
-		if (currencySetCookie) response.headers.append("Set-Cookie", currencySetCookie);
+		for (const cookie of await serializeContextCookies(request, response, settings, {
+			site,
+			locale,
+			currency
+		})) response.headers.append("Set-Cookie", cookie);
 		return response;
 	};
 	return siteContextMiddleware;
@@ -667,5 +700,5 @@ function createPreviewRedirect(request, previewOptions, site, locale) {
 }
 
 //#endregion
-export { requestToLocaleMap as a, resolvePrefix as c, useSite as d, siteContext as i, stripPathPrefix as l, getSiteContextCookies as n, buildUrl as o, resolveSiteContext as r, extractPrefixParamValues as s, createSiteContextMiddleware as t, SiteProvider as u };
+export { serializeContextCookies as a, buildUrl as c, stripPathPrefix as d, resolveLocaleDetectionConfig as f, useSite as h, resolveSiteContext as i, extractPrefixParamValues as l, SiteProvider as m, createSiteSettings as n, siteContext as o, resolveSiteDetectionConfig as p, getSiteContextCookies as r, requestToLocaleMap as s, createSiteContextMiddleware as t, resolvePrefix as u };
 //# sourceMappingURL=site-context2.js.map

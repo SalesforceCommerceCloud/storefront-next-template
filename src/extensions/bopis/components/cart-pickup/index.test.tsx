@@ -53,12 +53,14 @@ const mockOpenStoreLocator = vi.fn();
 const mockSetSelectedStoreInfoRaw = vi.fn();
 
 vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
+    StoreLocatorStateProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
     default: ({ children }: { children: ReactNode }) => <>{children}</>,
     useStoreLocator: vi.fn((selector: (store: any) => any) => {
         const mockStore = {
             selectedStoreInfo: mockSelectedStoreInfo(),
             isOpen: mockIsStoreLocatorOpen(),
             open: mockOpenStoreLocator,
+            openChooser: mockOpenStoreLocator,
             setSelectedStoreInfo: mockSetSelectedStoreInfoRaw,
         };
         return selector(mockStore);
@@ -195,11 +197,17 @@ describe('CartPickup', () => {
 
             // Verify that setSelectedStoreInfoRaw was called with the full store object
             // (normalization happens inside setSelectedStoreInfo)
-            expect(mockSetSelectedStoreInfoRaw).toHaveBeenCalledWith(mockStore);
+            expect(mockSetSelectedStoreInfoRaw).not.toHaveBeenCalled();
+            expect(mockOpenStoreLocator).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    selectedStoreInfo: mockStore,
+                    owner: expect.any(String),
+                })
+            );
 
-            // Verify that openStoreLocator was called (unscoped when no pickupContext is provided)
+            // Unscoped when no pickupContext is provided
             expect(mockOpenStoreLocator).toHaveBeenCalledTimes(1);
-            expect(mockOpenStoreLocator).toHaveBeenCalledWith(undefined);
+            expect(mockOpenStoreLocator).toHaveBeenCalledWith(expect.objectContaining({ pickupContext: undefined }));
         });
 
         it('disables native store switching until the confirmed-change flow is available', async () => {
@@ -234,7 +242,7 @@ describe('CartPickup', () => {
 
             await user.click(screen.getByText('Change Store'));
 
-            expect(mockOpenStoreLocator).toHaveBeenCalledWith(pickupContext);
+            expect(mockOpenStoreLocator).toHaveBeenCalledWith(expect.objectContaining({ pickupContext }));
         });
 
         it('uses store.id as fallback when store.name is undefined', async () => {
@@ -255,12 +263,15 @@ describe('CartPickup', () => {
 
             // Verify that setSelectedStoreInfoRaw was called with the full store object
             // (normalization with name fallback happens inside setSelectedStoreInfo)
-            expect(mockSetSelectedStoreInfoRaw).toHaveBeenCalledWith(storeWithoutName);
+            expect(mockSetSelectedStoreInfoRaw).not.toHaveBeenCalled();
+            expect(mockOpenStoreLocator).toHaveBeenCalledWith(
+                expect.objectContaining({ selectedStoreInfo: storeWithoutName })
+            );
         });
     });
 
     describe('Store Selection Change Handling', () => {
-        it('applies the store change when a different boutique is selected and the picker closes', async () => {
+        it('does not react to global preference changes while locator is open', async () => {
             const differentStore: SelectedStoreInfo = {
                 id: 'store-002',
                 name: 'Different Store',
@@ -292,11 +303,7 @@ describe('CartPickup', () => {
             );
 
             await waitFor(() => {
-                expect(mockChangeStore).toHaveBeenCalledWith({
-                    id: 'store-002',
-                    name: 'Different Store',
-                    inventoryId: 'inventory-002',
-                });
+                expect(mockChangeStore).not.toHaveBeenCalled();
             });
         });
 

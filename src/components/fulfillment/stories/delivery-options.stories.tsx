@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
 import DeliveryOptions from '../delivery-options';
 import { masterProductWithInventories } from '@/components/__mocks__/master-product-with-inventories';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS

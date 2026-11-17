@@ -70,14 +70,16 @@ function renderGuestOrderActions(props: Partial<React.ComponentProps<typeof Gues
                 path: '/',
                 element: (
                     <AllProvidersWrapper>
-                        <GuestOrderActions
-                            order={mockOrder}
-                            omsMetaData={mockOmsMetaData}
-                            orderNumber="ORDER-001"
-                            email="guest@example.com"
-                            onOrderUpdated={onOrderUpdated}
-                            {...props}
-                        />
+                        <div data-testid="guest-order-actions-subject">
+                            <GuestOrderActions
+                                order={mockOrder}
+                                omsMetaData={mockOmsMetaData}
+                                orderNumber="ORDER-001"
+                                email="guest@example.com"
+                                onOrderUpdated={onOrderUpdated}
+                                {...props}
+                            />
+                        </div>
                     </AllProvidersWrapper>
                 ),
             },
@@ -99,8 +101,8 @@ describe('GuestOrderActions', () => {
     });
 
     test('renders nothing when OMS is not active', () => {
-        const { container } = renderGuestOrderActions({ omsMetaData: { ...mockOmsMetaData, omsActive: false } });
-        expect(container).toBeEmptyDOMElement();
+        const { getByTestId } = renderGuestOrderActions({ omsMetaData: { ...mockOmsMetaData, omsActive: false } });
+        expect(getByTestId('guest-order-actions-subject')).toBeEmptyDOMElement();
     });
 
     test('renders enabled Return Items and Cancel order buttons when order is eligible', () => {

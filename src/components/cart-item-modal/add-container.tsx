@@ -120,12 +120,13 @@ export function CartItemModalAddContainer({
     }, [baseProduct, variationValues]);
 
     const selectedVariantId = matchingVariant?.productId;
-    let variantCacheKey = selectedVariantId;
+    const variantCache = { key: selectedVariantId };
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     if (selectedVariantId && selectedStoreInventoryId) {
-        variantCacheKey = `${selectedVariantId}:${selectedStoreInventoryId}`;
+        variantCache.key = `${selectedVariantId}:${selectedStoreInventoryId}`;
     }
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const variantCacheKey = variantCache.key;
     const cachedVariantProduct = variantCacheKey ? variantInventoryCache[variantCacheKey] : undefined;
 
     const variantFetcher = useScapiFetcher('shopperProducts', 'getProduct', {

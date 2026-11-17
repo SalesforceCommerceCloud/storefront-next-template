@@ -20,7 +20,10 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { updateBasketResource } from '@/middlewares/basket.server';
 
 vi.mock('@/lib/api-clients.server', () => ({ createApiClients: vi.fn() }));
-vi.mock('@/middlewares/basket.server', () => ({ updateBasketResource: vi.fn() }));
+vi.mock('@/middlewares/basket.server', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/middlewares/basket.server')>()),
+    updateBasketResource: vi.fn(),
+}));
 const transfer = vi.fn();
 const calculate = vi.fn();
 beforeEach(() => {

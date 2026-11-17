@@ -36,6 +36,26 @@ export type SelectedStoreInfo = {
     id: string;
     name?: string;
     inventoryId?: string;
+    postalCode?: string;
+    countryCode?: string;
+    distance?: number;
+};
+
+export type StoreSearchResult = {
+    success: boolean;
+    stores?: ShopperStores.schemas['StoreResult'];
+    error?: string;
+};
+
+/** Stable fetcher key shared by Store Locator selection controls and observers. */
+export const SELECTED_STORE_FETCHER_KEY = 'store-locator-selected-store';
+
+/** One confirmed chooser selection, claimable once by its initiating caller. */
+export type ConfirmedStoreSelection = { owner: string; session: number; generation: number; store: SelectedStoreInfo };
+export type StoreChooserOptions = {
+    selectedStoreInfo?: SelectedStoreInfo | null;
+    owner?: string;
+    pickupContext?: PickupContext;
 };
 
 /**
@@ -49,6 +69,18 @@ export type PickupContext = {
 };
 
 type StoreLocatorState = {
+    identityScope?: string;
+    selectionRevision: number;
+    /** Revision window of the last confirmed write: reads captured while it was pending (`from`) end at `to`. */
+    selectionSettlement: { from: number; to: number } | null;
+    generation: number;
+    session: number;
+    chooserStoreInfo: SelectedStoreInfo | null;
+    chooserOwner: string | null;
+    confirmedSelection: ConfirmedStoreSelection | null;
+    selectionPending: boolean;
+    selectionIntent: 'set' | 'clear' | 'reconcile';
+    selectionError: string | null;
     isOpen: boolean;
     mode: 'input' | 'device';
     shouldSearch: boolean;
@@ -57,19 +89,26 @@ type StoreLocatorState = {
     geoError: boolean;
     selectedStoreInfo: SelectedStoreInfo | null;
     pickupContext: PickupContext | null;
+    homeStorePromptDismissed: boolean;
+    searchResult: StoreSearchResult | null;
     config: StoreLocatorConfig;
 };
 
 type StoreLocatorActions = {
     open: (context?: PickupContext) => void;
-    close: () => void;
+    openChooser: (options?: StoreChooserOptions) => void;
+    openSelectedStore: () => void;
+    close: (session?: number) => void;
+    claimConfirmedSelection: (owner: string) => SelectedStoreInfo | null;
     searchByForm: (params: FormSearchParams) => void;
     setShouldSearch: (should: boolean) => void;
     setDeviceCoordinates: (coords: GeoCoordinates) => void;
     setGeoError: (value: boolean) => void;
+    setSearchResult: (result: StoreSearchResult | null) => void;
     setSelectedStoreInfo: (
         info: SelectedStoreInfo | ShopperStores.schemas['Store'] | Partial<ShopperStores.schemas['Store']> | null
     ) => void;
+    setHomeStorePromptDismissed: (dismissed: boolean) => void;
 };
 
 export type StoreLocatorStore = StoreLocatorState & StoreLocatorActions;
@@ -105,6 +144,9 @@ const normalizeStoreInfo = (
         id: store.id,
         name: store.name || store.id,
         inventoryId: store.inventoryId,
+        ...(store.postalCode ? { postalCode: store.postalCode } : {}),
+        ...(store.countryCode ? { countryCode: store.countryCode } : {}),
+        ...(typeof store.distance === 'number' ? { distance: store.distance } : {}),
     };
 };
 
@@ -130,6 +172,16 @@ export const createStoreLocatorStore = (init?: Partial<StoreLocatorState>): Stor
     const listeners = new Set<() => void>();
 
     const initialState: StoreLocatorState = {
+        selectionRevision: 0,
+        selectionSettlement: null,
+        generation: 0,
+        session: 0,
+        chooserStoreInfo: null,
+        chooserOwner: null,
+        confirmedSelection: null,
+        selectionPending: false,
+        selectionIntent: 'set',
+        selectionError: null,
         isOpen: false,
         mode: 'input',
         shouldSearch: false,
@@ -138,15 +190,83 @@ export const createStoreLocatorStore = (init?: Partial<StoreLocatorState>): Stor
         geoError: false,
         selectedStoreInfo: null,
         pickupContext: null,
+        homeStorePromptDismissed: false,
+        searchResult: null,
         config: defaultConfig,
         ...init,
     };
 
     const actions: StoreLocatorActions = {
-        open: (context) => store.setState({ isOpen: true, pickupContext: context ?? null }),
-        close: () => store.setState({ isOpen: false, pickupContext: null }),
+        open: (context) => store.getState().openChooser({ pickupContext: context }),
+        openChooser: (options) =>
+            store.setState((state) => ({
+                isOpen: true,
+                pickupContext: options?.pickupContext ?? null,
+                session: state.session + 1,
+                selectionError: state.selectionError === 'outcome_unknown' ? state.selectionError : null,
+                chooserStoreInfo:
+                    options?.selectedStoreInfo === undefined ? state.selectedStoreInfo : options.selectedStoreInfo,
+                chooserOwner: options?.owner ?? null,
+                confirmedSelection: null,
+            })),
+        openSelectedStore: () => {
+            store.getState().open();
+            const { selectedStoreInfo, searchResult } = store.getState();
+            const hasSelectedStoreInResults = searchResult?.stores?.data?.some(
+                (store) => store.id === selectedStoreInfo?.id
+            );
+            if (hasSelectedStoreInResults) {
+                store.setState({ isOpen: true });
+                return;
+            }
+
+            if (selectedStoreInfo?.countryCode && selectedStoreInfo.postalCode) {
+                store.setState({
+                    isOpen: true,
+                    mode: 'input',
+                    searchParams: {
+                        countryCode: selectedStoreInfo.countryCode,
+                        postalCode: selectedStoreInfo.postalCode,
+                    },
+                    shouldSearch: true,
+                    geoError: false,
+                });
+                return;
+            }
+
+            store.setState({ isOpen: true });
+        },
+        close: (session) => {
+            if (session === undefined || session === store.getState().session)
+                store.setState({
+                    isOpen: false,
+                    pickupContext: null,
+                    chooserOwner: null,
+                    confirmedSelection: null,
+                });
+        },
+        claimConfirmedSelection: (owner) => {
+            const state = store.getState();
+            const notification = state.confirmedSelection;
+            if (
+                !notification ||
+                notification.owner !== owner ||
+                notification.session !== state.session ||
+                notification.generation !== state.generation
+            )
+                return null;
+            // Clear before handing control to the caller, including synchronous subscriptions/remounts.
+            store.setState({ confirmedSelection: null });
+            return notification.store;
+        },
         searchByForm: (params) =>
-            store.setState({ mode: 'input', searchParams: params, shouldSearch: true, geoError: false }),
+            store.setState({
+                mode: 'input',
+                searchParams: params,
+                shouldSearch: true,
+                geoError: false,
+                searchResult: null,
+            }),
         setDeviceCoordinates: (coords) =>
             store.setState({
                 mode: 'device',
@@ -154,13 +274,18 @@ export const createStoreLocatorStore = (init?: Partial<StoreLocatorState>): Stor
                 searchParams: null,
                 shouldSearch: true,
                 geoError: false,
+                searchResult: null,
             }),
         setGeoError: (value) => store.setState({ geoError: value }),
         setShouldSearch: (should) => store.setState({ shouldSearch: should }),
+        setSearchResult: (result) => store.setState({ searchResult: result }),
         setSelectedStoreInfo: (info) => {
             const normalized = normalizeStoreInfo(info);
-            store.setState({ selectedStoreInfo: normalized });
+            store.setState({
+                selectedStoreInfo: normalized,
+            });
         },
+        setHomeStorePromptDismissed: (dismissed) => store.setState({ homeStorePromptDismissed: dismissed }),
     };
 
     let state: StoreLocatorStore = {

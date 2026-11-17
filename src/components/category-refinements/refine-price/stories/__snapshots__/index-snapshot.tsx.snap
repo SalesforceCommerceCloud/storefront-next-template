@@ -12,7 +12,7 @@ exports[`RefinePrice stories snapshot > FullyFeatured story renders and matches 
     >
       <label
         class="sr-only"
-        for="_r_1_-price-min"
+        for="_r_2_-price-min"
       >
         Min
       </label>
@@ -31,7 +31,7 @@ exports[`RefinePrice stories snapshot > FullyFeatured story renders and matches 
           <input
             class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
             data-slot="input"
-            id="_r_1_-price-min"
+            id="_r_2_-price-min"
             min="0"
             placeholder="Min"
             type="number"
@@ -50,7 +50,7 @@ exports[`RefinePrice stories snapshot > FullyFeatured story renders and matches 
     >
       <label
         class="sr-only"
-        for="_r_1_-price-max"
+        for="_r_2_-price-max"
       >
         Max
       </label>
@@ -69,7 +69,7 @@ exports[`RefinePrice stories snapshot > FullyFeatured story renders and matches 
           <input
             class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
             data-slot="input"
-            id="_r_1_-price-max"
+            id="_r_2_-price-max"
             min="0"
             placeholder="Max"
             type="number"
@@ -223,7 +223,7 @@ exports[`RefinePrice stories snapshot > NoPredefinedRanges story renders and mat
     >
       <label
         class="sr-only"
-        for="_r_3_-price-min"
+        for="_r_5_-price-min"
       >
         Min
       </label>
@@ -242,7 +242,7 @@ exports[`RefinePrice stories snapshot > NoPredefinedRanges story renders and mat
           <input
             class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
             data-slot="input"
-            id="_r_3_-price-min"
+            id="_r_5_-price-min"
             min="0"
             placeholder="Min"
             type="number"
@@ -261,7 +261,7 @@ exports[`RefinePrice stories snapshot > NoPredefinedRanges story renders and mat
     >
       <label
         class="sr-only"
-        for="_r_3_-price-max"
+        for="_r_5_-price-max"
       >
         Max
       </label>
@@ -280,7 +280,7 @@ exports[`RefinePrice stories snapshot > NoPredefinedRanges story renders and mat
           <input
             class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
             data-slot="input"
-            id="_r_3_-price-max"
+            id="_r_5_-price-max"
             min="0"
             placeholder="Max"
             type="number"

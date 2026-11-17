@@ -327,6 +327,7 @@
         "insufficientStock": "Onvoldoende voorraad beschikbaar"
     },
     "cart": {
+        "handoffWarning": "Je bent ingelogd, maar we konden de overdracht van je winkelwagen niet bevestigen. Controleer je winkelwagen voordat je afrekent.",
         "title": "Winkelwagen",
         "delivery": {
             "heading": "Levering - {{deliveryCount}} van {{totalCount}} artikelen",
@@ -714,7 +715,8 @@
                 "changeStore": "Winkel veranderen",
                 "noStoreSelected": "Geen winkel geselecteerd. Kies met de winkellocator de winkel van je voorkeur voor ophalen.",
                 "storeHoursTitle": "Openingstijden",
-                "error": "Laden van winkelgegevens is mislukt. Probeer het later opnieuw."
+                "error": "Laden van winkelgegevens is mislukt. Probeer het later opnieuw.",
+                "savedStoreUnavailable": "Je opgeslagen winkel is niet beschikbaar op deze site. Je kunt deze wijzigen."
             },
             "authorizedPickupPeople": {
                 "heading": "Gemachtigde personen voor ophalen",
@@ -1403,6 +1405,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "Er is iets misgegaan",
+        "defaultDescription": "Er is een fout opgetreden",
+        "goToHomepage": "Ga naar de startpagina"
     },
     "error": {
         "403": {

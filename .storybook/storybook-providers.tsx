@@ -16,6 +16,7 @@ import AuthProvider from '../src/providers/auth';
 import BasketProvider from '../src/providers/basket';
 import CheckoutOneClickProvider from '../src/components/checkout/utils/checkout-context';
 import ProductViewProvider from '../src/providers/product-view';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
 import StoreLocatorProvider from '../src/extensions/store-locator/providers/store-locator';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
@@ -122,9 +123,12 @@ export const StorybookBasketProvider = ({ children }: PropsWithChildren) => (
  * Storybook StoreLocatorProvider wrapper
  * StoreLocatorProvider doesn't require any props - it initializes its own store from cookies
  */
-export const StorybookStoreLocatorProvider = ({ children }: PropsWithChildren) => (
-    <StoreLocatorProvider>{children}</StoreLocatorProvider>
-);
+export const StorybookStoreLocatorProvider = ({ children }: PropsWithChildren) => {
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    return <StoreLocatorProvider>{children}</StoreLocatorProvider>;
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+    return <>{children}</>;
+};
 
 /**
  * Storybook CheckoutProvider wrapper with mock customer profile

@@ -330,6 +330,7 @@
         "insufficientStock": "Ikke nok på lager"
     },
     "cart": {
+        "handoffWarning": "Du er logget inn, men vi kunne ikke bekrefte at handlekurven ble overført. Kontroller handlekurven før betaling.",
         "title": "Kurv",
         "delivery": {
             "heading": "Levering – {{deliveryCount}} av {{totalCount}} varer",
@@ -716,7 +717,8 @@
                 "changeStore": "Endre butikk",
                 "noStoreSelected": "Ingen butikk valgt. Bruk butikkfinneren til å velge ønsket butikk for henting.",
                 "storeHoursTitle": "Butikkens åpningstider",
-                "error": "Kunne ikke laste inn informasjon om butikken. Prøv igjen senere."
+                "error": "Kunne ikke laste inn informasjon om butikken. Prøv igjen senere.",
+                "savedStoreUnavailable": "Den lagrede butikken din er ikke tilgjengelig på dette nettstedet. Du kan endre den."
             },
             "authorizedPickupPeople": {
                 "heading": "Autoriserte hentepersoner",
@@ -1402,6 +1404,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "Noe gikk galt",
+        "defaultDescription": "Det oppstod en feil",
+        "goToHomepage": "Gå til startsiden"
     },
     "error": {
         "403": {

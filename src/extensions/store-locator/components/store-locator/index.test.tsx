@@ -19,11 +19,15 @@ import StoreLocator from './index';
 
 vi.mock('./form', () => ({ default: () => <div data-testid="mock-form">FORM</div> }));
 vi.mock('./list', () => ({ default: () => <div data-testid="mock-list">LIST</div> }));
+vi.mock('@/extensions/store-locator/providers/chooser-feedback', () => ({
+    default: () => <div data-testid="mock-feedback">FEEDBACK</div>,
+}));
 
 describe('StoreLocator (composition)', () => {
     test('renders form and list', () => {
         render(<StoreLocator />);
         expect(screen.getByTestId('mock-form')).toBeInTheDocument();
         expect(screen.getByTestId('mock-list')).toBeInTheDocument();
+        expect(screen.getByTestId('mock-feedback')).toBeInTheDocument();
     });
 });

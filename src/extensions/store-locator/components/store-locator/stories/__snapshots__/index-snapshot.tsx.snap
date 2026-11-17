@@ -1,439 +1,445 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`StoreLocator stories snapshot > Default story renders and matches snapshot 1`] = `
-<div>
-  <section
-    aria-labelledby="store-locator-heading"
-    class="p-4"
+<section
+  aria-labelledby="store-locator-heading"
+  class="p-4"
+>
+  <form
+    aria-label="storeLocator.form.searchFormAriaLabel"
   >
-    <form
-      aria-label="storeLocator.form.searchFormAriaLabel"
+    <div
+      class="flex flex-col gap-3"
     >
       <div
-        class="flex flex-col gap-3"
+        class="flex flex-col gap-1"
+        data-slot="form-item"
+      >
+        <label
+          class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
+          data-error="false"
+          data-slot="form-label"
+          for="_r_0_-form-item"
+        >
+          storeLocator.form.countryLabel
+        </label>
+        <div
+          aria-invalid="false"
+          class="w-full [&_[data-slot='native-select-wrapper']]:w-full"
+          data-slot="form-control"
+          id="_r_0_-form-item"
+        >
+          <div
+            class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
+            data-slot="native-select-wrapper"
+          >
+            <select
+              aria-label="storeLocator.form.countryLabel"
+              class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+              data-size="default"
+              data-slot="native-select"
+            >
+              <option
+                disabled=""
+                value=""
+              >
+                storeLocator.form.selectCountry
+              </option>
+              <option
+                value="US"
+              >
+                United States
+              </option>
+              <option
+                value="GB"
+              >
+                United Kingdom
+              </option>
+            </select>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
+              data-slot="native-select-icon"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div
+        class="flex gap-2 items-end"
       >
         <div
-          class="flex flex-col gap-1"
+          class="flex flex-1 flex-col gap-1"
           data-slot="form-item"
         >
           <label
             class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
             data-error="false"
             data-slot="form-label"
-            for="_r_0_-form-item"
+            for="_r_1_-form-item"
           >
-            storeLocator.form.countryLabel
+            storeLocator.form.postalCodeLabel
           </label>
-          <div
+          <input
             aria-invalid="false"
-            class="w-full [&_[data-slot='native-select-wrapper']]:w-full"
+            aria-label="storeLocator.form.postalCodeLabel"
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
             data-slot="form-control"
-            id="_r_0_-form-item"
-          >
-            <div
-              class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
-              data-slot="native-select-wrapper"
-            >
-              <select
-                aria-label="storeLocator.form.countryLabel"
-                class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                data-size="default"
-                data-slot="native-select"
-              >
-                <option
-                  disabled=""
-                  value=""
-                >
-                  storeLocator.form.selectCountry
-                </option>
-                <option
-                  value="US"
-                >
-                  United States
-                </option>
-                <option
-                  value="GB"
-                >
-                  United Kingdom
-                </option>
-              </select>
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
-                data-slot="native-select-icon"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m6 9 6 6 6-6"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-        <div
-          class="flex gap-2 items-end"
-        >
-          <div
-            class="flex flex-1 flex-col gap-1"
-            data-slot="form-item"
-          >
-            <label
-              class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
-              data-error="false"
-              data-slot="form-label"
-              for="_r_1_-form-item"
-            >
-              storeLocator.form.postalCodeLabel
-            </label>
-            <input
-              aria-invalid="false"
-              aria-label="storeLocator.form.postalCodeLabel"
-              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-              data-slot="form-control"
-              id="_r_1_-form-item"
-              name="postalCode"
-              placeholder="storeLocator.form.postalCodePlaceholder"
-              value=""
-            />
-          </div>
-          <button
-            aria-label="storeLocator.form.findButton"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 py-2 has-[>svg]:px-3 h-9 px-5"
-            data-size="default"
-            data-slot="button"
-            data-variant="default"
-            type="submit"
-          >
-            storeLocator.form.findButton
-          </button>
-        </div>
-        <div
-          class="relative my-2 flex items-center"
-        >
-          <div
-            class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px absolute left-0 right-0"
-            data-orientation="horizontal"
-            data-slot="separator"
-            role="none"
+            id="_r_1_-form-item"
+            name="postalCode"
+            placeholder="storeLocator.form.postalCodePlaceholder"
+            value=""
           />
-          <span
-            class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
-          >
-            storeLocator.form.or
-          </span>
         </div>
         <button
-          aria-label="storeLocator.form.useMyLocationButton"
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          aria-label="storeLocator.form.findButton"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 py-2 has-[>svg]:px-3 h-9 px-5"
           data-size="default"
           data-slot="button"
           data-variant="default"
-          type="button"
+          type="submit"
         >
-          storeLocator.form.useMyLocationButton
+          storeLocator.form.findButton
         </button>
       </div>
-    </form>
-  </section>
-</div>
+      <div
+        class="relative my-2 flex items-center"
+      >
+        <div
+          class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px absolute left-0 right-0"
+          data-orientation="horizontal"
+          data-slot="separator"
+          role="none"
+        />
+        <span
+          class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
+        >
+          storeLocator.form.or
+        </span>
+      </div>
+      <button
+        aria-label="storeLocator.form.useMyLocationButton"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+        data-size="default"
+        data-slot="button"
+        data-variant="default"
+        type="button"
+      >
+        storeLocator.form.useMyLocationButton
+      </button>
+    </div>
+  </form>
+  <div
+    aria-live="polite"
+    class="text-center"
+  />
+</section>
 `;
 
 exports[`StoreLocator stories snapshot > DesktopLayout story renders and matches snapshot 1`] = `
-<div>
-  <section
-    aria-labelledby="store-locator-heading"
-    class="p-4"
+<section
+  aria-labelledby="store-locator-heading"
+  class="p-4"
+>
+  <form
+    aria-label="storeLocator.form.searchFormAriaLabel"
   >
-    <form
-      aria-label="storeLocator.form.searchFormAriaLabel"
+    <div
+      class="flex flex-col gap-3"
     >
       <div
-        class="flex flex-col gap-3"
+        class="flex flex-col gap-1"
+        data-slot="form-item"
+      >
+        <label
+          class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
+          data-error="false"
+          data-slot="form-label"
+          for="_r_6_-form-item"
+        >
+          storeLocator.form.countryLabel
+        </label>
+        <div
+          aria-invalid="false"
+          class="w-full [&_[data-slot='native-select-wrapper']]:w-full"
+          data-slot="form-control"
+          id="_r_6_-form-item"
+        >
+          <div
+            class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
+            data-slot="native-select-wrapper"
+          >
+            <select
+              aria-label="storeLocator.form.countryLabel"
+              class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+              data-size="default"
+              data-slot="native-select"
+            >
+              <option
+                disabled=""
+                value=""
+              >
+                storeLocator.form.selectCountry
+              </option>
+              <option
+                value="US"
+              >
+                United States
+              </option>
+              <option
+                value="GB"
+              >
+                United Kingdom
+              </option>
+            </select>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
+              data-slot="native-select-icon"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div
+        class="flex gap-2 items-end"
       >
         <div
-          class="flex flex-col gap-1"
+          class="flex flex-1 flex-col gap-1"
           data-slot="form-item"
         >
           <label
             class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
             data-error="false"
             data-slot="form-label"
-            for="_r_6_-form-item"
+            for="_r_7_-form-item"
           >
-            storeLocator.form.countryLabel
+            storeLocator.form.postalCodeLabel
           </label>
-          <div
+          <input
             aria-invalid="false"
-            class="w-full [&_[data-slot='native-select-wrapper']]:w-full"
+            aria-label="storeLocator.form.postalCodeLabel"
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
             data-slot="form-control"
-            id="_r_6_-form-item"
-          >
-            <div
-              class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
-              data-slot="native-select-wrapper"
-            >
-              <select
-                aria-label="storeLocator.form.countryLabel"
-                class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                data-size="default"
-                data-slot="native-select"
-              >
-                <option
-                  disabled=""
-                  value=""
-                >
-                  storeLocator.form.selectCountry
-                </option>
-                <option
-                  value="US"
-                >
-                  United States
-                </option>
-                <option
-                  value="GB"
-                >
-                  United Kingdom
-                </option>
-              </select>
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
-                data-slot="native-select-icon"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m6 9 6 6 6-6"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-        <div
-          class="flex gap-2 items-end"
-        >
-          <div
-            class="flex flex-1 flex-col gap-1"
-            data-slot="form-item"
-          >
-            <label
-              class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
-              data-error="false"
-              data-slot="form-label"
-              for="_r_7_-form-item"
-            >
-              storeLocator.form.postalCodeLabel
-            </label>
-            <input
-              aria-invalid="false"
-              aria-label="storeLocator.form.postalCodeLabel"
-              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-              data-slot="form-control"
-              id="_r_7_-form-item"
-              name="postalCode"
-              placeholder="storeLocator.form.postalCodePlaceholder"
-              value=""
-            />
-          </div>
-          <button
-            aria-label="storeLocator.form.findButton"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 py-2 has-[>svg]:px-3 h-9 px-5"
-            data-size="default"
-            data-slot="button"
-            data-variant="default"
-            type="submit"
-          >
-            storeLocator.form.findButton
-          </button>
-        </div>
-        <div
-          class="relative my-2 flex items-center"
-        >
-          <div
-            class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px absolute left-0 right-0"
-            data-orientation="horizontal"
-            data-slot="separator"
-            role="none"
+            id="_r_7_-form-item"
+            name="postalCode"
+            placeholder="storeLocator.form.postalCodePlaceholder"
+            value=""
           />
-          <span
-            class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
-          >
-            storeLocator.form.or
-          </span>
         </div>
         <button
-          aria-label="storeLocator.form.useMyLocationButton"
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          aria-label="storeLocator.form.findButton"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 py-2 has-[>svg]:px-3 h-9 px-5"
           data-size="default"
           data-slot="button"
           data-variant="default"
-          type="button"
+          type="submit"
         >
-          storeLocator.form.useMyLocationButton
+          storeLocator.form.findButton
         </button>
       </div>
-    </form>
-  </section>
-</div>
+      <div
+        class="relative my-2 flex items-center"
+      >
+        <div
+          class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px absolute left-0 right-0"
+          data-orientation="horizontal"
+          data-slot="separator"
+          role="none"
+        />
+        <span
+          class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
+        >
+          storeLocator.form.or
+        </span>
+      </div>
+      <button
+        aria-label="storeLocator.form.useMyLocationButton"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+        data-size="default"
+        data-slot="button"
+        data-variant="default"
+        type="button"
+      >
+        storeLocator.form.useMyLocationButton
+      </button>
+    </div>
+  </form>
+  <div
+    aria-live="polite"
+    class="text-center"
+  />
+</section>
 `;
 
 exports[`StoreLocator stories snapshot > MobileLayout story renders and matches snapshot 1`] = `
-<div>
-  <section
-    aria-labelledby="store-locator-heading"
-    class="p-4"
+<section
+  aria-labelledby="store-locator-heading"
+  class="p-4"
+>
+  <form
+    aria-label="storeLocator.form.searchFormAriaLabel"
   >
-    <form
-      aria-label="storeLocator.form.searchFormAriaLabel"
+    <div
+      class="flex flex-col gap-3"
     >
       <div
-        class="flex flex-col gap-3"
+        class="flex flex-col gap-1"
+        data-slot="form-item"
+      >
+        <label
+          class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
+          data-error="false"
+          data-slot="form-label"
+          for="_r_3_-form-item"
+        >
+          storeLocator.form.countryLabel
+        </label>
+        <div
+          aria-invalid="false"
+          class="w-full [&_[data-slot='native-select-wrapper']]:w-full"
+          data-slot="form-control"
+          id="_r_3_-form-item"
+        >
+          <div
+            class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
+            data-slot="native-select-wrapper"
+          >
+            <select
+              aria-label="storeLocator.form.countryLabel"
+              class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+              data-size="default"
+              data-slot="native-select"
+            >
+              <option
+                disabled=""
+                value=""
+              >
+                storeLocator.form.selectCountry
+              </option>
+              <option
+                value="US"
+              >
+                United States
+              </option>
+              <option
+                value="GB"
+              >
+                United Kingdom
+              </option>
+            </select>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
+              data-slot="native-select-icon"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div
+        class="flex gap-2 items-end"
       >
         <div
-          class="flex flex-col gap-1"
+          class="flex flex-1 flex-col gap-1"
           data-slot="form-item"
         >
           <label
             class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
             data-error="false"
             data-slot="form-label"
-            for="_r_3_-form-item"
+            for="_r_4_-form-item"
           >
-            storeLocator.form.countryLabel
+            storeLocator.form.postalCodeLabel
           </label>
-          <div
+          <input
             aria-invalid="false"
-            class="w-full [&_[data-slot='native-select-wrapper']]:w-full"
+            aria-label="storeLocator.form.postalCodeLabel"
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
             data-slot="form-control"
-            id="_r_3_-form-item"
-          >
-            <div
-              class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
-              data-slot="native-select-wrapper"
-            >
-              <select
-                aria-label="storeLocator.form.countryLabel"
-                class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                data-size="default"
-                data-slot="native-select"
-              >
-                <option
-                  disabled=""
-                  value=""
-                >
-                  storeLocator.form.selectCountry
-                </option>
-                <option
-                  value="US"
-                >
-                  United States
-                </option>
-                <option
-                  value="GB"
-                >
-                  United Kingdom
-                </option>
-              </select>
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
-                data-slot="native-select-icon"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m6 9 6 6 6-6"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-        <div
-          class="flex gap-2 items-end"
-        >
-          <div
-            class="flex flex-1 flex-col gap-1"
-            data-slot="form-item"
-          >
-            <label
-              class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
-              data-error="false"
-              data-slot="form-label"
-              for="_r_4_-form-item"
-            >
-              storeLocator.form.postalCodeLabel
-            </label>
-            <input
-              aria-invalid="false"
-              aria-label="storeLocator.form.postalCodeLabel"
-              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-              data-slot="form-control"
-              id="_r_4_-form-item"
-              name="postalCode"
-              placeholder="storeLocator.form.postalCodePlaceholder"
-              value=""
-            />
-          </div>
-          <button
-            aria-label="storeLocator.form.findButton"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 py-2 has-[>svg]:px-3 h-9 px-5"
-            data-size="default"
-            data-slot="button"
-            data-variant="default"
-            type="submit"
-          >
-            storeLocator.form.findButton
-          </button>
-        </div>
-        <div
-          class="relative my-2 flex items-center"
-        >
-          <div
-            class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px absolute left-0 right-0"
-            data-orientation="horizontal"
-            data-slot="separator"
-            role="none"
+            id="_r_4_-form-item"
+            name="postalCode"
+            placeholder="storeLocator.form.postalCodePlaceholder"
+            value=""
           />
-          <span
-            class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
-          >
-            storeLocator.form.or
-          </span>
         </div>
         <button
-          aria-label="storeLocator.form.useMyLocationButton"
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          aria-label="storeLocator.form.findButton"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 py-2 has-[>svg]:px-3 h-9 px-5"
           data-size="default"
           data-slot="button"
           data-variant="default"
-          type="button"
+          type="submit"
         >
-          storeLocator.form.useMyLocationButton
+          storeLocator.form.findButton
         </button>
       </div>
-    </form>
-  </section>
-</div>
+      <div
+        class="relative my-2 flex items-center"
+      >
+        <div
+          class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px absolute left-0 right-0"
+          data-orientation="horizontal"
+          data-slot="separator"
+          role="none"
+        />
+        <span
+          class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
+        >
+          storeLocator.form.or
+        </span>
+      </div>
+      <button
+        aria-label="storeLocator.form.useMyLocationButton"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+        data-size="default"
+        data-slot="button"
+        data-variant="default"
+        type="button"
+      >
+        storeLocator.form.useMyLocationButton
+      </button>
+    </div>
+  </form>
+  <div
+    aria-live="polite"
+    class="text-center"
+  />
+</section>
 `;

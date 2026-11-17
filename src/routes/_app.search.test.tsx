@@ -229,6 +229,12 @@ vi.mock('@/middlewares/auth.server', () => ({
 const mockTrackViewSearch = vi.fn();
 const mockTrackClickProductInSearch = vi.fn();
 let mockConsentKey = 'accepted';
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+// Analytics UUID fixtures exclude the unrelated mutation transport instance.
+vi.mock('@/extensions/store-locator/providers/selection', () => ({
+    default: ({ children }: { children: React.ReactNode }) => children,
+}));
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 let uuidCounter = 0;
 Object.defineProperty(globalThis.crypto, 'randomUUID', {
     value: vi.fn(() => `search-result-${++uuidCounter}` as `${string}-${string}-${string}-${string}-${string}`),

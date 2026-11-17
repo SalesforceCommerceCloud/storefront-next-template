@@ -49,6 +49,20 @@ export const COOKIE_TRACKING_CONSENT = 'dw_dnt'; // Tracking consent preference 
 export const COOKIE_DWSID = 'dwsid'; // Hybrid storefront session ID (for session bridge)
 export const COOKIE_AUTH_RECOVERY_GUARD = 'cc-auth-recover'; // Auth recovery loop guard
 export const AUTH_TOKEN_INVALID_ERROR = 'AUTH_TOKEN_INVALID';
+// Explicit login completion is distinct from refresh/setup: its proof cannot be replayed.
+export const registeredLoginCompletedContext = createContext(false);
+export const completedLoginRecoveryContext = createContext<{
+    customerId?: string;
+    usid?: string;
+    siteId: string;
+    guard: boolean;
+    refresh?: Promise<void>;
+    failed?: boolean;
+    supersededCredential?: string;
+    recoveredCredential?: string;
+} | null>(null);
+// An uncertain transfer preserves its guest candidate for the rest of this request.
+export const uncertainBasketHandoffContext = createContext(false);
 
 /**
  * Check if tracking consent feature is enabled in the app configuration.

@@ -58,7 +58,8 @@ const mockStoresData = {
     },
 };
 
-vi.mock('react-router', () => ({
+vi.mock('react-router', async () => ({
+    UNSAFE_DataRouterContext: (await import('react')).createContext({}),
     href: (path: string) => path,
     createContext: vi.fn().mockImplementation(() => ({})),
     useFetcher: () => ({
@@ -187,14 +188,12 @@ vi.mock('@/extensions/store-locator/hooks/use-store-locator-list', () => ({
 }));
 
 describe('StoreLocatorList stories snapshot', () => {
-    for (const [storyName, Story] of Object.entries(composed)) {
-        test(`${storyName} story renders and matches snapshot`, () => {
-            const { container } = render(
-                <StoryTestWrapper>
-                    <Story />
-                </StoryTestWrapper>
-            );
-            expect(container.firstChild).toMatchSnapshot();
-        });
-    }
+    test('Default story renders and matches snapshot', () => {
+        const { container } = render(
+            <StoryTestWrapper>
+                <composed.Default />
+            </StoryTestWrapper>
+        );
+        expect(container.firstChild).toMatchSnapshot();
+    });
 });

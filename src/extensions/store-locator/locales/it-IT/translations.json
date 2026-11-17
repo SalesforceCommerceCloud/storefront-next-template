@@ -5,6 +5,14 @@
         }
     },
     "storeLocator": {
+        "selection": {
+            "unknown": "Il risultato non è stato confermato. Riprova per verificare la preferenza attuale.",
+            "clearing": "Rimozione del negozio preferito…",
+            "saving": "Salvataggio del negozio…",
+            "error": "Impossibile salvare il negozio. Il negozio precedente è rimasto invariato. Riprova.",
+            "retry": "Riprova",
+            "checking": "Verifica del negozio preferito…"
+        },
         "title": "Trova un negozio",
         "description": "Cerchi negozi per paese e codice postale o utilizzi la Sua posizione attuale.",
         "form": {
@@ -21,7 +29,16 @@
         },
         "trigger": {
             "ariaLabel": "Trova un negozio",
-            "openAriaLabel": "Apri Trova un negozio"
+            "openAriaLabel": "Apri Trova un negozio",
+            "chooseAriaLabel": "Scegli un negozio",
+            "selectedAriaLabel": "Cambia il tuo negozio: {{storeName}}, {{postalCode}}",
+            "selectedWithoutPostalAriaLabel": "Cambia il tuo negozio: {{storeName}}"
+        },
+        "homePrompt": {
+            "title": "Scegli il tuo negozio",
+            "description": "Scelga un negozio preferito per salvarlo. Può modificarlo in qualsiasi momento.",
+            "open": "Scegli un negozio",
+            "dismiss": "Non ora"
         },
         "sheet": {
             "closeAriaLabel": "Chiudi localizzatore negozi"

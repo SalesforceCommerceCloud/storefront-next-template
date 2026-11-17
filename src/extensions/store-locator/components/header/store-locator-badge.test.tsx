@@ -13,69 +13,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, test, expect, vi } from 'vitest';
+/** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
-const { t } = getTranslation();
+const openStoreLocator = vi.fn();
+const openSelectedStoreLocator = vi.fn();
+const storeLocatorState = {
+    selectedStoreInfo: null as { id: string; name: string; postalCode?: string; distance?: number } | null,
+    isOpen: false,
+    open: openStoreLocator,
+    openSelectedStore: openSelectedStoreLocator,
+    config: { radiusUnit: 'mi' as const },
+};
 
-// Mock the lazy-loaded store locator sheet
-vi.mock('@/extensions/store-locator/components/header/store-locator-sheet', () => ({
-    default: ({
-        children,
-        open,
-        onOpenChange,
-    }: {
-        children: any;
-        open: boolean;
-        onOpenChange: (open: boolean) => void;
-    }) => (
-        <div data-testid="mock-store-locator-sheet" data-open={open}>
-            {children}
-            <button onClick={() => onOpenChange(false)}>Mock Close</button>
-        </div>
-    ),
-}));
+vi.mock('@/extensions/store-locator/providers/store-locator', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/extensions/store-locator/providers/store-locator')>();
+    return {
+        ...actual,
+        useStoreLocator: (selector: (state: typeof storeLocatorState) => unknown) => selector(storeLocatorState),
+    };
+});
 
 import StoreLocatorBadge from './store-locator-badge';
 
-describe('StoreLocatorBadge', () => {
-    test('renders initial trigger button', () => {
-        render(
-            <AllProvidersWrapper>
-                <StoreLocatorBadge />
-            </AllProvidersWrapper>
-        );
-
-        expect(
-            screen.getByRole('button', { name: t('extStoreLocator:storeLocator.trigger.ariaLabel') })
-        ).toBeInTheDocument();
-
-        expect(
-            screen.queryByRole('button', { name: t('extStoreLocator:storeLocator.trigger.openAriaLabel') })
-        ).not.toBeInTheDocument();
+describe('Fashion StoreLocatorBadge', () => {
+    beforeEach(() => {
+        storeLocatorState.selectedStoreInfo = null;
+        storeLocatorState.isOpen = false;
+        openStoreLocator.mockClear();
+        openSelectedStoreLocator.mockClear();
     });
 
-    test('shows open button and sheet after clicking trigger', async () => {
+    test('includes the truncated visible store label in the accessible name', () => {
+        storeLocatorState.selectedStoreInfo = {
+            id: 'store-1',
+            name: 'Burlington Retail Store With A Very Long Name',
+            postalCode: '01803',
+            distance: 0,
+        };
+
         render(
             <AllProvidersWrapper>
                 <StoreLocatorBadge />
             </AllProvidersWrapper>
         );
 
-        await userEvent.click(
-            screen.getByRole('button', { name: t('extStoreLocator:storeLocator.trigger.ariaLabel') })
+        const trigger = screen.getByRole('button', {
+            name: 'Change your store: Burlington Retail Store... · 0.00 mi, 01803',
+        });
+        expect(trigger).toHaveTextContent('Burlington Retail Store... · 0.00 mi');
+        expect(trigger).not.toHaveTextContent('Burlington Retail Store With A Very Long Name');
+        expect(trigger).toHaveTextContent('01803');
+        expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+        expect(trigger).toHaveAttribute('aria-expanded', 'false');
+        expect(screen.getAllByRole('button')).toHaveLength(1);
+    });
+
+    test('reports the sheet as expanded while it is open', () => {
+        storeLocatorState.isOpen = true;
+
+        render(
+            <AllProvidersWrapper>
+                <StoreLocatorBadge />
+            </AllProvidersWrapper>
         );
 
-        const openBtn = await screen.findByRole('button', {
-            name: t('extStoreLocator:storeLocator.trigger.openAriaLabel'),
-        });
-
-        expect(openBtn).toBeInTheDocument();
-        const sheet = screen.getByTestId('mock-store-locator-sheet');
-        expect(sheet).toBeInTheDocument();
-        expect(sheet).toHaveAttribute('data-open', 'true');
+        expect(screen.getByRole('button', { name: 'Choose your store' })).toHaveAttribute('aria-expanded', 'true');
     });
 });

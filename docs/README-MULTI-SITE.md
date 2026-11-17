@@ -219,6 +219,10 @@ External redirect origins and forwarded query parameters are denied unless expli
 
 Below are common URL patterns you can achieve by combining `prefix` and `search`. The available `:param` placeholders are **`:siteId`** and **`:localeId`**, which are resolved from the current site and locale refs (after alias mapping).
 
+The compiled prefix also accepts React Router dynamic and optional segments. Additional merchant parameters are not supplied by the standard URL builders. The preferred-store recovery link preserves them from the matched route's parameters and adds the deployment basename once. If a required merchant parameter is unavailable (for example on the duplicated root homepage), a localized fallback reloads the current page.
+
+Preferred-store recovery requests explicitly carry the active site and locale using the configured detection query keys. Only that endpoint validates the pair and gives it precedence over stale cookies, even when query detection is disabled for ordinary requests. Ordinary requests retain their configured detection order. See [Preferred store recovery](./README-PREFERRED-STORE.md#late-preferred-store-read-recovery).
+
 #### Use Case 1: Site and locale in the path (default)
 
 ```typescript

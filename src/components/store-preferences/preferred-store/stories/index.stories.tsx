@@ -18,6 +18,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import { AppToaster } from '@/components/toast';
 import type { ShopperStores } from '@/scapi';
 import PreferredStore from '..';
 
@@ -37,19 +38,17 @@ If the Store Selector extension is installed, provides a "Change store" button.
                 `,
             },
         },
-        reactRouter: {
-            loader: () => ({
-                preferredStore: {
-                    id: 'store-001',
-                    name: 'Downtown Store',
-                    address1: '123 Main Street',
-                    city: 'San Francisco',
-                    stateCode: 'CA',
-                    postalCode: '94105',
-                    storeHours: '10:00 AM - 8:00 PM',
-                } as ShopperStores.schemas['Store'],
-                error: null,
-            }),
+        loaderData: {
+            preferredStore: {
+                id: 'store-001',
+                name: 'Downtown Store',
+                address1: '123 Main Street',
+                city: 'San Francisco',
+                stateCode: 'CA',
+                postalCode: '94105',
+                storeHours: '10:00 AM - 8:00 PM',
+            } as ShopperStores.schemas['Store'],
+            error: null,
         },
     },
 };
@@ -61,20 +60,12 @@ type Story = StoryObj<typeof PreferredStore>;
  * Default story showing a selected store with full details
  */
 export const WithStoreSelected: Story = {
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        await expect(canvas.getByText('Preferred Store for Pickup')).toBeInTheDocument();
-        await expect(canvas.getByText('Select your preferred store for in-store pickup orders')).toBeInTheDocument();
-
-        // These assertions may fail if store-locator extension is stripped
-        const storeNameElement = canvas.queryByText('Downtown Store');
-        if (storeNameElement) {
-            await expect(storeNameElement).toBeInTheDocument();
-            await expect(canvas.getByText(/123 Main Street/)).toBeInTheDocument();
-            await expect(canvas.getByText('Store Hours')).toBeInTheDocument();
-        }
+    parameters: {
+        docs: {
+            description: {
+                story: 'Selected-store state with the configured store, address, and expandable store hours.',
+            },
+        },
     },
 };
 
@@ -83,21 +74,16 @@ export const WithStoreSelected: Story = {
  */
 export const NoStoreSelected: Story = {
     parameters: {
-        reactRouter: {
-            loader: () => ({
-                preferredStore: null,
-                error: null,
-            }),
+        loaderData: {
+            preferredStore: null,
+            error: null,
         },
     },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
+};
 
-        await expect(canvas.getByText('Preferred Store for Pickup')).toBeInTheDocument();
-        await expect(
-            canvas.getByText(t('account:storePreferences.preferredStore.noStoreSelected'))
-        ).toBeInTheDocument();
+export const SavedStoreUnavailable: Story = {
+    parameters: {
+        loaderData: { preferredStore: null, preferredStoreId: 'other-site-store', error: null },
     },
 };
 
@@ -106,32 +92,18 @@ export const NoStoreSelected: Story = {
  */
 export const WithLongStoreNameAndAddress: Story = {
     parameters: {
-        reactRouter: {
-            loader: () => ({
-                preferredStore: {
-                    id: 'store-002',
-                    name: 'Salesforce Foundations - San Francisco Technology and Innovation Center',
-                    address1: '415 Mission Street, Suite 300, Technology and Innovation District',
-                    city: 'San Francisco',
-                    stateCode: 'CA',
-                    postalCode: '94105-2130',
-                    storeHours: '<p>Monday-Friday: 9:00 AM - 9:00 PM</p><p>Saturday-Sunday: 10:00 AM - 8:00 PM</p>',
-                } as ShopperStores.schemas['Store'],
-                error: null,
-            }),
+        loaderData: {
+            preferredStore: {
+                id: 'store-002',
+                name: 'Salesforce Foundations - San Francisco Technology and Innovation Center',
+                address1: '415 Mission Street, Suite 300, Technology and Innovation District',
+                city: 'San Francisco',
+                stateCode: 'CA',
+                postalCode: '94105-2130',
+                storeHours: '<p>Monday-Friday: 9:00 AM - 9:00 PM</p><p>Saturday-Sunday: 10:00 AM - 8:00 PM</p>',
+            } as ShopperStores.schemas['Store'],
+            error: null,
         },
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // This assertion may fail if store-locator extension is stripped
-        const longNameElement = canvas.queryByText(
-            'Salesforce Foundations - San Francisco Technology and Innovation Center'
-        );
-        if (longNameElement) {
-            await expect(longNameElement).toBeInTheDocument();
-        }
     },
 };
 
@@ -140,43 +112,41 @@ export const WithLongStoreNameAndAddress: Story = {
  */
 export const WithoutStoreHours: Story = {
     parameters: {
-        reactRouter: {
-            loader: () => ({
-                preferredStore: {
-                    id: 'store-003',
-                    name: 'Westfield Mall Store',
-                    address1: '865 Market Street',
-                    city: 'San Francisco',
-                    stateCode: 'CA',
-                    postalCode: '94103',
-                } as ShopperStores.schemas['Store'],
-                error: null,
-            }),
+        loaderData: {
+            preferredStore: {
+                id: 'store-003',
+                name: 'Westfield Mall Store',
+                address1: '865 Market Street',
+                city: 'San Francisco',
+                stateCode: 'CA',
+                postalCode: '94103',
+            } as ShopperStores.schemas['Store'],
+            error: null,
         },
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // This assertion may fail if store-locator extension is stripped
-        const storeNameElement = canvas.queryByText('Westfield Mall Store');
-        if (storeNameElement) {
-            await expect(storeNameElement).toBeInTheDocument();
-            await expect(canvas.queryByText('Store Hours')).not.toBeInTheDocument();
-        }
     },
 };
 
 /**
- * Story showing error state when store fetch fails
+ * Story showing the lookup error instead of an empty or stale preference.
  */
-export const WithError: Story = {
+export const LookupError: Story = {
+    tags: ['interaction'],
+    render: () => (
+        <>
+            <AppToaster />
+            <PreferredStore />
+        </>
+    ),
     parameters: {
-        reactRouter: {
-            loader: () => ({
-                preferredStore: null,
-                error: 'Failed to load store details. Please try again later.',
-            }),
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'Failed lookup state is not reported as an empty or stale preference.',
+            },
+        },
+        loaderData: {
+            preferredStore: null,
+            error: 'Failed to load store details. Please try again later.',
         },
     },
     play: async ({ canvasElement }) => {
@@ -185,7 +155,8 @@ export const WithError: Story = {
 
         await expect(canvas.getByText('Preferred Store for Pickup')).toBeInTheDocument();
         await expect(
-            canvas.getByText(t('account:storePreferences.preferredStore.noStoreSelected'))
-        ).toBeInTheDocument();
+            canvas.queryByText(t('account:storePreferences.preferredStore.noStoreSelected'))
+        ).not.toBeInTheDocument();
+        await expect(canvas.getByText('Failed to load store details. Please try again later.')).toBeInTheDocument();
     },
 };

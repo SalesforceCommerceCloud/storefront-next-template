@@ -210,7 +210,7 @@ Scenario('Registered shopper with 4+ saved payments can use View All/View Less a
             cardholderName: 'Payment Two',
             expiryMonth: 12,
             expiryYear: 2028,
-            cardType: 'Mastercard',
+            cardType: 'Master Card',
         },
         {
             cardNumber: '378282246310005',
@@ -298,7 +298,7 @@ Scenario('Registered shopper can save new card during checkout and card is saved
             cardholderName: 'Payment Two',
             expiryMonth: 12,
             expiryYear: 2028,
-            cardType: 'Mastercard',
+            cardType: 'Master Card',
         },
         {
             cardNumber: '378282246310005',
@@ -438,7 +438,7 @@ Scenario('Registered shopper can select different saved payment method and place
             cardholderName: 'Payment Two',
             expiryMonth: 12,
             expiryYear: 2028,
-            cardType: 'Mastercard',
+            cardType: 'Master Card',
         },
         {
             cardNumber: '378282246310005',

@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_SHIPPING_DELIVERY */
-import { act, render, screen } from '@testing-library/react';
+import {
+    act,
+    render,
+    screen,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    within,
+} from '@testing-library/react';
 import { useLayoutEffect } from 'react';
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import userEvent from '@testing-library/user-event';
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import {
     ShippingDeliveryProvider,
@@ -376,7 +384,7 @@ describe('DeliveryEstimateCalculatorTarget', () => {
         expect(
             screen.queryByRole('button', { name: 'Enter a postal code to get a delivery estimate' })
         ).not.toBeInTheDocument();
-        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+        expect(within(screen.getByTestId('standalone-target')).queryByRole('status')).not.toBeInTheDocument();
 
         await user.click(screen.getByRole('radio', { name: 'Delivery' }));
 
@@ -431,7 +439,7 @@ describe('DeliveryEstimateCalculatorTarget', () => {
         );
 
         expect(await screen.findByTestId('delivery-estimate-calculator')).toBeInTheDocument();
-        expect(screen.queryByRole('status')).not.toBeInTheDocument();
+        expect(within(screen.getByTestId('standalone-target')).queryByRole('status')).not.toBeInTheDocument();
     });
 
     test('defers saved-destination presentation until the hosted calculator target is visible', async () => {

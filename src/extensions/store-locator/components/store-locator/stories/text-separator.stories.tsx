@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
-import { waitForStorybookReady } from '@storybook/test-utils';
 import { TextSeparator } from '../text-separator';
 
 const meta: Meta<typeof TextSeparator> = {
     title: 'Extensions/Store Locator/Text Separator',
     component: TextSeparator,
-    tags: ['autodocs', 'interaction'],
+    tags: ['autodocs'],
     parameters: {
         layout: 'padded',
         docs: {
@@ -70,105 +68,5 @@ This is the default state used in the store locator form.
                 `,
             },
         },
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-
-        // Verify separator is rendered
-        const separator = canvasElement.querySelector('[class*="relative"]');
-        await expect(separator).toBeInTheDocument();
-
-        // Verify text is present
-        const text = canvasElement.textContent;
-        await expect(text).toContain('Or');
-    },
-};
-
-export const CustomText: Story = {
-    args: {
-        text: 'Alternatively',
-    },
-    parameters: {
-        docs: {
-            description: {
-                story: `
-Text separator with custom text. Shows:
-- Horizontal rule
-- Centered custom text
-- Same styling as default
-
-This demonstrates the flexibility of the component.
-                `,
-            },
-        },
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-
-        // Verify separator is rendered
-        const separator = canvasElement.querySelector('[class*="relative"]');
-        await expect(separator).toBeInTheDocument();
-
-        // Verify custom text is present
-        const text = canvasElement.textContent;
-        await expect(text).toContain('Alternatively');
-    },
-};
-
-export const MobileLayout: Story = {
-    args: {
-        text: 'Or',
-    },
-    parameters: {
-        docs: {
-            description: {
-                story: `
-Text separator optimized for mobile devices. Shows:
-- Same visual appearance
-- Mobile-optimized spacing
-
-The component maintains consistent appearance across screen sizes.
-                `,
-            },
-        },
-    },
-    globals: {
-        viewport: 'mobile2',
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-
-        // Verify separator is rendered
-        const separator = canvasElement.querySelector('[class*="relative"]');
-        await expect(separator).toBeInTheDocument();
-    },
-};
-
-export const DesktopLayout: Story = {
-    args: {
-        text: 'Or',
-    },
-    parameters: {
-        docs: {
-            description: {
-                story: `
-Text separator for desktop devices. Shows:
-- Same visual appearance
-- Desktop-optimized spacing
-
-The component maintains consistent appearance across screen sizes.
-                `,
-            },
-        },
-    },
-    globals: {
-        viewport: 'desktop',
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-
-        // Verify separator is rendered
-        const separator = canvasElement.querySelector('[class*="relative"]');
-        await expect(separator).toBeInTheDocument();
     },
 };

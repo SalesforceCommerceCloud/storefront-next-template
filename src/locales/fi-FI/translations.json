@@ -329,6 +329,7 @@
         "insufficientStock": "Varastossa ei ole riittävästi"
     },
     "cart": {
+        "handoffWarning": "Olet kirjautunut sisään, mutta emme voineet vahvistaa ostoskorisi siirtoa. Tarkista ostoskorisi ennen maksamista.",
         "title": "Ostoskori",
         "delivery": {
             "heading": "Toimitus - {{deliveryCount}} /{{totalCount}} tuotetta",
@@ -718,7 +719,8 @@
                 "changeStore": "Vaihda myymälä",
                 "noStoreSelected": "Ei valittua myymälää. Valitse haluamasi myymälä myymäläluettelosta noutoa varten.",
                 "storeHoursTitle": "Myymälän aukioloajat",
-                "error": "Myymälän tietojen lataaminen epäonnistui. Yritä myöhemmin uudelleen."
+                "error": "Myymälän tietojen lataaminen epäonnistui. Yritä myöhemmin uudelleen.",
+                "savedStoreUnavailable": "Tallennettu myymälä ei ole saatavilla tällä sivustolla. Voit vaihtaa sen."
             },
             "authorizedPickupPeople": {
                 "heading": "Valtuutetut noutajat",
@@ -1411,6 +1413,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "Jokin meni vikaan",
+        "defaultDescription": "Tapahtui virhe",
+        "goToHomepage": "Siirry etusivulle"
     },
     "error": {
         "403": {

@@ -329,6 +329,7 @@
         "insufficientStock": "No hay suficiente stock disponible"
     },
     "cart": {
+        "handoffWarning": "Has iniciado sesión, pero no pudimos confirmar la transferencia de tu carrito. Revisa tu carrito antes de pagar.",
         "title": "Carrito",
         "delivery": {
             "heading": "Entrega - {{deliveryCount}} {{totalCount}} sin artículos",
@@ -716,7 +717,8 @@
                 "changeStore": "Cambiar tienda",
                 "noStoreSelected": "No se ha seleccionado ninguna tienda. Utiliza el localizador de tiendas para elegir la tienda que prefieras para recoger.",
                 "storeHoursTitle": "Horario de tienda",
-                "error": "No se pudieron cargar los detalles de la tienda. Intente de nuevo más tarde."
+                "error": "No se pudieron cargar los detalles de la tienda. Intente de nuevo más tarde.",
+                "savedStoreUnavailable": "Tu tienda guardada no está disponible en este sitio. Puedes cambiarla."
             },
             "authorizedPickupPeople": {
                 "heading": "Personas de recogida autorizadas",
@@ -1416,6 +1418,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "Algo salió mal",
+        "defaultDescription": "Se produjo un error",
+        "goToHomepage": "Ir a la página de inicio"
     },
     "error": {
         "403": {

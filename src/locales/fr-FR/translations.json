@@ -329,6 +329,7 @@
         "insufficientStock": "Stock insuffisant"
     },
     "cart": {
+        "handoffWarning": "Vous êtes connecté, mais nous n'avons pas pu confirmer le transfert de votre panier. Vérifiez votre panier avant de payer.",
         "title": "Panier",
         "delivery": {
             "heading": "Livraison - {{deliveryCount}} articles sur {{totalCount}}",
@@ -719,7 +720,8 @@
                 "changeStore": "Changer de magasin",
                 "noStoreSelected": "Aucun magasin sélectionné. Utilisez le localisateur de magasins pour choisir votre magasin préféré pour le retrait.",
                 "storeHoursTitle": "Horaires d’ouverture",
-                "error": "Impossible de charger les détails du magasin. Veuillez réessayer plus tard."
+                "error": "Impossible de charger les détails du magasin. Veuillez réessayer plus tard.",
+                "savedStoreUnavailable": "Votre magasin enregistré n'est pas disponible sur ce site. Vous pouvez le modifier."
             },
             "authorizedPickupPeople": {
                 "heading": "Personnes autorisées au retrait",
@@ -1423,6 +1425,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "Un problème est survenu",
+        "defaultDescription": "Une erreur est survenue",
+        "goToHomepage": "Aller à la page d’accueil"
     },
     "error": {
         "403": {

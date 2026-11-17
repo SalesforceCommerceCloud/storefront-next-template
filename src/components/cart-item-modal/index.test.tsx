@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import {
+    render,
+    screen,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    act,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+// @sfdc-extension-line SFDC_EXT_BOPIS
 import { useState } from 'react';
 
 const { t } = getTranslation();
@@ -28,7 +34,11 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { CartItemModal } from './index';
 
 // Mock data
-import { masterProduct, variantProduct } from '@/components/__mocks__/master-variant-product';
+import {
+    variantProduct,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    masterProduct,
+} from '@/components/__mocks__/master-variant-product';
 import { bundleProd } from '@/components/__mocks__/bundle-product';
 import { setProduct } from '@/components/__mocks__/set-product';
 
@@ -54,6 +64,7 @@ vi.mock('@/components/product-view/child-products', () => ({
 
 // Mock useScapiFetcher to prevent actual API calls
 const mockLoad = vi.fn().mockResolvedValue(undefined);
+// @sfdc-extension-line SFDC_EXT_BOPIS
 let selectedStoreInventoryId = 'inventory-store-123';
 
 const mockUseScapiFetcher = vi.fn(
@@ -132,6 +143,7 @@ const renderCartItemModal = (props: React.ComponentProps<typeof CartItemModal>) 
 describe('CartItemModal', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // @sfdc-extension-line SFDC_EXT_BOPIS
         selectedStoreInventoryId = 'inventory-store-123';
         capturedImageGalleryProps.last = null;
     });
@@ -208,6 +220,7 @@ describe('CartItemModal', () => {
 describe('CartItemModal — add mode', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // @sfdc-extension-line SFDC_EXT_BOPIS
         selectedStoreInventoryId = 'inventory-store-123';
         // Default: fetcher returns data immediately (product loaded)
         mockUseScapiFetcher.mockReturnValue({

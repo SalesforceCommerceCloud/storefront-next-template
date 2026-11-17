@@ -15,7 +15,7 @@
  */
 import type { Decorator } from '@storybook/react-vite';
 import type { ComponentType, ReactNode } from 'react';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { createMemoryRouter, Outlet, RouterProvider, type RouteObject } from 'react-router';
 import { buildDefaultMockRoutes } from './mock-routes';
 
@@ -23,6 +23,7 @@ import { buildDefaultMockRoutes } from './mock-routes';
 // must not shadow these — doing so silently breaks the story root, the 404
 // catch-all, or one of the built-in mock fixtures.
 const RESERVED_ROUTE_PATHS = new Set(['/', '*']);
+const STORY_ROUTE_ID = '__storybook_story_route__';
 
 const validateMockRoutes = (extraMockRoutes: RouteObject[] | undefined, defaultPaths: Set<string>) => {
     if (!extraMockRoutes) return;
@@ -39,6 +40,11 @@ const validateMockRoutes = (extraMockRoutes: RouteObject[] | undefined, defaultP
 };
 
 interface RouterDecoratorParameters {
+    /**
+     * Data returned by the active story route's loader. Components using
+     * `useLoaderData()` read this value directly.
+     */
+    loaderData?: unknown;
     /**
      * When provided, wraps the story inside ancestor routes that expose their
      * data via `useRouteLoaderData(routeId)`. Lets components like CategoryBanner
@@ -82,7 +88,7 @@ interface RouterDecoratorParameters {
 
 interface RouterWrapperProps {
     Story: ComponentType;
-    context: { parameters?: RouterDecoratorParameters & Record<string, unknown> };
+    context: { id: string; parameters?: RouterDecoratorParameters & Record<string, unknown> };
     Wrapper: ComponentType<{ children: ReactNode }>;
 }
 
@@ -96,17 +102,60 @@ interface RouterWrapperProps {
  * async initialization causes empty div renders.
  */
 function RouterWrapper({ Story, context, Wrapper }: RouterWrapperProps) {
+    const loaderData = context.parameters?.loaderData;
     const routeLoaderData = context.parameters?.routeLoaderData;
     const scapiMock = context.parameters?.scapiMock;
     const miniCartData = context.parameters?.miniCartData;
     const extraMockRoutes = context.parameters?.mockRoutes;
     const initialEntries = context.parameters?.initialEntries;
+    const routeLoaderEntries = Object.entries(routeLoaderData ?? {});
+    const hydrationData =
+        loaderData === undefined && routeLoaderEntries.length === 0
+            ? undefined
+            : {
+                  loaderData: {
+                      ...Object.fromEntries(routeLoaderEntries),
+                      ...(loaderData === undefined ? {} : { [STORY_ROUTE_ID]: loaderData }),
+                  },
+              };
+    const routerConfigKey = JSON.stringify({
+        storyId: context.id,
+        loaderData,
+        routeLoaderData,
+        scapiMock,
+        miniCartData,
+        initialEntries,
+        mockRoutes: extraMockRoutes?.map(({ path, id, index, caseSensitive, loader, action, element }) => ({
+            path,
+            id,
+            index,
+            caseSensitive,
+            hasLoader: Boolean(loader),
+            hasAction: Boolean(action),
+            hasElement: Boolean(element),
+        })),
+    });
 
-    const WrappedStory = (
-        <Wrapper>
-            <Story />
-        </Wrapper>
+    const storyRef = useRef({ Story, Wrapper });
+    storyRef.current = { Story, Wrapper };
+    const StoryRenderer = useMemo(
+        () => () => {
+            const { Story: CurrentStory, Wrapper: CurrentWrapper } = storyRef.current;
+            return (
+                <CurrentWrapper>
+                    <CurrentStory />
+                </CurrentWrapper>
+            );
+        },
+        []
     );
+    const WrappedStory = useMemo(() => <StoryRenderer />, [StoryRenderer]);
+    const storyIndexRoute: RouteObject = {
+        id: STORY_ROUTE_ID,
+        index: true,
+        loader: loaderData === undefined ? undefined : () => loaderData,
+        element: WrappedStory,
+    };
 
     // Default action for the story root route: absorbs page-level fetcher.submit() calls that
     // omit an explicit `action` (e.g. useCheckoutActions submits contact/shipping/payment forms
@@ -118,18 +167,25 @@ function RouterWrapper({ Story, context, Wrapper }: RouterWrapperProps) {
     // pathless ancestor layout route (element: <Outlet />) so useRouteLoaderData(id) resolves.
     // The outermost entry gets path: '/' to anchor the route tree.
     const storyRoute: RouteObject =
-        routeLoaderData && Object.keys(routeLoaderData).length > 0
-            ? Object.entries(routeLoaderData).reduceRight<RouteObject>(
+        routeLoaderEntries.length > 0
+            ? routeLoaderEntries.reduceRight<RouteObject>(
                   (child, [id, data], i) => ({
                       ...(i === 0 ? { path: '/', action: defaultStoryAction, HydrateFallback: () => null } : {}),
                       id,
                       loader: () => data,
                       element: <Outlet />,
                       children: [child],
-                  }),
-                  { index: true, element: WrappedStory }
-              )
-            : { path: '/', element: WrappedStory, action: defaultStoryAction, HydrateFallback: () => null };
+                   }),
+                   storyIndexRoute
+                )
+            : {
+                  id: STORY_ROUTE_ID,
+                  path: '/',
+                  loader: loaderData === undefined ? undefined : () => loaderData,
+                  element: WrappedStory,
+                  action: defaultStoryAction,
+                  HydrateFallback: () => null,
+              };
 
     // Create a memory router for components that use React Router hooks (e.g., useFetcher).
     // This provides the data router context needed for useFetcher and other React Router hooks.
@@ -158,11 +214,14 @@ function RouterWrapper({ Story, context, Wrapper }: RouterWrapperProps) {
                 ],
                 {
                     initialEntries: initialEntries ?? ['/'],
+                    hydrationData,
                 }
             );
         },
+        // Storybook replaces parameters with equivalent objects while initializing a story.
+        // Rebuild only when their values change so loaders receive hydrated data.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [WrappedStory, routeLoaderData, scapiMock, miniCartData, extraMockRoutes, initialEntries]
+        [routerConfigKey]
     );
 
     return <RouterProvider router={router} />;
@@ -176,6 +235,7 @@ function RouterWrapper({ Story, context, Wrapper }: RouterWrapperProps) {
  *   decorators: [withRouter(StorybookWrapper)]
  *
  * Story-level overrides:
+ * - `parameters.loaderData` — active story route loader data (`useLoaderData`).
  * - `parameters.routeLoaderData` — ancestor route loader data (`useRouteLoaderData`).
  * - `parameters.scapiMock` — override the resource loader's product fixture.
  * - `parameters.miniCartData` — override the `/resource/basket-products` payload.

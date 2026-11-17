@@ -17,6 +17,7 @@
 // Testing libraries
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+// @sfdc-extension-line SFDC_EXT_BOPIS
 import { useState } from 'react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 // React Router
@@ -24,7 +25,10 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 
 // Components
 import ProductInfo from './product-info';
-import ProductViewProvider, { useProductView } from '@/providers/product-view';
+import ProductViewProvider, {
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    useProductView,
+} from '@/providers/product-view';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 // mock data
 import { masterProduct as mockProduct } from '@/components/__mocks__/master-variant-product';
@@ -32,6 +36,7 @@ import { standardProd } from '@/components/__mocks__/standard-product-2';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import StoreLocatorProvider from '@/extensions/store-locator/providers/store-locator';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+// @sfdc-extension-line SFDC_EXT_BOPIS
 import type { ShopperProducts } from '@/scapi';
 
 vi.mock('@/lib/config.ui', async (importOriginal) => {

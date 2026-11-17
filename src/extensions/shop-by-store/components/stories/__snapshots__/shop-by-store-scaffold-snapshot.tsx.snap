@@ -1,0 +1,318 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ShopByStoreScaffold stories snapshot > Default story renders and matches snapshot 1`] = `
+<div
+  class="bg-background text-foreground"
+  data-slot="shop-by-store-scaffold"
+>
+  <div
+    class="flex justify-end border-b border-border px-4 py-2"
+  >
+    <button
+      aria-label="Choose a store"
+      class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 has-[>svg]:px-3 h-auto gap-2 px-3 py-2 text-left hover:bg-accent"
+      data-size="default"
+      data-slot="button"
+      data-variant="ghost"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-map-pin size-5 shrink-0"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+        />
+        <circle
+          cx="12"
+          cy="10"
+          r="3"
+        />
+      </svg>
+      <span
+        class="max-w-40 truncate text-sm font-semibold"
+      >
+        Choose a store
+      </span>
+    </button>
+  </div>
+  <section
+    aria-labelledby="shop-by-store-entry-title"
+    class="border-y border-border bg-muted"
+  >
+    <div
+      class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div>
+        <h2
+          class="text-sm font-semibold"
+          id="shop-by-store-entry-title"
+        >
+          Choose your store
+        </h2>
+        <p
+          class="text-sm text-muted-foreground"
+        >
+          Browse with a store selected for this preview.
+        </p>
+      </div>
+      <div
+        class="flex flex-wrap gap-2"
+      >
+        <button
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+          data-size="sm"
+          data-slot="button"
+          data-variant="default"
+          type="button"
+        >
+          Get started
+        </button>
+        <button
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+          data-size="sm"
+          data-slot="button"
+          data-variant="ghost"
+          type="button"
+        >
+          Not now
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`ShopByStoreScaffold stories snapshot > EmptyResults story renders and matches snapshot 1`] = `
+<section
+  aria-labelledby="shop-by-store-selector-heading"
+  class="space-y-4"
+>
+  <div>
+    <h2
+      class="text-2xl font-semibold"
+      id="shop-by-store-selector-heading"
+    >
+      Choose your store
+    </h2>
+    <p
+      class="mt-1 text-sm text-muted-foreground"
+    >
+      Browse store options in this fixture-driven preview.
+    </p>
+  </div>
+  <div
+    aria-live="polite"
+    class="space-y-3 rounded-ui border border-border bg-card p-4"
+    role="status"
+  >
+    <p
+      class="font-semibold"
+    >
+      No stores found
+    </p>
+    <p
+      class="text-sm text-muted-foreground"
+    >
+      Try another postal code to find a nearby store.
+    </p>
+    <button
+      class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+      data-size="sm"
+      data-slot="button"
+      data-variant="secondary"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</section>
+`;
+
+exports[`ShopByStoreScaffold stories snapshot > Loading story renders and matches snapshot 1`] = `
+<section
+  aria-labelledby="shop-by-store-selector-heading"
+  class="space-y-4"
+>
+  <div>
+    <h2
+      class="text-2xl font-semibold"
+      id="shop-by-store-selector-heading"
+    >
+      Choose your store
+    </h2>
+    <p
+      class="mt-1 text-sm text-muted-foreground"
+    >
+      Browse store options in this fixture-driven preview.
+    </p>
+  </div>
+  <div
+    aria-live="polite"
+    class="space-y-3"
+    role="status"
+  >
+    <span
+      class="sr-only"
+    >
+      Loading stores
+    </span>
+    <div
+      class="h-24 animate-pulse rounded-ui bg-muted"
+    />
+    <div
+      class="h-24 animate-pulse rounded-ui bg-muted"
+    />
+    <div
+      class="h-24 animate-pulse rounded-ui bg-muted"
+    />
+  </div>
+</section>
+`;
+
+exports[`ShopByStoreScaffold stories snapshot > LocationDenied story renders and matches snapshot 1`] = `
+<section
+  aria-labelledby="shop-by-store-selector-heading"
+  class="space-y-4"
+>
+  <div>
+    <h2
+      class="text-2xl font-semibold"
+      id="shop-by-store-selector-heading"
+    >
+      Choose your store
+    </h2>
+    <p
+      class="mt-1 text-sm text-muted-foreground"
+    >
+      Browse store options in this fixture-driven preview.
+    </p>
+  </div>
+  <div
+    aria-live="polite"
+    class="space-y-3 rounded-ui border border-border bg-card p-4"
+    role="status"
+  >
+    <p
+      class="font-semibold"
+    >
+      Location sharing is off
+    </p>
+    <p
+      class="text-sm text-muted-foreground"
+    >
+      Enter a postal code instead to find a store near you.
+    </p>
+    <button
+      class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+      data-size="sm"
+      data-slot="button"
+      data-variant="secondary"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</section>
+`;
+
+exports[`ShopByStoreScaffold stories snapshot > SearchError story renders and matches snapshot 1`] = `
+<section
+  aria-labelledby="shop-by-store-selector-heading"
+  class="space-y-4"
+>
+  <div>
+    <h2
+      class="text-2xl font-semibold"
+      id="shop-by-store-selector-heading"
+    >
+      Choose your store
+    </h2>
+    <p
+      class="mt-1 text-sm text-muted-foreground"
+    >
+      Browse store options in this fixture-driven preview.
+    </p>
+  </div>
+  <div
+    aria-live="polite"
+    class="space-y-3 rounded-ui border border-border bg-card p-4"
+    role="alert"
+  >
+    <p
+      class="font-semibold text-destructive"
+    >
+      We could not search for stores
+    </p>
+    <p
+      class="text-sm text-muted-foreground"
+    >
+      Check your connection and try again.
+    </p>
+    <button
+      class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+      data-size="sm"
+      data-slot="button"
+      data-variant="secondary"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</section>
+`;
+
+exports[`ShopByStoreScaffold stories snapshot > SelectionError story renders and matches snapshot 1`] = `
+<section
+  aria-labelledby="shop-by-store-selector-heading"
+  class="space-y-4"
+>
+  <div>
+    <h2
+      class="text-2xl font-semibold"
+      id="shop-by-store-selector-heading"
+    >
+      Choose your store
+    </h2>
+    <p
+      class="mt-1 text-sm text-muted-foreground"
+    >
+      Browse store options in this fixture-driven preview.
+    </p>
+  </div>
+  <div
+    aria-live="polite"
+    class="space-y-3 rounded-ui border border-border bg-card p-4"
+    role="alert"
+  >
+    <p
+      class="font-semibold text-destructive"
+    >
+      We could not choose that store
+    </p>
+    <p
+      class="text-sm text-muted-foreground"
+    >
+      Your preview has not changed. Try again.
+    </p>
+    <button
+      class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+      data-size="sm"
+      data-slot="button"
+      data-variant="secondary"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</section>
+`;

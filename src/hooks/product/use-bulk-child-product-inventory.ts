@@ -20,8 +20,15 @@ import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
 import { useScapiFetcherEffect } from '@/hooks/use-scapi-fetcher-effect';
 import type { ChildProductSelection } from '@/lib/product/inventory-utils';
 import { createLogger } from '@/lib/logger';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import { usePickupInventory } from '@/extensions/bopis/context/pickup-inventory';
 
 const logger = createLogger();
+type InventoryVariant = ShopperProducts.schemas['Variant'] & { inventory?: ShopperProducts.schemas['Inventory'] };
+
+function variantInventory(selection: ChildProductSelection) {
+    return (selection.variant as InventoryVariant | undefined)?.inventory;
+}
 
 interface UseBulkChildProductInventoryProps {
     /** Child product selections containing products and variants to fetch inventory for */
@@ -64,9 +71,15 @@ export function useBulkChildProductInventory({
 } {
     // Start with null to indicate no enrichment has occurred yet
     const [enrichedSelections, setEnrichedSelections] = useState<ChildProductSelection[] | null>(null);
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    const streamed = usePickupInventory('');
 
-    // Track the last enriched request to prevent re-enriching the same products for the same inventory.
+    // Track request scope separately from response identity: returning to a SKU needs fresh inventory.
     const lastEnrichedRequestRef = useRef<string | null>(null);
+    const lastResponseRef = useRef<unknown>(null);
+    const request = useRef({ key: '', generation: 0 });
+    const loadedGeneration = useRef<number | null>(null);
+    const enrichedGeneration = useRef<number | null>(null);
 
     // Extract all selected variant/product IDs to fetch
     const productIds = useMemo(() => {
@@ -86,6 +99,30 @@ export function useBulkChildProductInventory({
         inventoryId ?? null,
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
     ]);
+    const hasSiteSeeds = childSelections.every((selection) =>
+        selection.variant
+            ? Boolean(
+                  variantInventory(selection) ||
+                      (selection.variant.productId === selection.product.id && selection.product.inventory)
+              )
+            : Boolean(selection.product.inventory)
+    );
+    // Pending pickup only covers the initial selection, never a later shopper interaction.
+    const initialRequestKey = useRef(enrichmentRequestKey);
+    const initialProductIds = useRef(productIds);
+    const selectionChanged = useRef(false);
+    const initialScope = { matches: initialRequestKey.current === enrichmentRequestKey };
+    // A current root source already distinguishes its authoritative adoption from local store revisions.
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    if (streamed.active) initialScope.matches = streamed.status !== 'stale';
+    if (initialProductIds.current !== productIds || !initialScope.matches) selectionChanged.current = true;
+    const isInitialSelection = !selectionChanged.current;
+    if (request.current.key !== enrichmentRequestKey) {
+        request.current = { key: enrichmentRequestKey, generation: request.current.generation + 1 };
+    }
+    const requestScope = { hasStore: false };
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    requestScope.hasStore = Boolean(inventoryId);
 
     // Bulk fetch all child variants/products in one API call.
     //
@@ -95,7 +132,7 @@ export function useBulkChildProductInventory({
     // The expected value is between '(0..24)'`) and the affected children fall back to their
     // un-enriched inventory. Take care not to use this hook for sets/bundles that can select 25+
     // children until the IDs are batched into groups of at most 24.
-    const fetcher = useScapiFetcher('shopperProducts', 'getProducts', {
+    const fetcherOptions = {
         params: {
             query: {
                 // Always provide ids; the load() guard below prevents firing when productIds is undefined
@@ -105,19 +142,46 @@ export function useBulkChildProductInventory({
                 allImages: false,
             },
         },
-    });
+    };
+    const fetcher = useScapiFetcher('shopperProducts', 'getProducts', fetcherOptions);
 
     // Trigger the fetch when productIds or inventoryId change
     // This is the standard pattern for triggering fetcher.load() - matches useScapiFetcher examples
     useEffect(() => {
         if (productIds) {
+            if (hasSiteSeeds && !requestScope.hasStore && isInitialSelection) return;
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+            if (
+                streamed.active &&
+                isInitialSelection &&
+                hasSiteSeeds &&
+                (streamed.status === 'pending' ||
+                    (streamed.snapshot &&
+                        productIds
+                            .split(',')
+                            .every((id) => streamed.snapshot?.products.some((product) => product.id === id))))
+            )
+                return;
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
+            if (loadedGeneration.current === request.current.generation) return;
+            loadedGeneration.current = request.current.generation;
             void fetcher.load();
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         productIds,
+        hasSiteSeeds,
+        enrichmentRequestKey,
+        isInitialSelection,
+        requestScope.hasStore,
         // @sfdc-extension-line SFDC_EXT_BOPIS
         inventoryId,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        streamed.active,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        streamed.status,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        streamed.snapshot,
     ]);
 
     // Handle enrichment when fetch completes successfully
@@ -130,7 +194,7 @@ export function useBulkChildProductInventory({
             }
 
             // Check if we've already enriched this exact set of products for this inventory.
-            if (lastEnrichedRequestRef.current === enrichmentRequestKey) {
+            if (lastResponseRef.current === fetchedProducts) {
                 // Already enriched this data, skip to avoid infinite loop
                 return;
             }
@@ -144,37 +208,36 @@ export function useBulkChildProductInventory({
                 total?: number;
             };
             const productsArray = response?.data || [];
+            // useScapiFetcher keys responses by the complete request, including inventoryIds.
+            // Missing availability is valid for that request; explicit other-store data is not.
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+            if (
+                inventoryId &&
+                productsArray.some(
+                    (product) =>
+                        product.inventories?.length && !product.inventories.some((inv) => inv.id === inventoryId)
+                )
+            )
+                return;
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
             const newEnrichedSelections = childSelections.map((selection) => {
                 const variantId = selection.variant?.productId;
-                const productId = selection.product.id;
-
-                /**
-                 * Find matching fetched product using multiple strategies:
-                 *
-                 * Strategy 1: Direct variant ID match
-                 * - User selected red variant → we fetched "product-123-red"
-                 * - Match: fetchedProduct.id === "product-123-red"
-                 *
-                 * Strategy 2: Product ID match
-                 * - Standard product (no variants) or master product
-                 * - Match: fetchedProduct.id === "product-123"
-                 *
-                 * Strategy 3: Master ID match
-                 * - Fetched variant may report its master via product.master.masterId
-                 * - Match: fetchedProduct.master.masterId === "product-123"
-                 * - This handles cases where API returns variant with master relationship
-                 */
-                const fetchedProduct = productsArray.find((p: ShopperProducts.schemas['Product']) => {
-                    if (variantId && p.id === variantId) return true;
-                    if (p.id === productId) return true;
-                    if (variantId && p.master?.masterId === productId) return true;
-                    return false;
-                });
+                // Only exact requested SKUs are usable; a sibling sharing the master can be a stale response.
+                const fetchedProduct = productsArray.find((p) => p.id === (variantId ?? selection.product.id));
 
                 if (!fetchedProduct) {
                     return selection;
                 }
+                // @sfdc-extension-block-start SFDC_EXT_BOPIS
+                const storeInventories = inventoryId
+                    ? (fetchedProduct.inventories?.filter((inventory) => inventory.id === inventoryId) ?? [])
+                    : fetchedProduct.inventories;
+                const inventories =
+                    inventoryId && !storeInventories?.length
+                        ? [{ id: inventoryId, orderable: false, ats: 0, stockLevel: 0 }]
+                        : storeInventories;
+                // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
                 /**
                  * Enrichment Strategy: Update product object with inventory
@@ -198,19 +261,26 @@ export function useBulkChildProductInventory({
                         inventory: fetchedProduct.inventory || selection.product.inventory,
                         // Store inventory: use fetched data if available, otherwise fall back to original
                         // @sfdc-extension-line SFDC_EXT_BOPIS
-                        inventories: fetchedProduct.inventories || selection.product.inventories,
+                        inventories,
                         // Variants: use fetched product's variants if available (they may have inventory data)
                         variants: fetchedProduct.variants || selection.product.variants,
                     },
-                    // Keep selected variant reference as-is
-                    // Note: The enriched product.variants array (above) contains variants with inventory data
-                    // The fallback logic in inventory-utils.ts uses: variant?.inventory || product.inventory
-                    variant: selection.variant,
+                    // Refresh the exact selected variant too, so a server seed cannot mask interaction data.
+                    variant: selection.variant
+                        ? {
+                              ...selection.variant,
+                              inventory: fetchedProduct.inventory,
+                              // @sfdc-extension-line SFDC_EXT_BOPIS
+                              inventories,
+                          }
+                        : undefined,
                 };
             });
 
             setEnrichedSelections(newEnrichedSelections);
             lastEnrichedRequestRef.current = enrichmentRequestKey;
+            lastResponseRef.current = fetchedProducts;
+            enrichedGeneration.current = request.current.generation;
         },
         onError: (errors) => {
             if (errors && errors.length > 0) {
@@ -231,13 +301,58 @@ export function useBulkChildProductInventory({
      * - Use current variant from childSelections (to reflect swatch changes)
      */
     const finalSelections = useMemo(() => {
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        if (
+            streamed.active &&
+            isInitialSelection &&
+            streamed.snapshot &&
+            productIds?.split(',').every((id) => streamed.snapshot?.products.some((product) => product.id === id))
+        ) {
+            return childSelections.map((selection) => {
+                const id = selection.variant?.productId ?? selection.product.id;
+                const inventory = streamed.snapshot?.products.find((product) => product.id === id);
+                return inventory
+                    ? {
+                          ...selection,
+                          product: {
+                              ...selection.product,
+                              inventory:
+                                  variantInventory(selection) ?? inventory.inventory ?? selection.product.inventory,
+                              inventories: inventory.inventories,
+                          },
+                          variant: selection.variant
+                              ? {
+                                    ...selection.variant,
+                                    inventory: variantInventory(selection) ?? inventory.inventory,
+                                    inventories: inventory.inventories,
+                                }
+                              : undefined,
+                      }
+                    : selection;
+            });
+        }
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
         if (!enrichedSelections || enrichedSelections.length === 0) {
-            return childSelections.length > 0 ? childSelections : [];
+            return childSelections.map((selection) =>
+                variantInventory(selection)
+                    ? {
+                          ...selection,
+                          product: { ...selection.product, inventory: variantInventory(selection) },
+                      }
+                    : selection
+            );
         }
 
         // Merge: enriched inventory + current quantity/variant
         return childSelections.map((current) => {
-            const enriched = enrichedSelections.find((e) => e.product.id === current.product.id);
+            const enriched =
+                lastEnrichedRequestRef.current === enrichmentRequestKey &&
+                enrichedGeneration.current === request.current.generation
+                    ? enrichedSelections.find(
+                          (e) =>
+                              e.product.id === current.product.id && e.variant?.productId === current.variant?.productId
+                      )
+                    : undefined;
 
             if (!enriched) {
                 return current;
@@ -246,10 +361,34 @@ export function useBulkChildProductInventory({
             return {
                 ...enriched,
                 quantity: current.quantity, // Always use current quantity from picker
-                variant: current.variant, // Always use current variant from selection
+                variant: current.variant
+                    ? {
+                          ...current.variant,
+                          inventory: variantInventory(enriched),
+                          // @sfdc-extension-block-start SFDC_EXT_BOPIS
+                          inventories: (
+                              enriched.variant as InventoryVariant & {
+                                  inventories?: ShopperProducts.schemas['Inventory'][];
+                              }
+                          )?.inventories,
+                          // @sfdc-extension-block-end SFDC_EXT_BOPIS
+                      }
+                    : undefined,
             };
         });
-    }, [enrichedSelections, childSelections]);
+    }, [
+        enrichedSelections,
+        childSelections,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        productIds,
+        enrichmentRequestKey,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        isInitialSelection,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        streamed.active,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        streamed.snapshot,
+    ]);
 
     return {
         enrichedSelections: finalSelections,

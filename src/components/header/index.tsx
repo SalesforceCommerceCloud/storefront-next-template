@@ -116,60 +116,63 @@ export default function Header({
     }
 
     return (
-        <header
-            ref={headerRef}
-            className="bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static">
-            {announcementSlot}
-            <div className="flex justify-end section-container">{beforeHeader}</div>
-            <div className="section-container py-6">
-                {/* Top row: Logo left, Icons right */}
-                <div className="flex items-center gap-x-1 lg:gap-x-6">
-                    {/* Logo - color swapped by theme via --header-logo-filter in app.css */}
-                    <Link to="/" className="flex-shrink-0 flex items-center" data-testid="header-logo">
-                        <img
-                            src={logo}
-                            alt={t('logoAlt')}
-                            className="h-3 lg:h-4 w-auto [filter:var(--header-logo-filter)]"
-                        />
-                    </Link>
+        <>
+            <header
+                ref={headerRef}
+                className="bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static">
+                {announcementSlot}
+                <div className="flex justify-end section-container">{beforeHeader}</div>
+                <div className="section-container py-6">
+                    {/* Top row: Logo left, Icons right */}
+                    <div className="flex items-center gap-x-1 lg:gap-x-6">
+                        {/* Logo - color swapped by theme via --header-logo-filter in app.css */}
+                        <Link to="/" className="flex-shrink-0 flex items-center" data-testid="header-logo">
+                            <img
+                                src={logo}
+                                alt={t('logoAlt')}
+                                className="h-3 lg:h-4 w-auto [filter:var(--header-logo-filter)]"
+                            />
+                        </Link>
 
-                    {/* Navigation Menu - desktop only, next to logo */}
-                    <div className="hidden lg:flex min-w-0 flex-1 self-stretch items-center">{children}</div>
+                        {/* Navigation Menu - desktop only, next to logo */}
+                        <div className="hidden lg:flex min-w-0 flex-1 self-stretch items-center">{children}</div>
 
-                    {/* Spacer - takes remaining space on mobile */}
-                    <div className="flex-1 lg:hidden" />
+                        {/* Spacer - takes remaining space on mobile */}
+                        <div className="flex-1 lg:hidden" />
 
-                    {/* Search - desktop only */}
-                    <div className="hidden lg:block" data-testid="header-search-desktop">
+                        {/* Search - desktop only */}
+                        <div className="hidden lg:block" data-testid="header-search-desktop">
+                            <LocationKeyedSearch />
+                        </div>
+
+                        {/* Icons group - includes mobile hamburger */}
+                        <div className="flex items-center">
+                            <UITarget targetId="sfcc.header.before.cart" />
+                            {showChat && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="cursor-pointer lg:px-4 px-1 text-header-foreground hover:bg-transparent hover:opacity-50 transition-opacity"
+                                    onClick={() => openAgentWidget()}
+                                    aria-label={t('openChat')}>
+                                    <SparklesIcon />
+                                </Button>
+                            )}
+                            <UserActions />
+                            <WishlistIcon />
+                            <CartBadge />
+                            <div className="lg:hidden">{children}</div>
+                        </div>
+                    </div>
+
+                    {/* Mobile search - second row */}
+                    <div className="pb-4 lg:hidden" data-testid="header-search-mobile">
                         <LocationKeyedSearch />
                     </div>
-
-                    {/* Icons group - includes mobile hamburger */}
-                    <div className="flex items-center">
-                        <UITarget targetId="sfcc.header.before.cart" />
-                        {showChat && (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="cursor-pointer lg:px-4 px-1 text-header-foreground hover:bg-transparent hover:opacity-50 transition-opacity"
-                                onClick={() => openAgentWidget()}
-                                aria-label={t('openChat')}>
-                                <SparklesIcon />
-                            </Button>
-                        )}
-                        <UserActions />
-                        <WishlistIcon />
-                        <CartBadge />
-                        <div className="lg:hidden">{children}</div>
-                    </div>
+                    <UITarget targetId="sfcc.header.bnpl.banner" />
                 </div>
-
-                {/* Mobile search - second row */}
-                <div className="pb-4 lg:hidden" data-testid="header-search-mobile">
-                    <LocationKeyedSearch />
-                </div>
-                <UITarget targetId="sfcc.header.bnpl.banner" />
-            </div>
-        </header>
+            </header>
+            <UITarget targetId="sfcc.header.after" />
+        </>
     );
 }

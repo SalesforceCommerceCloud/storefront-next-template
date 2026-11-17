@@ -5,6 +5,14 @@
         }
     },
     "storeLocator": {
+        "selection": {
+            "unknown": "Het resultaat kon niet worden bevestigd. Probeer opnieuw om je huidige voorkeur te controleren.",
+            "clearing": "Je voorkeurswinkel verwijderen…",
+            "saving": "Winkel opslaan…",
+            "error": "De winkel kon niet worden opgeslagen. Je vorige winkel is ongewijzigd. Probeer het opnieuw.",
+            "retry": "Opnieuw proberen",
+            "checking": "Je voorkeurswinkel controleren…"
+        },
         "title": "Find a Store",
         "description": "Search for stores by country and postal code or use your current location.",
         "form": {
@@ -21,7 +29,16 @@
         },
         "trigger": {
             "ariaLabel": "Find a Store",
-            "openAriaLabel": "Open Find a Store"
+            "openAriaLabel": "Open Find a Store",
+            "chooseAriaLabel": "Kies een winkel",
+            "selectedAriaLabel": "Wijzig uw winkel: {{storeName}}, {{postalCode}}",
+            "selectedWithoutPostalAriaLabel": "Wijzig uw winkel: {{storeName}}"
+        },
+        "homePrompt": {
+            "title": "Kies uw winkel",
+            "description": "Kies een voorkeurswinkel om deze op te slaan. Je kunt deze op elk moment wijzigen.",
+            "open": "Kies een winkel",
+            "dismiss": "Niet nu"
         },
         "sheet": {
             "closeAriaLabel": "Close store locator"

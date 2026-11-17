@@ -203,7 +203,9 @@ exports[`Header stories snapshot > Default story renders and matches snapshot 1`
           class="flex items-center"
         >
           <button
-            aria-label="Find a Store"
+            aria-expanded="false"
+            aria-haspopup="dialog"
+            aria-label="Choose your store"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 has-[>svg]:px-3 hover:bg-transparent hover:opacity-50 transition-opacity"
             data-size="default"
             data-slot="button"
@@ -232,6 +234,11 @@ exports[`Header stories snapshot > Default story renders and matches snapshot 1`
                 d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"
               />
             </svg>
+            <span
+              class="hidden lg:inline"
+            >
+              Choose your store
+            </span>
           </button>
           <button
             aria-controls="radix-_r_2_"
@@ -434,6 +441,55 @@ exports[`Header stories snapshot > Default story renders and matches snapshot 1`
       </div>
     </div>
   </header>
+  <section
+    aria-labelledby="store-locator-home-prompt-heading"
+    class="border-b border-border bg-muted text-foreground"
+    data-testid="store-locator-home-prompt"
+  >
+    <div
+      class="section-container flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:justify-between"
+    >
+      <div
+        class="min-w-0"
+      >
+        <h2
+          class="text-sm font-semibold"
+          id="store-locator-home-prompt-heading"
+        >
+          Choose your store
+        </h2>
+        <p
+          class="text-sm text-muted-foreground"
+        >
+          Choose a preferred store to save it. You can change it anytime.
+        </p>
+      </div>
+      <div
+        class="flex flex-wrap items-center gap-2"
+      >
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+          data-size="sm"
+          data-slot="button"
+          data-variant="default"
+          type="button"
+        >
+          Choose a store
+        </button>
+        <button
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+          data-size="sm"
+          data-slot="button"
+          data-variant="ghost"
+          type="button"
+        >
+          Not now
+        </button>
+      </div>
+    </div>
+  </section>
 </div>
 `;
 
@@ -445,8 +501,7 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
     class="header-mobile-story"
   >
     <style>
-      
-                .header-mobile-story button.lg\\:hidden {
+      .header-mobile-story button.lg\\:hidden {
                     display: inline-flex !important;
                 }
                 .header-mobile-story div.lg\\:hidden:not([aria-hidden]) {
@@ -460,7 +515,6 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
                 .header-mobile-story [aria-hidden="false"].lg\\:hidden {
                     display: block !important;
                 }
-            
     </style>
     <header
       class="bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static"
@@ -591,7 +645,9 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
             class="flex items-center"
           >
             <button
-              aria-label="Find a Store"
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              aria-label="Choose your store"
               class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 has-[>svg]:px-3 hover:bg-transparent hover:opacity-50 transition-opacity"
               data-size="default"
               data-slot="button"
@@ -620,6 +676,11 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
                   d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"
                 />
               </svg>
+              <span
+                class="hidden lg:inline"
+              >
+                Choose your store
+              </span>
             </button>
             <button
               aria-controls="radix-_r_7_"
@@ -822,6 +883,55 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
         </div>
       </div>
     </header>
+    <section
+      aria-labelledby="store-locator-home-prompt-heading"
+      class="border-b border-border bg-muted text-foreground"
+      data-testid="store-locator-home-prompt"
+    >
+      <div
+        class="section-container flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:justify-between"
+      >
+        <div
+          class="min-w-0"
+        >
+          <h2
+            class="text-sm font-semibold"
+            id="store-locator-home-prompt-heading"
+          >
+            Choose your store
+          </h2>
+          <p
+            class="text-sm text-muted-foreground"
+          >
+            Choose a preferred store to save it. You can change it anytime.
+          </p>
+        </div>
+        <div
+          class="flex flex-wrap items-center gap-2"
+        >
+          <button
+            aria-expanded="false"
+            aria-haspopup="dialog"
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+            data-size="sm"
+            data-slot="button"
+            data-variant="default"
+            type="button"
+          >
+            Choose a store
+          </button>
+          <button
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+            data-size="sm"
+            data-slot="button"
+            data-variant="ghost"
+            type="button"
+          >
+            Not now
+          </button>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
 `;
@@ -973,7 +1083,9 @@ exports[`Header stories snapshot > WithAnnouncementBanner story renders and matc
           class="flex items-center"
         >
           <button
-            aria-label="Find a Store"
+            aria-expanded="false"
+            aria-haspopup="dialog"
+            aria-label="Choose your store"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 has-[>svg]:px-3 hover:bg-transparent hover:opacity-50 transition-opacity"
             data-size="default"
             data-slot="button"
@@ -1002,6 +1114,11 @@ exports[`Header stories snapshot > WithAnnouncementBanner story renders and matc
                 d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"
               />
             </svg>
+            <span
+              class="hidden lg:inline"
+            >
+              Choose your store
+            </span>
           </button>
           <button
             aria-controls="radix-_r_c_"
@@ -1204,5 +1321,54 @@ exports[`Header stories snapshot > WithAnnouncementBanner story renders and matc
       </div>
     </div>
   </header>
+  <section
+    aria-labelledby="store-locator-home-prompt-heading"
+    class="border-b border-border bg-muted text-foreground"
+    data-testid="store-locator-home-prompt"
+  >
+    <div
+      class="section-container flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:justify-between"
+    >
+      <div
+        class="min-w-0"
+      >
+        <h2
+          class="text-sm font-semibold"
+          id="store-locator-home-prompt-heading"
+        >
+          Choose your store
+        </h2>
+        <p
+          class="text-sm text-muted-foreground"
+        >
+          Choose a preferred store to save it. You can change it anytime.
+        </p>
+      </div>
+      <div
+        class="flex flex-wrap items-center gap-2"
+      >
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+          data-size="sm"
+          data-slot="button"
+          data-variant="default"
+          type="button"
+        >
+          Choose a store
+        </button>
+        <button
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+          data-size="sm"
+          data-slot="button"
+          data-variant="ghost"
+          type="button"
+        >
+          Not now
+        </button>
+      </div>
+    </div>
+  </section>
 </div>
 `;

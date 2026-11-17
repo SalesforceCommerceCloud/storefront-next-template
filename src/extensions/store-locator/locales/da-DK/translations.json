@@ -5,6 +5,14 @@
         }
     },
     "storeLocator": {
+        "selection": {
+            "unknown": "Resultatet kunne ikke bekræftes. Prøv igen for at kontrollere dit aktuelle butiksvalg.",
+            "clearing": "Fjerner din foretrukne butik…",
+            "saving": "Gemmer din butik…",
+            "error": "Butikken kunne ikke gemmes. Din tidligere butik er uændret. Prøv igen.",
+            "retry": "Prøv igen",
+            "checking": "Kontrollerer din foretrukne butik…"
+        },
         "title": "Find a Store",
         "description": "Search for stores by country and postal code or use your current location.",
         "form": {
@@ -21,7 +29,16 @@
         },
         "trigger": {
             "ariaLabel": "Find a Store",
-            "openAriaLabel": "Open Find a Store"
+            "openAriaLabel": "Open Find a Store",
+            "chooseAriaLabel": "Vælg en butik",
+            "selectedAriaLabel": "Skift din butik: {{storeName}}, {{postalCode}}",
+            "selectedWithoutPostalAriaLabel": "Skift din butik: {{storeName}}"
+        },
+        "homePrompt": {
+            "title": "Vælg din butik",
+            "description": "Vælg en foretrukken butik for at gemme den. Du kan ændre den når som helst.",
+            "open": "Vælg en butik",
+            "dismiss": "Ikke nu"
         },
         "sheet": {
             "closeAriaLabel": "Close store locator"

@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 import { act, render, screen } from '@testing-library/react';
-import { useLayoutEffect, useRef, useState } from 'react';
+import {
+    useState,
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    useLayoutEffect,
+    useRef,
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+} from 'react';
+// @sfdc-extension-line SFDC_EXT_BOPIS
 import userEvent from '@testing-library/user-event';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';

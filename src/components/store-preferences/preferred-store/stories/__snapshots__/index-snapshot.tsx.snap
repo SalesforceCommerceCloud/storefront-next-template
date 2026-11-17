@@ -1,0 +1,522 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PreferredStore stories snapshot > NoStoreSelected story renders and matches snapshot 1`] = `
+<div
+  class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui"
+  data-slot="card"
+>
+  <div
+    class="@container/card-header auto-rows-min grid-rows-[auto_auto] items-start px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+    data-slot="card-header"
+  >
+    <div>
+      <h2
+        class="font-semibold text-lg"
+        data-slot="card-title"
+      >
+        Preferred Store for Pickup
+      </h2>
+      <div
+        class="text-muted-foreground text-sm mt-1"
+        data-slot="card-description"
+      >
+        Select your preferred store for in-store pickup orders
+      </div>
+    </div>
+    <div
+      class="col-start-2 row-span-2 row-start-1 self-start justify-self-end"
+      data-slot="card-action"
+    >
+      <div
+        aria-busy="false"
+        class="flex flex-wrap gap-2"
+      >
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          type="button"
+        >
+          Change store
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    class="px-6"
+    data-slot="card-content"
+  >
+    <p
+      class="text-sm text-muted-foreground text-left"
+    >
+      No store selected. Use the store locator to choose your preferred store for pickup.
+    </p>
+  </div>
+</div>
+`;
+
+exports[`PreferredStore stories snapshot > SavedStoreUnavailable story renders and matches snapshot 1`] = `
+<div
+  class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui"
+  data-slot="card"
+>
+  <div
+    class="@container/card-header auto-rows-min grid-rows-[auto_auto] items-start px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+    data-slot="card-header"
+  >
+    <div>
+      <h2
+        class="font-semibold text-lg"
+        data-slot="card-title"
+      >
+        Preferred Store for Pickup
+      </h2>
+      <div
+        class="text-muted-foreground text-sm mt-1"
+        data-slot="card-description"
+      >
+        Select your preferred store for in-store pickup orders
+      </div>
+    </div>
+    <div
+      class="col-start-2 row-span-2 row-start-1 self-start justify-self-end"
+      data-slot="card-action"
+    >
+      <div
+        aria-busy="false"
+        class="flex flex-wrap gap-2"
+      >
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          type="button"
+        >
+          Change store
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    class="px-6"
+    data-slot="card-content"
+  >
+    <p
+      class="text-sm text-muted-foreground text-left"
+    >
+      Your saved store is unavailable on this site. You can change it.
+    </p>
+  </div>
+</div>
+`;
+
+exports[`PreferredStore stories snapshot > WithLongStoreNameAndAddress story renders and matches snapshot 1`] = `
+<div
+  class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui"
+  data-slot="card"
+>
+  <div
+    class="@container/card-header auto-rows-min grid-rows-[auto_auto] items-start px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+    data-slot="card-header"
+  >
+    <div>
+      <h2
+        class="font-semibold text-lg"
+        data-slot="card-title"
+      >
+        Preferred Store for Pickup
+      </h2>
+      <div
+        class="text-muted-foreground text-sm mt-1"
+        data-slot="card-description"
+      >
+        Select your preferred store for in-store pickup orders
+      </div>
+    </div>
+    <div
+      class="col-start-2 row-span-2 row-start-1 self-start justify-self-end"
+      data-slot="card-action"
+    >
+      <div
+        aria-busy="false"
+        class="flex flex-wrap gap-2"
+      >
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          type="button"
+        >
+          Change store
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    class="px-6"
+    data-slot="card-content"
+  >
+    <div
+      class="text-card-foreground flex flex-col rounded-ui border-ui shadow-ui bg-muted/40 rounded-ui border border-border gap-0 py-0"
+      data-slot="card"
+    >
+      <div
+        class="px-4 py-3"
+        data-slot="card-content"
+      >
+        <p
+          class="text-sm font-semibold text-left"
+        >
+          Salesforce Foundations - San Francisco Technology and Innovation Center
+        </p>
+        <div
+          class="text-sm text-muted-foreground text-left mt-1"
+        >
+          <div>
+            415 Mission Street, Suite 300, Technology and Innovation District, San Francisco, CA 94105-2130
+          </div>
+        </div>
+        <div
+          class="mt-1"
+          data-orientation="vertical"
+          data-slot="accordion"
+        >
+          <div
+            class="border-b last:border-b-0 border-none"
+            data-orientation="vertical"
+            data-slot="accordion-item"
+            data-state="closed"
+          >
+            <h3
+              class="flex"
+              data-orientation="vertical"
+              data-state="closed"
+            >
+              <button
+                aria-controls="radix-_r_b_"
+                aria-expanded="false"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 py-1 text-sm text-primary font-normal underline cursor-pointer hover:underline"
+                data-orientation="vertical"
+                data-radix-collection-item=""
+                data-slot="accordion-trigger"
+                data-state="closed"
+                id="radix-_r_a_"
+                type="button"
+              >
+                Store Hours
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m6 9 6 6 6-6"
+                  />
+                </svg>
+              </button>
+            </h3>
+            <div
+              aria-labelledby="radix-_r_a_"
+              class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+              data-orientation="vertical"
+              data-slot="accordion-content"
+              data-state="closed"
+              hidden=""
+              id="radix-_r_b_"
+              role="region"
+              style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PreferredStore stories snapshot > WithStoreSelected story renders and matches snapshot 1`] = `
+<div
+  class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui"
+  data-slot="card"
+>
+  <div
+    class="@container/card-header auto-rows-min grid-rows-[auto_auto] items-start px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+    data-slot="card-header"
+  >
+    <div>
+      <h2
+        class="font-semibold text-lg"
+        data-slot="card-title"
+      >
+        Preferred Store for Pickup
+      </h2>
+      <div
+        class="text-muted-foreground text-sm mt-1"
+        data-slot="card-description"
+      >
+        Select your preferred store for in-store pickup orders
+      </div>
+    </div>
+    <div
+      class="col-start-2 row-span-2 row-start-1 self-start justify-self-end"
+      data-slot="card-action"
+    >
+      <div
+        aria-busy="false"
+        class="flex flex-wrap gap-2"
+      >
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          type="button"
+        >
+          Change store
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    class="px-6"
+    data-slot="card-content"
+  >
+    <div
+      class="text-card-foreground flex flex-col rounded-ui border-ui shadow-ui bg-muted/40 rounded-ui border border-border gap-0 py-0"
+      data-slot="card"
+    >
+      <div
+        class="px-4 py-3"
+        data-slot="card-content"
+      >
+        <p
+          class="text-sm font-semibold text-left"
+        >
+          Downtown Store
+        </p>
+        <div
+          class="text-sm text-muted-foreground text-left mt-1"
+        >
+          <div>
+            123 Main Street, San Francisco, CA 94105
+          </div>
+        </div>
+        <div
+          class="mt-1"
+          data-orientation="vertical"
+          data-slot="accordion"
+        >
+          <div
+            class="border-b last:border-b-0 border-none"
+            data-orientation="vertical"
+            data-slot="accordion-item"
+            data-state="closed"
+          >
+            <h3
+              class="flex"
+              data-orientation="vertical"
+              data-state="closed"
+            >
+              <button
+                aria-controls="radix-_r_3_"
+                aria-expanded="false"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 py-1 text-sm text-primary font-normal underline cursor-pointer hover:underline"
+                data-orientation="vertical"
+                data-radix-collection-item=""
+                data-slot="accordion-trigger"
+                data-state="closed"
+                id="radix-_r_2_"
+                type="button"
+              >
+                Store Hours
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m6 9 6 6 6-6"
+                  />
+                </svg>
+              </button>
+            </h3>
+            <div
+              aria-labelledby="radix-_r_2_"
+              class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+              data-orientation="vertical"
+              data-slot="accordion-content"
+              data-state="closed"
+              hidden=""
+              id="radix-_r_3_"
+              role="region"
+              style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PreferredStore stories snapshot > WithoutStoreHours story renders and matches snapshot 1`] = `
+<div
+  class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui"
+  data-slot="card"
+>
+  <div
+    class="@container/card-header auto-rows-min grid-rows-[auto_auto] items-start px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+    data-slot="card-header"
+  >
+    <div>
+      <h2
+        class="font-semibold text-lg"
+        data-slot="card-title"
+      >
+        Preferred Store for Pickup
+      </h2>
+      <div
+        class="text-muted-foreground text-sm mt-1"
+        data-slot="card-description"
+      >
+        Select your preferred store for in-store pickup orders
+      </div>
+    </div>
+    <div
+      class="col-start-2 row-span-2 row-start-1 self-start justify-self-end"
+      data-slot="card-action"
+    >
+      <div
+        aria-busy="false"
+        class="flex flex-wrap gap-2"
+      >
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          type="button"
+        >
+          Change store
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    class="px-6"
+    data-slot="card-content"
+  >
+    <div
+      class="text-card-foreground flex flex-col rounded-ui border-ui shadow-ui bg-muted/40 rounded-ui border border-border gap-0 py-0"
+      data-slot="card"
+    >
+      <div
+        class="px-4 py-3"
+        data-slot="card-content"
+      >
+        <p
+          class="text-sm font-semibold text-left"
+        >
+          Westfield Mall Store
+        </p>
+        <div
+          class="text-sm text-muted-foreground text-left mt-1"
+        >
+          <div>
+            865 Market Street, San Francisco, CA 94103
+          </div>
+        </div>
+        <div
+          class="mt-1"
+          data-orientation="vertical"
+          data-slot="accordion"
+        >
+          <div
+            class="border-b last:border-b-0 border-none"
+            data-orientation="vertical"
+            data-slot="accordion-item"
+            data-state="closed"
+          >
+            <h3
+              class="flex"
+              data-orientation="vertical"
+              data-state="closed"
+            >
+              <button
+                aria-controls="radix-_r_f_"
+                aria-expanded="false"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 py-1 text-sm text-primary font-normal underline cursor-pointer hover:underline"
+                data-orientation="vertical"
+                data-radix-collection-item=""
+                data-slot="accordion-trigger"
+                data-state="closed"
+                id="radix-_r_e_"
+                type="button"
+              >
+                Store Hours
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m6 9 6 6 6-6"
+                  />
+                </svg>
+              </button>
+            </h3>
+            <div
+              aria-labelledby="radix-_r_e_"
+              class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+              data-orientation="vertical"
+              data-slot="accordion-content"
+              data-state="closed"
+              hidden=""
+              id="radix-_r_f_"
+              role="region"
+              style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

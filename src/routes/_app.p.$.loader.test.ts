@@ -21,9 +21,24 @@ import { loader } from './_app.p.$';
 import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
 import { authContext } from '@/middlewares/auth.utils';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
+// @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import { getReviewsSummary } from '@/extensions/ratings-reviews/lib/api/reviews.server';
+vi.mock('@/extensions/ratings-reviews/lib/api/reviews.server', () => ({
+    getReviewsSummary: vi.fn(() => Promise.resolve({})),
+    getReviews: vi.fn(() => Promise.resolve({})),
+    getWriteReviewForm: vi.fn(() => Promise.resolve({})),
+}));
+// @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
+import { resolveSelectedStore } from '@/extensions/store-locator/lib/resolve-selected-store.server';
+vi.mock('@/extensions/store-locator/lib/resolve-selected-store.server', () => ({ resolveSelectedStore: vi.fn() }));
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
 
 // Mock fetchProductById directly
 const mockFetchProductById = vi.hoisted(() => vi.fn());
+const mockFetchProductsByIds = vi.hoisted(() => vi.fn(() => Promise.resolve([])));
+const mockFetchAvailabilityByIds = vi.hoisted(() => vi.fn(() => Promise.resolve([])));
 const mockAttemptRouteSeoFallback = vi.hoisted(() => vi.fn());
 // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
 const mockGetInitialDeliveryDestination = vi.hoisted(() =>
@@ -33,6 +48,11 @@ const mockGetInitialDeliveryDestination = vi.hoisted(() =>
 
 vi.mock('@/lib/api/products.server', () => ({
     fetchProductById: mockFetchProductById,
+    fetchProductsByIds: mockFetchProductsByIds,
+}));
+vi.mock('@/lib/api/availability.server', () => ({ fetchAvailabilityByIds: mockFetchAvailabilityByIds }));
+vi.mock('@/lib/api/search.server', () => ({
+    fetchSearchProducts: vi.fn(() => Promise.resolve({ hits: [] })),
 }));
 
 vi.mock('@/lib/seo/route-fallback.server', () => ({
@@ -106,6 +126,7 @@ describe('Product Route Loaders', () => {
         shortDescription: 'Test product description',
         longDescription: 'Long test product description',
         master: undefined,
+        inventory: { id: 'site', ats: 9, stockLevel: 9, orderable: true },
     };
 
     const mockAppConfig = {
@@ -181,6 +202,13 @@ describe('Product Route Loaders', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockFetchProductById.mockReset();
+        mockFetchProductsByIds.mockReset().mockResolvedValue([]);
+        mockFetchAvailabilityByIds.mockReset().mockResolvedValue([]);
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        vi.mocked(resolveSelectedStore).mockImplementation(() =>
+            Promise.resolve({ selectedStoreInfo: mockSelectedStoreInfo as never, store: null, error: null })
+        );
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
         mockAttemptRouteSeoFallback.mockResolvedValue(undefined);
         // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
         mockResolvePdpSections.mockReturnValue([]);
@@ -223,14 +251,15 @@ describe('Product Route Loaders', () => {
 
             const result = await runLoader(query);
 
-            expect(result.product).toBe(product);
+            // Delivery-inventory seeding may return a copy; sections must dispatch with that same returned product.
+            expect(result.product).toMatchObject(product);
             await expect(result.pdpCollapsibles).resolves.toEqual([
                 content,
                 { contentType: 'plain-text', html: product.id },
             ]);
-            expect(mockResolvePdpSections).toHaveBeenCalledWith(product);
-            expect(resolve.mock.calls[0][0]).toBe(product);
-            expect(resolve).toHaveBeenCalledExactlyOnceWith(product);
+            expect(mockResolvePdpSections).toHaveBeenCalledWith(result.product);
+            expect(resolve.mock.calls[0][0]).toBe(result.product);
+            expect(resolve).toHaveBeenCalledExactlyOnceWith(result.product);
             expect(mockSectionApi.getIngredientsData).toHaveBeenCalledExactlyOnceWith(product.id);
             expect(mockSectionApi.getUsageInstructions).not.toHaveBeenCalled();
             expect(mockSectionApi.getCareInstructions).not.toHaveBeenCalled();
@@ -339,6 +368,8 @@ describe('Product Route Loaders', () => {
             // The breadcrumb source is carried on the product — no separate category fetch.
             expect(mockFetchProductById).toHaveBeenCalledTimes(1);
             expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+            // @sfdc-extension-line SFDC_EXT_BOPIS
+            expect(resolveSelectedStore).toHaveBeenCalledWith(context);
         });
 
         test('removes the Commerce-generated .html suffix before the product lookup', async () => {
@@ -385,6 +416,46 @@ describe('Product Route Loaders', () => {
             expect(response?.headers.get('Location')).toBe('/p/p1');
             expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
+
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        test('loads initial SKU site inventory before the held store resolves', async () => {
+            const activeLoader = (await import('@/routes/_app.p.$')).loader;
+            let release!: (value: Awaited<ReturnType<typeof resolveSelectedStore>>) => void;
+            vi.mocked(resolveSelectedStore).mockReturnValue(
+                new Promise((resolve) => {
+                    release = resolve;
+                })
+            );
+            const skuInventory = { id: 'sku-site', ats: 7, stockLevel: 7, orderable: true };
+            mockFetchProductById.mockResolvedValueOnce({
+                ...mockProduct,
+                type: { master: true },
+                variationAttributes: [{ id: 'size', values: [{ value: 'S' }, { value: 'L' }] }],
+                variants: [
+                    { productId: 'small', variationValues: { size: 'S' } },
+                    { productId: 'large', variationValues: { size: 'L' } },
+                ],
+            });
+            mockFetchAvailabilityByIds.mockResolvedValueOnce([{ id: 'small', inventories: [skuInventory] }] as never);
+            const request = new Request('https://example.com/p/test-product-123?size=S');
+            try {
+                const result = await activeLoader({
+                    request,
+                    params: { siteId: 'test-site', localeId: 'en-US', '*': 'test-product-123' },
+                    context: mockContext,
+                    url: new URL(request.url),
+                    pattern: '/p/*',
+                });
+                expect(result.product.variants?.[0]).toEqual(
+                    expect.objectContaining({ productId: 'small', inventory: skuInventory })
+                );
+                expect(mockFetchAvailabilityByIds).toHaveBeenCalledWith(mockContext, ['small']);
+                expect(mockFetchProductById).toHaveBeenCalledTimes(1);
+            } finally {
+                release({ selectedStoreInfo: null, store: null, error: null });
+            }
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
         // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
         test('does not include the shopper delivery destination in cacheable PDP loader data', async () => {
@@ -660,7 +731,155 @@ describe('Product Route Loaders', () => {
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     describe('loader function with BOPIS extension', () => {
-        test('includes inventoryIds when store is selected in context', async () => {
+        test.each([
+            'set',
+            'bundle',
+        ] as const)('returns seeded %s delivery children before held selection', async (kind) => {
+            const route = await import('@/routes/_app.p.$');
+            let release!: (value: Awaited<ReturnType<typeof resolveSelectedStore>>) => void;
+            vi.mocked(resolveSelectedStore).mockReturnValueOnce(
+                new Promise((resolve) => {
+                    release = resolve;
+                })
+            );
+            const child = {
+                id: 'child',
+                type: { master: true },
+                variationAttributes: [{ id: 'size', values: [{ value: 'S' }] }],
+                variants: [{ productId: 'sku', variationValues: { size: 'S' } }],
+            };
+            const product = {
+                ...mockProduct,
+                type: { [kind]: true },
+                ...(kind === 'set'
+                    ? { setProducts: [child] }
+                    : { bundledProducts: [{ id: child.id, quantity: 1, product: child }] }),
+            };
+            mockFetchProductById.mockResolvedValueOnce(product);
+            mockFetchAvailabilityByIds.mockResolvedValueOnce([
+                { id: 'sku', inventories: [mockProduct.inventory] },
+            ] as never);
+            const request = new Request('https://example.com/p/test-product-123');
+            let returned = false;
+            const pending = route
+                .loader({
+                    request,
+                    params: { siteId: 'test-site', localeId: 'en-US', '*': mockProduct.id },
+                    context: mockContext,
+                    url: new URL(request.url),
+                    pattern: '/p/*',
+                })
+                .then((result) => {
+                    returned = true;
+                    return result;
+                });
+            try {
+                await vi.waitFor(() => expect(returned).toBe(true), { timeout: 500 });
+                const result = await pending;
+                const seeded = result.product.setProducts?.[0] ?? result.product.bundledProducts?.[0].product;
+                expect(seeded?.inventory).toEqual(mockProduct.inventory);
+                expect(mockFetchAvailabilityByIds).toHaveBeenCalledExactlyOnceWith(mockContext, ['sku']);
+            } finally {
+                release({ selectedStoreInfo: null, store: null, error: null });
+                const result = await pending;
+                await result.pickupInventory;
+                expect(mockFetchAvailabilityByIds).toHaveBeenCalledTimes(1);
+                expect(mockFetchProductsByIds).not.toHaveBeenCalled();
+            }
+        });
+        test('keeps the parent usable on a supplemental delivery failure and preserves auth recovery', async () => {
+            const { AuthTokenInvalidError } = await import('@/scapi');
+            const route = await import('@/routes/_app.p.$');
+            const product = {
+                ...mockProduct,
+                type: { master: true },
+                variationAttributes: [{ id: 'size', values: [{ value: 'S' }] }],
+                variants: [{ productId: 'sku', variationValues: { size: 'S' } }],
+            };
+            const request = new Request('https://example.com/p/test-product-123');
+            const args = {
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', '*': mockProduct.id },
+                context: mockContext,
+                url: new URL(request.url),
+                pattern: '/p/*',
+            };
+            mockFetchProductById.mockResolvedValue(product);
+            mockFetchAvailabilityByIds.mockRejectedValueOnce(new Error('network'));
+            expect((await route.loader(args)).product).toBe(product);
+            mockFetchAvailabilityByIds.mockRejectedValueOnce(new AuthTokenInvalidError('expired'));
+            await expect(route.loader(args)).rejects.toBeInstanceOf(AuthTokenInvalidError);
+        });
+        test('returns critical data before selected-store resolution', async () => {
+            let release!: (value: Awaited<ReturnType<typeof resolveSelectedStore>>) => void;
+            const selection = new Promise<Awaited<ReturnType<typeof resolveSelectedStore>>>((resolve) => {
+                release = resolve;
+            });
+            vi.mocked(resolveSelectedStore).mockReturnValueOnce(selection);
+            mockFetchProductById.mockResolvedValueOnce(mockProduct);
+            const route = await import('@/routes/_app.p.$');
+            const request = new Request('https://example.com/p/test-product-123');
+            let returned = false;
+            const pending = route
+                .loader({
+                    request,
+                    params: { siteId: 'test-site', localeId: 'en-US', '*': mockProduct.id },
+                    context: mockContext,
+                    url: new URL(request.url),
+                    pattern: '/p/*',
+                })
+                .then((result: Awaited<ReturnType<typeof loader>>) => {
+                    returned = true;
+                    return result;
+                });
+            try {
+                await vi.waitFor(() => expect(returned).toBe(true), { timeout: 500 });
+                const result = await pending;
+                expect(result.product?.id).toBe(mockProduct.id);
+                expect(result.pickupInventory).toBeInstanceOf(Promise);
+                expect(mockFetchProductById.mock.calls[0][2]).not.toHaveProperty('inventoryIds');
+                expect(mockFetchProductsByIds).not.toHaveBeenCalled();
+            } finally {
+                release({ selectedStoreInfo: null, store: null, error: null });
+                await pending;
+            }
+        });
+        // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
+        test('starts critical product loading while store resolution is pending', async () => {
+            let resolveStore!: (value: Awaited<ReturnType<typeof resolveSelectedStore>>) => void;
+            const storeResolution = new Promise<Awaited<ReturnType<typeof resolveSelectedStore>>>((resolve) => {
+                resolveStore = resolve;
+            });
+            vi.mocked(resolveSelectedStore).mockReturnValueOnce(storeResolution);
+            mockFetchProductById.mockResolvedValueOnce(mockProduct);
+            const request = new Request('https://example.com/p/test-product-123?pid=variant-123');
+            const pending = loader({
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', '*': 'test-product-123' },
+                context: mockContext,
+                url: new URL(request.url),
+                pattern: '/p/*',
+            });
+            try {
+                expect(getReviewsSummary).toHaveBeenCalledExactlyOnceWith('variant-123');
+                expect(mockFetchProductById).toHaveBeenCalledWith(
+                    mockContext,
+                    'variant-123',
+                    expect.objectContaining({ expand: expect.arrayContaining(['availability']), currency: 'USD' })
+                );
+                expect(mockFetchProductById.mock.calls[0][2]).not.toHaveProperty('inventoryIds');
+            } finally {
+                resolveStore({
+                    selectedStoreInfo: { id: 'store-123', inventoryId: 'inventory-123' },
+                    store: null,
+                    error: null,
+                });
+                await pending;
+            }
+        });
+        // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
+
+        test('includes inventoryIds only in deferred availability when a store is selected', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
 
             mockSelectedStoreInfo = {
@@ -673,7 +892,7 @@ describe('Product Route Loaders', () => {
             const params = { '*': 'test-product-123' };
             const context = mockContext;
 
-            await loader({
+            const result = await loader({
                 request,
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
@@ -681,12 +900,12 @@ describe('Product Route Loaders', () => {
                 pattern: '/p/*',
             });
 
-            // Verify fetchProductById was called with inventoryIds parameter
-            expect(mockFetchProductById).toHaveBeenCalledWith(
-                context,
-                'test-product-123',
-                expect.objectContaining({ inventoryIds: ['inventory-123'] })
-            );
+            await result.pickupInventory;
+            expect(mockFetchProductById.mock.calls[0][2]).not.toHaveProperty('inventoryIds');
+            expect(mockFetchProductsByIds).toHaveBeenCalledWith(context, ['test-product-123'], {
+                expand: ['availability'],
+                inventoryIds: ['inventory-123'],
+            });
 
             mockSelectedStoreInfo = null;
         });

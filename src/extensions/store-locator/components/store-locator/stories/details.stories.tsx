@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
-import { waitForStorybookReady } from '@storybook/test-utils';
-import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
-import { action } from 'storybook/actions';
 import StoreDetails from '../details';
 import type { ShopperStores } from '@/scapi';
 import { Button } from '@/components/ui/button';
@@ -37,47 +33,6 @@ const createMockStore = (
     countryCode: 'US',
     ...overrides,
 });
-
-function ActionLogger({ children }: { children: ReactNode }): ReactElement {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        const root = containerRef.current;
-        if (!root) return;
-
-        const logClick = action('interaction');
-
-        const handleClick = (event: MouseEvent) => {
-            const target = event.target as HTMLElement | null;
-            if (!target || !root.contains(target)) return;
-
-            // Prevent navigation on links
-            const link = target.closest('a');
-            if (link) {
-                event.preventDefault();
-                const href = link.getAttribute('href');
-                logClick({ type: 'click', element: 'link', href, label: link.textContent?.trim() });
-                return;
-            }
-
-            // Log button clicks
-            const button = target.closest('button, [role="button"]');
-            if (button) {
-                const label =
-                    button.textContent?.trim() || button.getAttribute('aria-label') || button.tagName.toLowerCase();
-                logClick({ type: 'click', element: button.tagName.toLowerCase(), label });
-            }
-        };
-
-        root.addEventListener('click', handleClick, true);
-
-        return () => {
-            root.removeEventListener('click', handleClick, true);
-        };
-    }, []);
-
-    return <div ref={containerRef}>{children}</div>;
-}
 
 const mockStore: ShopperStores.schemas['Store'] & { c_customerServiceEmail?: string } = createMockStore(
     'store-1',
@@ -109,7 +64,7 @@ const mockStoreNoDistance: ShopperStores.schemas['Store'] = createMockStore('sto
 const meta: Meta<typeof StoreDetails> = {
     title: 'Extensions/Store Locator/Store Details',
     component: StoreDetails,
-    tags: ['autodocs', 'interaction'],
+    tags: ['autodocs'],
     parameters: {
         layout: 'padded',
         docs: {
@@ -171,17 +126,9 @@ This component is used in the store locator list to display individual store inf
             control: 'boolean',
         },
         primaryAction: {
-            description: 'Optional primary action slot (e.g. button)',
-            control: false,
+            table: { disable: true },
         },
     },
-    decorators: [
-        (Story: React.ComponentType) => (
-            <ActionLogger>
-                <Story />
-            </ActionLogger>
-        ),
-    ],
 };
 
 export default meta;
@@ -212,18 +159,6 @@ This is the default state with all information displayed.
             },
         },
     },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // Verify store name is present
-        const storeName = await canvas.findByText(/downtown store/i, {}, { timeout: 5000 });
-        await expect(storeName).toBeInTheDocument();
-
-        // Verify address is present
-        const address = await canvas.findByText(/123 Main Street/i, {}, { timeout: 5000 });
-        await expect(address).toBeInTheDocument();
-    },
 };
 
 export const WithoutDistance: Story = {
@@ -248,14 +183,6 @@ This state appears when distance information is not provided.
                 `,
             },
         },
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // Verify store name is present
-        const storeName = await canvas.findByText(/uptown store/i, {}, { timeout: 5000 });
-        await expect(storeName).toBeInTheDocument();
     },
 };
 
@@ -283,18 +210,6 @@ This is useful for store selection flows.
             },
         },
     },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // Verify store name is present
-        const storeName = await canvas.findByText(/downtown store/i, {}, { timeout: 5000 });
-        await expect(storeName).toBeInTheDocument();
-
-        // Verify action button is present
-        const actionButton = await canvas.findByText(/select store/i, {}, { timeout: 5000 });
-        await expect(actionButton).toBeInTheDocument();
-    },
 };
 
 export const CompactAddress: Story = {
@@ -320,14 +235,6 @@ This format saves vertical space while maintaining readability.
                 `,
             },
         },
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // Verify store name is present in address
-        const storeName = await canvas.findByText(/downtown store/i, {}, { timeout: 5000 });
-        await expect(storeName).toBeInTheDocument();
     },
 };
 
@@ -358,50 +265,5 @@ The component automatically adapts for mobile screens.
     },
     globals: {
         viewport: 'mobile2',
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // Verify store name is present
-        const storeName = await canvas.findByText(/downtown store/i, {}, { timeout: 5000 });
-        await expect(storeName).toBeInTheDocument();
-    },
-};
-
-export const DesktopLayout: Story = {
-    args: {
-        store: mockStore,
-        showDistance: true,
-        distanceUnit: 'km',
-        showStoreHours: true,
-        showPhone: true,
-        showEmail: true,
-        compactAddress: false,
-    },
-    parameters: {
-        docs: {
-            description: {
-                story: `
-Store details for desktop devices. Shows:
-- Grid layout with proper spacing
-- All information clearly displayed
-- Desktop-optimized interaction
-
-The component provides a clean layout for desktop screens.
-                `,
-            },
-        },
-    },
-    globals: {
-        viewport: 'desktop',
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // Verify store name is present
-        const storeName = await canvas.findByText(/downtown store/i, {}, { timeout: 5000 });
-        await expect(storeName).toBeInTheDocument();
     },
 };

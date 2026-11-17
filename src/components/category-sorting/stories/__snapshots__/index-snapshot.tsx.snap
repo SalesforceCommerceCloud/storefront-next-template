@@ -6,7 +6,7 @@ exports[`CategorySorting stories snapshot > FullyFeatured story renders and matc
 >
   <label
     class="text-sm text-muted-foreground"
-    for="_r_1_"
+    for="_r_2_"
   >
     Sort by:
   </label>
@@ -18,7 +18,7 @@ exports[`CategorySorting stories snapshot > FullyFeatured story renders and matc
       class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
       data-size="default"
       data-slot="native-select"
-      id="_r_1_"
+      id="_r_2_"
     >
       <option
         value="best-matches"
@@ -88,4 +88,9 @@ exports[`CategorySorting stories snapshot > FullyFeatured story renders and matc
 </div>
 `;
 
-exports[`CategorySorting stories snapshot > NoSortingOptions story renders and matches snapshot 1`] = `null`;
+exports[`CategorySorting stories snapshot > NoSortingOptions story renders and matches snapshot 1`] = `
+<div
+  aria-live="polite"
+  class="text-center"
+/>
+`;

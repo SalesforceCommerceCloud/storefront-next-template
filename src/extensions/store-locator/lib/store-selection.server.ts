@@ -47,6 +47,7 @@ import { StoreSelectionError } from '@/extensions/store-locator/lib/store-select
 export { StoreSelectionError } from '@/extensions/store-locator/lib/store-selection-error';
 import {
     getPreferredStoreId,
+    updatePreferredStoreId,
     InvalidPreferredStoreIdError,
 } from '@/extensions/store-locator/lib/api/preferred-store.server';
 import { isPageDesignerMode } from '@/lib/shopper-context/server-utils.server';
@@ -848,7 +849,8 @@ export function assertStoreSelectionLoginSession(
 /**
  * Reconcile active selection after an identity change, before transfer/calculation.
  * A failed read remains retryable on the next request via the prior identity record.
- * No account preference is written here.
+ * The only account write is seeding the default from a guest's explicit pick when the account has
+ * none; an existing default is never replaced, and a failed seed never fails login.
  */
 export async function reconcileStoreAfterAuthentication(context: Context, sourceHasItems = false): Promise<void> {
     const state = context.get(selectionState);
@@ -925,6 +927,20 @@ export async function reconcileStoreAfterAuthentication(context: Context, source
     const retainExplicit = explicit || (sameRegisteredIdentity && state.record?.sessionId === state.sessionId);
     const result = await applyStoreSelection(context, candidate, retainExplicit, { sourceHasItems });
     if (!result.success) throw new StoreSelectionError(result.code, 409, { change: result });
+    if (explicit && candidate && getAuth(context).userType === 'registered') {
+        await seedAccountDefault(context, candidate.id);
+    }
+}
+
+/** Save a guest's explicit pick as the account default only when the account has none. Best effort. */
+async function seedAccountDefault(context: Context, storeId: string): Promise<void> {
+    try {
+        if ((await getPreferredStoreId(context)) != null) return;
+        await updatePreferredStoreId(context, storeId);
+    } catch (error) {
+        if (error instanceof Error && error.name === 'AuthTokenInvalidError') throw error;
+        getLogger(context).warn('Account default seeding skipped', { error });
+    }
 }
 
 /** Retain only the validated store intent; a fresh guest must not inherit registered provenance. */

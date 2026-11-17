@@ -134,7 +134,8 @@ vi.mock('@/hooks/use-current-site-and-locale-ref', () => ({
     useCurrentSiteAndLocaleRef: () => ({ siteRef: getSiteRef(), localeRef: mockSiteObject.defaultLocale }),
 }));
 
-vi.mock('@salesforce/storefront-next-runtime/site-context', () => ({
+vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@salesforce/storefront-next-runtime/site-context')>()),
     buildUrl: ({ to }: { to: string }) => `/${getSiteRef()}/${mockSiteObject.defaultLocale}${to}`,
 }));
 

@@ -328,6 +328,7 @@
         "insufficientStock": "Estoque insuficiente"
     },
     "cart": {
+        "handoffWarning": "Sessão iniciada, mas não foi possível confirmar a transferência do carrinho. Verifique o carrinho antes de pagar.",
         "title": "Carrinho",
         "delivery": {
             "heading": "Entrega - {{deliveryCount}} dentre {{totalCount}} itens",
@@ -718,7 +719,8 @@
                 "changeStore": "Alterar loja",
                 "noStoreSelected": "Nenhuma loja selecionada. Use o localizador de lojas para escolher sua loja preferida para retirada.",
                 "storeHoursTitle": "Horário comercial",
-                "error": "Falha ao carregar detalhes da loja. Tente novamente mais tarde."
+                "error": "Falha ao carregar detalhes da loja. Tente novamente mais tarde.",
+                "savedStoreUnavailable": "A sua loja guardada não está disponível neste site. Pode alterá-la."
             },
             "authorizedPickupPeople": {
                 "heading": "Pessoas autorizadas para retirada",
@@ -1424,6 +1426,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "Algo correu mal",
+        "defaultDescription": "Ocorreu um erro",
+        "goToHomepage": "Ir para a página inicial"
     },
     "error": {
         "403": {

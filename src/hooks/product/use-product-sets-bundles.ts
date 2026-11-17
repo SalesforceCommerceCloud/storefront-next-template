@@ -15,6 +15,8 @@
  */
 import { useState, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router';
+import { getInitialVariant } from '@/lib/product/initial-variant';
 import type { ShopperProducts } from '@/scapi';
 import { isProductSet, isProductBundle, isStandardProduct } from '@/lib/product/product-utils';
 import {
@@ -25,6 +27,8 @@ import {
 } from '@/lib/product/inventory-utils';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import { usePickup } from '@/extensions/bopis/context/pickup-context';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import { usePickupInventory } from '@/extensions/bopis/context/pickup-inventory';
 import { useBulkChildProductInventory } from './use-bulk-child-product-inventory';
 
 interface ChildProductOrderability {
@@ -102,8 +106,13 @@ export function useProductSetsBundles({
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 }: UseProductSetsBundlesProps) {
     const { t } = useTranslation();
+    const [searchParams] = useSearchParams();
     const isProductASet = isProductSet(product);
     const isProductABundle = isProductBundle(product);
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    const streamed = usePickupInventory(product.id);
+    if (streamed.product) product = { ...product, inventories: streamed.product.inventories };
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     // Get pickup context to check if pickup is selected for this product
@@ -132,13 +141,19 @@ export function useProductSetsBundles({
 
         childProducts.forEach((childProduct) => {
             const isStandard = isStandardProduct(childProduct);
+            const variant = getInitialVariant(
+                childProduct,
+                new URLSearchParams(searchParams.get(childProduct.id) ?? ''),
+                true
+            );
 
             // For sets: initialize ALL children to track their quantities
             // For bundles: only initialize standard products (auto-select them)
             // Standard products are always initialized since they don't require variant selection
-            if (isProductASet || isStandard) {
+            if (isProductASet || isStandard || variant) {
                 initialSelections[childProduct.id] = {
                     product: childProduct,
+                    variant,
                     quantity: (childProduct.quantity as number) || 1,
                 };
             }
@@ -194,6 +209,11 @@ export function useProductSetsBundles({
                     ...childProduct,
                     inventory: enriched.product.inventory || childProduct.inventory,
                     inventories: enriched.product.inventories || childProduct.inventories,
+                    variants: childProduct.variants?.map((variant) =>
+                        variant.productId === enriched.variant?.productId
+                            ? { ...variant, ...enriched.variant }
+                            : variant
+                    ),
                 };
             }
             return childProduct;

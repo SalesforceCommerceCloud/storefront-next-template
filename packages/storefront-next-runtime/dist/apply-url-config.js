@@ -33,18 +33,20 @@ function createPatternMatcher(patterns) {
 //#endregion
 //#region src/site-context/apply-url-config.ts
 const DEFAULT_EXCLUDED_ROUTES = ["/resource/**", "/action/**"];
+const normalizeMatchPath = (path) => path.startsWith("/") ? path : `/${path}`;
+/** Match the same normalized route path and exclusions used by the URL compiler. */
+function isExcludedRoute(path, urlConfig) {
+	return createPatternMatcher(urlConfig?.excludeRoutes ?? DEFAULT_EXCLUDED_ROUTES)(normalizeMatchPath(path));
+}
 /**
 * Separates routes into excluded (stay at root) and included (go under prefix).
 */
 function partitionRoutes(routes, excludePatterns) {
-	const isExcluded = createPatternMatcher(excludePatterns);
 	const excludedRoutes = [];
 	const includedRoutes = [];
-	for (const route of routes) {
-		const matchPath = route.path?.startsWith("/") ? route.path : `/${route.path}`;
-		if (route.path && isExcluded(matchPath)) excludedRoutes.push(route);
-		else includedRoutes.push(route);
-	}
+	const isExcluded = createPatternMatcher(excludePatterns);
+	for (const route of routes) if (route.path && isExcluded(normalizeMatchPath(route.path))) excludedRoutes.push(route);
+	else includedRoutes.push(route);
 	return {
 		excludedRoutes,
 		includedRoutes
@@ -126,5 +128,5 @@ function applyUrlConfig(options) {
 }
 
 //#endregion
-export { applyUrlConfig as t };
+export { isExcludedRoute as n, applyUrlConfig as t };
 //# sourceMappingURL=apply-url-config.js.map

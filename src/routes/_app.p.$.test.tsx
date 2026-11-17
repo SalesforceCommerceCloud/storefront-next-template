@@ -197,6 +197,9 @@ vi.mock('@/extensions/store-locator/middlewares/selected-store.server', () => ({
     // (no store selected) instead of throwing, since the test context never sets this key.
     selectedStoreContext: { id: 'selectedStoreContext', defaultValue: null },
 }));
+vi.mock('@/extensions/store-locator/lib/resolve-selected-store.server', () => ({
+    resolveSelectedStore: vi.fn(() => Promise.resolve({ selectedStoreInfo: null, store: null, error: null })),
+}));
 
 vi.mock('@/extensions/bopis/context/pickup-context', () => ({
     default: ({ children }: any) => <div data-testid="pickup-provider">{children}</div>,
@@ -231,6 +234,7 @@ vi.mock('@/lib/seo/route-fallback.server', () => ({
 vi.mock('@/lib/product/swatch-products.server', () => ({
     resolveSwatchProductImages: vi.fn(),
 }));
+vi.mock('@/lib/api/availability.server', () => ({ fetchAvailabilityByIds: vi.fn(() => Promise.resolve([])) }));
 
 vi.mock('@/lib/page-designer/page-loader.server', () => ({
     fetchPageWithComponentData: vi.fn(),
@@ -264,6 +268,7 @@ vi.mock('@/extensions/product-content/lib/pdp-sections', () => ({
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
 import { createTestContext } from '@/lib/test-utils';
 import { fetchProductById } from '@/lib/api/products.server';
+import { fetchAvailabilityByIds } from '@/lib/api/availability.server';
 import { resolveProductRoute } from '@/lib/seo/url-resolution.server';
 import { resolveSwatchProductImages } from '@/lib/product/swatch-products.server';
 import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
@@ -938,6 +943,7 @@ describe('Product Detail Route loader', () => {
 
         const options = vi.mocked(fetchProductById).mock.calls[0]?.[2];
         expect(options?.expand).not.toContain('slug');
+        expect(fetchAvailabilityByIds).toHaveBeenCalledExactlyOnceWith(mockContext, ['test-product-123']);
     });
 
     test('requests the product slug when SEO routes are enabled', async () => {
@@ -962,6 +968,7 @@ describe('Product Detail Route loader', () => {
             '/global/en-US/p/current%20caf%C3%A9/test-product-123?color=blue'
         );
         expect(fetchProductById).toHaveBeenCalledOnce();
+        expect(fetchAvailabilityByIds).not.toHaveBeenCalled();
         expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
     });
 
@@ -976,7 +983,11 @@ describe('Product Detail Route loader', () => {
             )
         );
 
-        expect(result.product).toBe(variant);
+        expect(result.product).toEqual({
+            ...variant,
+            inventory: { id: 'unavailable', ats: 0, stockLevel: 0, orderable: false },
+        });
+        expect(fetchAvailabilityByIds).toHaveBeenCalledExactlyOnceWith(seoContext, ['variant-456']);
         expect(fetchProductById).toHaveBeenCalledWith(seoContext, 'variant-456', expect.any(Object));
         expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
     });
@@ -1006,7 +1017,7 @@ describe('Product Detail Route loader', () => {
         );
 
         expect(generateProductSchema).toHaveBeenCalledWith(
-            mockProduct,
+            { ...mockProduct, inventory: { id: 'unavailable', ats: 0, stockLevel: 0, orderable: false } },
             'http://localhost:3000/global/en-US/p/test-product-123?sort=price'
         );
     });

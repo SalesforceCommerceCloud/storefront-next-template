@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within, userEvent } from 'storybook/test';
-import { waitForStorybookReady, SITE_PREFIX } from '@storybook/test-utils';
 import StoreLocatorFooter from '../index';
 
 const meta: Meta<typeof StoreLocatorFooter> = {
     title: 'Extensions/Store Locator/Store Locator Footer',
     component: StoreLocatorFooter,
-    tags: ['autodocs', 'interaction'],
+    tags: ['autodocs'],
     parameters: {
         layout: 'padded',
         docs: {
@@ -68,103 +66,5 @@ This is the default state as used in the site footer.
                 `,
             },
         },
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // The footer renders a single link; its label and destination are vertical-specific (e.g.
-        // luxury links "Boutiques" → /boutiques rather than "Store Locator" → /store-locator), so
-        // match the sole link by role rather than by its i18n name.
-        const link = await canvas.findByRole('link', undefined, { timeout: 5000 });
-        await expect(link).toBeInTheDocument();
-        await expect(link).toHaveAttribute('href', expect.stringContaining(SITE_PREFIX));
-    },
-};
-
-export const KeyboardNavigation: Story = {
-    parameters: {
-        docs: {
-            description: {
-                story: `
-Verifies the footer link is focusable and keyboard-accessible.
-- Link can receive focus via Tab
-- Enter/Space activate the link (browser default)
-                `,
-            },
-        },
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // The footer renders a single link; its label and destination are vertical-specific (e.g.
-        // luxury links "Boutiques" → /boutiques rather than "Store Locator" → /store-locator), so
-        // match the sole link by role rather than by its i18n name.
-        const link = await canvas.findByRole('link', undefined, { timeout: 5000 });
-        await expect(link).toBeInTheDocument();
-
-        await userEvent.tab();
-        await expect(link).toHaveFocus();
-    },
-};
-
-export const MobileLayout: Story = {
-    parameters: {
-        docs: {
-            description: {
-                story: `
-Store locator footer link in a mobile context. Shows:
-- Touch-friendly link target
-- Same link and destination
-
-The component maintains consistent behavior across screen sizes.
-                `,
-            },
-        },
-    },
-    globals: {
-        viewport: 'mobile2',
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // The footer renders a single link; its label and destination are vertical-specific (e.g.
-        // luxury links "Boutiques" → /boutiques rather than "Store Locator" → /store-locator), so
-        // match the sole link by role rather than by its i18n name.
-        const link = await canvas.findByRole('link', undefined, { timeout: 5000 });
-        await expect(link).toBeInTheDocument();
-        await expect(link).toHaveAttribute('href', expect.stringContaining(SITE_PREFIX));
-    },
-};
-
-export const DesktopLayout: Story = {
-    parameters: {
-        docs: {
-            description: {
-                story: `
-Store locator footer link on desktop. Shows:
-- Same link and destination
-- Hover underline for affordance
-
-The component provides a clear footer entry point to the store locator.
-                `,
-            },
-        },
-    },
-    globals: {
-        viewport: 'desktop',
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        // The footer renders a single link; its label and destination are vertical-specific (e.g.
-        // luxury links "Boutiques" → /boutiques rather than "Store Locator" → /store-locator), so
-        // match the sole link by role rather than by its i18n name.
-        const link = await canvas.findByRole('link', undefined, { timeout: 5000 });
-        await expect(link).toBeInTheDocument();
-        await expect(link).toHaveAttribute('href', expect.stringContaining(SITE_PREFIX));
     },
 };

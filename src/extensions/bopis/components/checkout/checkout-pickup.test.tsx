@@ -116,6 +116,7 @@ vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
     useStoreLocator: vi.fn((selector: (s: unknown) => unknown) => {
         const state = {
             open: mockOpenStoreLocator,
+            openChooser: mockOpenStoreLocator,
             setSelectedStoreInfo: mockSetSelectedStoreInfoRaw,
             selectedStoreInfo: null,
             isOpen: false,
@@ -249,7 +250,13 @@ describe('CheckoutPickup', () => {
         );
         const changeLink = screen.getByText('storePickup.changePickupLocation');
         await userEvent.click(changeLink);
-        expect(mockSetSelectedStoreInfoRaw).toHaveBeenCalledWith(defaultStore);
+        expect(mockSetSelectedStoreInfoRaw).not.toHaveBeenCalled();
+        expect(mockOpenStoreLocator).toHaveBeenCalledWith(
+            expect.objectContaining({
+                selectedStoreInfo: defaultStore,
+                owner: expect.any(String),
+            })
+        );
         expect(mockOpenStoreLocator).toHaveBeenCalled();
     });
 

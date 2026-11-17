@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RouteConfigEntry } from '@react-router/dev/routes';
+import { isExcludedRoute, resolveSiteDetectionConfig, resolveLocaleDetectionConfig } from './index';
 import {
     applyUrlConfig,
     cloneRootIndexRoutes,
@@ -37,6 +38,71 @@ function indexRoute(id: string, file: string): RouteConfigEntry {
 }
 
 const WRAPPER_FILE = 'app-wrapper.tsx';
+
+it('compiles exclusion patterns once for a route partition', async () => {
+    const utils = await import('../utils');
+    const compile = vi.spyOn(utils, 'createPatternMatcher');
+    const routes = Array.from({ length: 20 }, (_, i) =>
+        route({ id: `${i}`, file: 'resource.ts', path: `resource/${i}` })
+    );
+    expect(partitionRoutes(routes, ['/resource/**']).excludedRoutes).toHaveLength(20);
+    expect(compile).toHaveBeenCalledTimes(1);
+    compile.mockRestore();
+});
+
+it.each([
+    resolveSiteDetectionConfig,
+    resolveLocaleDetectionConfig,
+])('returns fresh detection arrays from %s', (resolve) => {
+    const input = { order: ['cookie'] as ['cookie'], caches: [] as Array<'cookie'> };
+    const first = resolve(input);
+    expect(first.order).not.toBe(input.order);
+    expect(first.caches).not.toBe(input.caches);
+    expect(resolve().order).not.toBe(resolve().order);
+    expect(resolve().caches).not.toBe(resolve().caches);
+    expect(resolve({ order: [], caches: undefined }).caches).toBeUndefined();
+});
+
+it.each([
+    undefined,
+    [],
+    ['/resource/**'],
+    ['/resource/auth-recovery'],
+    ['/resource/*'],
+    ['/action/**'],
+])('public exclusion agrees with compiled route partition %j', (excludeRoutes) => {
+    const urlConfig = { prefix: '/:siteId', excludeRoutes };
+    const compiled = applyUrlConfig({
+        routes: [route({ id: 'recovery', path: 'resource/auth-recovery', file: 'recovery.ts' })],
+        urlConfig,
+        wrapperFile: WRAPPER_FILE,
+    });
+    expect(isExcludedRoute('/resource/auth-recovery', urlConfig)).toBe(compiled.some(({ id }) => id === 'recovery'));
+    expect(isExcludedRoute('resource/auth-recovery', urlConfig)).toBe(
+        isExcludedRoute('/resource/auth-recovery', urlConfig)
+    );
+});
+
+it('exposes the effective middleware detection defaults without replacing explicit empty options', () => {
+    expect(resolveSiteDetectionConfig()).toMatchObject({
+        lookupQuerystring: 'site',
+        lookupCookie: 'site_id',
+        caches: ['cookie'],
+    });
+    expect(resolveLocaleDetectionConfig()).toMatchObject({
+        lookupQuerystring: 'lng',
+        lookupCookie: 'lng',
+        caches: ['cookie'],
+    });
+    expect(resolveSiteDetectionConfig({ order: [], lookupQuerystring: '', caches: [] })).toMatchObject({
+        lookupQuerystring: '',
+        caches: [],
+    });
+    expect(resolveLocaleDetectionConfig({ order: [], lookupQuerystring: undefined })).toHaveProperty(
+        'lookupQuerystring',
+        undefined
+    );
+});
 
 describe('cloneRootIndexRoutes', () => {
     it('should duplicate a top-level index route', () => {

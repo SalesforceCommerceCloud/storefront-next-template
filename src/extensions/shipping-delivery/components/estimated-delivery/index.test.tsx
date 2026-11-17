@@ -293,10 +293,9 @@ describe('EstimatedDelivery', () => {
             { wrapper: AllProvidersWrapper }
         );
 
-        expect(screen.getByTestId('standalone-target')).toContainElement(screen.getByRole('status'));
-        expect(screen.getByRole('radio', { name: 'Delivery' }).parentElement).not.toContainElement(
-            screen.getByRole('status')
-        );
+        const estimateStatus = within(screen.getByTestId('standalone-target')).getByRole('status');
+        expect(screen.getByTestId('standalone-target')).toContainElement(estimateStatus);
+        expect(screen.getByRole('radio', { name: 'Delivery' }).parentElement).not.toContainElement(estimateStatus);
     });
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -702,7 +701,9 @@ describe('EstimatedDelivery', () => {
         );
 
         await waitFor(() => expect(screen.getByRole('radio', { name: /pickup in/i })).toHaveFocus());
-        expect(document.activeElement).not.toBe(screen.getByRole('status'));
+        const estimateStatus = screen.getByText(/^Estimated Sat 2 Jan.*Tue 5 Jan$/, { selector: '[role="status"]' });
+        expect(estimateStatus).toHaveAttribute('aria-live', 'polite');
+        expect(document.activeElement).not.toBe(estimateStatus);
     });
 
     test.each([
@@ -906,7 +907,9 @@ describe('EstimatedDelivery', () => {
 
         await waitFor(() => expect(screen.getByRole('button', { name: 'Select blue variant' })).toHaveFocus());
         expect(document.activeElement).not.toBe(screen.getByRole('radio', { name: /^Delivery/ }));
-        expect(document.activeElement).not.toBe(screen.getByRole('status'));
+        const estimateStatus = screen.getByText(/^Estimated Sat 2 Jan.*Tue 5 Jan$/, { selector: '[role="status"]' });
+        expect(estimateStatus).toHaveAttribute('aria-live', 'polite');
+        expect(document.activeElement).not.toBe(estimateStatus);
     });
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -1108,7 +1111,7 @@ describe('EstimatedDelivery', () => {
         await waitFor(() =>
             expect(delivery).toHaveAccessibleDescription(expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/))
         );
-        const coordinatedStatus = screen.getByRole('status');
+        const coordinatedStatus = within(screen.getByTestId('standalone-target')).getByRole('status');
         expect(screen.getByTestId('standalone-target')).toContainElement(coordinatedStatus);
         expect(screen.getByTestId('standalone-target').querySelector('.rounded-ui')).toBeNull();
         const unresolvedSelectionDestination = screen.getByRole('button', { name: 'Change destination: 94105' });
@@ -1185,15 +1188,16 @@ describe('EstimatedDelivery', () => {
         );
 
         const delivery = screen.getByRole('radio', { name: 'Delivery' });
-        const loading = await screen.findByRole('status');
-        expect(screen.getAllByRole('status')).toHaveLength(1);
+        const deliveryHost = within(delivery.parentElement as HTMLElement);
+        const loading = await deliveryHost.findByRole('status');
+        expect(deliveryHost.getAllByRole('status')).toHaveLength(1);
         expect(delivery.parentElement).toContainElement(loading);
         expect(screen.getByTestId('standalone-target')).not.toContainElement(loading);
         expect(screen.getByTestId('standalone-target')).toBeEmptyDOMElement();
 
         await user.click(screen.getByRole('radio', { name: /pickup in/i }));
         expect(delivery.parentElement).toContainElement(loading);
-        expect(screen.getAllByRole('status')).toHaveLength(1);
+        expect(deliveryHost.getAllByRole('status')).toHaveLength(1);
     });
 
     test('keeps resolved estimate controls at the standalone target without an eligible host', () => {
@@ -1274,7 +1278,9 @@ describe('EstimatedDelivery', () => {
                 expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
             )
         );
-        expect(screen.getByRole('status')).toHaveClass('sr-only');
+        const estimateStatus = screen.getByText(/^Estimated Sat 2 Jan.*Tue 5 Jan$/, { selector: '[role="status"]' });
+        expect(estimateStatus).toHaveAttribute('role', 'status');
+        expect(estimateStatus).toHaveClass('sr-only');
         expect(screen.getByRole('radio', { name: /^Delivery/ }).parentElement).toContainElement(
             screen.getByRole('button', { name: 'Change destination: 94105' })
         );
@@ -1435,7 +1441,9 @@ describe('EstimatedDelivery', () => {
         );
 
         expect(screen.getByTestId('standalone-target')).toContainElement(screen.getByRole('textbox'));
-        expect(screen.getByTestId('standalone-target')).toContainElement(screen.getByRole('status'));
+        expect(screen.getByTestId('standalone-target')).toContainElement(
+            within(screen.getByTestId('standalone-target')).getByRole('status')
+        );
         expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
             'Enter a postal code to get a delivery estimate'
         );
@@ -1471,7 +1479,7 @@ describe('EstimatedDelivery', () => {
         const delivery = screen.getByRole('radio', { name: 'Delivery' });
         const standaloneTarget = screen.getByTestId('standalone-target');
         expect(standaloneTarget).toContainElement(screen.getByRole('textbox'));
-        expect(standaloneTarget).toContainElement(screen.getByRole('status'));
+        expect(standaloneTarget).toContainElement(within(standaloneTarget).getByRole('status'));
         expect(delivery.parentElement).not.toContainElement(screen.getByRole('textbox'));
         expect(screen.getByRole('heading', { name: 'Estimated Delivery Date' })).toBeInTheDocument();
     });
@@ -1642,9 +1650,9 @@ describe('EstimatedDelivery', () => {
             </AllProvidersWrapper>
         );
 
-        const loading = screen.getByRole('status');
-        expect(loading).toHaveTextContent('Calculating...');
         const refreshedDelivery = screen.getByRole('radio', { name: /^Delivery/ });
+        const loading = within(refreshedDelivery.parentElement as HTMLElement).getByRole('status');
+        expect(loading).toHaveTextContent('Calculating...');
         expect(refreshedDelivery.parentElement).toContainElement(loading);
         expect(loading.closest('[data-testid="standalone-target"]')).toBeNull();
     });
@@ -1702,7 +1710,7 @@ describe('EstimatedDelivery', () => {
         expect(screen.getByRole('radio', { name: 'Delivery, Deliver to SW1A 1AA' })).toHaveAccessibleDescription(
             'Arrives in 7–10 business days'
         );
-        expect(screen.getByRole('status')).toHaveTextContent('Calculating...');
+        expect(within(screen.getByTestId('standalone-target')).getByRole('status')).toHaveTextContent('Calculating...');
     });
 
     test('retains the postal-code disclosure when a resolved estimate changes to fallback guidance', async () => {
@@ -1839,7 +1847,9 @@ describe('EstimatedDelivery', () => {
                 expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
             )
         );
-        expect(screen.getByTestId('first-estimator')).toContainElement(screen.getAllByRole('status')[0]);
+        expect(screen.getByTestId('first-estimator')).toContainElement(
+            within(screen.getByTestId('first-estimator')).getByRole('status')
+        );
         expect(screen.getByTestId('second-estimator')).toContainElement(
             within(screen.getByTestId('second-estimator')).getByRole('button', { name: 'Change destination: 94105' })
         );

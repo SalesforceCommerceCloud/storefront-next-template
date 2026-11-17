@@ -819,3 +819,54 @@ describe('createSiteContextMiddleware', () => {
         });
     });
 });
+
+describe('createSiteSettings / serializeContextCookies', () => {
+    const site = DEFAULT_CONFIG.sites[0] as unknown as Parameters<
+        typeof import('./middleware').serializeContextCookies
+    >[3]['site'];
+    const locale = DEFAULT_CONFIG.sites[0].supportedLocales[0] as unknown as Parameters<
+        typeof import('./middleware').serializeContextCookies
+    >[3]['locale'];
+    const resolved = { site, locale, currency: 'USD' };
+
+    async function serialize(config: SiteConfig, response = new Response('ok'), ctx = resolved) {
+        const { createSiteSettings, serializeContextCookies } = await import('./middleware');
+        const settings = createSiteSettings(config);
+        return serializeContextCookies(new Request('https://example.com/'), response, settings, ctx);
+    }
+
+    beforeEach(() => cookieSerialize.mockClear());
+
+    it('creates cookie instances from resolved detection defaults', async () => {
+        const { createSiteSettings } = await import('./middleware');
+        const settings = createSiteSettings({ ...DEFAULT_CONFIG, currencyCookieName: 'cur' });
+
+        expect(settings.siteCookie.name).toBe(settings.siteDetectionConfig.lookupCookie);
+        expect(settings.localeCookie.name).toBe(settings.localeDetectionConfig.lookupCookie);
+        expect(settings.currencyCookie.name).toBe('cur');
+    });
+
+    it('returns site, locale, then currency cookies when caching includes cookie', async () => {
+        const cookies = await serialize(DEFAULT_CONFIG);
+
+        expect(cookies).toEqual(['site_id=site-us; Path=/', 'lng=en-US; Path=/', 'currency=USD; Path=/']);
+    });
+
+    it('omits site/locale cookies when their caches exclude cookie', async () => {
+        const cookies = await serialize({
+            ...DEFAULT_CONFIG,
+            siteDetectionConfig: { order: ['cookie'], caches: [] },
+            localeDetectionConfig: { order: ['cookie'], caches: [] },
+        });
+
+        expect(cookies).toEqual(['currency=USD; Path=/']);
+    });
+
+    it('skips cookies the response already sets', async () => {
+        const response = new Response('ok');
+        response.headers.append('Set-Cookie', 'site_id=other; Path=/');
+        response.headers.append('Set-Cookie', 'currency=EUR; Path=/');
+
+        expect(await serialize(DEFAULT_CONFIG, response)).toEqual(['lng=en-US; Path=/']);
+    });
+});

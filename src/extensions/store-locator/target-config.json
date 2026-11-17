@@ -4,6 +4,16 @@
             "targetId": "sfcc.header.before.cart",
             "path": "extensions/store-locator/components/header/store-locator-badge.tsx",
             "order": 0
+        },
+        {
+            "targetId": "sfcc.header.before.cart",
+            "path": "extensions/store-locator/components/header/store-locator-sheet-host.tsx",
+            "order": 1
+        },
+        {
+            "targetId": "sfcc.header.after",
+            "path": "extensions/store-locator/components/header/home-store-prompt.tsx",
+            "order": 0
         }
     ]
 }

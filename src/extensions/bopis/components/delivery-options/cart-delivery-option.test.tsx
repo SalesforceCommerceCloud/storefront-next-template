@@ -22,7 +22,6 @@ import { DELIVERY_OPTIONS } from '@/extensions/bopis/constants';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import { resourceRoutes } from '@/route-paths';
 import type { EnrichedProductItem } from '@/lib/product/product-utils';
-import { mockConfig } from '@/test-utils/config';
 
 // Mock PickupOrDeliveryDropdown
 vi.mock('./pickup-or-delivery-dropdown', () => ({
@@ -136,7 +135,7 @@ describe('CartDeliveryOption', () => {
         mockUseStoreLocator.mockImplementation((selector: any) => {
             const mockStoreState = {
                 selectedStoreInfo: null,
-                open: mockOpenStoreLocator,
+                openChooser: mockOpenStoreLocator,
                 setSelectedStoreInfo: mockSetSelectedStoreInfo,
                 close: vi.fn(),
                 isOpen: false,
@@ -224,7 +223,7 @@ describe('CartDeliveryOption', () => {
             mockUseStoreLocator.mockImplementation((selector: any) =>
                 selector({
                     selectedStoreInfo: { id: 'store-other', inventoryId: 'inventory-other' },
-                    open: mockOpenStoreLocator,
+                    openChooser: mockOpenStoreLocator,
                     setSelectedStoreInfo: mockSetSelectedStoreInfo,
                     close: vi.fn(),
                     isOpen: false,
@@ -262,68 +261,38 @@ describe('CartDeliveryOption', () => {
     });
 
     describe('Delivery option change handling', () => {
-        it.each([false, true])('does not expose native fulfillment switching (new selection: %s)', (chooseStore) => {
-            let isOpen = false;
-            let selection = { id: 'store-a', inventoryId: 'inventory-a' };
-            mockUseStoreLocator.mockImplementation((selector: any) =>
-                selector({
-                    selectedStoreInfo: selection,
-                    isOpen,
-                    open: () => {
-                        isOpen = true;
-                    },
-                    setSelectedStoreInfo: mockSetSelectedStoreInfo,
-                })
-            );
-            const config = {
-                ...mockConfig,
-                features: { ...mockConfig.features, shopperContext: { enabled: true, storeSelectionEnabled: true } },
-            };
-            const view = () => (
-                <AllProvidersWrapper config={config}>
-                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
-                </AllProvidersWrapper>
-            );
-            const { rerender } = render(view());
-            expect(screen.queryByTestId('pickup-or-delivery-dropdown')).not.toBeInTheDocument();
-            rerender(view());
-            if (chooseStore) selection = { id: 'store-b', inventoryId: 'inventory-b' };
-            isOpen = false;
-            rerender(view());
-            expect(mockSetSelectedStoreInfo).not.toHaveBeenCalled();
-            expect(mockFetcher.submit).not.toHaveBeenCalled();
-        });
-
-        it('still auto-applies a chosen pickup store with native context disabled', async () => {
-            let isOpen = false;
-            let selection: { id: string; inventoryId: string } | null = null;
-            mockUseStoreLocator.mockImplementation((selector: any) =>
-                selector({
-                    selectedStoreInfo: selection,
-                    isOpen,
-                    open: () => {
-                        isOpen = true;
-                    },
-                    setSelectedStoreInfo: mockSetSelectedStoreInfo,
-                })
-            );
+        it('requires a second pickup gesture after chooser confirmation; preference publication alone never PATCHes', async () => {
+            const user = userEvent.setup();
             const view = () => (
                 <AllProvidersWrapper>
                     <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
             const { rerender } = render(view());
-            await userEvent.click(screen.getByText('Delivery'));
+            await user.click(screen.getByRole('button'));
+            expect(mockOpenStoreLocator).toHaveBeenCalledWith(expect.objectContaining({ selectedStoreInfo: null }));
+            expect(mockFetcher.submit).not.toHaveBeenCalled();
+            mockUseStoreLocator.mockImplementation((selector: any) =>
+                selector({
+                    selectedStoreInfo: { id: 'store-1', inventoryId: 'canonical' },
+                    openChooser: mockOpenStoreLocator,
+                    isOpen: false,
+                })
+            );
             rerender(view());
-            selection = { id: 'store-b', inventoryId: 'inventory-b' };
-            isOpen = false;
-            rerender(view());
-            expect(mockFetcher.submit).toHaveBeenCalledOnce();
-            const [form] = mockFetcher.submit.mock.calls[0] as [FormData];
-            expect(form.get('storeId')).toBe('store-b');
-            expect(form.get('inventoryId')).toBe('inventory-b');
+            expect(mockFetcher.submit).not.toHaveBeenCalled();
+            await user.click(screen.getByRole('button'));
+            expect(mockFetcher.submit).toHaveBeenCalledTimes(1);
+            const [form, options] = mockFetcher.submit.mock.calls[0];
+            expect(Object.fromEntries(form)).toEqual({
+                itemId: 'item-1',
+                quantity: '2',
+                deliveryOption: 'pickup',
+                storeId: 'store-1',
+                inventoryId: 'canonical',
+            });
+            expect(options).toEqual({ method: 'PATCH', action: resourceRoutes.cartItemUpdate });
         });
-
         it('opens store locator when pickup is selected without a store', async () => {
             const user = userEvent.setup();
 
@@ -336,10 +305,13 @@ describe('CartDeliveryOption', () => {
             const button = screen.getByRole('button');
             await user.click(button);
 
-            expect(mockSetSelectedStoreInfo).toHaveBeenCalledWith(null);
+            expect(mockSetSelectedStoreInfo).not.toHaveBeenCalled();
+            expect(mockOpenStoreLocator).toHaveBeenCalledWith(expect.objectContaining({ selectedStoreInfo: null }));
             expect(mockOpenStoreLocator).toHaveBeenCalledTimes(1);
             // Opens scoped to this line item so the picker can show per-boutique stock for it.
-            expect(mockOpenStoreLocator).toHaveBeenCalledWith({ productId: 'product-1', quantity: 2 });
+            expect(mockOpenStoreLocator).toHaveBeenCalledWith(
+                expect.objectContaining({ pickupContext: { productId: 'product-1', quantity: 2 } })
+            );
             expect(mockFetcher.submit).not.toHaveBeenCalled();
         });
 
@@ -351,7 +323,7 @@ describe('CartDeliveryOption', () => {
             mockUseStoreLocator.mockImplementation((selector: any) => {
                 const mockStoreState = {
                     selectedStoreInfo: { id: 'store-1', inventoryId: 'inv-1' },
-                    open: mockOpenStoreLocator,
+                    openChooser: mockOpenStoreLocator,
                     setSelectedStoreInfo: mockSetSelectedStoreInfo,
                     close: vi.fn(),
                     isOpen: false,
@@ -429,41 +401,11 @@ describe('CartDeliveryOption', () => {
             });
         });
 
-        it('opens the boutique picker when switching to pickup with a store already selected (selection auto-applies)', async () => {
-            // Even with a store selected, choosing pickup opens the picker so the shopper confirms/chooses a
-            // boutique for THIS item; the pickup PATCH is submitted by the auto-apply effect once they pick one.
-            mockUseStoreLocator.mockImplementation((selector: any) => {
-                const mockStoreState = {
-                    selectedStoreInfo: { id: 'store-1', inventoryId: 'inv-1' },
-                    open: mockOpenStoreLocator,
-                    setSelectedStoreInfo: mockSetSelectedStoreInfo,
-                    close: vi.fn(),
-                    isOpen: false,
-                };
-                return selector(mockStoreState);
-            });
-
-            const user = userEvent.setup();
-
-            render(
-                <AllProvidersWrapper>
-                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
-                </AllProvidersWrapper>
-            );
-
-            const button = screen.getByRole('button');
-            await user.click(button);
-
-            expect(mockOpenStoreLocator).toHaveBeenCalled();
-            // No direct submit here — the pickup is applied after the shopper selects a boutique in the picker.
-            expect(mockFetcher.submit).not.toHaveBeenCalled();
-        });
-
         it('shows toast when switching to pickup without store or inventory ID', async () => {
             mockUseStoreLocator.mockImplementation((selector: any) => {
                 const mockStoreState = {
                     selectedStoreInfo: null,
-                    open: mockOpenStoreLocator,
+                    openChooser: mockOpenStoreLocator,
                     setSelectedStoreInfo: mockSetSelectedStoreInfo,
                     close: vi.fn(),
                     isOpen: false,
@@ -494,7 +436,7 @@ describe('CartDeliveryOption', () => {
             mockUseStoreLocator.mockImplementation((selector: any) => {
                 const mockStoreState = {
                     selectedStoreInfo: { id: 'store-1' }, // No inventoryId
-                    open: mockOpenStoreLocator,
+                    openChooser: mockOpenStoreLocator,
                     close: vi.fn(),
                     isOpen: false,
                 };
@@ -516,7 +458,7 @@ describe('CartDeliveryOption', () => {
             mockUseStoreLocator.mockImplementation((selector: any) => {
                 const mockStoreState = {
                     selectedStoreInfo: null,
-                    open: mockOpenStoreLocator,
+                    openChooser: mockOpenStoreLocator,
                     setSelectedStoreInfo: mockSetSelectedStoreInfo,
                     close: vi.fn(),
                     isOpen: false,
@@ -542,6 +484,37 @@ describe('CartDeliveryOption', () => {
             const button = screen.getByRole('button');
             await user.click(button);
             expect(mockOpenStoreLocator).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('Mixed cart', () => {
+        it('moves a delivery item to the basket pickup store instead of the preferred store', async () => {
+            const user = userEvent.setup();
+            mockUseBasket.mockReturnValue({
+                basketId: 'basket-1',
+                shipments: [{ shipmentId: 'pickup-ship', c_fromStoreId: 'store-A' }, { shipmentId: 'ship-1' }],
+                productItems: [{ itemId: 'other', shipmentId: 'pickup-ship', inventoryId: 'inv-A' }],
+            });
+            mockUseStoreLocator.mockImplementation((selector: any) =>
+                selector({
+                    selectedStoreInfo: { id: 'store-B', inventoryId: 'inv-B' },
+                    openChooser: mockOpenStoreLocator,
+                    isOpen: false,
+                })
+            );
+            render(
+                <AllProvidersWrapper>
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
+                </AllProvidersWrapper>
+            );
+            await user.click(screen.getByRole('button'));
+            expect(mockOpenStoreLocator).not.toHaveBeenCalled();
+            const [form] = mockFetcher.submit.mock.calls[0];
+            expect(Object.fromEntries(form)).toMatchObject({
+                deliveryOption: 'pickup',
+                storeId: 'store-A',
+                inventoryId: 'inv-A',
+            });
         });
     });
 });

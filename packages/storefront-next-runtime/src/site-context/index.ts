@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 export { SiteProvider, useSite, type SiteContextValue } from './site-context';
-export { applyUrlConfig } from './apply-url-config';
+export { applyUrlConfig, isExcludedRoute } from './apply-url-config';
+export { resolveSiteDetectionConfig, resolveLocaleDetectionConfig } from './configs';
 export { buildUrl, resolvePrefix, stripPathPrefix, extractPrefixParamValues } from './build-url';
 
-export { createSiteContextMiddleware, resolveSiteContext, siteContext, getSiteContextCookies } from './middleware';
+export {
+    createSiteContextMiddleware,
+    createSiteSettings,
+    resolveSiteContext,
+    serializeContextCookies,
+    siteContext,
+    getSiteContextCookies,
+} from './middleware';
 export type { ResolvedSiteContext } from './middleware';
 export { requestToLocaleMap } from './cookies';
 export type {

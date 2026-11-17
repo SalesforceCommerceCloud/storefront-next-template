@@ -63,6 +63,9 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
+            // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+            'virtual:storefront-next/compiled-routes': path.resolve(__dirname, '../src/test-utils/__mocks__/compiled-routes.ts'),
+            // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
             '@': path.resolve(__dirname, '../src'), // Proper path resolution for Storybook
             '@storybook/test-utils': path.resolve(__dirname, './test-utils'), // Storybook test utilities
             // Fonts alias — root-absolute path because fonts live in public/ (see vite.config.ts)

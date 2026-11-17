@@ -83,6 +83,19 @@ export function resolveRequestOrigin(request: Request): string | null {
 }
 
 /**
+ * Public origin for same-origin mutation checks. Production relies on the eCDN
+ * stripping forwarded headers. Local proxies must match the configured public host.
+ * @env NODE_ENV — Optional runtime mode; `production` enables the eCDN trust boundary.
+ * @env EXTERNAL_DOMAIN_NAME — Optional pinned local proxy hostname, e.g. `localhost:5173`.
+ */
+export function getTrustedProxyPublicOrigin(request: Request): string | null {
+    if (process.env.NODE_ENV === 'production') return resolveRequestOrigin(request);
+    const host = process.env.EXTERNAL_DOMAIN_NAME;
+    if (!host || firstForwardedValue(request.headers.get('x-forwarded-host')) !== host) return null;
+    return `${isLocalhostHost(host) ? 'http' : 'https'}://${host}`;
+}
+
+/**
  * Per-request memoization keyed by router context. The router instantiates a
  * fresh `RouterContextProvider` per request, so the WeakMap entry naturally
  * scopes to a single request's lifetime — same shape as the SCAPI client

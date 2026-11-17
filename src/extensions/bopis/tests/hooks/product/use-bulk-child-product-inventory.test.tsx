@@ -256,7 +256,7 @@ describe('useBulkChildProductInventory - BOPIS', () => {
             });
         });
 
-        it('should preserve original store inventory when fetched product has no inventories', async () => {
+        it('marks pickup unavailable instead of preserving stale stock when the current response has no inventories', async () => {
             const originalInventories = [
                 {
                     id: 'store-inventory-123',
@@ -288,7 +288,10 @@ describe('useBulkChildProductInventory - BOPIS', () => {
             await simulateSuccessfulFetch([enrichedProduct], rerender, { selections: [selection] });
 
             await waitFor(() => {
-                expect(result.current.enrichedSelections[0].product.inventories).toEqual(originalInventories);
+                expect(result.current.enrichedSelections[0].product.inventory?.ats).toBe(10);
+                expect(result.current.enrichedSelections[0].product.inventories).toEqual([
+                    { id: 'store-inventory-123', ats: 0, stockLevel: 0, orderable: false },
+                ]);
             });
         });
 

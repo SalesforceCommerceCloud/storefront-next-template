@@ -5,6 +5,14 @@
         }
     },
     "storeLocator": {
+        "selection": {
+            "unknown": "保存結果を確認できませんでした。再試行して現在の店舗設定を確認してください。",
+            "clearing": "優先店舗を解除しています…",
+            "saving": "店舗を保存しています…",
+            "error": "店舗を保存できませんでした。以前の店舗は変更されていません。もう一度お試しください。",
+            "retry": "再試行",
+            "checking": "優先店舗を確認しています…"
+        },
         "title": "Find a Store",
         "description": "Search for stores by country and postal code or use your current location.",
         "form": {
@@ -21,7 +29,16 @@
         },
         "trigger": {
             "ariaLabel": "Find a Store",
-            "openAriaLabel": "Open Find a Store"
+            "openAriaLabel": "Open Find a Store",
+            "chooseAriaLabel": "店舗を選択",
+            "selectedAriaLabel": "店舗を変更: {{storeName}}、{{postalCode}}",
+            "selectedWithoutPostalAriaLabel": "店舗を変更: {{storeName}}"
+        },
+        "homePrompt": {
+            "title": "店舗を選択",
+            "description": "優先する店舗を選んで保存できます。いつでも変更できます。",
+            "open": "店舗を選択",
+            "dismiss": "今はしない"
         },
         "sheet": {
             "closeAriaLabel": "Close store locator"

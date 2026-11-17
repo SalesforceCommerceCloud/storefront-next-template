@@ -41,3 +41,15 @@ export const DEFAULT_LOCALE_DETECTION: Required<DetectionConfig> = {
     lookupHeader: 'Accept-Language',
     caches: ['cookie'],
 };
+
+/** Effective site detection options, using the middleware's shallow-merge contract. */
+export function resolveSiteDetectionConfig(config?: DetectionConfig): Required<DetectionConfig> {
+    const resolved = { ...DEFAULT_SITE_DETECTION, ...config };
+    return { ...resolved, order: resolved.order?.slice(), caches: resolved.caches?.slice() };
+}
+
+/** Effective locale detection options, using the middleware's shallow-merge contract. */
+export function resolveLocaleDetectionConfig(config?: DetectionConfig): Required<DetectionConfig> {
+    const resolved = { ...DEFAULT_LOCALE_DETECTION, ...config };
+    return { ...resolved, order: resolved.order?.slice(), caches: resolved.caches?.slice() };
+}

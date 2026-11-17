@@ -15,7 +15,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ActionFunctionArgs } from 'react-router';
+import { RouterContextProvider, type ActionFunctionArgs } from 'react-router';
 
 import { action } from './action.verify-passwordless-otp';
 import { createApiClients } from '@/lib/api-clients.server';
@@ -115,7 +115,7 @@ describe('action.verify-passwordless-otp', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        mockContext = {} as ActionFunctionArgs['context'];
+        mockContext = new RouterContextProvider();
         mockExchangeToken = vi.fn().mockResolvedValue({ customer_id: 'customer-id', access_token: 'access-token' });
         mockUpdateCustomerForBasket = vi.fn();
 

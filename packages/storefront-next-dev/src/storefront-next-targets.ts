@@ -33,6 +33,7 @@ import { componentLoadersPlugin } from './plugins/componentLoaders';
 import { ssrSourcemapFixPlugin } from './plugins/ssrSourcemapFix';
 import { i18nPlugin } from './plugins/i18n';
 import { baseConfigPlugin } from './plugins/baseConfig';
+import { compiledRoutesPlugin } from './plugins/compiledRoutes';
 
 /**
  * Configuration options for the Storefront Next Vite plugin.
@@ -130,6 +131,7 @@ export function storefrontNextTargets(config: StorefrontNextTargetsConfig = {}):
         watchConfigFilesPlugin(),
         buildMiddlewareRegistryPlugin(),
         ssrSourcemapFixPlugin(),
+        compiledRoutesPlugin(),
     ];
 
     // Add static registry plugin if enabled

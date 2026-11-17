@@ -29,7 +29,10 @@ import type { AuthResponse } from '@/scapi';
 
 const logger = vi.hoisted(() => ({ info: vi.fn(), warn: vi.fn() }));
 vi.mock('@/lib/logger.server', () => ({ getLogger: () => logger }));
-vi.mock('@/middlewares/auth.server', () => ({ updateAuth: vi.fn() }));
+vi.mock('@/middlewares/auth.server', () => ({
+    updateAuth: vi.fn(),
+    getAuth: vi.fn(() => ({ customerId: 'customer', usid: 'usid', userType: 'registered' })),
+}));
 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
 vi.mock('@/extensions/store-locator/lib/store-selection.server', () => ({
     assertStoreSelectionLoginSession: vi.fn(),

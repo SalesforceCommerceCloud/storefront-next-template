@@ -52,6 +52,12 @@ export default defineConfig((configEnv) =>
         defineConfig({
             test: {
                 alias: [
+                    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+                    {
+                        find: 'virtual:storefront-next/compiled-routes',
+                        replacement: resolve(__dirname, 'src/test-utils/__mocks__/compiled-routes.ts'),
+                    },
+                    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
                     {
                         find: /^\/.*\.(svg|png|jpe?g|gif|webp|ico|avif|woff2?|ttf|eot)(\?.*)?$/,
                         replacement: resolve(__dirname, 'src/test-utils/__mocks__/asset-mock.ts'),

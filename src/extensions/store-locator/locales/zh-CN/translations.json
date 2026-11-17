@@ -5,6 +5,14 @@
         }
     },
     "storeLocator": {
+        "selection": {
+            "unknown": "无法确认保存结果。请重试以检查当前的门店偏好。",
+            "clearing": "正在清除您的首选门店…",
+            "saving": "正在保存门店…",
+            "error": "无法保存门店。之前的门店未更改。请重试。",
+            "retry": "重试",
+            "checking": "正在检查您的首选门店…"
+        },
         "title": "Find a Store",
         "description": "Search for stores by country and postal code or use your current location.",
         "form": {
@@ -21,7 +29,16 @@
         },
         "trigger": {
             "ariaLabel": "Find a Store",
-            "openAriaLabel": "Open Find a Store"
+            "openAriaLabel": "Open Find a Store",
+            "chooseAriaLabel": "选择门店",
+            "selectedAriaLabel": "更改您的门店：{{storeName}}，{{postalCode}}",
+            "selectedWithoutPostalAriaLabel": "更改您的门店：{{storeName}}"
+        },
+        "homePrompt": {
+            "title": "选择您的门店",
+            "description": "选择一家首选门店以保存。您可以随时更改。",
+            "open": "选择门店",
+            "dismiss": "暂不选择"
         },
         "sheet": {
             "closeAriaLabel": "Close store locator"

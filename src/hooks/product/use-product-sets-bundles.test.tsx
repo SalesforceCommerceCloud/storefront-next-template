@@ -21,6 +21,8 @@ import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { useProductSetsBundles } from './use-product-sets-bundles';
 import type { ShopperProducts } from '@/scapi';
+import { useBulkChildProductInventory } from './use-bulk-child-product-inventory';
+import { useCurrentVariant } from './use-current-variant';
 
 // Mock useFetcher function
 const mockUseFetcher = vi.fn(() => ({
@@ -106,6 +108,98 @@ describe('useProductSetsBundles', () => {
     });
 
     describe('validateChildProducts', () => {
+        test('projects refreshed selected inventory into the child variant consumed after A to B to A', () => {
+            const seed = { id: 'site', ats: 7, stockLevel: 7, orderable: true };
+            const child = {
+                id: 'master',
+                type: { master: true },
+                variationAttributes: [{ id: 'size', values: [{ value: 'A' }, { value: 'B' }] }],
+                variants: [
+                    { productId: 'A', orderable: true, variationValues: { size: 'A' }, inventory: seed },
+                    { productId: 'B', orderable: true, variationValues: { size: 'B' } },
+                ],
+            };
+            const product = createMockProduct('set', [child]);
+            const { result, rerender } = renderHook(
+                ({ sku, stock, quantity }) => {
+                    const variant = {
+                        ...child.variants[sku === 'A' ? 0 : 1],
+                        inventory: { ...seed, ats: stock, stockLevel: stock },
+                    };
+                    vi.mocked(useBulkChildProductInventory).mockReturnValue({
+                        enrichedSelections: [
+                            { product: { ...child, inventory: variant.inventory }, variant, quantity },
+                        ],
+                        isLoading: false,
+                    });
+                    const sets = useProductSetsBundles({ product });
+                    const projected = sets.comboProduct.childProducts?.[0];
+                    const current = useCurrentVariant({
+                        product: projected ?? child,
+                        isChildProduct: true,
+                        selectionsOverride: { size: sku },
+                    });
+                    return { sets, current };
+                },
+                { wrapper, initialProps: { sku: 'A', stock: 7, quantity: 1 } }
+            );
+            expect(result.current.current).toMatchObject({ inventory: seed });
+            rerender({ sku: 'B', stock: 4, quantity: 1 });
+            expect(result.current.current).toMatchObject({ productId: 'B', inventory: { stockLevel: 4 } });
+            rerender({ sku: 'A', stock: 2, quantity: 3 });
+            expect(result.current.current).toMatchObject({ productId: 'A', inventory: { ats: 2, stockLevel: 2 } });
+            act(() =>
+                result.current.sets.setChildProductSelection('master', {
+                    product: child,
+                    variant: child.variants[0],
+                    quantity: 3,
+                })
+            );
+            expect(result.current.sets.productWithCalculatedInventory.inventory?.stockLevel).toBe(0);
+            vi.mocked(useBulkChildProductInventory).mockReturnValue({ enrichedSelections: [], isLoading: false });
+        });
+        test('initializes an explicit nested URL child SKU and set stock before mount callbacks', () => {
+            const inventory = { id: 'site', stockLevel: 4, ats: 4, orderable: true };
+            const product = createMockProduct('set', [
+                {
+                    id: 'master',
+                    type: { master: true },
+                    inventory,
+                    variationAttributes: [{ id: 'size', values: [{ value: 'S' }, { value: 'L' }] }],
+                    variants: [
+                        { productId: 'small', orderable: true, variationValues: { size: 'S' } },
+                        { productId: 'large', orderable: true, variationValues: { size: 'L' }, inventory },
+                    ],
+                },
+            ]);
+            const urlWrapper = ({ children }: { children: React.ReactNode }) => (
+                <RouterProvider
+                    router={createMemoryRouter([{ path: '*', element: children }], {
+                        initialEntries: ['/?master=size%3DL'],
+                    })}
+                />
+            );
+            const { result } = renderHook(() => useProductSetsBundles({ product }), { wrapper: urlWrapper });
+            expect(result.current.childProductSelection.master.variant?.productId).toBe('large');
+            expect(result.current.productWithCalculatedInventory.inventory?.stockLevel).toBe(4);
+        });
+        test.each(['set', 'bundle'] as const)('initializes the default child SKU before %s mount callbacks', (kind) => {
+            const inventory = { id: 'site', stockLevel: 7, orderable: true };
+            const child = {
+                id: 'master',
+                type: { master: true },
+                variationAttributes: [{ id: 'size', values: [{ value: 'S' }, { value: 'L' }] }],
+                variants: [
+                    { productId: 'small', orderable: false, variationValues: { size: 'S' } },
+                    { productId: 'large', orderable: true, variationValues: { size: 'L' }, inventory },
+                ],
+            };
+            const { result } = renderHook(() => useProductSetsBundles({ product: createMockProduct(kind, [child]) }), {
+                wrapper,
+            });
+            expect(result.current.childProductSelection.master?.variant?.productId).toBe('large');
+            expect(result.current.selectedChildProductCount).toBe(1);
+        });
         test('skips validation for standard products', () => {
             const standardProduct = createStandardProduct('standard-1');
             const product = createMockProduct('set', [standardProduct]);

@@ -88,4 +88,9 @@ exports[`ActiveFilters stories snapshot > FullyFeatured story renders and matche
 </div>
 `;
 
-exports[`ActiveFilters stories snapshot > NoActiveFilters story renders and matches snapshot 1`] = `null`;
+exports[`ActiveFilters stories snapshot > NoActiveFilters story renders and matches snapshot 1`] = `
+<div
+  aria-live="polite"
+  class="text-center"
+/>
+`;

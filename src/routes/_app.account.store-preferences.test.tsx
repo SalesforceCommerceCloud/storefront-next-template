@@ -19,8 +19,14 @@ import { render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
 import { loader } from './_app.account.store-preferences';
+import { getPreferredStoreId } from '@/extensions/store-locator/lib/api/preferred-store.server';
 import { createTestContext, ROUTE_PATTERN } from '@/lib/test-utils';
+vi.mock('@/extensions/store-locator/providers/selection', () => ({
+    default: ({ children }: { children: React.ReactNode }) => children,
+}));
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
 const { t } = getTranslation();
 
@@ -48,6 +54,10 @@ vi.mock('@/lib/api-clients.server', () => ({
     }),
 }));
 
+import { resolveSelectedStore } from '@/extensions/store-locator/lib/resolve-selected-store.server';
+vi.mock('@/extensions/store-locator/lib/resolve-selected-store.server', () => ({ resolveSelectedStore: vi.fn() }));
+vi.mock('@/extensions/store-locator/lib/api/preferred-store.server', () => ({ getPreferredStoreId: vi.fn() }));
+
 vi.mock('@/extensions/store-locator/middlewares/selected-store.server', () => ({
     selectedStoreContext: { id: 'selectedStoreContext' },
 }));
@@ -66,6 +76,16 @@ vi.mock('@/components/seo-meta', () => ({
 describe('Store Preferences page', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        vi.mocked(resolveSelectedStore).mockResolvedValue({
+            store: null,
+            selectedStoreInfo: null,
+            preferredStoreId: null,
+            status: 'empty',
+            error: null,
+        });
+        vi.mocked(getPreferredStoreId).mockResolvedValue(null);
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
     });
 
     describe('when a shopper visits the store preferences page', () => {
@@ -110,12 +130,20 @@ describe('Store Preferences page', () => {
                 pattern: ROUTE_PATTERN,
             });
 
-            expect(result).toEqual({ preferredStore: null, error: null });
+            expect(result).toMatchObject({ preferredStore: null, error: null });
             expect(mockGetStores).not.toHaveBeenCalled();
         });
 
         test('loads the preferred store details when the shopper has a saved store', async () => {
             const mockStore = { id: 'store-1', name: 'Downtown Store', city: 'San Francisco' };
+            vi.mocked(resolveSelectedStore).mockResolvedValue({
+                store: mockStore,
+                selectedStoreInfo: { id: 'store-1' },
+                preferredStoreId: 'store-1',
+                status: 'resolved',
+                error: null,
+            });
+            vi.mocked(getPreferredStoreId).mockResolvedValue('store-1');
             mockGetStores.mockResolvedValue({
                 data: { data: [mockStore] },
             });
@@ -131,14 +159,19 @@ describe('Store Preferences page', () => {
                 pattern: ROUTE_PATTERN,
             });
 
-            expect(result).toEqual({ preferredStore: mockStore, error: null });
-            expect(mockGetStores).toHaveBeenCalledTimes(1);
-            expect(mockGetStores).toHaveBeenCalledWith({
-                params: { query: { ids: 'store-1' } },
-            });
+            expect(result).toMatchObject({ preferredStore: mockStore, error: null });
+            expect(resolveSelectedStore).toHaveBeenCalledWith(context);
+            expect(mockGetStores).not.toHaveBeenCalled();
         });
 
         test('shows an error message when the store lookup fails', async () => {
+            vi.mocked(resolveSelectedStore).mockResolvedValue({
+                store: null,
+                selectedStoreInfo: null,
+                preferredStoreId: 'store-1',
+                status: 'error',
+                error: 'store',
+            });
             mockGetStores.mockRejectedValue(new Error('Network error'));
 
             const context = createTestContext();
@@ -155,13 +188,17 @@ describe('Store Preferences page', () => {
             expect(result.preferredStore).toBeNull();
             expect(typeof result.error).toBe('string');
             expect(result.error).toBe('storePreferences.preferredStore.error');
-            expect(mockLogger.error).toHaveBeenCalledTimes(1);
-            expect(mockLogger.error).toHaveBeenCalledWith('StorePreferences: failed to fetch preferred store', {
-                error: expect.any(Error),
-            });
+            expect(resolveSelectedStore).toHaveBeenCalledWith(context);
         });
 
         test('returns no preferred store when the saved store no longer exists', async () => {
+            vi.mocked(resolveSelectedStore).mockResolvedValue({
+                store: null,
+                selectedStoreInfo: null,
+                error: null,
+                preferredStoreId: 'deleted-store',
+                status: 'stale',
+            });
             mockGetStores.mockResolvedValue({
                 data: { data: [] },
             });
@@ -177,7 +214,9 @@ describe('Store Preferences page', () => {
                 pattern: ROUTE_PATTERN,
             });
 
-            expect(result).toEqual({ preferredStore: null, error: null });
+            expect(result).toEqual({ preferredStore: null, preferredStoreId: null, error: null });
+            expect(resolveSelectedStore).toHaveBeenCalledExactlyOnceWith(context);
+            expect(mockGetStores).not.toHaveBeenCalled();
         });
     });
     // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR

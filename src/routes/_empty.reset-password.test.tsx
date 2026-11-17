@@ -20,6 +20,13 @@ import { createRoutesStub } from 'react-router';
 import { createActionArgs, createLoaderArgs } from '@/lib/test-utils';
 import ResetPassword, { loader, action } from './_empty.reset-password';
 import { resetPasswordWithToken, loginRegisteredUser, updateAuth } from '@/middlewares/auth.server';
+vi.mock('@/lib/api/auth/complete-registered-login.server', () => ({
+    completeRegisteredLogin: vi.fn(
+        async (context: Parameters<typeof updateAuth>[0], login: () => Promise<Parameters<typeof updateAuth>[1]>) => {
+            updateAuth(context, await login());
+        }
+    ),
+}));
 import { isPasswordValid } from '@/lib/utils';
 import { readPasswordResetEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';

@@ -27,11 +27,11 @@ import { createTestContext } from '@/lib/test-utils';
 import { fetchCategory } from '@/lib/api/categories.server';
 import { fetchSearchProducts } from '@/lib/api/search.server';
 import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
-import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config';
 import type { AppConfig } from '@/types/config';
 import { getRegionDefinition } from '@/lib/decorators/region-definition';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
-import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
+import { SiteProvider, siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { mockSiteObject } from '@/test-utils/config';
 import { generateCategorySchema } from '@/utils/category-schema';
 import { useAnalytics } from '@/hooks/use-analytics';
@@ -258,38 +258,24 @@ vi.mock('@/hooks/use-analytics', () => ({
 // Mock config
 vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => {
     const actual = await importOriginal<object>();
-    const mockConfigValue = {
-        commerce: {
-            sites: [
-                {
-                    id: 'test-site',
-                    defaultLocale: 'en-US',
-                },
-            ],
-        },
-        search: {
-            products: {
-                hits: {
-                    limit: 10,
-                    critical: 2,
-                },
-            },
-        },
-    } as AppConfig;
     return {
         ...actual,
-        getConfig: vi.fn(() => mockConfigValue),
-        useConfig: vi.fn(() => mockConfigValue),
+        getConfig: vi.fn(),
+        useConfig: vi.fn(),
     };
 });
 
 describe('CategoryPage', () => {
     const mockContext = createTestContext();
+    const activeSiteContext = mockContext.get(siteContext);
+    if (!activeSiteContext) throw new Error('Test site context is not available');
+    const activeSiteId = activeSiteContext.site.id;
+    const otherSiteId = `${activeSiteId}-other`;
     const mockConfig: AppConfig = {
         commerce: {
             sites: [
                 {
-                    id: 'test-site',
+                    id: activeSiteId,
                     defaultLocale: 'en-US',
                 },
             ],
@@ -307,7 +293,7 @@ describe('CategoryPage', () => {
         ...mockConfig,
         url: {
             seoRoutes: {
-                RefArchGlobal: {
+                [activeSiteId]: {
                     product: { prefix: 'p' },
                     category: { prefix: 'catalog', mode: 'slug-path' as const },
                 },
@@ -318,7 +304,7 @@ describe('CategoryPage', () => {
         ...mockConfig,
         url: {
             seoRoutes: {
-                RefArchGlobal: {
+                [activeSiteId]: {
                     product: { prefix: 'p' },
                     category: { prefix: 'c', mode: 'id-suffix' as const },
                 },
@@ -330,7 +316,7 @@ describe('CategoryPage', () => {
         request: new Request(url),
         url: new URL(url),
         context: mockContext,
-        params: { siteId: 'test-site', localeId: 'en-US', '*': 'electronics', ...overrides?.params },
+        params: { siteId: activeSiteId, localeId: 'en-US', '*': 'electronics', ...overrides?.params },
         pattern: '/c/*',
     });
 
@@ -344,6 +330,7 @@ describe('CategoryPage', () => {
             trackClickProductInCategory: mockTrackClickProductInCategory,
         } as never);
         (getConfig as any).mockReturnValue(mockConfig);
+        vi.mocked(useConfig).mockReturnValue(mockConfig);
         (fetchCategory as any).mockResolvedValue(mockCategory);
         (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
         (fetchPageWithComponentData as any).mockResolvedValue({
@@ -510,6 +497,14 @@ describe('CategoryPage', () => {
             )) as unknown as Response;
 
             expect(response.headers.get('Location')).toBe('/catalog/sale-category');
+            expect(fetchCategory).toHaveBeenCalledExactlyOnceWith(mockContext, 'sale', 1);
+            expect(fetchSearchProducts).toHaveBeenCalledExactlyOnceWith(mockContext, {
+                limit: 2,
+                offset: 0,
+                sort: '',
+                refine: ['cgslug=sale'],
+                currency: 'GBP',
+            });
             expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
         });
 
@@ -558,11 +553,11 @@ describe('CategoryPage', () => {
                 ...mockConfig,
                 url: {
                     seoRoutes: {
-                        RefArchGlobal: {
+                        [activeSiteId]: {
                             product: { prefix: 'p' },
                             category: { prefix: 'c', mode: 'id-suffix' },
                         },
-                        OtherSite: {
+                        [otherSiteId]: {
                             product: { prefix: 'product' },
                             category: { prefix: 'catalog', mode: 'slug-path' },
                         },
@@ -593,6 +588,14 @@ describe('CategoryPage', () => {
             const result = await loader(createLoaderArgs('https://example.com/catalog/sale'));
 
             expect(result).toBe(redirect);
+            expect(fetchCategory).toHaveBeenCalledExactlyOnceWith(mockContext, 'sale', 1);
+            expect(fetchSearchProducts).toHaveBeenCalledExactlyOnceWith(mockContext, {
+                limit: 2,
+                offset: 0,
+                sort: '',
+                refine: ['cgslug=sale'],
+                currency: 'GBP',
+            });
             expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
             expect(fetchPageWithComponentData).not.toHaveBeenCalled();
         });
@@ -648,6 +651,14 @@ describe('CategoryPage', () => {
             const result = await loader(createLoaderArgs('https://example.com/catalog/womens/shoes'));
 
             expect(result).toBe(redirect);
+            expect(fetchCategory).toHaveBeenCalledExactlyOnceWith(mockContext, 'womens/shoes', 1);
+            expect(fetchSearchProducts).toHaveBeenCalledExactlyOnceWith(mockContext, {
+                limit: 2,
+                offset: 0,
+                sort: '',
+                refine: ['cgslug=womens/shoes'],
+                currency: 'GBP',
+            });
             expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
         });
 
@@ -1088,7 +1099,7 @@ describe('CategoryPage', () => {
                 }),
                 config: mockConfig,
                 seoUrlContext: {
-                    siteId: 'RefArchGlobal',
+                    siteId: activeSiteId,
                     urlPrefix: undefined,
                     seoRoutes: undefined,
                 },

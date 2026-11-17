@@ -40,6 +40,7 @@ describe('createStoreLocatorStore', () => {
             expect(state.geoError).toBe(false);
             expect(state.selectedStoreInfo).toBeNull();
             expect(state.pickupContext).toBeNull();
+            expect(state.searchResult).toBeNull();
             expect(state.config).toEqual({
                 supportedCountries: [
                     { countryCode: 'US', countryName: 'United States' },
@@ -56,7 +57,7 @@ describe('createStoreLocatorStore', () => {
             const initState = {
                 isOpen: true,
                 mode: 'device' as const,
-                selectedStoreInfo: { id: 'store1', name: 'Test Store', inventoryId: 'inv1' },
+                selectedStoreInfo: { id: 'store1', name: 'Test Store', inventoryId: 'inv1', postalCode: '94105' },
             };
 
             const store = createStoreLocatorStore(initState);
@@ -64,7 +65,12 @@ describe('createStoreLocatorStore', () => {
 
             expect(state.isOpen).toBe(true);
             expect(state.mode).toBe('device');
-            expect(state.selectedStoreInfo).toEqual({ id: 'store1', name: 'Test Store', inventoryId: 'inv1' });
+            expect(state.selectedStoreInfo).toEqual({
+                id: 'store1',
+                name: 'Test Store',
+                inventoryId: 'inv1',
+                postalCode: '94105',
+            });
             // Other properties should still be default
             expect(state.shouldSearch).toBe(false);
             expect(state.searchParams).toBeNull();
@@ -93,6 +99,43 @@ describe('createStoreLocatorStore', () => {
 
                 expect(store.getState().isOpen).toBe(true);
                 expect(store.getState().pickupContext).toEqual({ productId: 'ln-heritage-005', quantity: 2 });
+            });
+
+            it('searches for the cookie-backed selected store before opening', () => {
+                store.getState().setSelectedStoreInfo({
+                    id: 'store1',
+                    name: 'Test Store',
+                    postalCode: '94105',
+                    countryCode: 'US',
+                });
+
+                store.getState().openSelectedStore();
+
+                expect(store.getState()).toMatchObject({
+                    isOpen: true,
+                    mode: 'input',
+                    searchParams: { countryCode: 'US', postalCode: '94105' },
+                    shouldSearch: true,
+                });
+            });
+
+            it('reopens cached results that include the selected store', () => {
+                store = createStoreLocatorStore({
+                    selectedStoreInfo: { id: 'store1', name: 'Test Store' },
+                    searchParams: { countryCode: 'US', postalCode: '94105' },
+                    searchResult: {
+                        success: true,
+                        stores: { data: [{ id: 'store1' }] },
+                    } as never,
+                });
+
+                store.getState().openSelectedStore();
+
+                expect(store.getState()).toMatchObject({
+                    isOpen: true,
+                    searchParams: { countryCode: 'US', postalCode: '94105' },
+                    shouldSearch: false,
+                });
             });
         });
 
@@ -123,6 +166,14 @@ describe('createStoreLocatorStore', () => {
                 expect(state.searchParams).toEqual(searchParams);
                 expect(state.shouldSearch).toBe(true);
                 expect(state.geoError).toBe(false);
+            });
+
+            it('clears cached results before a new search', () => {
+                store.getState().setSearchResult({ success: true, stores: { data: [] } } as never);
+
+                store.getState().searchByForm({ countryCode: 'US', postalCode: '12345' });
+
+                expect(store.getState().searchResult).toBeNull();
             });
         });
 
@@ -170,6 +221,7 @@ describe('createStoreLocatorStore', () => {
                     id: 'store1',
                     name: 'Test Store',
                     inventoryId: 'inv1',
+                    postalCode: '94105',
                 };
 
                 store.getState().setSelectedStoreInfo(storeInfo);
@@ -184,6 +236,7 @@ describe('createStoreLocatorStore', () => {
                     id: 'store1',
                     name: 'Test Store',
                     inventoryId: 'inv1',
+                    postalCode: '94105',
                 };
                 store.getState().setSelectedStoreInfo(storeInfo);
                 expect(store.getState().selectedStoreInfo).toEqual(storeInfo);
@@ -202,6 +255,9 @@ describe('createStoreLocatorStore', () => {
                     inventoryId: 'inv1',
                     address1: '123 Main St',
                     city: 'Boston',
+                    postalCode: '02108',
+                    countryCode: 'US',
+                    distance: 1.2,
                     phone: '555-1234',
                     email: 'store@example.com',
                 };
@@ -209,11 +265,14 @@ describe('createStoreLocatorStore', () => {
                 store.getState().setSelectedStoreInfo(fullStore);
 
                 const state = store.getState();
-                // Should only contain id, name, inventoryId (extra fields stripped)
+                // Should only contain persisted selected-store fields (extra fields stripped)
                 expect(state.selectedStoreInfo).toEqual({
                     id: 'store1',
                     name: 'Test Store',
                     inventoryId: 'inv1',
+                    postalCode: '02108',
+                    countryCode: 'US',
+                    distance: 1.2,
                 });
             });
 

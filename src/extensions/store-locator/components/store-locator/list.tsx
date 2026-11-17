@@ -37,13 +37,14 @@ export default function StoreLocatorList(): ReactElement | null {
         mode,
         searchParams,
         config,
+        chooserStoreInfo,
         selectedStoreInfo,
+        selectionPending,
         setSelectedStoreInfo,
         geoError,
         hasSearched,
         hasError,
         isLoading,
-        isSelecting,
         stores,
         storesPaginated,
         setPage,
@@ -97,7 +98,7 @@ export default function StoreLocatorList(): ReactElement | null {
     }
 
     return (
-        <div className="mt-4">
+        <div className="mt-4" aria-busy={selectionPending}>
             {statusMessage && (
                 <div className="mb-4">
                     <Typography variant="large" as="div" className="flex justify-center items-center text-center">
@@ -107,12 +108,12 @@ export default function StoreLocatorList(): ReactElement | null {
                 </div>
             )}
             <RadioGroup
-                aria-busy={isSelecting || undefined}
-                disabled={isSelecting}
                 className="store-locator-square-radio-group"
                 name={`selectedStore-${instanceId}`}
-                value={selectedStoreInfo?.id ?? ''}
+                value={(chooserStoreInfo === undefined ? selectedStoreInfo : chooserStoreInfo)?.id ?? ''}
+                aria-disabled={selectionPending || undefined}
                 onValueChange={(value: string) => {
+                    if (selectionPending) return;
                     const selectedStore = storesPaginated.find((store) => store.id === value);
                     if (selectedStore) {
                         setSelectedStoreInfo(selectedStore);
@@ -127,8 +128,13 @@ export default function StoreLocatorList(): ReactElement | null {
                                     <RadioGroupItem
                                         id={radioId}
                                         value={s.id}
+                                        aria-disabled={selectionPending || undefined}
+                                        onClick={() => {
+                                            if (!selectionPending && chooserStoreInfo?.id === s.id)
+                                                setSelectedStoreInfo(s);
+                                        }}
                                         className="store-locator-square-radio mt-1"
-                                        aria-describedby={`store-info-${s.id}`}
+                                        aria-describedby={`store-info-${instanceId}-${s.id}`}
                                         disabled={!s.inventoryId}
                                     />
                                     <div className="flex-1 min-w-0">
@@ -139,7 +145,7 @@ export default function StoreLocatorList(): ReactElement | null {
                                             showStoreHours={true}
                                             showPhone={true}
                                             showEmail={true}
-                                            id={`store-info-${s.id}`}
+                                            id={`store-info-${instanceId}-${s.id}`}
                                         />
                                     </div>
                                 </label>

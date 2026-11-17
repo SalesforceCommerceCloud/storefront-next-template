@@ -16,83 +16,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
-import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
-import { action } from 'storybook/actions';
 import StoreLocator from '@/extensions/store-locator/components/store-locator';
 import StoreLocatorProvider from '@/extensions/store-locator/providers/store-locator';
-
-function ActionLogger({ children }: { children: ReactNode }): ReactElement {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        const root = containerRef.current;
-        if (!root) return;
-
-        const logClick = action('interaction');
-        const logSubmit = action('form-submit');
-        const logChange = action('form-change');
-
-        const handleClick = (event: MouseEvent) => {
-            const target = event.target as HTMLElement | null;
-            if (!target || !root.contains(target)) return;
-
-            // Prevent navigation on links
-            const link = target.closest('a');
-            if (link) {
-                event.preventDefault();
-                const href = link.getAttribute('href');
-                logClick({ type: 'click', element: 'link', href, label: link.textContent?.trim() });
-                return;
-            }
-
-            // Log button clicks
-            const button = target.closest('button, [role="button"]');
-            if (button) {
-                const label =
-                    button.textContent?.trim() || button.getAttribute('aria-label') || button.tagName.toLowerCase();
-                logClick({ type: 'click', element: button.tagName.toLowerCase(), label });
-            }
-        };
-
-        const handleSubmit = (event: Event) => {
-            const form = (event.target as HTMLElement)?.closest('form');
-            if (form) {
-                const formData = new FormData(form);
-                logSubmit({
-                    countryCode: formData.get('countryCode'),
-                    postalCode: formData.get('postalCode'),
-                });
-            }
-        };
-
-        const handleChange = (event: Event) => {
-            const target = event.target as HTMLElement | null;
-            if (!target || !root.contains(target)) return;
-
-            const input = target.closest('input, select');
-            if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) {
-                logChange({ name: input.name, value: input.value });
-            }
-        };
-
-        root.addEventListener('click', handleClick, true);
-        root.addEventListener('submit', handleSubmit, true);
-        root.addEventListener('change', handleChange, true);
-
-        return () => {
-            root.removeEventListener('click', handleClick, true);
-            root.removeEventListener('submit', handleSubmit, true);
-            root.removeEventListener('change', handleChange, true);
-        };
-    }, []);
-
-    return <div ref={containerRef}>{children}</div>;
-}
 
 const meta: Meta<typeof StoreLocator> = {
     title: 'Extensions/Store Locator/Store Locator',
     component: StoreLocator,
-    tags: ['autodocs', 'interaction'],
+    tags: ['autodocs'],
     parameters: {
         layout: 'padded',
         // The luxury store-locator override seeds its branded boutique list from this route (via useFetcher) on
@@ -110,29 +40,15 @@ const meta: Meta<typeof StoreLocator> = {
         ],
         docs: {
             description: {
-                component: `
-The StoreLocator component is a composition of store locator form and results list.
-
-## Features
-
-- **Form Search**: Search stores by country/postal code or device location
-- **Results Display**: Shows search results with store selection
-- **State Management**: Integrates with store locator state store
-- **Responsive Layout**: Adapts to mobile and desktop screens
-
-## Usage
-
-This component is the main store locator experience, typically used within StoreLocatorSheet.
-                `,
+                component:
+                    'The composed Store Locator experience: a search form followed by results that appear only after a search, loading state, or error.',
             },
         },
     },
     decorators: [
         (Story: React.ComponentType) => (
             <StoreLocatorProvider>
-                <ActionLogger>
-                    <Story />
-                </ActionLogger>
+                <Story />
             </StoreLocatorProvider>
         ),
     ],
@@ -145,14 +61,7 @@ export const Default: Story = {
     parameters: {
         docs: {
             description: {
-                story: `
-Default store locator showing:
-- Store locator form with country/postal code search
-- "Use My Location" button
-- Empty results list (no search performed yet)
-
-This is the initial state before any search is performed.
-                `,
+                story: 'Initial Store Locator state with the search form visible and no results before a search.',
             },
         },
     },

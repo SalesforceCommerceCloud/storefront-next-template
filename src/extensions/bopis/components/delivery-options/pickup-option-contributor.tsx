@@ -23,6 +23,9 @@ import { getStoreName } from '@/extensions/bopis/lib/store-utils';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
 import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
 import { usePickup } from '@/extensions/bopis/context/pickup-context';
+import { usePickupInventory } from '@/extensions/bopis/context/pickup-inventory';
+import { useOptionalProductView } from '@/providers/product-view';
+import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
 
 interface UseBopisFulfillmentOptionProps {
     product: ShopperProducts.schemas['Product'];
@@ -40,8 +43,22 @@ export function useBopisFulfillmentOption({ product, quantity, basketPickupStore
     const openStoreLocator = useStoreLocator((state) => state.open);
     const pickupStore = basketPickupStore || selectedStore;
     const pickupContext = usePickup();
+    const productView = useOptionalProductView();
+    const skuId = productView?.currentVariant?.productId ?? product.id;
+    const inventory = usePickupInventory(skuId);
+    const combo = isProductSet(product) || isProductBundle(product);
+    const hasInteractionInventory = product.inventories?.some((record) => record.id === pickupStore?.inventoryId);
+    const inventoryPending =
+        inventory.active &&
+        !basketPickupStore &&
+        (inventory.status === 'pending' ||
+            (Boolean(pickupStore) &&
+                ((!inventory.product && !hasInteractionInventory && !combo) ||
+                    (inventory.status !== 'resolved' && !hasInteractionInventory))));
+    const pickupProduct =
+        !combo && inventory.product ? { ...product, inventories: inventory.product.inventories } : product;
     const isPickupOutOfStock = usePickupAvailability({
-        product,
+        product: pickupProduct,
         quantity,
         pickupStore,
     });
@@ -56,10 +73,11 @@ export function useBopisFulfillmentOption({ product, quantity, basketPickupStore
                 description: pickupStore
                     ? getStoreName(pickupStore)
                     : t('deliveryOptions.pickupOrDelivery.selectStore'),
-                availability: { available: !isPickupOutOfStock },
+                availability: { available: !inventoryPending && !isPickupOutOfStock },
             },
-            canAutoSelect: Boolean(pickupStore?.id && pickupStore.inventoryId),
+            canAutoSelect: !inventoryPending && Boolean(pickupStore?.id && pickupStore.inventoryId),
             onSelect: () => {
+                if (inventoryPending) return false;
                 if (!pickupStore) {
                     openStoreLocator();
                     return false;
@@ -73,7 +91,7 @@ export function useBopisFulfillmentOption({ product, quantity, basketPickupStore
                       })
                     : createFulfillmentSelection(optionId),
         }),
-        [isPickupOutOfStock, openStoreLocator, pickupStore, t]
+        [inventoryPending, isPickupOutOfStock, openStoreLocator, pickupStore, t]
     );
 
     const detail = useMemo(
@@ -95,6 +113,7 @@ export function useBopisFulfillmentOption({ product, quantity, basketPickupStore
                 return;
             }
             if (option === DELIVERY_OPTIONS.PICKUP) {
+                if (inventoryPending) return;
                 if (pickupStore?.id && pickupStore.inventoryId) {
                     pickupContext.addItem(product.id, pickupStore.inventoryId, pickupStore.id);
                 }
@@ -102,7 +121,7 @@ export function useBopisFulfillmentOption({ product, quantity, basketPickupStore
                 pickupContext.removeItem(product.id);
             }
         },
-        [basketPickupStore, pickupContext, pickupStore?.id, pickupStore?.inventoryId, product.id]
+        [inventoryPending, basketPickupStore, pickupContext, pickupStore?.id, pickupStore?.inventoryId, product.id]
     );
 
     return { contributor, detail, synchronizeSelection };

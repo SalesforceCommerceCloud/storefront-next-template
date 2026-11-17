@@ -50,7 +50,7 @@ describe('StoreLocatorSheet', () => {
         expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument();
     });
 
-    test('closes via Close button and re-opens via trigger', async () => {
+    test('closes via Close button and re-opens via optional trigger', async () => {
         render(<TestWrapper initialOpen={true} />);
 
         expect(screen.getByText(t('extStoreLocator:storeLocator.title'))).toBeInTheDocument();

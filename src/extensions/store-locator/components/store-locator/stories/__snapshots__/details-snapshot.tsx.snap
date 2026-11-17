@@ -1,121 +1,119 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`StoreDetails stories snapshot > CompactAddress story renders and matches snapshot 1`] = `
-<div>
+<div
+  class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+>
   <div
-    class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+    class="col-span-2 md:col-span-1 md:col-start-2"
   >
     <div
-      class="col-span-2 md:col-span-1 md:col-start-2"
+      class="text-sm text-muted-foreground text-left"
     >
-      <div
-        class="text-sm text-muted-foreground text-left"
-      >
-        <div>
-          <span>
-            Downtown Store
-             - 
-          </span>
-          123 Main Street
-        </div>
-        <div>
-          San Francisco, CA 94102
-        </div>
+      <div>
+        <span>
+          Downtown Store
+           - 
+        </span>
+        123 Main Street
+      </div>
+      <div>
+        San Francisco, CA 94102
       </div>
     </div>
+  </div>
+  <div
+    class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
+  >
     <div
-      class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
+      class="text-muted-foreground text-left text-xs flex items-center gap-1"
     >
-      <div
-        class="text-muted-foreground text-left text-xs flex items-center gap-1"
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-map-pin size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        <svg
-          aria-hidden="true"
-          class="lucide lucide-map-pin size-4"
-          fill="none"
-          height="24"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          width="24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-          />
-          <circle
-            cx="12"
-            cy="10"
-            r="3"
-          />
-        </svg>
-        2.50 km away
-      </div>
+        <path
+          d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+        />
+        <circle
+          cx="12"
+          cy="10"
+          r="3"
+        />
+      </svg>
+      2.50 km away
     </div>
+  </div>
+  <div
+    class="col-span-2 md:col-span-2 md:col-start-2"
+  >
     <div
-      class="col-span-2 md:col-span-2 md:col-start-2"
+      class="w-full"
+      data-orientation="vertical"
+      data-slot="accordion"
     >
       <div
-        class="w-full"
+        class="border-b last:border-b-0 border-none"
         data-orientation="vertical"
-        data-slot="accordion"
+        data-slot="accordion-item"
+        data-state="closed"
       >
-        <div
-          class="border-b last:border-b-0 border-none"
+        <h3
+          class="flex"
           data-orientation="vertical"
-          data-slot="accordion-item"
           data-state="closed"
         >
-          <h3
-            class="flex"
+          <button
+            aria-controls="radix-_r_5_"
+            aria-expanded="false"
+            class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
             data-orientation="vertical"
+            data-radix-collection-item=""
+            data-slot="accordion-trigger"
             data-state="closed"
+            id="radix-_r_4_"
+            type="button"
           >
-            <button
-              aria-controls="radix-_r_5_"
-              aria-expanded="false"
-              class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-              data-orientation="vertical"
-              data-radix-collection-item=""
-              data-slot="accordion-trigger"
-              data-state="closed"
-              id="radix-_r_4_"
-              type="button"
+            Store Details
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              Store Details
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m6 9 6 6 6-6"
-                />
-              </svg>
-            </button>
-          </h3>
-          <div
-            aria-labelledby="radix-_r_4_"
-            class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-            data-orientation="vertical"
-            data-slot="accordion-content"
-            data-state="closed"
-            hidden=""
-            id="radix-_r_5_"
-            role="region"
-            style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-          />
-        </div>
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+        </h3>
+        <div
+          aria-labelledby="radix-_r_4_"
+          class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+          data-orientation="vertical"
+          data-slot="accordion-content"
+          data-state="closed"
+          hidden=""
+          id="radix-_r_5_"
+          role="region"
+          style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+        />
       </div>
     </div>
   </div>
@@ -123,253 +121,124 @@ exports[`StoreDetails stories snapshot > CompactAddress story renders and matche
 `;
 
 exports[`StoreDetails stories snapshot > Default story renders and matches snapshot 1`] = `
-<div>
+<div
+  class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+>
   <div
-    class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+    class="col-span-1"
   >
     <div
-      class="col-span-1"
+      class="text-sm font-semibold text-left"
     >
-      <div
-        class="text-sm font-semibold text-left"
-      >
-        Downtown Store
-      </div>
+      Downtown Store
     </div>
+  </div>
+  <div
+    class="col-span-2 md:col-span-1 md:col-start-2"
+  >
     <div
-      class="col-span-2 md:col-span-1 md:col-start-2"
+      class="text-sm text-muted-foreground text-left"
     >
-      <div
-        class="text-sm text-muted-foreground text-left"
-      >
-        <div>
-          123 Main Street
-        </div>
-        <div>
-          San Francisco, CA 94102
-        </div>
+      <div>
+        123 Main Street
       </div>
-    </div>
-    <div
-      class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
-    >
-      <div
-        class="text-muted-foreground text-left text-xs flex items-center gap-1"
-      >
-        <svg
-          aria-hidden="true"
-          class="lucide lucide-map-pin size-4"
-          fill="none"
-          height="24"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          width="24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-          />
-          <circle
-            cx="12"
-            cy="10"
-            r="3"
-          />
-        </svg>
-        2.50 km away
-      </div>
-    </div>
-    <div
-      class="col-span-2 md:col-span-2 md:col-start-2"
-    >
-      <div
-        class="w-full"
-        data-orientation="vertical"
-        data-slot="accordion"
-      >
-        <div
-          class="border-b last:border-b-0 border-none"
-          data-orientation="vertical"
-          data-slot="accordion-item"
-          data-state="closed"
-        >
-          <h3
-            class="flex"
-            data-orientation="vertical"
-            data-state="closed"
-          >
-            <button
-              aria-controls="radix-_r_1_"
-              aria-expanded="false"
-              class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-              data-orientation="vertical"
-              data-radix-collection-item=""
-              data-slot="accordion-trigger"
-              data-state="closed"
-              id="radix-_r_0_"
-              type="button"
-            >
-              Store Details
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m6 9 6 6 6-6"
-                />
-              </svg>
-            </button>
-          </h3>
-          <div
-            aria-labelledby="radix-_r_0_"
-            class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-            data-orientation="vertical"
-            data-slot="accordion-content"
-            data-state="closed"
-            hidden=""
-            id="radix-_r_1_"
-            role="region"
-            style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-          />
-        </div>
+      <div>
+        San Francisco, CA 94102
       </div>
     </div>
   </div>
-</div>
-`;
-
-exports[`StoreDetails stories snapshot > DesktopLayout story renders and matches snapshot 1`] = `
-<div>
   <div
-    class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+    class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
   >
     <div
-      class="col-span-1"
+      class="text-muted-foreground text-left text-xs flex items-center gap-1"
     >
-      <div
-        class="text-sm font-semibold text-left"
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-map-pin size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        Downtown Store
-      </div>
+        <path
+          d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+        />
+        <circle
+          cx="12"
+          cy="10"
+          r="3"
+        />
+      </svg>
+      2.50 km away
     </div>
+  </div>
+  <div
+    class="col-span-2 md:col-span-2 md:col-start-2"
+  >
     <div
-      class="col-span-2 md:col-span-1 md:col-start-2"
+      class="w-full"
+      data-orientation="vertical"
+      data-slot="accordion"
     >
       <div
-        class="text-sm text-muted-foreground text-left"
-      >
-        <div>
-          123 Main Street
-        </div>
-        <div>
-          San Francisco, CA 94102
-        </div>
-      </div>
-    </div>
-    <div
-      class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
-    >
-      <div
-        class="text-muted-foreground text-left text-xs flex items-center gap-1"
-      >
-        <svg
-          aria-hidden="true"
-          class="lucide lucide-map-pin size-4"
-          fill="none"
-          height="24"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          width="24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-          />
-          <circle
-            cx="12"
-            cy="10"
-            r="3"
-          />
-        </svg>
-        2.50 km away
-      </div>
-    </div>
-    <div
-      class="col-span-2 md:col-span-2 md:col-start-2"
-    >
-      <div
-        class="w-full"
+        class="border-b last:border-b-0 border-none"
         data-orientation="vertical"
-        data-slot="accordion"
+        data-slot="accordion-item"
+        data-state="closed"
       >
-        <div
-          class="border-b last:border-b-0 border-none"
+        <h3
+          class="flex"
           data-orientation="vertical"
-          data-slot="accordion-item"
           data-state="closed"
         >
-          <h3
-            class="flex"
+          <button
+            aria-controls="radix-_r_1_"
+            aria-expanded="false"
+            class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
             data-orientation="vertical"
+            data-radix-collection-item=""
+            data-slot="accordion-trigger"
             data-state="closed"
+            id="radix-_r_0_"
+            type="button"
           >
-            <button
-              aria-controls="radix-_r_9_"
-              aria-expanded="false"
-              class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-              data-orientation="vertical"
-              data-radix-collection-item=""
-              data-slot="accordion-trigger"
-              data-state="closed"
-              id="radix-_r_8_"
-              type="button"
+            Store Details
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              Store Details
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m6 9 6 6 6-6"
-                />
-              </svg>
-            </button>
-          </h3>
-          <div
-            aria-labelledby="radix-_r_8_"
-            class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-            data-orientation="vertical"
-            data-slot="accordion-content"
-            data-state="closed"
-            hidden=""
-            id="radix-_r_9_"
-            role="region"
-            style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-          />
-        </div>
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+        </h3>
+        <div
+          aria-labelledby="radix-_r_0_"
+          class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+          data-orientation="vertical"
+          data-slot="accordion-content"
+          data-state="closed"
+          hidden=""
+          id="radix-_r_1_"
+          role="region"
+          style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+        />
       </div>
     </div>
   </div>
@@ -377,126 +246,124 @@ exports[`StoreDetails stories snapshot > DesktopLayout story renders and matches
 `;
 
 exports[`StoreDetails stories snapshot > MobileLayout story renders and matches snapshot 1`] = `
-<div>
+<div
+  class="grid grid-cols-2 gap-2"
+>
   <div
-    class="grid grid-cols-2 gap-2"
+    class="col-span-1"
   >
     <div
-      class="col-span-1"
+      class="text-sm font-semibold text-left"
     >
-      <div
-        class="text-sm font-semibold text-left"
-      >
-        Downtown Store
+      Downtown Store
+    </div>
+  </div>
+  <div
+    class="col-span-2"
+  >
+    <div
+      class="text-sm text-muted-foreground text-left"
+    >
+      <div>
+        123 Main Street
+      </div>
+      <div>
+        San Francisco, CA 94102
       </div>
     </div>
+  </div>
+  <div
+    class="col-span-2"
+  >
     <div
-      class="col-span-2"
+      class="text-muted-foreground text-left text-xs flex items-center gap-1"
     >
-      <div
-        class="text-sm text-muted-foreground text-left"
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-map-pin size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        <div>
-          123 Main Street
-        </div>
-        <div>
-          San Francisco, CA 94102
-        </div>
-      </div>
+        <path
+          d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+        />
+        <circle
+          cx="12"
+          cy="10"
+          r="3"
+        />
+      </svg>
+      2.50 km away
     </div>
+  </div>
+  <div
+    class="col-span-2"
+  >
     <div
-      class="col-span-2"
+      class="w-full"
+      data-orientation="vertical"
+      data-slot="accordion"
     >
       <div
-        class="text-muted-foreground text-left text-xs flex items-center gap-1"
-      >
-        <svg
-          aria-hidden="true"
-          class="lucide lucide-map-pin size-4"
-          fill="none"
-          height="24"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          width="24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-          />
-          <circle
-            cx="12"
-            cy="10"
-            r="3"
-          />
-        </svg>
-        2.50 km away
-      </div>
-    </div>
-    <div
-      class="col-span-2"
-    >
-      <div
-        class="w-full"
+        class="border-b last:border-b-0 border-none"
         data-orientation="vertical"
-        data-slot="accordion"
+        data-slot="accordion-item"
+        data-state="closed"
       >
-        <div
-          class="border-b last:border-b-0 border-none"
+        <h3
+          class="flex"
           data-orientation="vertical"
-          data-slot="accordion-item"
           data-state="closed"
         >
-          <h3
-            class="flex"
+          <button
+            aria-controls="radix-_r_7_"
+            aria-expanded="false"
+            class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
             data-orientation="vertical"
+            data-radix-collection-item=""
+            data-slot="accordion-trigger"
             data-state="closed"
+            id="radix-_r_6_"
+            type="button"
           >
-            <button
-              aria-controls="radix-_r_7_"
-              aria-expanded="false"
-              class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-              data-orientation="vertical"
-              data-radix-collection-item=""
-              data-slot="accordion-trigger"
-              data-state="closed"
-              id="radix-_r_6_"
-              type="button"
+            Store Details
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              Store Details
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m6 9 6 6 6-6"
-                />
-              </svg>
-            </button>
-          </h3>
-          <div
-            aria-labelledby="radix-_r_6_"
-            class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-            data-orientation="vertical"
-            data-slot="accordion-content"
-            data-state="closed"
-            hidden=""
-            id="radix-_r_7_"
-            role="region"
-            style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-          />
-        </div>
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+        </h3>
+        <div
+          aria-labelledby="radix-_r_6_"
+          class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+          data-orientation="vertical"
+          data-slot="accordion-content"
+          data-state="closed"
+          hidden=""
+          id="radix-_r_7_"
+          role="region"
+          style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+        />
       </div>
     </div>
   </div>
@@ -504,138 +371,136 @@ exports[`StoreDetails stories snapshot > MobileLayout story renders and matches 
 `;
 
 exports[`StoreDetails stories snapshot > WithPrimaryAction story renders and matches snapshot 1`] = `
-<div>
+<div
+  class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+>
   <div
-    class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+    class="col-span-1"
   >
     <div
-      class="col-span-1"
+      class="text-sm font-semibold text-left"
     >
-      <div
-        class="text-sm font-semibold text-left"
-      >
-        Downtown Store
+      Downtown Store
+    </div>
+  </div>
+  <div
+    class="col-span-1 col-start-2 justify-self-end self-start md:col-start-3 md:col-span-1"
+  >
+    <button
+      class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+      data-size="sm"
+      data-slot="button"
+      data-variant="default"
+    >
+      Select Store
+    </button>
+  </div>
+  <div
+    class="col-span-2 md:col-span-1 md:col-start-2"
+  >
+    <div
+      class="text-sm text-muted-foreground text-left"
+    >
+      <div>
+        123 Main Street
+      </div>
+      <div>
+        San Francisco, CA 94102
       </div>
     </div>
+  </div>
+  <div
+    class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
+  >
     <div
-      class="col-span-1 col-start-2 justify-self-end self-start md:col-start-3 md:col-span-1"
+      class="text-muted-foreground text-left text-xs flex items-center gap-1"
     >
-      <button
-        class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
-        data-size="sm"
-        data-slot="button"
-        data-variant="default"
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-map-pin size-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        Select Store
-      </button>
+        <path
+          d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+        />
+        <circle
+          cx="12"
+          cy="10"
+          r="3"
+        />
+      </svg>
+      2.50 km away
     </div>
+  </div>
+  <div
+    class="col-span-2 md:col-span-2 md:col-start-2"
+  >
     <div
-      class="col-span-2 md:col-span-1 md:col-start-2"
+      class="w-full"
+      data-orientation="vertical"
+      data-slot="accordion"
     >
       <div
-        class="text-sm text-muted-foreground text-left"
-      >
-        <div>
-          123 Main Street
-        </div>
-        <div>
-          San Francisco, CA 94102
-        </div>
-      </div>
-    </div>
-    <div
-      class="col-span-2 md:col-span-1 md:col-start-1 md:mt-2"
-    >
-      <div
-        class="text-muted-foreground text-left text-xs flex items-center gap-1"
-      >
-        <svg
-          aria-hidden="true"
-          class="lucide lucide-map-pin size-4"
-          fill="none"
-          height="24"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          width="24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-          />
-          <circle
-            cx="12"
-            cy="10"
-            r="3"
-          />
-        </svg>
-        2.50 km away
-      </div>
-    </div>
-    <div
-      class="col-span-2 md:col-span-2 md:col-start-2"
-    >
-      <div
-        class="w-full"
+        class="border-b last:border-b-0 border-none"
         data-orientation="vertical"
-        data-slot="accordion"
+        data-slot="accordion-item"
+        data-state="closed"
       >
-        <div
-          class="border-b last:border-b-0 border-none"
+        <h3
+          class="flex"
           data-orientation="vertical"
-          data-slot="accordion-item"
           data-state="closed"
         >
-          <h3
-            class="flex"
+          <button
+            aria-controls="radix-_r_3_"
+            aria-expanded="false"
+            class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
             data-orientation="vertical"
+            data-radix-collection-item=""
+            data-slot="accordion-trigger"
             data-state="closed"
+            id="radix-_r_2_"
+            type="button"
           >
-            <button
-              aria-controls="radix-_r_3_"
-              aria-expanded="false"
-              class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-              data-orientation="vertical"
-              data-radix-collection-item=""
-              data-slot="accordion-trigger"
-              data-state="closed"
-              id="radix-_r_2_"
-              type="button"
+            Store Details
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              Store Details
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m6 9 6 6 6-6"
-                />
-              </svg>
-            </button>
-          </h3>
-          <div
-            aria-labelledby="radix-_r_2_"
-            class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-            data-orientation="vertical"
-            data-slot="accordion-content"
-            data-state="closed"
-            hidden=""
-            id="radix-_r_3_"
-            role="region"
-            style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-          />
-        </div>
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+        </h3>
+        <div
+          aria-labelledby="radix-_r_2_"
+          class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+          data-orientation="vertical"
+          data-slot="accordion-content"
+          data-state="closed"
+          hidden=""
+          id="radix-_r_3_"
+          role="region"
+          style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+        />
       </div>
     </div>
   </div>
@@ -643,31 +508,29 @@ exports[`StoreDetails stories snapshot > WithPrimaryAction story renders and mat
 `;
 
 exports[`StoreDetails stories snapshot > WithoutDistance story renders and matches snapshot 1`] = `
-<div>
+<div
+  class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+>
   <div
-    class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+    class="col-span-1"
   >
     <div
-      class="col-span-1"
+      class="text-sm font-semibold text-left"
     >
-      <div
-        class="text-sm font-semibold text-left"
-      >
-        Uptown Store
-      </div>
+      Uptown Store
     </div>
+  </div>
+  <div
+    class="col-span-2 md:col-span-1 md:col-start-2"
+  >
     <div
-      class="col-span-2 md:col-span-1 md:col-start-2"
+      class="text-sm text-muted-foreground text-left"
     >
-      <div
-        class="text-sm text-muted-foreground text-left"
-      >
-        <div>
-          456 Oak Avenue
-        </div>
-        <div>
-          San Francisco, CA 94103
-        </div>
+      <div>
+        456 Oak Avenue
+      </div>
+      <div>
+        San Francisco, CA 94103
       </div>
     </div>
   </div>

@@ -45,6 +45,8 @@ import { useShippingDelivery } from '@/extensions/shipping-delivery/context/ship
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import { useBopisFulfillmentOption } from '@/extensions/bopis/components/delivery-options/pickup-option-contributor';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import { PickupInventoryRecovery } from '@/extensions/bopis/context/pickup-inventory';
 export interface DeliveryOptionsProps {
     product: ShopperProducts.schemas['Product'];
     quantity: number;
@@ -75,7 +77,20 @@ export function isDeliveryEstimatePresentationHost(options: Array<{ id: string }
 // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
-export default function DeliveryOptions({
+export default function DeliveryOptions(props: DeliveryOptionsProps): ReactElement | null {
+    const content = <DeliveryOptionsContent {...props} />;
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    return (
+        <>
+            {content}
+            <PickupInventoryRecovery />
+        </>
+    );
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    return content;
+}
+
+function DeliveryOptionsContent({
     product,
     quantity,
     deliveryAvailable,

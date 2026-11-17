@@ -1,7 +1,7 @@
 import { i as Url, r as Site$1, t as Locale$1 } from "./types.js";
 import { PropsWithChildren } from "react";
 import * as react_jsx_runtime2 from "react/jsx-runtime";
-import * as react_router18 from "react-router";
+import * as react_router21 from "react-router";
 import { Cookie, CookieOptions, MiddlewareFunction, RouterContextProvider } from "react-router";
 import { RouteConfigEntry } from "@react-router/dev/routes";
 
@@ -122,6 +122,8 @@ declare function SiteProvider({
 declare function useSite(): SiteContextValue;
 //#endregion
 //#region src/site-context/apply-url-config.d.ts
+/** Match the same normalized route path and exclusions used by the URL compiler. */
+declare function isExcludedRoute(path: string, urlConfig?: Url): boolean;
 /**
  * Applies site context URL configuration to a set of route entries.
  *
@@ -141,6 +143,12 @@ declare function applyUrlConfig(options: {
   urlConfig?: Url;
   wrapperFile: string;
 }): RouteConfigEntry[];
+//#endregion
+//#region src/site-context/configs.d.ts
+/** Effective site detection options, using the middleware's shallow-merge contract. */
+declare function resolveSiteDetectionConfig(config?: DetectionConfig): Required<DetectionConfig>;
+/** Effective locale detection options, using the middleware's shallow-merge contract. */
+declare function resolveLocaleDetectionConfig(config?: DetectionConfig): Required<DetectionConfig>;
 //#endregion
 //#region src/site-context/build-url.d.ts
 /**
@@ -240,7 +248,7 @@ declare function buildUrl({
 }): string;
 //#endregion
 //#region src/site-context/middleware.d.ts
-declare const siteContext: react_router18.RouterContext<SiteContext | null>;
+declare const siteContext: react_router21.RouterContext<SiteContext | null>;
 /**
  * Resolved site context result from {@link resolveSiteContext}.
  */
@@ -288,10 +296,26 @@ declare function resolveSiteContext(request: Request, settings: SiteSettings): P
  * ```
  */
 declare function getSiteContextCookies(context: Readonly<RouterContextProvider>): {
-  siteCookie: react_router18.Cookie;
-  localeCookie: react_router18.Cookie;
-  currencyCookie: react_router18.Cookie;
+  siteCookie: react_router21.Cookie;
+  localeCookie: react_router21.Cookie;
+  currencyCookie: react_router21.Cookie;
 } | null;
+/**
+ * Resolve detection defaults and create the cookie instances for a site context config.
+ * Shared by the middleware and by consumers that call {@link resolveSiteContext} or
+ * {@link serializeContextCookies} outside the middleware chain.
+ */
+declare function createSiteSettings(config: SiteConfig, cookieOptions?: react_router21.CookieOptions | undefined): SiteSettings;
+/**
+ * Serialize the `Set-Cookie` headers the middleware would write for a resolved context:
+ * only cookies whose caching is enabled, whose value differs from the request's cookie,
+ * and that `response` does not already set. Returns site, locale, then currency cookies.
+ */
+declare function serializeContextCookies(request: Request, response: Response, settings: SiteSettings, {
+  site,
+  locale,
+  currency
+}: ResolvedSiteContext): Promise<string[]>;
 /**
  * Creates a site context middleware that resolves the current site from
  * the request (path, cookie, header, query, or default) and stores the
@@ -309,5 +333,5 @@ declare function createSiteContextMiddleware(config: SiteConfig, previewOptions?
  */
 declare const requestToLocaleMap: WeakMap<Request, string>;
 //#endregion
-export { type DetectionConfig, type Locale, type PreviewOptions, type ResolvedSiteContext, type Site, type SiteConfig, type SiteContext, type SiteContextValue, SiteProvider, type SiteSettings, applyUrlConfig, buildUrl, createSiteContextMiddleware, extractPrefixParamValues, getSiteContextCookies, requestToLocaleMap, resolvePrefix, resolveSiteContext, siteContext, stripPathPrefix, useSite };
+export { type DetectionConfig, type Locale, type PreviewOptions, type ResolvedSiteContext, type Site, type SiteConfig, type SiteContext, type SiteContextValue, SiteProvider, type SiteSettings, applyUrlConfig, buildUrl, createSiteContextMiddleware, createSiteSettings, extractPrefixParamValues, getSiteContextCookies, isExcludedRoute, requestToLocaleMap, resolveLocaleDetectionConfig, resolvePrefix, resolveSiteContext, resolveSiteDetectionConfig, serializeContextCookies, siteContext, stripPathPrefix, useSite };
 //# sourceMappingURL=site-context.d.ts.map

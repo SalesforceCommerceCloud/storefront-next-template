@@ -16,7 +16,7 @@
 import { useCallback, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createLogger } from '@/lib/logger';
-import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
+import { useStoreLocator, useStoreLocatorApi } from '@/extensions/store-locator/providers/store-locator';
 import { useStoreLocatorForm } from '@/extensions/store-locator/hooks/use-store-locator-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +39,7 @@ const logger = createLogger();
  */
 export default function StoreLocatorForm(): ReactElement {
     const { t } = useTranslation('extStoreLocator');
+    const store = useStoreLocatorApi();
     const config = useStoreLocator((s) => s.config);
     const setDeviceCoordinates = useStoreLocator((s) => s.setDeviceCoordinates);
     const setGeoError = useStoreLocator((s) => s.setGeoError);
@@ -48,20 +49,23 @@ export default function StoreLocatorForm(): ReactElement {
 
     const onUseMyLocation = useCallback(() => {
         if (typeof window !== 'undefined' && window.navigator?.geolocation?.getCurrentPosition) {
+            const generation = store.getState().generation;
             // Clear any previous permission error before attempting again
             setGeoError(false);
             window.navigator.geolocation.getCurrentPosition(
                 (pos) => {
+                    if (store.getState().generation !== generation) return;
                     setDeviceCoordinates({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
                 },
                 (error) => {
+                    if (store.getState().generation !== generation) return;
                     logger.warn('Geolocation error', { code: error.code, message: error.message });
                     setGeoError(true);
                 },
                 { timeout: config.geoTimeout }
             );
         }
-    }, [setDeviceCoordinates, setGeoError, config.geoTimeout]);
+    }, [store, setDeviceCoordinates, setGeoError, config.geoTimeout]);
 
     return (
         <Form {...form}>

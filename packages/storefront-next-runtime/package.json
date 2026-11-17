@@ -122,6 +122,12 @@
         "default": "./dist/routing-app-wrapper.js"
       }
     },
+    "./routing/compiled-routes": {
+      "import": {
+        "types": "./dist/routing-compiled-routes.d.ts",
+        "default": "./dist/routing-compiled-routes.js"
+      }
+    },
     "./workspace": {
       "import": {
         "types": "./dist/workspace.d.ts",

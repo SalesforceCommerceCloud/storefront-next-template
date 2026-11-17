@@ -170,10 +170,11 @@ export function getEffectiveInventory(params: {
     storeInventoryId?: string;
     variant?: ShopperProducts.schemas['Variant'] | null;
 }): ShopperProducts.schemas['Inventory'] | null {
-    const { product, isPickup, storeInventoryId, variant } = params;
+    const { product, variant } = params;
     if (!product) return null;
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    const { isPickup, storeInventoryId } = params;
     if (isPickup && storeInventoryId) {
         // A locally selected PDP variant can carry newer store availability than its master product.
         const variantInventories = (variant as unknown as { inventories?: ShopperProducts.schemas['Inventory'][] })
@@ -273,10 +274,11 @@ export function isInStock(params: {
     quantity: number;
     variant?: ShopperProducts.schemas['Variant'] | null;
 }): boolean {
-    const { product, isPickup, storeInventoryId, quantity = 1, variant } = params;
+    const { product, quantity = 1, variant } = params;
     if (!product) return false;
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    const { isPickup, storeInventoryId } = params;
     if (isPickup && storeInventoryId) {
         const inventory = getEffectiveInventory({ product, isPickup, storeInventoryId, variant });
         const stockLevel = inventory?.stockLevel ?? 0;

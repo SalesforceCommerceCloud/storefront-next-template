@@ -14,44 +14,42 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
-import { type ReactElement, useEffect, useRef } from 'react';
-import { useRevalidator } from 'react-router';
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
-
-interface ChangeStoreButtonProps {
-    /** Current store ID to compare against selected store */
-    currentStoreId?: string;
-}
+import {
+    SelectionFeedback,
+    useStoreSelection,
+    useStoreSelectionFeedbackHost,
+} from '@/extensions/store-locator/providers/selection';
 
 /**
  * Client component that provides a button to open the Store Selector extension.
  *
- * When a user selects a store and closes the locator, this component triggers
- * page revalidation to refetch store details from the server.
+ * Action-driven revalidation refreshes account details after persistence.
  */
-export default function ChangeStoreButton({ currentStoreId }: ChangeStoreButtonProps): ReactElement {
+export default function ChangeStoreButton(): ReactElement {
     const { t } = useTranslation('account');
-    const revalidator = useRevalidator();
-    const wasOpenRef = useRef(false);
-
+    const { retry } = useStoreSelection();
     const openStoreLocator = useStoreLocator((s) => s.open);
-    const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
     const isOpen = useStoreLocator((s) => s.isOpen);
-
-    // Trigger revalidation when the store locator closes with a different store selected
-    useEffect(() => {
-        if (wasOpenRef.current && !isOpen && selectedStoreInfo?.id && selectedStoreInfo.id !== currentStoreId) {
-            void revalidator.revalidate();
-        }
-        wasOpenRef.current = isOpen;
-        // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedStoreInfo?.id, currentStoreId, isOpen]);
+    const pending = useStoreLocator((s) => s.selectionPending);
+    const error = useStoreLocator((s) => s.selectionError);
+    useStoreSelectionFeedbackHost();
 
     return (
-        <Button type="button" variant="outline" onClick={() => openStoreLocator()}>
-            {t('storePreferences.preferredStore.changeStore')}
-        </Button>
+        <div className="flex flex-wrap gap-2" aria-busy={pending}>
+            <Button
+                type="button"
+                variant="outline"
+                onClick={() => openStoreLocator()}
+                disabled={pending}
+                aria-haspopup="dialog"
+                aria-expanded={isOpen}>
+                {t('storePreferences.preferredStore.changeStore')}
+            </Button>
+            {!isOpen && (pending || error) && <SelectionFeedback retry={retry} />}
+        </div>
     );
 }

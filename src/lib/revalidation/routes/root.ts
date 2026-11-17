@@ -19,9 +19,8 @@ import { CHECKOUT_ACTION_INTENTS } from '@/components/checkout/utils/checkout-co
 import { getActionPath } from './shared';
 
 /**
- * Mutations that change none of the fields the root loader returns. The root loader is synchronous (no SCAPI I/O), but
- * its return — `appConfig`, `seoMeta`, `errorTranslations`, etc. — is re-serialized into the response on every
- * revalidation. Skipping that for these submissions avoids re-sending the full root payload after the interaction.
+ * Mutations that change none of the fields the root loader returns. Skipping them avoids
+ * selected-store profile/store lookups and re-serialization of the root payload.
  *
  * Every entry is proven on two axes: (1) the action mutates no root field — it never calls `updateAuth` (so
  * `clientAuth` is untouched) and writes no site/locale/currency cookie; and (2) it is submitted via a non-navigating
@@ -37,7 +36,7 @@ import { getActionPath } from './shared';
  * `verifyPasswordlessOtp`, or `postOrderRegister`, each of which changes `clientAuth` or the site context.
  * `updateShopperContext` is deliberately excluded too. The shopper context is a cross-cutting input to every SCAPI
  * response (promotions, pricing, A/B segments); keeping it on the revalidating path is the safe stance. So is
- * `setSelectedStore`: the root loader returns `selectedStoreInfo` sourced from the cookie that action writes.
+ * `setSelectedStore`: root resolves selectedStoreInfo for the current identity and site.
  */
 const ROOT_IRRELEVANT_MUTATIONS: readonly string[] = [
     // Cart & wishlist — state propagates via cookie/provider, never the root loader.

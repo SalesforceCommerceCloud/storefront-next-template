@@ -19,7 +19,19 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { useBulkChildProductInventory } from './use-bulk-child-product-inventory';
 import type { ShopperProducts } from '@/scapi';
-import type { ChildProductSelection } from '@/lib/product/inventory-utils';
+import { type ChildProductSelection, isSiteOutOfStock } from '@/lib/product/inventory-utils';
+import { useProductSetsBundles } from './use-product-sets-bundles';
+import { useCurrentVariant } from './use-current-variant';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import { encodeResource } from '@/lib/scapi/resource-encoding';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
+import { usePickupInventory } from '@/extensions/bopis/context/pickup-inventory';
+vi.mock('@/extensions/bopis/context/pickup-inventory', () => ({
+    usePickupInventory: vi.fn(() => ({ active: false, status: 'empty', snapshot: null })),
+}));
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
 
 // Mock useScapiFetcher directly
 // Store fetcher properties separately and return new object each time so React detects changes
@@ -100,6 +112,8 @@ const wrapper = ({ children }: { children: React.ReactNode }) => {
 describe('useBulkChildProductInventory', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        vi.mocked(usePickupInventory).mockReturnValue({ active: false, status: 'empty', snapshot: null } as never);
         mockFetcherData = undefined;
         mockFetcherState = 'idle';
         mockFetcherSuccess = false;
@@ -186,7 +200,7 @@ describe('useBulkChildProductInventory', () => {
     const createChildSelection = (
         product: ShopperProducts.schemas['Product'],
         options?: {
-            variant?: ShopperProducts.schemas['Variant'];
+            variant?: ShopperProducts.schemas['Variant'] & { inventory?: ShopperProducts.schemas['Inventory'] };
             quantity?: number;
         }
     ): ChildProductSelection => ({
@@ -196,6 +210,462 @@ describe('useBulkChildProductInventory', () => {
     });
 
     describe('Basic functionality', () => {
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        it.each([
+            'record',
+            'partial',
+            'absent',
+        ] as const)('uses the real SCAPI request key to isolate late A with %s pickup data from pending B', async (shape) => {
+            const actual =
+                await vi.importActual<typeof import('@/hooks/use-scapi-fetcher')>('@/hooks/use-scapi-fetcher');
+            const originalMock = vi.mocked(useScapiFetcher).getMockImplementation();
+            const routerModule = await import('react-router');
+            const responses = new Map<string, { state: 'loading' | 'idle'; data?: unknown }>();
+            const routerFetcher = vi.spyOn(routerModule, 'useFetcher').mockImplementation((options) => {
+                const key = options?.key ?? '';
+                return {
+                    key,
+                    ...(responses.get(key) ?? { state: 'loading' }),
+                    load: mockLoad,
+                    submit: mockSubmit,
+                } as never;
+            });
+            vi.mocked(useScapiFetcher).mockImplementation(actual.useScapiFetcher);
+            const selections = ['child-1', 'child-2'].map((id) => createChildSelection(createMockProduct(id)));
+            const keyFor = (inventoryId: string) =>
+                encodeResource('shopperProducts', 'getProducts', {
+                    params: { query: { ids: ['child-1', 'child-2'], inventoryIds: [inventoryId], allImages: false } },
+                });
+            try {
+                const { result, rerender } = renderHook((props) => useBulkChildProductInventory(props), {
+                    wrapper,
+                    initialProps: { childSelections: selections, inventoryId: 'A' },
+                });
+                rerender({ childSelections: selections, inventoryId: 'B' });
+                responses.set(keyFor('A'), {
+                    state: 'idle',
+                    data: {
+                        success: true,
+                        data: {
+                            data: selections.map((selection, index) => ({
+                                id: selection.product.id,
+                                inventory: { id: 'site', ats: 99 },
+                                ...(shape === 'record' || (shape === 'partial' && index === 0)
+                                    ? { inventories: [{ id: 'A', ats: 99, stockLevel: 99, orderable: true }] }
+                                    : {}),
+                            })),
+                        },
+                    },
+                });
+                rerender({ childSelections: selections, inventoryId: 'B' });
+                expect(result.current.enrichedSelections.every((selection) => !selection.product.inventory)).toBe(true);
+                responses.set(keyFor('B'), {
+                    state: 'idle',
+                    data: {
+                        success: true,
+                        data: {
+                            data: selections.map((selection, index) => ({
+                                id: selection.product.id,
+                                inventory: { id: 'site', ats: index === 0 ? 2 : 0 },
+                            })),
+                        },
+                    },
+                });
+                rerender({ childSelections: selections, inventoryId: 'B' });
+                expect(result.current.enrichedSelections.map((selection) => selection.product.inventory?.ats)).toEqual([
+                    2, 0,
+                ]);
+                expect(
+                    result.current.enrichedSelections.every(
+                        (selection) =>
+                            selection.product.inventories?.[0]?.id === 'B' &&
+                            selection.product.inventories[0].orderable === false
+                    )
+                ).toBe(true);
+            } finally {
+                routerFetcher.mockRestore();
+                if (originalMock) vi.mocked(useScapiFetcher).mockImplementation(originalMock);
+            }
+        });
+        it.each([
+            false,
+            true,
+        ])('accepts current B site inventory with missing pickup records (all missing: %s)', async (allMissing) => {
+            const selections = ['child-1', 'child-2'].map((id) =>
+                createChildSelection(
+                    createMockProduct(id, {
+                        inventory: { id: 'site', ats: 7, stockLevel: 7, orderable: true },
+                        inventories: [{ id: 'B', ats: 7, stockLevel: 7, orderable: true }],
+                    })
+                )
+            );
+            const { result, rerender } = renderHook(
+                () => useBulkChildProductInventory({ childSelections: selections, inventoryId: 'B' }),
+                { wrapper }
+            );
+            await simulateSuccessfulFetch(
+                [
+                    {
+                        id: 'child-1',
+                        inventory: { id: 'site', ats: 2, stockLevel: 2, orderable: true },
+                        ...(allMissing ? {} : { inventories: [{ id: 'B', ats: 3, stockLevel: 3, orderable: true }] }),
+                    },
+                    { id: 'child-2', inventory: { id: 'site', ats: 0, stockLevel: 0, orderable: false } },
+                ],
+                rerender
+            );
+            expect(result.current.enrichedSelections.map((selection) => selection.product.inventory?.ats)).toEqual([
+                2, 0,
+            ]);
+            expect(result.current.enrichedSelections[1].product.inventories).toEqual([
+                { id: 'B', ats: 0, stockLevel: 0, orderable: false },
+            ]);
+            expect(result.current.enrichedSelections[0].product.inventories?.[0]?.stockLevel).toBe(allMissing ? 0 : 3);
+        });
+        it.each([
+            false,
+            true,
+        ])('keeps root adoption initial across publication (interaction first: %s)', async (interactionFirst) => {
+            const actual = await vi.importActual<typeof import('@/extensions/bopis/context/pickup-inventory')>(
+                '@/extensions/bopis/context/pickup-inventory'
+            );
+            const {
+                default: StoreLocatorProvider,
+                useStoreLocator,
+                useStoreLocatorApi,
+            } = await import('@/extensions/store-locator/providers/store-locator');
+            const { AllProvidersWrapper } = await import('@/test-utils/context-provider');
+            let resolveSelection!: (value: {
+                selectedStoreInfo: { id: string; inventoryId: string };
+                error: null;
+            }) => void;
+            let resolveInventory!: (
+                value: import('@/extensions/bopis/lib/pdp-pickup-inventory.server').PdpPickupInventory
+            ) => void;
+            const selection = new Promise<{ selectedStoreInfo: { id: string; inventoryId: string }; error: null }>(
+                (resolve) => {
+                    resolveSelection = resolve;
+                }
+            );
+            const inventory = new Promise<
+                import('@/extensions/bopis/lib/pdp-pickup-inventory.server').PdpPickupInventory
+            >((resolve) => {
+                resolveInventory = resolve;
+            });
+            vi.mocked(usePickupInventory).mockImplementation(actual.usePickupInventory);
+            const rootWrapper = ({ children }: { children: React.ReactNode }) => (
+                <AllProvidersWrapper>
+                    <StoreLocatorProvider selectedStoreResolution={selection}>
+                        <actual.PickupInventoryProvider promise={inventory}>{children}</actual.PickupInventoryProvider>
+                    </StoreLocatorProvider>
+                </AllProvidersWrapper>
+            );
+            const childSelections = [
+                createChildSelection(
+                    createMockProduct('sku', {
+                        inventory: { id: 'site', ats: 7, stockLevel: 7, orderable: true },
+                    })
+                ),
+            ];
+            const { result } = renderHook(
+                () => {
+                    const api = useStoreLocatorApi();
+                    const selected = useStoreLocator((state) => state.selectedStoreInfo);
+                    return {
+                        api,
+                        ...useBulkChildProductInventory({ childSelections, inventoryId: selected?.inventoryId }),
+                    };
+                },
+                { wrapper: rootWrapper }
+            );
+            expect(mockLoad).toHaveBeenCalledTimes(0);
+            await act(async () => {
+                resolveSelection({ selectedStoreInfo: { id: 'A', inventoryId: 'inv-A' }, error: null });
+                await selection;
+            });
+            expect(mockLoad).toHaveBeenCalledTimes(0);
+            if (interactionFirst) {
+                act(() => {
+                    result.current.api.setState({
+                        selectionRevision: result.current.api.getState().selectionRevision + 1,
+                    });
+                    result.current.api.getState().setSelectedStoreInfo({ id: 'B', inventoryId: 'inv-B' });
+                });
+                expect(mockLoad).toHaveBeenCalledTimes(1);
+            }
+            await act(async () => {
+                resolveInventory({
+                    status: 'resolved',
+                    storeId: 'A',
+                    inventoryId: 'inv-A',
+                    products: [{ id: 'sku', inventories: [{ id: 'inv-A', stockLevel: 3 }] }],
+                });
+                await inventory;
+            });
+            expect(mockLoad).toHaveBeenCalledTimes(interactionFirst ? 1 : 0);
+            if (!interactionFirst) {
+                expect(result.current.enrichedSelections[0].product.inventories?.[0]?.stockLevel).toBe(3);
+                act(() => {
+                    result.current.api.setState({
+                        selectionRevision: result.current.api.getState().selectionRevision + 1,
+                    });
+                    result.current.api.getState().setSelectedStoreInfo({ id: 'B', inventoryId: 'inv-B' });
+                });
+                expect(mockLoad).toHaveBeenCalledTimes(1);
+            }
+        });
+        it('recovers missing site seeds while pickup is pending without an inventory ID', () => {
+            vi.mocked(usePickupInventory).mockReturnValue({ active: true, status: 'pending', snapshot: null } as never);
+            renderHook(
+                () =>
+                    useBulkChildProductInventory({ childSelections: [createChildSelection(createMockProduct('sku'))] }),
+                { wrapper }
+            );
+            expect(mockLoad).toHaveBeenCalledTimes(1);
+        });
+        it('does not reload an unchanged interaction key when stream status and snapshot change', () => {
+            const selection = (sku: string) => [
+                createChildSelection(
+                    createMockProduct(sku, {
+                        inventory: { id: 'site', ats: 7, orderable: true },
+                    })
+                ),
+            ];
+            vi.mocked(usePickupInventory).mockReturnValue({ active: true, status: 'pending', snapshot: null } as never);
+            const { rerender } = renderHook((props) => useBulkChildProductInventory(props), {
+                wrapper,
+                initialProps: { childSelections: selection('A') },
+            });
+            rerender({ childSelections: selection('B') });
+            expect(mockLoad).toHaveBeenCalledTimes(1);
+            vi.mocked(usePickupInventory).mockReturnValue({
+                active: true,
+                status: 'resolved',
+                snapshot: { products: [{ id: 'A' }] },
+            } as never);
+            rerender({ childSelections: selection('B') });
+            expect(mockLoad).toHaveBeenCalledTimes(1);
+            vi.mocked(usePickupInventory).mockReturnValue({ active: true, status: 'stale', snapshot: null } as never);
+            rerender({ childSelections: selection('B') });
+            expect(mockLoad).toHaveBeenCalledTimes(1);
+        });
+        it.each([
+            'sku',
+            'store',
+        ] as const)('accepts fresh A after completed A and pending/failed B for %s changes', async (scope) => {
+            const props = (key: string) => ({
+                childSelections: [createChildSelection(createMockProduct(scope === 'sku' ? key : 'sku'))],
+                inventoryId: scope === 'store' ? key : undefined,
+            });
+            const response = (key: string, ats: number) => [
+                {
+                    id: scope === 'sku' ? key : 'sku',
+                    inventory: { id: 'site', ats, stockLevel: ats, orderable: ats > 0 },
+                    inventories: [{ id: key, stockLevel: ats, orderable: ats > 0 }],
+                },
+            ];
+            const { result, rerender } = renderHook((input) => useBulkChildProductInventory(input), {
+                wrapper,
+                initialProps: props('A'),
+            });
+            await simulateSuccessfulFetch(response('A', 7), rerender, props('A'));
+            expect(result.current.enrichedSelections[0].product.inventory?.ats).toBe(7);
+            act(() => {
+                updateFetcher(undefined, 'loading', false);
+                rerender(props('B'));
+            });
+            act(() => {
+                updateFetcher(undefined, 'idle', false, ['failed B']);
+                rerender(props('B'));
+            });
+            rerender(props('A'));
+            await simulateSuccessfulFetch(response('B', 99), rerender, props('A'));
+            if (scope === 'store')
+                expect(result.current.enrichedSelections[0].product.inventories?.[0]?.id).not.toBe('B');
+            await simulateSuccessfulFetch(response('A', 2), rerender, props('A'));
+            expect(result.current.enrichedSelections[0].product.inventory?.ats).toBe(2);
+            expect(mockLoad).toHaveBeenCalledTimes(3);
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
+        it('composes bulk inventory through sets and the child current variant after A to B to A', async () => {
+            const seed = { id: 'site', ats: 7, stockLevel: 7, orderable: true };
+            const child = {
+                id: 'master',
+                type: { master: true },
+                variationAttributes: [{ id: 'size', values: [{ value: 'A' }, { value: 'B' }] }],
+                variants: [
+                    { productId: 'A', orderable: true, variationValues: { size: 'A' }, inventory: seed },
+                    { productId: 'B', orderable: true, variationValues: { size: 'B' } },
+                ],
+            };
+            const product = { id: 'set', type: { set: true }, setProducts: [child] };
+            const { result, rerender } = renderHook(
+                ({ sku }) => {
+                    const sets = useProductSetsBundles({ product });
+                    const current = useCurrentVariant({
+                        product: sets.comboProduct.childProducts?.[0] ?? child,
+                        isChildProduct: true,
+                        selectionsOverride: { size: sku },
+                    });
+                    return { sets, current };
+                },
+                { wrapper, initialProps: { sku: 'A' } }
+            );
+            expect(result.current.current).toMatchObject({ inventory: seed });
+            act(() =>
+                result.current.sets.setChildProductSelection('master', {
+                    product: child,
+                    variant: child.variants[1],
+                    quantity: 1,
+                })
+            );
+            rerender({ sku: 'B' });
+            await simulateSuccessfulFetch([{ id: 'B', inventory: { ...seed, ats: 4, stockLevel: 4 } }], rerender, {
+                sku: 'B',
+            });
+            expect(result.current.current).toMatchObject({ productId: 'B', inventory: { stockLevel: 4 } });
+            act(() =>
+                result.current.sets.setChildProductSelection('master', {
+                    product: child,
+                    variant: child.variants[0],
+                    quantity: 3,
+                })
+            );
+            rerender({ sku: 'A' });
+            await simulateSuccessfulFetch([{ id: 'A', inventory: { ...seed, ats: 2, stockLevel: 2 } }], rerender, {
+                sku: 'A',
+            });
+            expect(result.current.current).toMatchObject({ productId: 'A', inventory: { ats: 2, stockLevel: 2 } });
+            expect(
+                isSiteOutOfStock(result.current.sets.comboProduct.childProducts?.[0], 3, result.current.current)
+            ).toBe(true);
+            expect(result.current.sets.productWithCalculatedInventory.inventory?.stockLevel).toBe(0);
+            expect(mockLoad).toHaveBeenCalledTimes(2);
+        });
+        it('does not borrow a different SKU from a late bulk response sharing the master', async () => {
+            const selection = createChildSelection(createMockProduct('master'), { variant: { productId: 'large' } });
+            const { result, rerender } = renderHook(
+                () => useBulkChildProductInventory({ childSelections: [selection] }),
+                { wrapper }
+            );
+            await simulateSuccessfulFetch(
+                [{ id: 'small', master: { masterId: 'master' }, inventory: { id: 'site', ats: 99 } }],
+                rerender
+            );
+            expect(result.current.enrichedSelections[0].product.inventory).toBeUndefined();
+        });
+        it('uses refreshed exact SKU inventory after returning to a server-seeded selection', async () => {
+            const inventory = { id: 'site', ats: 7, stockLevel: 7, orderable: true };
+            const childSelections = [
+                createChildSelection(createMockProduct('master'), { variant: { productId: 'small', inventory } }),
+            ];
+            const { result, rerender } = renderHook((props) => useBulkChildProductInventory(props), {
+                wrapper,
+                initialProps: { childSelections },
+            });
+            rerender({
+                childSelections: [
+                    createChildSelection(createMockProduct('master'), { variant: { productId: 'large' } }),
+                ],
+            });
+            rerender({ childSelections });
+            const updated = { ...inventory, ats: 2, stockLevel: 2 };
+            await simulateSuccessfulFetch([{ id: 'small', inventory: updated }], rerender, { childSelections });
+            expect(result.current.enrichedSelections[0].variant).toMatchObject({
+                productId: 'small',
+                inventory: updated,
+            });
+        });
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        it('does not let an old streamed seed suppress returning to the initial SKU after an interaction', () => {
+            const inventory = { id: 'site', stockLevel: 7, orderable: true };
+            const childSelections = [
+                createChildSelection(createMockProduct('master'), { variant: { productId: 'small', inventory } }),
+            ];
+            vi.mocked(usePickupInventory).mockReturnValue({ active: true, status: 'pending', snapshot: null } as never);
+            const { rerender } = renderHook((props) => useBulkChildProductInventory(props), {
+                wrapper,
+                initialProps: { childSelections },
+            });
+            rerender({
+                childSelections: [
+                    createChildSelection(createMockProduct('master'), { variant: { productId: 'large' } }),
+                ],
+            });
+            expect(mockLoad).toHaveBeenCalledTimes(1);
+            vi.mocked(usePickupInventory).mockReturnValue({
+                active: true,
+                status: 'resolved',
+                snapshot: { products: [{ id: 'small', inventory }] },
+            } as never);
+            rerender({ childSelections });
+            expect(mockLoad).toHaveBeenCalledTimes(2);
+        });
+        it('retains delivery seeds when pickup resolves empty and fetches a new SKU while pickup is pending', () => {
+            const inventory = { id: 'site', stockLevel: 7, orderable: true };
+            vi.mocked(usePickupInventory).mockReturnValue({ active: true, status: 'pending', snapshot: null } as never);
+            const childSelections = [
+                createChildSelection(createMockProduct('master'), { variant: { productId: 'small', inventory } }),
+            ];
+            const { result, rerender } = renderHook((props) => useBulkChildProductInventory(props), {
+                wrapper,
+                initialProps: { childSelections },
+            });
+            vi.mocked(usePickupInventory).mockReturnValue({
+                active: true,
+                status: 'empty',
+                snapshot: { products: [] },
+            } as never);
+            rerender({ childSelections });
+            expect(mockLoad).not.toHaveBeenCalled();
+            expect(result.current.enrichedSelections[0].product.inventory).toEqual(inventory);
+            vi.mocked(usePickupInventory).mockReturnValue({ active: true, status: 'pending', snapshot: null } as never);
+            rerender({
+                childSelections: [
+                    createChildSelection(createMockProduct('master'), { variant: { productId: 'large' } }),
+                ],
+            });
+            expect(mockLoad).toHaveBeenCalledTimes(1);
+        });
+        it('reuses exact server inventory on mount but fetches a changed SKU or store', () => {
+            const inventory = { id: 'site', stockLevel: 7, ats: 7, orderable: true };
+            const childSelections = [
+                createChildSelection(createMockProduct('master'), {
+                    variant: { productId: 'small', inventory },
+                }),
+            ];
+            const { result, rerender } = renderHook((props) => useBulkChildProductInventory(props), {
+                wrapper,
+                initialProps: { childSelections, inventoryId: undefined as string | undefined },
+            });
+            expect(mockLoad).not.toHaveBeenCalled();
+            expect(result.current.enrichedSelections[0].product.inventory).toEqual(inventory);
+            rerender({ childSelections, inventoryId: 'store-B' });
+            expect(mockLoad).toHaveBeenCalledTimes(1);
+            rerender({
+                childSelections: [
+                    createChildSelection(createMockProduct('master'), {
+                        variant: { productId: 'large' },
+                    }),
+                ],
+                inventoryId: undefined,
+            });
+            expect(mockLoad).toHaveBeenCalledTimes(2);
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
+        it('still fetches a changed SKU when that variant also carries inventory', () => {
+            const inventory = { id: 'site', stockLevel: 7, orderable: true };
+            const selection = (id: string) => [
+                createChildSelection(createMockProduct('master'), { variant: { productId: id, inventory } }),
+            ];
+            const { rerender } = renderHook((props) => useBulkChildProductInventory(props), {
+                wrapper,
+                initialProps: { childSelections: selection('small') },
+            });
+            expect(mockLoad).not.toHaveBeenCalled();
+            rerender({ childSelections: selection('large') });
+            expect(mockLoad).toHaveBeenCalledTimes(1);
+        });
         it('should return original selections when no product IDs are provided', () => {
             const { result } = renderHook(
                 () =>
@@ -644,7 +1114,7 @@ describe('useBulkChildProductInventory', () => {
             const variant = createMockVariant('variant-1');
             const selection = createChildSelection(product, { variant, quantity: 2 });
 
-            const enrichedProduct = createMockProduct('product-1', {
+            const enrichedProduct = createMockProduct('variant-1', {
                 inventory: { id: 'inventory-1', ats: 15, orderable: true },
                 inventories: [
                     {
@@ -671,7 +1141,8 @@ describe('useBulkChildProductInventory', () => {
                 const enriched = result.current.enrichedSelections[0];
                 expect(enriched.product.inventory?.ats).toBe(15);
                 expect(enriched.quantity).toBe(2);
-                expect(enriched.variant).toEqual(variant);
+                expect(enriched.variant).toMatchObject(variant);
+                expect(enriched.variant).toHaveProperty('inventory', enrichedProduct.inventory);
             });
         });
     });

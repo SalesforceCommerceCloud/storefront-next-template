@@ -18,7 +18,7 @@ import { createContext, type MiddlewareFunction, type RouterContextProvider } fr
 import { isValidCookieDomain } from '../cookie-domain';
 import { getSiteFromIdOrAlias, resolveSite } from './site-detection';
 import type { SiteConfig, SiteContext, SiteSettings, Site, Locale, PreviewOptions } from './types';
-import { DEFAULT_SITE_DETECTION, DEFAULT_LOCALE_DETECTION, DEFAULT_CURRENCY_COOKIE_NAME } from './configs';
+import { resolveSiteDetectionConfig, resolveLocaleDetectionConfig, DEFAULT_CURRENCY_COOKIE_NAME } from './configs';
 import { createSiteContextCookie, createCurrencyCookie, requestToLocaleMap } from './cookies';
 import { getLocaleFromIdOrAlias, resolveLocale } from './locale-detection';
 import { resolveCurrency } from './currency-detection';
@@ -151,6 +151,66 @@ async function shouldSetCookies(
 }
 
 /**
+ * Resolve detection defaults and create the cookie instances for a site context config.
+ * Shared by the middleware and by consumers that call {@link resolveSiteContext} or
+ * {@link serializeContextCookies} outside the middleware chain.
+ */
+export function createSiteSettings(config: SiteConfig, cookieOptions = config.cookieOptions): SiteSettings {
+    // Merge config with defaults so every detection option has a value
+    const siteDetectionConfig = resolveSiteDetectionConfig(config.siteDetectionConfig);
+    const localeDetectionConfig = resolveLocaleDetectionConfig(config.localeDetectionConfig);
+
+    const siteCookie = createSiteContextCookie(siteDetectionConfig.lookupCookie, cookieOptions);
+    const localeCookie = createSiteContextCookie(localeDetectionConfig.lookupCookie, cookieOptions);
+    // Currency is JS-readable so the client can restore the selected currency under a
+    // cached app shell. Scoped to this cookie only — site/locale stay httpOnly.
+    const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, {
+        ...cookieOptions,
+        httpOnly: false,
+    });
+
+    return { ...config, siteDetectionConfig, localeDetectionConfig, siteCookie, localeCookie, currencyCookie };
+}
+
+/**
+ * Serialize the `Set-Cookie` headers the middleware would write for a resolved context:
+ * only cookies whose caching is enabled, whose value differs from the request's cookie,
+ * and that `response` does not already set. Returns site, locale, then currency cookies.
+ */
+export async function serializeContextCookies(
+    request: Request,
+    response: Response,
+    settings: SiteSettings,
+    { site, locale, currency }: ResolvedSiteContext
+): Promise<string[]> {
+    const { shouldSetSiteCookie, shouldSetLocaleCookie, shouldSetCurrencyCookie } = await shouldSetCookies(
+        request,
+        response,
+        settings,
+        site,
+        locale,
+        currency
+    );
+
+    // Per-site cookie domain (commerce.sites[].cookies.domain) takes precedence over the
+    // global default carried in cookieOptions.domain. Resolved at serialize time because the
+    // cookie instances are created before the request's site is known. serialize() merges
+    // these options over the cookie's baked-in options, so this overrides only the domain.
+    // Unset → no Domain attribute (host-only scoping). A misconfigured value (wildcard/
+    // separator/whitespace) also falls back to host-only rather than emit a malformed,
+    // browser-rejected Set-Cookie; the template's resolveCookieDomain logs that misconfig.
+    const cookieDomain = site.cookies?.domain || settings.cookieOptions?.domain;
+    const domainOpt = cookieDomain && isValidCookieDomain(cookieDomain) ? { domain: cookieDomain } : {};
+
+    const cookies = await Promise.all([
+        shouldSetSiteCookie ? settings.siteCookie.serialize(site.id, { path: '/', ...domainOpt }) : null,
+        shouldSetLocaleCookie ? settings.localeCookie.serialize(locale.id, { path: '/', ...domainOpt }) : null,
+        shouldSetCurrencyCookie ? settings.currencyCookie.serialize(currency, { ...domainOpt }) : null,
+    ]);
+    return cookies.filter((cookie): cookie is string => !!cookie);
+}
+
+/**
  * Creates a site context middleware that resolves the current site from
  * the request (path, cookie, header, query, or default) and stores the
  * result in the router context.
@@ -161,16 +221,6 @@ export function createSiteContextMiddleware(
     config: SiteConfig,
     previewOptions?: PreviewOptions
 ): MiddlewareFunction<Response> {
-    // Merge config with defaults so every detection option has a value
-    const siteDetectionConfig: SiteSettings['siteDetectionConfig'] = {
-        ...DEFAULT_SITE_DETECTION,
-        ...config.siteDetectionConfig,
-    };
-    const localeDetectionConfig: SiteSettings['localeDetectionConfig'] = {
-        ...DEFAULT_LOCALE_DETECTION,
-        ...config.localeDetectionConfig,
-    };
-
     const siteContextMiddleware: MiddlewareFunction<Response> = async (
         { request, context }: MiddlewareArgs,
         next: () => Promise<Response>
@@ -182,22 +232,7 @@ export function createSiteContextMiddleware(
         const cookieOptions = isPageDesignerRequest
             ? { ...config.cookieOptions, sameSite: 'none' as const, secure: true, partitioned: true }
             : config.cookieOptions;
-        const siteCookie = createSiteContextCookie(siteDetectionConfig.lookupCookie, cookieOptions);
-        const localeCookie = createSiteContextCookie(localeDetectionConfig.lookupCookie, cookieOptions);
-        // Currency is JS-readable so the client can restore the selected currency under a
-        // cached app shell. Scoped to this cookie only — site/locale stay httpOnly.
-        const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, {
-            ...cookieOptions,
-            httpOnly: false,
-        });
-        const settings: SiteSettings = {
-            ...config,
-            siteDetectionConfig,
-            localeDetectionConfig,
-            siteCookie,
-            localeCookie,
-            currencyCookie,
-        };
+        const settings = createSiteSettings(config, cookieOptions);
 
         const selected = resolvePreviewSiteLocale(request, settings, previewOptions);
         const { site, locale, currency } = selected
@@ -225,48 +260,11 @@ export function createSiteContextMiddleware(
             selected && previewOptions && createPreviewRedirect(request, previewOptions, site, locale);
         const response = previewRedirect ?? (await next());
 
-        // Determine if cookies should be set.
         // Actions that change currency (or site/locale) set their cookies directly on the response;
-        // shouldSetCookies detects those Set-Cookie headers and skips to avoid overriding.
-        const { shouldSetSiteCookie, shouldSetLocaleCookie, shouldSetCurrencyCookie } = await shouldSetCookies(
-            request,
-            response,
-            settings,
-            site,
-            locale,
-            currency
-        );
-
-        // Early return if no cookies need to be set
-        if (!shouldSetSiteCookie && !shouldSetLocaleCookie && !shouldSetCurrencyCookie) {
-            return response;
+        // serializeContextCookies skips those to avoid overriding them.
+        for (const cookie of await serializeContextCookies(request, response, settings, { site, locale, currency })) {
+            response.headers.append('Set-Cookie', cookie);
         }
-
-        // Per-site cookie domain (commerce.sites[].cookies.domain) takes precedence over the
-        // global default carried in cookieOptions.domain. Resolved at serialize time because the
-        // cookie instances are created before the request's site is known. serialize() merges
-        // these options over the cookie's baked-in options, so this overrides only the domain.
-        // Unset → no Domain attribute (host-only scoping). A misconfigured value (wildcard/
-        // separator/whitespace) also falls back to host-only rather than emit a malformed,
-        // browser-rejected Set-Cookie; the template's resolveCookieDomain logs that misconfig.
-        const cookieDomain = site.cookies?.domain || settings.cookieOptions?.domain;
-        const domainOpt = cookieDomain && isValidCookieDomain(cookieDomain) ? { domain: cookieDomain } : {};
-
-        const [siteSetCookie, localeSetCookie, currencySetCookie] = await Promise.all([
-            shouldSetSiteCookie
-                ? settings.siteCookie.serialize(site.id, { path: '/', ...domainOpt })
-                : Promise.resolve(null),
-            shouldSetLocaleCookie
-                ? settings.localeCookie.serialize(locale.id, { path: '/', ...domainOpt })
-                : Promise.resolve(null),
-            shouldSetCurrencyCookie
-                ? settings.currencyCookie.serialize(currency, { ...domainOpt })
-                : Promise.resolve(null),
-        ]);
-
-        if (siteSetCookie) response.headers.append('Set-Cookie', siteSetCookie);
-        if (localeSetCookie) response.headers.append('Set-Cookie', localeSetCookie);
-        if (currencySetCookie) response.headers.append('Set-Cookie', currencySetCookie);
 
         return response;
     };

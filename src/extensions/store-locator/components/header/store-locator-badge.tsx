@@ -13,88 +13,92 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { lazy, Suspense, useState, useEffect, type ReactElement } from 'react';
+/** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Store } from 'lucide-react';
-import { useStoreLocator } from '../../providers/store-locator';
+import { MapPin, Store } from 'lucide-react';
+import { SelectedStoreBoundary, useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
+import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
 
-const StoreLocatorSheet = lazy(() => import('@/extensions/store-locator/components/header/store-locator-sheet'));
+const MAX_STORE_NAME_LENGTH = 24;
 
-/**
- * StoreLocatorBadge
- *
- * Defers loading of the store locator UI until the shopper first interacts with the
- * badge button. This keeps initial bundles small and improves first-load performance.
- *
- * The sheet is lazy-loaded on demand via React.lazy (cached after first load) and wrapped with Suspense.
- * Uses isOpen state to control both lazy loading trigger and sheet visibility.
- *
- * @returns ReactElement
- *
- * @example
- * // Render in the site header
- * import StoreLocatorBadge from '@/extensions/store-locator/components/header/store-locator-badge';
- *
- * export function HeaderRightActions() {
- *     return (
- *         <nav>
- *             <StoreLocatorBadge />
- *         </nav>
- *     );
- * }
- */
+function truncateStoreName(storeName: string): string {
+    return storeName.length > MAX_STORE_NAME_LENGTH
+        ? `${storeName.slice(0, MAX_STORE_NAME_LENGTH).trimEnd()}...`
+        : storeName;
+}
+
 export default function StoreLocatorBadge(): ReactElement {
+    return (
+        <SelectedStoreBoundary fallback={<span className="inline-block h-9 w-32" aria-hidden="true" />}>
+            {(selection) => <StoreLocatorBadgeContent selection={selection} />}
+        </SelectedStoreBoundary>
+    );
+}
+
+function StoreLocatorBadgeContent({ selection }: { selection?: SelectedStoreInfo | null }): ReactElement {
     const { t } = useTranslation('extStoreLocator');
-    const [clicked, setClicked] = useState<boolean>(false);
-    const globalIsOpen = useStoreLocator((state) => state.isOpen);
-    const closeStoreLocator = useStoreLocator((state) => state.close);
+    const currentSelection = useStoreLocator((state) => state.selectedStoreInfo);
+    const selectedStoreInfo = selection === undefined ? currentSelection : selection;
+    const isOpen = useStoreLocator((state) => state.isOpen);
+    const openStoreLocator = useStoreLocator((state) => state.open);
+    const openSelectedStore = useStoreLocator((state) => state.openSelectedStore);
+    const distanceUnit = useStoreLocator((state) => state.config.radiusUnit);
+    const selectedStoreName = selectedStoreInfo?.name ?? '';
+    const selectedStoreDistance =
+        selectedStoreInfo && typeof selectedStoreInfo.distance === 'number'
+            ? `${selectedStoreInfo.distance.toFixed(2)} ${distanceUnit}`
+            : undefined;
+    const selectedStoreLabel = selectedStoreDistance
+        ? `${selectedStoreName} · ${selectedStoreDistance}`
+        : selectedStoreName || undefined;
+    const visibleStoreLabel =
+        selectedStoreInfo && selectedStoreName
+            ? selectedStoreDistance
+                ? `${truncateStoreName(selectedStoreName)} · ${selectedStoreDistance}`
+                : truncateStoreName(selectedStoreName)
+            : selectedStoreLabel;
+    const storeAriaLabel = selectedStoreInfo
+        ? selectedStoreInfo.postalCode
+            ? t('storeLocator.trigger.selectedAriaLabel', {
+                  storeName: visibleStoreLabel,
+                  postalCode: selectedStoreInfo.postalCode,
+              })
+            : t('storeLocator.trigger.selectedWithoutPostalAriaLabel', { storeName: visibleStoreLabel })
+        : t('storeLocator.trigger.chooseAriaLabel');
+    const triggerClassName = 'hover:bg-transparent hover:opacity-50 transition-opacity';
+    const openSelectedStoreLocator = selectedStoreInfo ? openSelectedStore : openStoreLocator;
 
-    // Sync with global state - if global state says open, trigger local state
-    useEffect(() => {
-        if (globalIsOpen && !clicked) {
-            setClicked(true);
-        }
-    }, [globalIsOpen, clicked]);
-
-    // Handle closing - update both local and global state
-    const handleOpenChange = (open: boolean) => {
-        if (!open) {
-            setClicked(false);
-            closeStoreLocator();
-        }
-    };
-
-    if (clicked) {
+    if (selectedStoreInfo?.postalCode) {
         return (
-            <Suspense
-                fallback={
-                    <Button
-                        variant="ghost"
-                        className="pointer-events-none hover:bg-transparent"
-                        aria-label={t('storeLocator.trigger.ariaLabel')}>
-                        <Store className="size-6" />
-                    </Button>
-                }>
-                <StoreLocatorSheet open={true} onOpenChange={handleOpenChange}>
-                    <Button
-                        variant="ghost"
-                        className="hover:bg-transparent hover:opacity-50 transition-opacity"
-                        aria-label={t('storeLocator.trigger.openAriaLabel')}>
-                        <Store className="size-6" />
-                    </Button>
-                </StoreLocatorSheet>
-            </Suspense>
+            <Button
+                variant="ghost"
+                className={triggerClassName}
+                onClick={() => openSelectedStoreLocator()}
+                aria-haspopup="dialog"
+                aria-expanded={isOpen}
+                aria-label={storeAriaLabel}
+                data-slot="store-locator-selected-store">
+                <Store className="size-6" aria-hidden="true" />
+                <span className="hidden lg:inline">{visibleStoreLabel}</span>
+                <span className="mx-0.5 hidden h-4 w-px bg-current/30 lg:block" aria-hidden="true" />
+                <MapPin className="size-5" aria-hidden="true" />
+                <span className="hidden lg:inline">{selectedStoreInfo.postalCode}</span>
+            </Button>
         );
     }
 
     return (
         <Button
             variant="ghost"
-            className="hover:bg-transparent hover:opacity-50 transition-opacity"
-            onClick={() => setClicked(true)}
-            aria-label={t('storeLocator.trigger.ariaLabel')}>
-            <Store className="size-6" />
+            className={triggerClassName}
+            onClick={() => openSelectedStoreLocator()}
+            aria-haspopup="dialog"
+            aria-expanded={isOpen}
+            aria-label={storeAriaLabel}>
+            <Store className="size-6" aria-hidden="true" />
+            <span className="hidden lg:inline">{selectedStoreInfo ? visibleStoreLabel : storeAriaLabel}</span>
         </Button>
     );
 }

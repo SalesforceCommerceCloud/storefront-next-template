@@ -367,6 +367,7 @@
         "insufficientStock": "Not enough stock available"
     },
     "cart": {
+        "handoffWarning": "You are signed in, but we could not confirm that your cart was transferred. Review your cart before checking out.",
         "title": "Cart",
         "loadingLabel": "Loading your cart",
         "delivery": {
@@ -841,7 +842,8 @@
                 "changeStore": "Change store",
                 "noStoreSelected": "No store selected. Use the store locator to choose your preferred store for pickup.",
                 "storeHoursTitle": "Store Hours",
-                "error": "Failed to load store details. Please try again later."
+                "error": "Failed to load store details. Please try again later.",
+                "savedStoreUnavailable": "Your saved store is unavailable on this site. You can change it."
             },
             "authorizedPickupPeople": {
                 "heading": "Authorised Pickup People",

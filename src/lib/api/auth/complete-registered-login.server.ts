@@ -15,7 +15,9 @@
  */
 import type { AuthResponse } from '@/scapi';
 import type { RouterContextProvider } from 'react-router';
-import { updateAuth } from '@/middlewares/auth.server';
+import { getAuth, updateAuth } from '@/middlewares/auth.server';
+import { registeredLoginCompletedContext, completedLoginRecoveryContext } from '@/middlewares/auth.utils';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { getLogger } from '@/lib/logger.server';
 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
 import {
@@ -26,7 +28,14 @@ import {
 import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
-/** Complete every explicit login before basket transfer. Refresh continues using updateAuth. */
+/**
+ * Complete every explicit login before basket transfer. Refresh continues using updateAuth.
+ *
+ * Order: capture guest intent and source basket, authenticate, publish credentials (updateAuth invalidates
+ * identity-bound commerce helpers), initialize completed-login recovery state, reconcile store context. The
+ * caller transfers or recovers the basket only after this resolves, so reconciliation and transfer never overlap.
+ * Recovery state reads only the auth session and site, never store context.
+ */
 export async function completeRegisteredLogin(
     context: Readonly<RouterContextProvider>,
     authenticate: () => Promise<AuthResponse>
@@ -37,6 +46,14 @@ export async function completeRegisteredLogin(
     // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
     assertStoreSelectionLoginSession(context, response, sourceHasItems);
     updateAuth(context, response);
+    context.set(registeredLoginCompletedContext, true);
+    const auth = getAuth(context);
+    context.set(completedLoginRecoveryContext, {
+        customerId: auth.customerId,
+        usid: auth.usid,
+        siteId: context.get(completedLoginRecoveryContext)?.siteId ?? context.get(siteContext)?.site.id ?? '',
+        guard: context.get(completedLoginRecoveryContext)?.guard ?? false,
+    });
     // Authentication has succeeded even if a later commerce operation fails.
     getLogger(context).info('Authentication completed', {
         actor: response.customer_id,
@@ -45,6 +62,18 @@ export async function completeRegisteredLogin(
         timestamp: new Date().toISOString(),
         outcome: 'success',
     });
+    if (auth.userType === 'registered') {
+        // Warn keeps audit outcomes visible at the default production log level.
+        // Actor is a role; request attribution comes from the logger's correlation ID.
+        getLogger(context).warn('Auth audit', {
+            category: 'auth-audit',
+            actor: 'registered-shopper',
+            action: 'login',
+            target: 'authenticated-session',
+            timestamp: new Date().toISOString(),
+            outcome: 'success',
+        });
+    }
     // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
     try {
         await reconcileStoreAfterAuthentication(context, sourceHasItems);

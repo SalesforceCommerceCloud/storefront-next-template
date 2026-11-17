@@ -14,70 +14,27 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within, userEvent } from 'storybook/test';
+import { expect, fn, userEvent, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
-import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react';
-import { action } from 'storybook/actions';
+import type { ReactNode } from 'react';
 import StoreLocatorSheet from '../store-locator-sheet';
 import { Button } from '@/components/ui/button';
 import StoreLocatorProvider from '@/extensions/store-locator/providers/store-locator';
 
-function ActionLogger({ children }: { children: ReactNode }): ReactElement {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        const root = containerRef.current;
-        if (!root) return;
-
-        const logClick = action('interaction');
-
-        const handleClick = (event: MouseEvent) => {
-            const target = event.target as HTMLElement | null;
-            if (!target || !root.contains(target)) return;
-
-            // Prevent navigation on links
-            const link = target.closest('a');
-            if (link) {
-                event.preventDefault();
-                const href = link.getAttribute('href');
-                logClick({ type: 'click', element: 'link', href, label: link.textContent?.trim() });
-                return;
-            }
-
-            // Log button clicks
-            const button = target.closest('button, [role="button"]');
-            if (button) {
-                const label =
-                    button.textContent?.trim() || button.getAttribute('aria-label') || button.tagName.toLowerCase();
-                logClick({ type: 'click', element: button.tagName.toLowerCase(), label });
-            }
-        };
-
-        root.addEventListener('click', handleClick, true);
-
-        return () => {
-            root.removeEventListener('click', handleClick, true);
-        };
-    }, []);
-
-    return <div ref={containerRef}>{children}</div>;
-}
-
-function StoryWrapper({ children }: { children: ReactNode }) {
-    const [open, setOpen] = useState(false);
-
+function StoryWrapper({
+    children,
+    open,
+    onOpenChange,
+}: {
+    children: ReactNode;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}) {
     return (
         <StoreLocatorProvider>
-            <ActionLogger>
-                <StoreLocatorSheet open={open} onOpenChange={setOpen}>
-                    {children}
-                </StoreLocatorSheet>
-                {!open && (
-                    <Button onClick={() => setOpen(true)} className="mt-4">
-                        Open Store Locator
-                    </Button>
-                )}
-            </ActionLogger>
+            <StoreLocatorSheet open={open} onOpenChange={onOpenChange}>
+                {children}
+            </StoreLocatorSheet>
         </StoreLocatorProvider>
     );
 }
@@ -85,9 +42,16 @@ function StoryWrapper({ children }: { children: ReactNode }) {
 const meta: Meta<typeof StoreLocatorSheet> = {
     title: 'Extensions/Store Locator/Store Locator Sheet',
     component: StoreLocatorSheet,
-    tags: ['autodocs', 'interaction'],
+    tags: ['autodocs'],
     parameters: {
         layout: 'padded',
+        // Luxury's Store Locator fetches boutique data as it mounts.
+        mockRoutes: [
+            {
+                path: '/resource/boutiques',
+                loader: () => ({ success: true, stores: [] }),
+            },
+        ],
         docs: {
             description: {
                 component: `
@@ -109,27 +73,28 @@ This component wraps the StoreLocator component in a sheet overlay, typically tr
     },
     argTypes: {
         open: {
-            description: 'Controlled open state',
+            description: 'Whether the controlled sheet is open.',
             control: 'boolean',
         },
         onOpenChange: {
-            description: 'Callback when open state changes',
-            action: 'onOpenChange',
+            table: { disable: true },
         },
     },
-    decorators: [
-        (_Story: React.ComponentType) => (
-            <StoryWrapper>
-                <Button variant="ghost">Open Store Locator</Button>
-            </StoryWrapper>
-        ),
-    ],
+    render: (args) => (
+        <StoryWrapper open={args.open} onOpenChange={args.onOpenChange}>
+            <Button variant="ghost">Open Store Locator</Button>
+        </StoryWrapper>
+    ),
 };
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+    args: {
+        open: false,
+        onOpenChange: fn(),
+    },
     parameters: {
         // The luxury sheet body seeds its branded boutique list from this route on open; harmless for fashion.
         mockRoutes: [
@@ -144,43 +109,18 @@ export const Default: Story = {
         ],
         docs: {
             description: {
-                story: `
-Default store locator sheet showing:
-- Sheet overlay with store locator content
-- Header with title and description
-- Store locator form and list
-- Close button
-
-This is the default state when the sheet is open.
-                `,
+                story: 'Closed state with the real trigger. Select `open` in Controls to inspect the sheet without changing its story fixture.',
             },
         },
-    },
-    play: async ({ canvasElement: _canvasElement }) => {
-        await waitForStorybookReady(_canvasElement);
-
-        // Store locator sheet renders in a portal, so check document.body
-        const documentBody = within(document.body);
-        const canvas = within(_canvasElement);
-
-        // Find and click the button to open the sheet
-        // There may be multiple buttons, so get all and use the first one
-        const buttons = await canvas.findAllByRole('button', { name: /open store locator/i }, { timeout: 5000 });
-        await expect(buttons.length).toBeGreaterThan(0);
-        const openButton = buttons[0];
-
-        await userEvent.click(openButton);
-
-        // Wait for sheet to open
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Wait for store locator sheet to open
-        const sheet = await documentBody.findByRole('dialog', { hidden: false }, { timeout: 5000 });
-        await expect(sheet).toBeInTheDocument();
     },
 };
 
-export const MobileLayout: Story = {
+export const Open: Story = {
+    tags: ['interaction'],
+    args: {
+        open: true,
+        onOpenChange: fn(),
+    },
     parameters: {
         // The luxury sheet body seeds its branded boutique list from this route on open; harmless for fashion.
         mockRoutes: [
@@ -195,41 +135,15 @@ export const MobileLayout: Story = {
         ],
         docs: {
             description: {
-                story: `
-Store locator sheet optimized for mobile devices. Shows:
-- Full-width sheet on mobile
-- Mobile-optimized layout
-- Touch-friendly interactions
-
-The component automatically adapts for mobile screens.
-                `,
+                story: 'Open controlled sheet with the Store Locator form and initial empty results state. The sheet is intentionally forced into its mobile locator layout.',
             },
         },
     },
-    globals: {
-        viewport: 'mobile2',
-    },
-    play: async ({ canvasElement: _canvasElement }) => {
-        await waitForStorybookReady(_canvasElement);
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
 
-        // Store locator sheet renders in a portal, so check document.body
-        const documentBody = within(document.body);
-        const canvas = within(_canvasElement);
-
-        // Find and click the button to open the sheet
-        // There may be multiple buttons, so get all and use the first one
-        const buttons = await canvas.findAllByRole('button', { name: /open store locator/i }, { timeout: 5000 });
-        await expect(buttons.length).toBeGreaterThan(0);
-        const openButton = buttons[0];
-
-        await userEvent.click(openButton);
-
-        // Wait for sheet to open
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Wait for store locator sheet to open
-        const sheet = await documentBody.findByRole('dialog', { hidden: false }, { timeout: 5000 });
-        await expect(sheet).toBeInTheDocument();
+        const dialog = await within(document.body).findByRole('dialog');
+        await expect(dialog).toBeInTheDocument();
     },
 };
 

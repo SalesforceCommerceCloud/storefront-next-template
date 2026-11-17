@@ -28,6 +28,7 @@ import {
     Scripts,
     ScrollRestoration,
     useLocation,
+    useHref,
     useRevalidator,
     useRouteLoaderData,
 } from 'react-router';
@@ -51,7 +52,7 @@ import {
 
 // Middlewares
 import authMiddlewareServer, { getAuth as getAuthServer } from '@/middlewares/auth.server';
-import { getPublicSessionData } from '@/middlewares/auth.utils';
+import { COOKIE_AUTH_RECOVERY_GUARD, getPublicSessionData } from '@/middlewares/auth.utils';
 import createBasketMiddleware, { basketResourceContext, type BasketSnapshot } from '@/middlewares/basket.server';
 import shopperContextMiddlewareServer from '@/middlewares/shopper-context.server';
 import { userTypeHintMiddleware } from '@/middlewares/user-type-hint.server';
@@ -70,9 +71,8 @@ import { i18nextMiddleware } from '@/middlewares/i18next.server';
 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
 import {
     selectedStoreMiddleware,
-    selectedStoreContext,
+    homeStorePromptDismissedContext,
 } from '@/extensions/store-locator/middlewares/selected-store.server';
-import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
 // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 import { correlationMiddleware } from '@/middlewares/correlation.server';
 import { requestOriginMiddleware } from '@/middlewares/request-origin';
@@ -90,6 +90,7 @@ import { errorCacheControlMiddleware } from '@/middlewares/error-cache-control.s
 
 // Components
 import { CartMutationToastWatcher } from '@/components/cart/cart-mutation-toast-watcher';
+import { BasketHandoffWarning } from '@/components/cart/basket-handoff-warning';
 
 // Providers
 import AuthProvider from '@/providers/auth';
@@ -134,7 +135,10 @@ import {
     shoppingContext,
     type ShoppingContext,
 } from '@/extensions/store-locator/lib/store-selection.server';
-import StoreLocatorProvider from '@/extensions/store-locator/providers/store-locator';
+import StoreLocatorProvider, { type SelectedStoreResolution } from '@/extensions/store-locator/providers/store-locator';
+import { resolveSelectedStore } from '@/extensions/store-locator/lib/resolve-selected-store.server';
+import { STORE_RECOVER_COOKIE } from '@/extensions/store-locator/lib/late-auth-recovery';
+import { getCookieNameWithSiteId, parseAllCookies } from '@/lib/cookie-utils.server';
 // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 import { type Maintenance, maintenanceContext } from '@/lib/maintenance';
 
@@ -177,7 +181,8 @@ export const middleware: MiddlewareFunction<Response>[] = [
     // createOrder call (W-23493124). Order-independent — the factory reads the value off the
     // inbound request and closes over it; it depends on no other middleware's context.
     attributionForwardingMiddleware,
-    selectedStoreMiddleware /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    selectedStoreMiddleware,
     performanceMetricsMiddlewareServer,
     maintenanceMiddleware,
     authMiddlewareServer,
@@ -207,10 +212,10 @@ import { i18nextOnClient } from '@/i18n-client-init';
 
 export { shouldRevalidate } from '@/lib/revalidation/routes/root';
 
-export const loader = ({
+export const loader = async ({
     context,
     request,
-}: Route.LoaderArgs): {
+}: Route.LoaderArgs): Promise<{
     // Public auth data - only non-sensitive fields, safe to serialize
     clientAuth: PublicSessionData;
     // Client-safe view: extractClientConfig strips app.serverExtension before this loader
@@ -225,7 +230,8 @@ export const loader = ({
     site: Site;
     currency: string;
     shoppingContext: ShoppingContext | null /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
-    selectedStoreInfo: SelectedStoreInfo | null /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
+    selectedStoreResolution: Promise<SelectedStoreResolution> /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
+    homeStorePromptDismissed: boolean /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
     correlationId: string;
     pageDesignerPageUpdateMode: PageUpdateMode;
     pageDesignerMode: 'EDIT' | 'PREVIEW' | undefined;
@@ -237,7 +243,7 @@ export const loader = ({
     errorTranslations: Record<string, unknown>;
     // CSP nonce for inline scripts; null when security headers middleware is disabled
     nonce: string | null;
-} => {
+}> => {
     const session = getAuthServer(context);
 
     const appConfig = getConfig(context);
@@ -247,7 +253,18 @@ export const loader = ({
     const { i18next } = getTranslation(context);
 
     // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
-    const selectedStoreInfo = context.get(selectedStoreContext) ?? null;
+    const selectedStoreResolution = resolveSelectedStore(context).then(({ selectedStoreInfo, error, authError }) => ({
+        selectedStoreInfo,
+        error,
+        authError,
+    }));
+    // One-shot client retry after a late 401: await the read so the auth middleware sees the 401 before the
+    // response head is sent and can refresh. Skipped when the loop guard is present (a second 401 would throw).
+    const cookies = parseAllCookies(request.headers.get('cookie'));
+    // The auth middleware namespaces its guard cookie by site, so read it under the same name.
+    const recoveryGuard = cookies[getCookieNameWithSiteId(COOKIE_AUTH_RECOVERY_GUARD, context)];
+    if (cookies[STORE_RECOVER_COOKIE] && !recoveryGuard) await selectedStoreResolution;
+    const homeStorePromptDismissed = context.get(homeStorePromptDismissedContext) ?? false;
     // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
     // Get resolved site, locale, and currency from site context middleware
@@ -299,8 +316,9 @@ export const loader = ({
         locale,
         site,
         currency,
-        selectedStoreInfo /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
         shoppingContext: context.get(shoppingContext) /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
+        selectedStoreResolution /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
+        homeStorePromptDismissed /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
         correlationId,
         maintenance,
         clientAuth,
@@ -315,7 +333,7 @@ export const loader = ({
 
 // This creates a union type where properties unique to either loader are optional
 // Properties present in both loaders remain required
-type ServerLoaderData = ReturnType<typeof loader>;
+type ServerLoaderData = Awaited<ReturnType<typeof loader>>;
 type LoaderData = ServerLoaderData;
 
 export function Layout({ children }: PropsWithChildren) {
@@ -590,6 +608,7 @@ function TranslatedErrorPageContent({
 export function ErrorBoundary({ error }: { error: unknown }) {
     // All hooks must be called unconditionally before any early returns.
     const rootData = useRouteLoaderData<typeof loader>('root');
+    const deploymentHomepageUrl = useHref('/');
 
     const language =
         (typeof window !== 'undefined' && i18nextOnClient ? i18nextOnClient.language : undefined) ||
@@ -630,7 +649,7 @@ export function ErrorBoundary({ error }: { error: unknown }) {
                   localeId: rootData.appConfig.localeAliasMap?.[rootData.locale.id] ?? rootData.locale.id,
               },
           })
-        : '/';
+        : deploymentHomepageUrl;
 
     // Capture first-touch `dw_attribution` here too (W-23493124). A campaign link that lands
     // directly on a 404/route error renders this ErrorBoundary instead of App, so the App-tree
@@ -764,7 +783,8 @@ export default function App({
         site,
         locale,
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
-        selectedStoreInfo,
+        homeStorePromptDismissed,
+        selectedStoreResolution,
         // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
     },
 }: {
@@ -817,7 +837,14 @@ export default function App({
                 [BasketProvider, { snapshot: basketSnapshot }],
                 [CorrelationProvider, { value: correlationId }],
                 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
-                [StoreLocatorProvider, { selectedStoreInfo }],
+                [
+                    StoreLocatorProvider,
+                    {
+                        selectedStoreResolution,
+                        homeStorePromptDismissed,
+                        identity: JSON.stringify([clientAuth?.userType, clientAuth?.customerId, clientAuth?.usid]),
+                    },
+                ],
                 // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
             ] as const,
         [
@@ -830,7 +857,8 @@ export default function App({
             site,
             locale,
             // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
-            selectedStoreInfo,
+            homeStorePromptDismissed,
+            selectedStoreResolution,
             // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
         ]
     );
@@ -859,6 +887,7 @@ export default function App({
             <AuthActionExecutor />
             <BasketCookieReconciler />
             <CartMutationToastWatcher />
+            <BasketHandoffWarning />
             {passkeyEnabled && <PasskeyRegistrationTrigger />}
             {hybridEnabled && <BackNavigationRevalidator />}
             <PageDesignerProvider

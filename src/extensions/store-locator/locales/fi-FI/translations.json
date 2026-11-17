@@ -5,6 +5,14 @@
         }
     },
     "storeLocator": {
+        "selection": {
+            "unknown": "Tulosta ei voitu vahvistaa. Yritä uudelleen tarkistaaksesi nykyisen myymälävalintasi.",
+            "clearing": "Poistetaan ensisijaista myymälää…",
+            "saving": "Tallennetaan myymälää…",
+            "error": "Myymälää ei voitu tallentaa. Edellinen myymäläsi säilyy ennallaan. Yritä uudelleen.",
+            "retry": "Yritä uudelleen",
+            "checking": "Tarkistetaan ensisijaista myymälää…"
+        },
         "title": "Find a Store",
         "description": "Search for stores by country and postal code or use your current location.",
         "form": {
@@ -21,7 +29,16 @@
         },
         "trigger": {
             "ariaLabel": "Find a Store",
-            "openAriaLabel": "Open Find a Store"
+            "openAriaLabel": "Open Find a Store",
+            "chooseAriaLabel": "Valitse myymälä",
+            "selectedAriaLabel": "Vaihda myymäläsi: {{storeName}}, {{postalCode}}",
+            "selectedWithoutPostalAriaLabel": "Vaihda myymäläsi: {{storeName}}"
+        },
+        "homePrompt": {
+            "title": "Valitse myymäläsi",
+            "description": "Valitse ensisijainen myymälä tallentaaksesi sen. Voit muuttaa sitä milloin tahansa.",
+            "open": "Valitse myymälä",
+            "dismiss": "Ei nyt"
         },
         "sheet": {
             "closeAriaLabel": "Close store locator"

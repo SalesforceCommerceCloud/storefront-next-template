@@ -1,60 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`TextSeparator stories snapshot > CustomText story renders and matches snapshot 1`] = `
-<div
-  class="relative my-2 flex items-center"
->
-  <div
-    class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px absolute left-0 right-0"
-    data-orientation="horizontal"
-    data-slot="separator"
-    role="none"
-  />
-  <span
-    class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
-  >
-    Alternatively
-  </span>
-</div>
-`;
-
 exports[`TextSeparator stories snapshot > Default story renders and matches snapshot 1`] = `
-<div
-  class="relative my-2 flex items-center"
->
-  <div
-    class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px absolute left-0 right-0"
-    data-orientation="horizontal"
-    data-slot="separator"
-    role="none"
-  />
-  <span
-    class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
-  >
-    Or
-  </span>
-</div>
-`;
-
-exports[`TextSeparator stories snapshot > DesktopLayout story renders and matches snapshot 1`] = `
-<div
-  class="relative my-2 flex items-center"
->
-  <div
-    class="bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px absolute left-0 right-0"
-    data-orientation="horizontal"
-    data-slot="separator"
-    role="none"
-  />
-  <span
-    class="bg-background text-muted-foreground mx-auto px-2 text-xs relative z-10"
-  >
-    Or
-  </span>
-</div>
-`;
-
-exports[`TextSeparator stories snapshot > MobileLayout story renders and matches snapshot 1`] = `
 <div
   class="relative my-2 flex items-center"
 >

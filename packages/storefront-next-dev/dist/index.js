@@ -14,6 +14,7 @@ import { Node, Project, ts } from "ts-morph";
 import { spawnSync } from "child_process";
 import fs$1, { existsSync as existsSync$1, readFileSync as readFileSync$1 } from "node:fs";
 import { deadCodeElimination, findReferencedIdentifiers } from "babel-dead-code-elimination";
+import { normalizePath } from "vite";
 import httpProxy from "http-proxy";
 import { brotliDecompressSync, gunzipSync, inflateSync } from "zlib";
 import { extractPrefixParamValues, stripPathPrefix } from "@salesforce/storefront-next-runtime/site-context";
@@ -899,10 +900,10 @@ function resolveBiomeBin(filePath) {
 //#region src/plugins/pageDesignerPreloadManifest.ts
 const PAGE_DESIGNER_PRELOAD_MANIFEST_ID = "virtual:storefront-next/page-designer-preload-manifest";
 const RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID = `\0${PAGE_DESIGNER_PRELOAD_MANIFEST_ID}`;
-function correlateComponentRecords(source, viteManifest, bundle, projectRoot) {
-	const directMatches = Object.entries(viteManifest).filter(([key, record]) => normalizeSourceId(projectRoot, key) === source || normalizeSourceId(projectRoot, record.src ?? "") === source);
+function correlateComponentRecords(source$1, viteManifest, bundle, projectRoot) {
+	const directMatches = Object.entries(viteManifest).filter(([key, record]) => normalizeSourceId(projectRoot, key) === source$1 || normalizeSourceId(projectRoot, record.src ?? "") === source$1);
 	if (directMatches.length > 0) return directMatches;
-	const containingFiles = new Set(Object.values(bundle).filter((output) => output.type === "chunk" && Object.keys(output.modules ?? {}).some((moduleId) => normalizeSourceId(projectRoot, moduleId) === source)).map((chunk) => chunk.fileName));
+	const containingFiles = new Set(Object.values(bundle).filter((output) => output.type === "chunk" && Object.keys(output.modules ?? {}).some((moduleId) => normalizeSourceId(projectRoot, moduleId) === source$1)).map((chunk) => chunk.fileName));
 	return Object.entries(viteManifest).filter(([, record]) => containingFiles.has(record.file)).map(([key, record]) => [key, {
 		...record,
 		isDynamicEntry: !record.isEntry
@@ -961,11 +962,11 @@ function buildPageDesignerPreloadManifest(components, viteManifest, bundle, proj
 		resourceKinds.set(file, kind);
 	};
 	for (const component of [...components].sort((a, b) => a.id.localeCompare(b.id))) {
-		const source = normalizeSourceId(projectRoot, component.filePath);
-		const matches = correlateComponentRecords(source, viteManifest, bundle, projectRoot);
-		if (matches.length > 1) throw new Error(`Ambiguous Vite manifest correlation for Page Designer typeId "${component.id}" (${source}): ${matches.map(([key]) => key).join(", ")}`);
+		const source$1 = normalizeSourceId(projectRoot, component.filePath);
+		const matches = correlateComponentRecords(source$1, viteManifest, bundle, projectRoot);
+		if (matches.length > 1) throw new Error(`Ambiguous Vite manifest correlation for Page Designer typeId "${component.id}" (${source$1}): ${matches.map(([key]) => key).join(", ")}`);
 		if (matches.length === 0) {
-			const message = `No Vite manifest record found for Page Designer typeId "${component.id}" (${source})`;
+			const message = `No Vite manifest record found for Page Designer typeId "${component.id}" (${source$1})`;
 			if (required.has(component.id)) throw new Error(`${message}; it is listed in preloadManifest.requiredTypeIds`);
 			warn(message);
 			continue;
@@ -2104,8 +2105,8 @@ function ssrSourcemapFixPlugin() {
 					const fileId = result.file || result.id;
 					if (!fileId) return result;
 					if (mapJson.sources.length !== 1) return result;
-					const source = mapJson.sources[0];
-					if (!source || source.includes("/")) return result;
+					const source$1 = mapJson.sources[0];
+					if (!source$1 || source$1.includes("/")) return result;
 					mapJson.sources = [fileId];
 					const patchedBase64 = Buffer.from(JSON.stringify(mapJson)).toString("base64");
 					result.code = result.code.slice(0, base64Start) + patchedBase64 + (base64End === -1 ? "" : result.code.slice(base64End));
@@ -2247,6 +2248,79 @@ const baseConfigPlugin = () => ({
 });
 
 //#endregion
+//#region src/plugins/compiledRoutes.ts
+const publicId = "virtual:storefront-next/compiled-routes";
+const resolvedId = `\0${publicId}`;
+const manifestResolvedId = "\0virtual:react-router/server-manifest";
+const source = `
+import manifest from 'virtual:react-router/server-manifest';
+const fail = () => { throw new Error('Unsupported React Router compiled route manifest shape'); };
+if (!manifest || !manifest.routes || typeof manifest.routes !== 'object' || Array.isArray(manifest.routes)) fail();
+const routes = Object.create(null);
+for (const [key, entry] of Object.entries(manifest.routes)) {
+    if (!entry || typeof entry.id !== 'string' || entry.id !== key ||
+        typeof entry.hasDefaultExport !== 'boolean' || typeof entry.hasErrorBoundary !== 'boolean') fail();
+    for (const name of ['parentId', 'path']) {
+        if (entry[name] !== undefined && typeof entry[name] !== 'string') fail();
+    }
+    for (const name of ['index', 'caseSensitive']) {
+        if (entry[name] !== undefined && typeof entry[name] !== 'boolean') fail();
+    }
+    routes[key] = Object.freeze({ id: entry.id, parentId: entry.parentId, path: entry.path,
+        index: entry.index, caseSensitive: entry.caseSensitive,
+        isDocument: entry.hasDefaultExport || entry.hasErrorBoundary });
+}
+// Validate parent references and cycles in linear time before a tree can be cached.
+const visited = new Set();
+for (const route of Object.values(routes)) {
+    const chain = new Set();
+    let current = route;
+    while (current && !visited.has(current.id)) {
+        if (chain.has(current.id)) fail();
+        chain.add(current.id);
+        if (current.parentId !== undefined && !routes[current.parentId]) fail();
+        current = routes[current.parentId];
+    }
+    for (const id of chain) visited.add(id);
+}
+export default Object.freeze({ routes: Object.freeze(routes) });
+`;
+/** Expose server-only, semantic compiled metadata across React Router dev and build. */
+function compiledRoutesPlugin() {
+	let serverBundles;
+	let routeFiles = /* @__PURE__ */ new Set();
+	return {
+		name: "storefront-next:compiled-routes",
+		configResolved(config) {
+			const context = config.__reactRouterPluginContext;
+			serverBundles = context?.reactRouterConfig.serverBundles;
+			const { appDirectory, routes } = context?.reactRouterConfig ?? {};
+			routeFiles = new Set(appDirectory && routes ? Object.values(routes).map((route) => normalizePath(resolve(appDirectory, route.file))) : []);
+		},
+		resolveId(id, _importer, options) {
+			if (id !== publicId) return;
+			if (serverBundles) throw new Error("Storefront Next compiled routes do not support React Router serverBundles");
+			if (!(options?.ssr || this.environment?.config.consumer === "server")) throw new Error(`${publicId} is server-only`);
+			return resolvedId;
+		},
+		load(id) {
+			if (id === resolvedId) return source;
+		},
+		hotUpdate({ file }) {
+			if (this.environment.config.consumer !== "server") return;
+			if (!routeFiles.has(file)) return;
+			const { moduleGraph, hot } = this.environment;
+			const adapter = moduleGraph.getModuleById(resolvedId);
+			if (!adapter) return;
+			const manifest = moduleGraph.getModuleById(manifestResolvedId);
+			if (manifest) moduleGraph.invalidateModule(manifest);
+			moduleGraph.invalidateModule(adapter);
+			hot.send({ type: "full-reload" });
+		}
+	};
+}
+
+//#endregion
 //#region src/storefront-next-targets.ts
 /**
 * Storefront Next Vite plugin that powers the React Router app.
@@ -2288,7 +2362,8 @@ function storefrontNextTargets(config = {}) {
 		actionHooksPlugin(),
 		watchConfigFilesPlugin(),
 		buildMiddlewareRegistryPlugin(),
-		ssrSourcemapFixPlugin()
+		ssrSourcemapFixPlugin(),
+		compiledRoutesPlugin()
 	];
 	if (staticRegistry?.componentPath && staticRegistry?.registryPath) {
 		plugins.push(staticRegistryPlugin(staticRegistry));

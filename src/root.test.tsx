@@ -31,6 +31,12 @@ let Layout: typeof RootLayout;
 let loader: typeof RootLoader;
 let meta: Awaited<typeof import('./root')>['meta'];
 let links: Awaited<typeof import('./root')>['links'];
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+const resolvedStore = { id: 'canonical-store', name: 'Canonical Store', inventoryId: 'canonical-inventory' };
+vi.mock('@/extensions/store-locator/lib/resolve-selected-store.server', () => ({
+    resolveSelectedStore: vi.fn(() => Promise.resolve({ selectedStoreInfo: resolvedStore, store: null, error: null })),
+}));
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 const defaultClientAuth: PublicSessionData = {
     customerId: 'test-customer',
     userType: 'registered',
@@ -162,6 +168,7 @@ vi.mock('react-router', async (importOriginal) => {
     return {
         ...actual,
         // ErrorBoundary tests render outside a router context; swallow the invariant and return null.
+        useHref: vi.fn(() => '/'),
         useRouteLoaderData: vi.fn((routeId: string) => {
             try {
                 return realUseRouteLoaderData(routeId);
@@ -461,6 +468,19 @@ describe('root.tsx', () => {
 
     describe('ErrorBoundary Component', () => {
         const stackText = 'Error: Test error with stack';
+
+        it('uses the router deployment homepage when middleware failed before the root loader', async () => {
+            const reactRouter = await import('react-router');
+            vi.mocked(reactRouter.useRouteLoaderData).mockReturnValue(undefined);
+            vi.mocked(reactRouter.useHref).mockReturnValue('/site-a/');
+            try {
+                const { findByRole } = render(<ErrorBoundary error={new Error('Early middleware failure')} />);
+                expect(await findByRole('link', { name: 'Go to Homepage' })).toHaveAttribute('href', '/site-a/');
+                expect(reactRouter.useHref).toHaveBeenCalledWith('/');
+            } finally {
+                vi.mocked(reactRouter.useHref).mockReturnValue('/');
+            }
+        });
 
         describe('production mode', () => {
             beforeEach(async () => {
@@ -1129,6 +1149,37 @@ describe('root.tsx', () => {
     });
 
     describe('loader function', () => {
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        it('returns shell data while the selected-store profile read is held', async () => {
+            const { resolveSelectedStore } = await import(
+                '@/extensions/store-locator/lib/resolve-selected-store.server'
+            );
+            let release!: (value: Awaited<ReturnType<typeof resolveSelectedStore>>) => void;
+            vi.mocked(resolveSelectedStore).mockReturnValueOnce(
+                new Promise((resolve) => {
+                    release = resolve;
+                })
+            );
+            let returned = false;
+            const pending = loader({
+                context: createLoaderContext(),
+                request: new Request('http://localhost/'),
+                url: new URL('http://localhost/'),
+                params: {},
+                pattern: '/',
+            }).then((result) => {
+                returned = true;
+                return result;
+            });
+            try {
+                await new Promise((resolve) => setTimeout(resolve, 25));
+                expect(returned).toBe(true);
+            } finally {
+                release({ selectedStoreInfo: resolvedStore, store: null, error: null });
+                await pending;
+            }
+        });
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
         it('should return clientAuth and other loader data', async () => {
             const { mockI18nContext } = await import('@salesforce/storefront-next-runtime/i18n');
             const i18next = await import('i18next');
@@ -1149,17 +1200,23 @@ describe('root.tsx', () => {
             const context = createLoaderContext();
             mockI18nContext(context, { locale: 'en-US', instance: testInstance });
 
-            const result = loader({
+            const result = (await loader({
                 context,
                 request: new Request('http://localhost'),
                 url: new URL('http://localhost'),
                 params: {},
                 pattern: '/',
-            }) as any;
+            })) as any;
 
+            // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+            expect(await result.selectedStoreResolution).toMatchObject({
+                selectedStoreInfo: resolvedStore,
+            });
+            // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
             expect(result).toHaveProperty('clientAuth');
             expect(result).toHaveProperty('appConfig');
             expect(result).toHaveProperty('locale');
+            expect(result.homeStorePromptDismissed).toBe(false); /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */
             expect(result).toHaveProperty('getI18next');
             expect(typeof result.clientAuth).toBe('object');
             expect(typeof result.getI18next).toBe('function');
@@ -1191,13 +1248,13 @@ describe('root.tsx', () => {
             const context = createLoaderContext({ authSession: mockClientAuth });
             mockI18nContext(context, { locale: 'en-US', instance: testInstance });
 
-            const result = loader({
+            const result = (await loader({
                 context,
                 request: new Request('http://localhost'),
                 url: new URL('http://localhost'),
                 params: {},
                 pattern: '/',
-            }) as any;
+            })) as any;
 
             // clientAuth should contain only non-sensitive fields
             expect(result.clientAuth).toEqual(expect.objectContaining(mockClientAuth));
@@ -1208,22 +1265,22 @@ describe('root.tsx', () => {
             expect(typeof result.getI18next).toBe('function');
         });
 
-        it('should throw error when i18next data is not found in context', () => {
+        it('should throw error when i18next data is not found in context', async () => {
             const context = createLoaderContext({ skipI18next: true });
             // Simulate server environment so getTranslation() checks context instead of falling back to global i18next
             const savedWindow = global.window;
             // @ts-expect-error — simulate server
             delete global.window;
 
-            expect(() => {
+            await expect(
                 loader({
                     context,
                     request: new Request('http://localhost'),
                     params: {},
                     pattern: '/',
                     url: new URL('http://localhost'),
-                });
-            }).toThrow('i18next data not found in context. Ensure i18next middleware runs before loaders.');
+                })
+            ).rejects.toThrow('i18next data not found in context. Ensure i18next middleware runs before loaders.');
 
             global.window = savedWindow;
         });
@@ -1247,13 +1304,13 @@ describe('root.tsx', () => {
             const context = createLoaderContext();
             mockI18nContext(context, { locale: 'en', instance: testInstance });
 
-            const result = loader({
+            const result = (await loader({
                 context,
                 request: new Request('http://localhost?mode=EDIT'),
                 url: new URL('http://localhost?mode=EDIT'),
                 params: {},
                 pattern: '/',
-            }) as any;
+            })) as any;
 
             expect(result.pageDesignerMode).toBe('EDIT');
         });
@@ -1277,13 +1334,13 @@ describe('root.tsx', () => {
             const context = createLoaderContext();
             mockI18nContext(context, { locale: 'en', instance: testInstance });
 
-            const result = loader({
+            const result = (await loader({
                 context,
                 request: new Request('http://localhost?mode=PREVIEW'),
                 url: new URL('http://localhost?mode=PREVIEW'),
                 params: {},
                 pattern: '/',
-            }) as any;
+            })) as any;
 
             expect(result.pageDesignerMode).toBe('PREVIEW');
         });
@@ -1307,13 +1364,13 @@ describe('root.tsx', () => {
             const context = createLoaderContext();
             mockI18nContext(context, { locale: 'en', instance: testInstance });
 
-            const result = loader({
+            const result = (await loader({
                 context,
                 request: new Request('http://localhost'),
                 url: new URL('http://localhost'),
                 params: {},
                 pattern: '/',
-            }) as any;
+            })) as any;
 
             expect(result.pageDesignerMode).toBeUndefined();
         });

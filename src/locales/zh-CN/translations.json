@@ -330,6 +330,7 @@
         "insufficientStock": "库存不足"
     },
     "cart": {
+        "handoffWarning": "您已登录，但我们无法确认购物车是否已转移。请在结账前检查购物车。",
         "title": "购物车",
         "delivery": {
             "heading": "配送 - {{deliveryCount}} 件（共 {{totalCount}} 件商品）",
@@ -771,7 +772,8 @@
                 "changeStore": "更改实体店",
                 "noStoreSelected": "未选择实体店。使用实体店定位器选择您首选的取货实体店。",
                 "storeHoursTitle": "营业时间",
-                "error": "无法加载实体店详细信息。请稍后再试。"
+                "error": "无法加载实体店详细信息。请稍后再试。",
+                "savedStoreUnavailable": "您保存的门店在此网站不可用。您可以更改它。"
             },
             "authorizedPickupPeople": {
                 "heading": "被授权取货人",
@@ -1519,6 +1521,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "出了点问题",
+        "defaultDescription": "发生了错误",
+        "goToHomepage": "前往主页"
     },
     "error": {
         "403": {

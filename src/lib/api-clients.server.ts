@@ -25,9 +25,16 @@ import {
     SLAS_AUTH_ENDPOINTS,
     type OperationMap,
     type Middleware,
+    AuthTokenInvalidError,
 } from '@salesforce/storefront-next-runtime/scapi';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
-import { AUTH_TOKEN_INVALID_ERROR, authContext, authStorageContext } from '@/middlewares/auth.utils';
+import {
+    AUTH_TOKEN_INVALID_ERROR,
+    authContext,
+    authStorageContext,
+    completedLoginRecoveryContext,
+    uncertainBasketHandoffContext,
+} from '@/middlewares/auth.utils';
 import { correlationContext } from '@/lib/correlation';
 import { getLogger } from '@/lib/logger.server';
 import { maintenanceContext } from '@/lib/maintenance';
@@ -42,6 +49,7 @@ import {
 } from '@/lib/scapi/non-personalized-response.server';
 import { defaultNonPersonalizedResponseClassifier } from '@/lib/scapi/non-personalized-response-policy.server';
 import { onAuthenticationChange } from '@/lib/auth/commerce-context.server';
+import { fingerprintCredential } from '@/lib/auth/credential-fingerprint';
 
 type CustomClientConfigEntry = {
     key: string;
@@ -566,7 +574,19 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
     // Use absolute URL if provided, otherwise construct from app origin
     const redirectUri = callback && isAbsoluteURL(callback) ? callback : `${appOrigin}${callback || ''}`;
 
-    const onAuthTokenInvalid = () => {
+    const responseCredentials = new WeakMap<Response, string | null>();
+    const onAuthTokenInvalid = (response: Response) => {
+        const failedCredential = responseCredentials.get(response);
+        // Storage is cleared during refresh; credential hashes remain request-scoped.
+        const recovery = context.get(completedLoginRecoveryContext);
+        if (
+            recovery?.refresh &&
+            !recovery.failed &&
+            failedCredential &&
+            failedCredential === recovery.supersededCredential &&
+            failedCredential !== recovery.recoveredCredential
+        )
+            return;
         try {
             const authStorage = context.get(authStorageContext);
             if (authStorage && !authStorage.has('error')) {
@@ -623,6 +643,14 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
                 throw new Error('SCAPI request origin does not match the configured origin');
             }
             const isSlasAuthEndpoint = SLAS_AUTH_ENDPOINTS.some((path) => url.pathname.includes(path));
+            if (!isSlasAuthEndpoint && context.get(completedLoginRecoveryContext)?.failed)
+                throw new AuthTokenInvalidError();
+            if (
+                context.get(uncertainBasketHandoffContext) &&
+                (url.pathname.includes('/baskets') || (request.method !== 'GET' && request.method !== 'HEAD'))
+            ) {
+                throw new Error('Login basket handoff remains uncertain');
+            }
 
             // Get the auth session from context
             const authPromise = context.get(authContext);
@@ -658,6 +686,11 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
             }
 
             return request;
+        },
+        async onResponse({ request, response }) {
+            const credential = request.headers.get('Authorization');
+            responseCredentials.set(response, credential ? await fingerprintCredential(credential) : null);
+            return response;
         },
     };
 

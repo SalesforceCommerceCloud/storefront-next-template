@@ -1,7 +1,7 @@
 import "./modeDetection.js";
 import "./env2.js";
 import "./cookie-domain2.js";
-import { i as siteContext } from "./site-context2.js";
+import { o as siteContext } from "./site-context2.js";
 import "./apply-url-config.js";
 import { createContext } from "react-router";
 import { SpanStatusCode } from "@opentelemetry/api";

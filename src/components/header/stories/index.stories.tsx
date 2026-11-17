@@ -144,7 +144,8 @@ export const CheckoutVariant: Story = {
 export const MobileView: Story = {
     render: (args) => (
         <div className="header-mobile-story">
-            <style>{`
+            <style>
+                {`
                 .header-mobile-story button.lg\\:hidden {
                     display: inline-flex !important;
                 }
@@ -159,7 +160,8 @@ export const MobileView: Story = {
                 .header-mobile-story [aria-hidden="false"].lg\\:hidden {
                     display: block !important;
                 }
-            `}</style>
+            `.trim()}
+            </style>
             <HeaderHarness {...args} />
         </div>
     ),

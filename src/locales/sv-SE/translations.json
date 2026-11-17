@@ -328,6 +328,7 @@
         "insufficientStock": "Otillräckligt lager"
     },
     "cart": {
+        "handoffWarning": "Du är inloggad, men vi kunde inte bekräfta att din kundvagn överfördes. Kontrollera kundvagnen innan du betalar.",
         "title": "Kundvagn",
         "delivery": {
             "heading": "Leverans – {{deliveryCount}} av {{totalCount}} artiklar",
@@ -718,7 +719,8 @@
                 "changeStore": "Byt butik",
                 "noStoreSelected": "Ingen butik vald. Använd butikslokaliseraren (”hitta butik”) för att välja butiken du föredrar för upphämtning.",
                 "storeHoursTitle": "Butikens öppettider",
-                "error": "Det gick inte att ladda butiksinformation. Försök igen senare."
+                "error": "Det gick inte att ladda butiksinformation. Försök igen senare.",
+                "savedStoreUnavailable": "Din sparade butik är inte tillgänglig på den här webbplatsen. Du kan ändra den."
             },
             "authorizedPickupPeople": {
                 "heading": "Behöriga personer för upphämtning",
@@ -1404,6 +1406,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "Något gick fel",
+        "defaultDescription": "Ett fel inträffade",
+        "goToHomepage": "Gå till startsidan"
     },
     "error": {
         "403": {

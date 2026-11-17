@@ -15,7 +15,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ActionFunctionArgs } from 'react-router';
+import { RouterContextProvider, type ActionFunctionArgs } from 'react-router';
 
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { action } from './action.passkey-finish-authentication';
@@ -112,7 +112,7 @@ describe('action.passkey-finish-authentication', () => {
         } as Awaited<ReturnType<typeof finishPasskeyAuthentication>>);
         mockGetConfig.mockReturnValue({ features: { passkey: { enabled: true } } } as never);
 
-        mockContext = {} as ActionFunctionArgs['context'];
+        mockContext = new RouterContextProvider();
         mockUpdateCustomerForBasket = vi.fn();
 
         mockCreateApiClients.mockReturnValue({

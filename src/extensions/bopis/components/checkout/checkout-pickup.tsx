@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useMemo } from 'react';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { isNativeStoreSelectionEnabled } from '@/lib/shopper-context/store-selection';
-import { useMemo, useCallback, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Typography } from '@/components/typography';
 import { Button } from '@/components/ui/button';
@@ -23,8 +23,7 @@ import AddressDisplay from '@/components/address-display';
 import { orderAddressFromStoreAddress } from '@/extensions/bopis/lib/store-utils';
 import { useTranslation } from 'react-i18next';
 import { usePickup } from '@/extensions/bopis/context/pickup-context';
-import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
-import { useChangePickupStore } from '@/extensions/bopis/hooks/use-change-pickup-store';
+import { useConfirmedPickupStore } from '@/extensions/bopis/components/use-confirmed-pickup-store';
 import { getFirstPickupStore, getPickupProductItemsForStore } from '@/extensions/bopis/lib/basket-utils';
 import {
     getDisplayVariationValues,
@@ -102,37 +101,11 @@ export default function CheckoutPickup({
     const store = getFirstPickupStore(cart, pickupContext?.pickupStores);
     // Get currency from context (automatically derived from locale)
     const { currency } = useSite();
-    const openStoreLocator = useStoreLocator((s) => s.open);
     const nativeStoreContextEnabled = isNativeStoreSelectionEnabled(useConfig().features.shopperContext);
-    const setSelectedStoreInfoRaw = useStoreLocator((s) => s.setSelectedStoreInfo);
-    const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
-    const isStoreLocatorOpen = useStoreLocator((s) => s.isOpen);
-    const { changeStore } = useChangePickupStore();
-
-    const handleChangePickupLocation = useCallback(() => {
-        if (!store || nativeStoreContextEnabled) return;
-        setSelectedStoreInfoRaw(store);
-        openStoreLocator();
-    }, [nativeStoreContextEnabled, store, setSelectedStoreInfoRaw, openStoreLocator]);
-
-    useEffect(() => {
-        if (nativeStoreContextEnabled) return;
-        if (
-            selectedStoreInfo &&
-            selectedStoreInfo.id !== store?.id &&
-            selectedStoreInfo.inventoryId &&
-            isStoreLocatorOpen
-        ) {
-            void changeStore(selectedStoreInfo);
-        }
-        // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        nativeStoreContextEnabled,
-        selectedStoreInfo?.id,
-        selectedStoreInfo?.inventoryId,
-        isStoreLocatorOpen,
-        store?.id,
-    ]);
+    const handleChangePickupLocation = useConfirmedPickupStore(
+        'checkout',
+        store?.id ? { ...store, id: store.id } : null
+    );
 
     // Filter pickup items for the specific store and enrich with product catalog data
     // Skip expensive computation when not editing

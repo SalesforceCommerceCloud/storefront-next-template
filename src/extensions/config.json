@@ -14,6 +14,13 @@
             "folder": "store-locator",
             "dependencies": []
         },
+        "SFDC_EXT_SHOP_BY_STORE": {
+            "name": "Shop by Store",
+            "description": "Provides storefront presentation components for store-aware shopping experiences.",
+            "folder": "shop-by-store",
+            "dependencies": ["SFDC_EXT_STORE_LOCATOR"],
+            "defaultOn": false
+        },
         "SFDC_EXT_BOPIS": {
             "name": "Buy Online Pickup In Store",
             "description": "Enables a shopper to order online and pick up their order at a physical store. Requires the Store Locator and Multiship extensions to be installed.",

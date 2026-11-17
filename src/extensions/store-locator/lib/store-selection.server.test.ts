@@ -76,6 +76,7 @@ const create = vi.fn();
 const basketRead = vi.fn();
 const storeRead = vi.fn();
 const defaultRead = vi.fn();
+const defaultWrite = vi.fn();
 const missing = () =>
     new ApiError({
         status: 404,
@@ -132,7 +133,7 @@ async function runSelectionAction(id: string | null, cookie = '', path = '/actio
     form.set('storeInfo', id ? JSON.stringify({ id }) : '');
     const request = new Request(`https://example.com${path}`, {
         method: 'POST',
-        headers: { Cookie: cookie },
+        headers: { Cookie: cookie, Origin: 'https://example.com' },
         body: form,
     });
     return run(
@@ -190,6 +191,7 @@ beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(updateAuth).mockReset();
     defaultRead.mockResolvedValue({ data: { preferredStoreId: 'B' } });
+    defaultWrite.mockResolvedValue({ data: {} });
     enabled = true;
     cleanup = false;
     items = [];
@@ -243,7 +245,7 @@ beforeEach(() => {
             getShopperContext: vi.fn(() => Promise.resolve({ data: structuredClone(native) })),
         },
         shopperStores: { getStores: storeRead },
-        shopperCustomers: { getCustomerBaskets: basketRead, getCustomer: defaultRead },
+        shopperCustomers: { getCustomerBaskets: basketRead, getCustomer: defaultRead, updateCustomer: defaultWrite },
     } as unknown as ReturnType<typeof createApiClients>);
 });
 
@@ -449,7 +451,7 @@ describe('store-selection failure classification', () => {
         const result = await runSelectionAction('A');
         expect(result.response.status).toBe(status);
         const body = await result.response.text();
-        expect(JSON.parse(body)).toEqual({ success: false, code });
+        expect(JSON.parse(body)).toMatchObject({ success: false, code });
         expect(body).not.toContain('private upstream diagnostic');
         // Starting a preference session is harmless; a failed commit must publish no selection or record.
         expect(
@@ -478,12 +480,16 @@ describe('store-selection failure classification', () => {
         const result = await run(async (ctx) => {
             const response = await action({
                 context: ctx,
-                request: new Request('https://example.com/action/set-selected-store', { method: 'POST', body: form }),
+                request: new Request('https://example.com/action/set-selected-store', {
+                    method: 'POST',
+                    body: form,
+                    headers: { Origin: 'https://example.com' },
+                }),
             } as unknown as Parameters<typeof action>[0]);
             return Response.json(response.data, { status: response.init?.status });
         });
         expect(result.response.status).toBe(400);
-        expect(await result.response.json()).toEqual({ success: false, code: 'INVALID_STORE_INFO' });
+        expect(await result.response.json()).toMatchObject({ success: false, code: 'INVALID_STORE_INFO' });
     });
 });
 
@@ -1266,7 +1272,11 @@ describe('native store selection', () => {
             form.set('storeInfo', JSON.stringify({ id: 'A' }));
             const result = await action({
                 context: requestContext,
-                request: new Request('https://example.com/action/set-selected-store', { method: 'POST', body: form }),
+                request: new Request('https://example.com/action/set-selected-store', {
+                    method: 'POST',
+                    body: form,
+                    headers: { Origin: 'https://example.com' },
+                }),
             } as unknown as Parameters<typeof action>[0]);
             expect(result.init?.status).toBe(502);
             expect(result.data.success).toBe(false);
@@ -1500,7 +1510,7 @@ describe.each([true, false])('authentication reconciliation (native=%s)', (nativ
         );
     });
 
-    it('keeps an explicit guest choice, refreshes identity/revision, and never reads or writes a default', async () => {
+    it('keeps an explicit guest choice, refreshes identity/revision, and never replaces an existing default', async () => {
         let before: unknown;
         const { ctx, response } = await run(async (requestContext) => {
             await selectStore(requestContext, { id: 'A' });
@@ -1514,8 +1524,58 @@ describe.each([true, false])('authentication reconciliation (native=%s)', (nativ
         expect(ctx.get(shoppingContext)?.contextRevision).not.toBe(
             (before as { contextRevision: string }).contextRevision
         );
-        expect(defaultRead).not.toHaveBeenCalled();
+        expect(defaultWrite).not.toHaveBeenCalled();
         if (!nativeEnabled) expect(patch).not.toHaveBeenCalled();
+    });
+
+    describe('seeding the account default from an explicit guest choice', () => {
+        const pick = async (ctx: RouterContextProvider) => {
+            await selectStore(ctx, { id: 'A' });
+            return login(ctx);
+        };
+
+        it('saves the guest pick when the account has no default', async () => {
+            defaultRead.mockResolvedValue({ data: { preferredStoreId: null } });
+            const { ctx, response } = await run(pick);
+            expect(response.status).toBe(200);
+            expect(ctx.get(selectedStoreContext)?.id).toBe('A');
+            expect(defaultWrite).toHaveBeenCalledOnce();
+            expect(defaultWrite).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    params: { path: { customerId: 'registered-customer' } },
+                    body: { preferredStoreId: 'A' },
+                })
+            );
+        });
+
+        it('keeps the pick active and leaves the existing default untouched', async () => {
+            const { ctx, response } = await run(pick);
+            expect(response.status).toBe(200);
+            expect(ctx.get(selectedStoreContext)?.id).toBe('A');
+            expect(defaultWrite).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ['the default read fails', () => defaultRead.mockRejectedValue(new Error('profile unavailable'))],
+            [
+                'the save fails',
+                () => {
+                    defaultRead.mockResolvedValue({ data: { preferredStoreId: null } });
+                    defaultWrite.mockRejectedValue(new Error('save unavailable'));
+                },
+            ],
+        ])('still completes login when %s', async (_name, arrange) => {
+            arrange();
+            const { ctx, response } = await run(pick);
+            expect(response.status).toBe(200);
+            expect(ctx.get(selectedStoreContext)?.id).toBe('A');
+        });
+
+        it('does not seed from a restored cookie', async () => {
+            defaultRead.mockResolvedValue({ data: { preferredStoreId: null } });
+            await run(login, await remembered());
+            expect(defaultWrite).not.toHaveBeenCalled();
+        });
     });
 
     it('uses the saved default instead of a restored cookie', async () => {
@@ -1828,7 +1888,7 @@ describe.each([true, false])('authentication reconciliation (native=%s)', (nativ
         expect(ctx.get(selectedStoreContext)?.id).toBe('A');
     });
 
-    it('preserves explicit provenance through token refresh without rereading the account default', async () => {
+    it('preserves explicit provenance through token refresh without letting the account default replace it', async () => {
         const selected = await run((ctx) => selectStore(ctx, { id: 'A' }).then(() => undefined));
         vi.mocked(getAuth).mockReturnValue({
             usid: 'guest-usid',
@@ -1838,7 +1898,7 @@ describe.each([true, false])('authentication reconciliation (native=%s)', (nativ
         } as ReturnType<typeof getAuth>);
         const refreshed = await run(login, responseCookies(selected.response));
         expect(refreshed.ctx.get(selectedStoreContext)?.id).toBe('A');
-        expect(defaultRead).not.toHaveBeenCalled();
+        expect(defaultWrite).not.toHaveBeenCalled();
     });
 
     it('does not make a remembered cookie explicit through refresh', async () => {

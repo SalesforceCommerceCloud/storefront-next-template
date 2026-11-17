@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { RouterContextProvider, type ActionFunctionArgs, type LoaderFunctionArgs } from 'react-router';
 import { authorizeIDP, loginIDPUser, handleSocialLoginLanding } from './social-login.server';
 import { getAuth, updateAuth } from '@/middlewares/auth.server';
 import { isTrackingConsentEnabled } from '@/middlewares/auth.utils';
@@ -49,11 +49,12 @@ vi.mock('@/lib/api-clients.server', () => ({
 }));
 
 vi.mock('@/middlewares/auth.server', () => ({
-    getAuth: vi.fn(() => ({ usid: 'session-usid', codeVerifier: 'stored-code-verifier' })),
+    getAuth: vi.fn(() => ({ usid: 'session-usid', codeVerifier: 'stored-code-verifier', userType: 'registered' })),
     updateAuth: vi.fn(),
 }));
 
-vi.mock('@/middlewares/auth.utils', () => ({
+vi.mock('@/middlewares/auth.utils', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/middlewares/auth.utils')>()),
     isTrackingConsentEnabled: vi.fn(() => false),
 }));
 
@@ -101,7 +102,7 @@ function getMockAuthResponse(tokenResponse: Record<string, unknown>, dwsid?: str
 }
 
 describe('Social Login', () => {
-    const mockContext = {} as unknown as ActionFunctionArgs['context'];
+    const mockContext = new RouterContextProvider() as unknown as ActionFunctionArgs['context'];
     const auth = {
         getAuth: vi.mocked(getAuth),
         updateAuth: vi.mocked(updateAuth),

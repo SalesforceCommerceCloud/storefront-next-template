@@ -337,6 +337,7 @@
         "insufficientStock": "Scorte insufficienti"
     },
     "cart": {
+        "handoffWarning": "Hai effettuato l'accesso, ma non siamo riusciti a confermare il trasferimento del carrello. Controlla il carrello prima di pagare.",
         "title": "Carrello",
         "delivery": {
             "heading": "Consegna - {{deliveryCount}} di {{totalCount}} articoli",
@@ -779,7 +780,8 @@
                 "changeStore": "Cambia negozio",
                 "noStoreSelected": "Nessun negozio selezionato. Usa lo store locator per scegliere il tuo negozio preferito per il ritiro.",
                 "storeHoursTitle": "Orari negozio",
-                "error": "Impossibile caricare i dettagli del negozio. Riprova più tardi."
+                "error": "Impossibile caricare i dettagli del negozio. Riprova più tardi.",
+                "savedStoreUnavailable": "Il negozio salvato non è disponibile su questo sito. Puoi cambiarlo."
             },
             "authorizedPickupPeople": {
                 "heading": "Persone autorizzate al ritiro",

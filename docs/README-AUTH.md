@@ -77,7 +77,7 @@ All auth state is stored across separate cookies, each with its own purpose, exp
 
 ### 401 recovery redirect
 
-When a SCAPI call returns **401** for a non-SLAS endpoint, the SCAPI client throws `AuthTokenInvalidError`. The middleware catches it in `handleAuthTokenInvalidation`, clears stale token state, re-runs the refresh/guest flow, and — if recovery succeeds — issues a **307 redirect** back to the same URL so the request restarts with fresh cookies. The redirect carries `x-sfnext-auth-recovery: 1` (observability only).
+When a SCAPI call returns **401** for a non-SLAS endpoint, the SCAPI client throws `AuthTokenInvalidError`. The middleware catches it in `handleAuthTokenInvalidation`, clears stale token state, and re-runs the refresh/guest flow. Successful recovery normally redirects back to the same URL with **307**, preserving the method. An action with a same-origin Referer instead returns **303** for a document GET. [Preferred-store recovery](./README-PREFERRED-STORE.md#late-preferred-store-read-recovery) uses a no-store **303** and never automatically replays set/clear. Recovery redirects carry `x-sfnext-auth-recovery: 1` (observability only).
 
 To prevent loops, a short-lived guard cookie `cc-auth-recover` (`Max-Age=30`) is set during recovery. If a 401 recurs while the guard is present, recovery is **not** retried — the error surfaces and the response carries `x-sfnext-auth-recovery-guard: 1`. The guard is cleared on the follow-up request.
 
@@ -93,7 +93,7 @@ Guest shoppers whose refresh token fails are unaffected by this change. They con
 
 SLAS guarantees `gcid`/`rcid` in `isb` and `usid` in `sub`. The middleware validates this on the **incoming cookie token** — but only when that token survived validation unchanged (`authAction === 'tokenValid'`). After a refresh or guest login, re-validation is skipped because the freshly issued token was already validated inside `updateAuthStorageDataByTokenResponse`.
 
-If a structurally invalid token is detected (decodable but missing required claims, or undecodable), `AuthTokenInvalidError` is thrown and routed through the same recovery flow as a 401 (clear cookies → fresh login → 307 redirect). This indicates a critical token-issuance failure, so it logs at **error** level for production visibility.
+If a structurally invalid token is detected (decodable but missing required claims, or undecodable), `AuthTokenInvalidError` is thrown and routed through the same [401 recovery flow](#401-recovery-redirect). This indicates a critical token-issuance failure, so it logs at **error** level for production visibility.
 
 ## Configuration
 

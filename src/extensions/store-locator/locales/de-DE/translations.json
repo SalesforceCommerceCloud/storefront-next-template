@@ -5,6 +5,14 @@
         }
     },
     "storeLocator": {
+        "selection": {
+            "unknown": "Das Ergebnis konnte nicht bestätigt werden. Versuchen Sie es erneut, um Ihre aktuelle Auswahl zu prüfen.",
+            "clearing": "Bevorzugtes Geschäft wird entfernt…",
+            "saving": "Geschäft wird gespeichert…",
+            "error": "Das Geschäft konnte nicht gespeichert werden. Ihr bisheriges Geschäft bleibt unverändert. Versuchen Sie es erneut.",
+            "retry": "Erneut versuchen",
+            "checking": "Bevorzugtes Geschäft wird geprüft…"
+        },
         "title": "Find a Store",
         "description": "Search for stores by country and postal code or use your current location.",
         "form": {
@@ -21,7 +29,16 @@
         },
         "trigger": {
             "ariaLabel": "Find a Store",
-            "openAriaLabel": "Open Find a Store"
+            "openAriaLabel": "Open Find a Store",
+            "chooseAriaLabel": "Wähle ein Geschäft",
+            "selectedAriaLabel": "Ändere dein Geschäft: {{storeName}}, {{postalCode}}",
+            "selectedWithoutPostalAriaLabel": "Ändere dein Geschäft: {{storeName}}"
+        },
+        "homePrompt": {
+            "title": "Wähle dein Geschäft",
+            "description": "Wähle ein bevorzugtes Geschäft, um es zu speichern. Du kannst es jederzeit ändern.",
+            "open": "Geschäft wählen",
+            "dismiss": "Nicht jetzt"
         },
         "sheet": {
             "closeAriaLabel": "Close store locator"

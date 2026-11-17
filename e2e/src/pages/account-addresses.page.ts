@@ -512,6 +512,30 @@ class AccountAddressesPage {
     }
 
     /**
+     * Refreshes the address page until a newly written address appears in the
+     * customer read. Shopper Customers reads can briefly lag a successful write.
+     *
+     * @returns Whether the named address was rendered before attempts were exhausted.
+     */
+    async pollUntilAddressWithName(name: string, maxAttempts: number = 3): Promise<boolean> {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                const nameLocator = locate('[data-testid="address-card"]').find('p.font-medium').withText(name);
+                await I.waitForElement(nameLocator, 5);
+                return true;
+            } catch {
+                // The post-write read can still be stale; refresh below before retrying.
+            }
+
+            if (attempt < maxAttempts) {
+                I.refreshPage();
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Wait for at least one address card to be visible (used after page refresh)
      * @param timeout - Seconds to wait (default: 15)
      */

@@ -329,6 +329,7 @@
         "insufficientStock": "Ikke nok på lager"
     },
     "cart": {
+        "handoffWarning": "Du er logget ind, men vi kunne ikke bekræfte, at din kurv blev overført. Kontrollér din kurv før betaling.",
         "title": "Kurv",
         "delivery": {
             "heading": "Levering – {{deliveryCount}} ud af {{totalCount}} varer",
@@ -715,7 +716,8 @@
                 "changeStore": "Skift butik",
                 "noStoreSelected": "Ingen butik valgt. Brug søgeren til at vælge din foretrukne afhentningsbutik.",
                 "storeHoursTitle": "Butikkens åbningstider",
-                "error": "Kunne ikke indlæse butiksoplysninger. Prøv igen senere."
+                "error": "Kunne ikke indlæse butiksoplysninger. Prøv igen senere.",
+                "savedStoreUnavailable": "Din gemte butik er ikke tilgængelig på dette websted. Du kan ændre den."
             },
             "authorizedPickupPeople": {
                 "heading": "Godkendte afhentningsfolk",
@@ -1402,6 +1404,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "Noget gik galt",
+        "defaultDescription": "Der opstod en fejl",
+        "goToHomepage": "Gå til forsiden"
     },
     "error": {
         "403": {

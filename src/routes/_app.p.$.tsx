@@ -18,8 +18,9 @@ import { Await, useRouteLoaderData } from 'react-router';
 import type { loader as rootLoader } from '@/root';
 import { shouldRevalidate as shouldRevalidateProduct } from '@/lib/revalidation/routes/product';
 import type { Route } from './+types/_app.p.$';
-import { type ShopperProducts } from '@/scapi';
+import { AuthTokenInvalidError, type ShopperProducts } from '@/scapi';
 import { fetchProductById } from '@/lib/api/products.server';
+import { seedPdpDeliveryInventory } from '@/lib/product/pdp-delivery-inventory.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { resolveProductRoute } from '@/lib/seo/url-resolution.server';
 import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
@@ -49,7 +50,9 @@ import { getLogger } from '@/lib/logger.server';
 import { UITarget } from '@/targets/ui-target';
 import ProductViewProvider from '@/providers/product-view';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
-import { selectedStoreContext } from '@/extensions/store-locator/middlewares/selected-store.server';
+import { resolveSelectedStore } from '@/extensions/store-locator/lib/resolve-selected-store.server';
+import { loadPdpPickupInventory, type PdpPickupInventory } from '@/extensions/bopis/lib/pdp-pickup-inventory.server';
+import { PickupInventoryProvider } from '@/extensions/bopis/context/pickup-inventory';
 import PickupProvider from '@/extensions/bopis/context/pickup-context';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 // @sfdc-extension-block-start SFDC_EXT_BNPL
@@ -109,6 +112,8 @@ import { ShippingDeliveryProvider } from '@/extensions/shipping-delivery/context
 export class ProductPageMetadata {}
 
 export type ProductPageData = {
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    pickupInventory?: Promise<PdpPickupInventory>;
     product: ShopperProducts.schemas['Product'];
     page: ReturnType<typeof fetchPageWithComponentData>;
     pageKey: string;
@@ -170,10 +175,6 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
         variantPid: variantPid || undefined,
     });
 
-    // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    const selectedStoreInfo = context.get(selectedStoreContext);
-    // @sfdc-extension-block-end SFDC_EXT_BOPIS
-
     // Get currency from context for product pricing
     const { currency } = siteCtx;
 
@@ -186,9 +187,15 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
     // needs the product ID and drives above-the-fold star display + SEO.
     const reviewsSummaryPromise = getReviewsSummary(productLookupId);
     // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    const selectionPromise = resolveSelectedStore(context);
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
     let product: ShopperProducts.schemas['Product'] | null;
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    let pickupInventory: Promise<PdpPickupInventory>;
     try {
-        product = await fetchProductById(context, productLookupId, {
+        const productPromise = fetchProductById(context, productLookupId, {
             expand: [
                 'availability', // <-- TTL = 60s (!)
                 'bundled_products',
@@ -205,12 +212,12 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
             allImages: true,
             perPricebook: true,
             ...(currency ? { currency } : {}),
-            // @sfdc-extension-block-start SFDC_EXT_BOPIS
-            // Include inventoryIds parameter when store is selected
-            ...(selectedStoreInfo?.inventoryId ? { inventoryIds: [selectedStoreInfo.inventoryId] } : {}),
-            // @sfdc-extension-block-end SFDC_EXT_BOPIS
         });
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        pickupInventory = loadPdpPickupInventory(context, productPromise, requestUrl.searchParams, selectionPromise);
+        product = await productPromise;
     } catch (e) {
+        if (e instanceof AuthTokenInvalidError) throw e;
         if (e instanceof NormalizedApiError && e.status === 404 && !variantPid) {
             const fallback = await attemptRouteSeoFallback(context, request);
             if (fallback) return fallback as never;
@@ -233,6 +240,16 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
     });
     if (canonicalRedirect) {
         throw canonicalRedirect;
+    }
+
+    try {
+        product = (await seedPdpDeliveryInventory(context, product, requestUrl.searchParams)) ?? product;
+    } catch (e) {
+        if (e instanceof AuthTokenInvalidError) throw e;
+        if (e instanceof NormalizedApiError && e.status) {
+            throw new Response(e.message, { status: e.status });
+        }
+        throw new Response('Internal Server Error', { status: 500 });
     }
 
     // Resolve DIS-served swatch tiles for axes SCAPI doesn't natively decorate from hidden swatch
@@ -283,6 +300,8 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
         pageKey: productId,
         pageUrl,
         productSchema: productSchemaPromise,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        pickupInventory,
         // @sfdc-extension-block-start SFDC_EXT_BNPL
         bnplMessage: getBuyNowPayLaterMessage(productLookupId),
         bnplLearnMore: getBuyNowPayLaterLearnMore(productLookupId),
@@ -476,7 +495,11 @@ function ProductDetailView({ loaderData }: { loaderData: ProductPageData }) {
 
     let finalContent = content;
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    finalContent = <PickupProvider>{finalContent}</PickupProvider>;
+    finalContent = (
+        <PickupInventoryProvider promise={loaderData.pickupInventory}>
+            <PickupProvider>{finalContent}</PickupProvider>
+        </PickupInventoryProvider>
+    );
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
     // @sfdc-extension-block-start SFDC_EXT_BNPL
     finalContent = (

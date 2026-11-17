@@ -18,6 +18,12 @@ import { createPatternMatcher } from '../utils';
 import type { Url } from '../config/types';
 
 const DEFAULT_EXCLUDED_ROUTES = ['/resource/**', '/action/**'];
+const normalizeMatchPath = (path: string) => (path.startsWith('/') ? path : `/${path}`);
+
+/** Match the same normalized route path and exclusions used by the URL compiler. */
+export function isExcludedRoute(path: string, urlConfig?: Url): boolean {
+    return createPatternMatcher(urlConfig?.excludeRoutes ?? DEFAULT_EXCLUDED_ROUTES)(normalizeMatchPath(path));
+}
 
 /**
  * Separates routes into excluded (stay at root) and included (go under prefix).
@@ -26,16 +32,15 @@ export function partitionRoutes(
     routes: RouteConfigEntry[],
     excludePatterns: string[]
 ): { excludedRoutes: RouteConfigEntry[]; includedRoutes: RouteConfigEntry[] } {
-    const isExcluded = createPatternMatcher(excludePatterns);
     const excludedRoutes: RouteConfigEntry[] = [];
     const includedRoutes: RouteConfigEntry[] = [];
+    const isExcluded = createPatternMatcher(excludePatterns);
 
     for (const route of routes) {
         // Normalize path for matching — ensure leading slash so patterns like '/resource/**' work
         // regardless of whether the route path comes with or without a leading slash.
         // E.g Some routes comes from React Router flatRoutes objects where the path has no leading splash
-        const matchPath = route.path?.startsWith('/') ? route.path : `/${route.path}`;
-        if (route.path && isExcluded(matchPath)) {
+        if (route.path && isExcluded(normalizeMatchPath(route.path))) {
             excludedRoutes.push(route);
         } else {
             includedRoutes.push(route);

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { render, screen } from '@testing-library/react';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { useLoaderData, useNavigation } from 'react-router';
@@ -36,11 +37,7 @@ vi.mock('react-router', async (importOriginal) => {
 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
 // Mock ChangeStoreButton to avoid client component issues in tests
 vi.mock('./change-store-button', () => ({
-    default: ({ currentStoreId }: { currentStoreId?: string }) => (
-        <button data-testid="change-store-button" data-current-store-id={currentStoreId}>
-            Change store
-        </button>
-    ),
+    default: () => <button data-testid="change-store-button">Change store</button>,
 }));
 
 // Mock StoreAddress extension component
@@ -90,18 +87,19 @@ describe('PreferredStore', () => {
         });
 
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
-        test('renders Change store button with current store ID', () => {
+        test('renders Change store button', () => {
             render(<PreferredStore />);
             const button = screen.getByTestId('change-store-button');
             expect(button).toBeInTheDocument();
-            expect(button).toHaveAttribute('data-current-store-id', 'store-001');
         });
         // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
         test('renders store name', () => {
             render(<PreferredStore />);
             expect(screen.getByText('Downtown Store')).toBeInTheDocument();
         });
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
         test('renders store address', () => {
@@ -110,16 +108,19 @@ describe('PreferredStore', () => {
         });
         // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
         test('renders collapsible Store Hours trigger when hours available', () => {
             render(<PreferredStore />);
             expect(screen.getByText('Store Hours')).toBeInTheDocument();
         });
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
         test('hides store hours content by default', () => {
             render(<PreferredStore />);
             expect(screen.queryByText('10:00 AM - 8:00 PM')).not.toBeInTheDocument();
         });
 
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
         test('reveals store hours content when trigger is clicked', async () => {
             const user = userEvent.setup();
             render(<PreferredStore />);
@@ -127,6 +128,7 @@ describe('PreferredStore', () => {
             await user.click(screen.getByText('Store Hours'));
             expect(screen.getByText('10:00 AM - 8:00 PM')).toBeInTheDocument();
         });
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
         test('does not render store hours when not available', () => {
             const storeWithoutHours = { ...mockStore, storeHours: undefined };
@@ -148,11 +150,10 @@ describe('PreferredStore', () => {
         });
 
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
-        test('renders Change store button without store ID', () => {
+        test('renders Change store button when no store is saved', () => {
             render(<PreferredStore />);
             const button = screen.getByTestId('change-store-button');
             expect(button).toBeInTheDocument();
-            expect(button).not.toHaveAttribute('data-current-store-id');
         });
         // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
@@ -163,6 +164,36 @@ describe('PreferredStore', () => {
     });
 
     describe('Error Handling', () => {
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        test('shows saved-store-unavailable messaging for an unresolved saved ID', () => {
+            vi.mocked(useLoaderData).mockReturnValue({
+                preferredStore: null,
+                preferredStoreId: 'other-site',
+                error: null,
+            });
+            render(<PreferredStore />);
+            expect(
+                screen.getByText('Your saved store is unavailable on this site. You can change it.')
+            ).toBeInTheDocument();
+            expect(
+                screen.queryByText(t('account:storePreferences.preferredStore.noStoreSelected'))
+            ).not.toBeInTheDocument();
+        });
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
+        test('shows the lookup error instead of saved-store messaging when profile lookup failed', () => {
+            vi.mocked(useLoaderData).mockReturnValue({
+                preferredStore: null,
+                preferredStoreId: null,
+                error: 'Lookup failed',
+            });
+            render(<PreferredStore />);
+            expect(
+                screen.queryByText('Your saved store is unavailable on this site. You can change it.')
+            ).not.toBeInTheDocument();
+            expect(screen.getByText('Lookup failed')).toBeInTheDocument();
+        });
+
         test('shows error toast when store fetch fails', () => {
             vi.mocked(useLoaderData).mockReturnValue({
                 preferredStore: null,
@@ -195,6 +226,7 @@ describe('PreferredStore', () => {
             expect(screen.getAllByTestId('skeleton')).toHaveLength(3);
         });
 
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
         test('shows content when not revalidating', () => {
             vi.mocked(useLoaderData).mockReturnValue({ preferredStore: mockStore, error: null });
             vi.mocked(useNavigation).mockReturnValue({ state: 'idle' } as ReturnType<typeof useNavigation>);
@@ -205,5 +237,6 @@ describe('PreferredStore', () => {
             expect(screen.getByText('Downtown Store')).toBeInTheDocument();
             expect(screen.queryByTestId('skeleton')).not.toBeInTheDocument();
         });
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
     });
 });

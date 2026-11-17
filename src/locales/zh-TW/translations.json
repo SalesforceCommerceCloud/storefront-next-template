@@ -330,6 +330,7 @@
         "insufficientStock": "庫存不足"
     },
     "cart": {
+        "handoffWarning": "您已登入，但我們無法確認購物車是否已轉移。請在結帳前檢查購物車。",
         "title": "購物車",
         "delivery": {
             "heading": "運送 - {{totalCount}} 個項目中的 {{deliveryCount}} 個",
@@ -718,7 +719,8 @@
                 "changeStore": "變更商店",
                 "noStoreSelected": "沒有選取商店。使用商店地點搜尋選擇您喜好的取件商店。",
                 "storeHoursTitle": "營業時間",
-                "error": "無法載入商店詳細資料。請稍後再試。"
+                "error": "無法載入商店詳細資料。請稍後再試。",
+                "savedStoreUnavailable": "您儲存的商店在此網站無法使用。您可以變更它。"
             },
             "authorizedPickupPeople": {
                 "heading": "授權取件人",
@@ -1467,6 +1469,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "出了點問題",
+        "defaultDescription": "發生了錯誤",
+        "goToHomepage": "前往首頁"
     },
     "error": {
         "403": {

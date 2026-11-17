@@ -328,6 +328,7 @@
         "insufficientStock": "Nicht genügend Bestand verfügbar"
     },
     "cart": {
+        "handoffWarning": "Sie sind angemeldet, aber wir konnten die Übertragung Ihres Warenkorbs nicht bestätigen. Prüfen Sie Ihren Warenkorb vor dem Bezahlen.",
         "title": "Warenkorb",
         "delivery": {
             "heading": "Lieferung – {{deliveryCount}} von {{totalCount}} Artikeln",
@@ -716,7 +717,8 @@
                 "changeStore": "Geschäft ändern",
                 "noStoreSelected": "Kein Geschäft ausgewählt. Wählen Sie mit dem Shop-Finder Ihr bevorzugtes Geschäft für die Abholung aus.",
                 "storeHoursTitle": "Öffnungszeiten",
-                "error": "Geschäftsdetails konnten nicht geladen werden. Bitte versuchen Sie es später noch einmal."
+                "error": "Geschäftsdetails konnten nicht geladen werden. Bitte versuchen Sie es später noch einmal.",
+                "savedStoreUnavailable": "Ihr gespeichertes Geschäft ist auf dieser Website nicht verfügbar. Sie können es ändern."
             },
             "authorizedPickupPeople": {
                 "heading": "Autorisierte Personen für die Abholung",
@@ -1402,6 +1404,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "Etwas ist schiefgelaufen",
+        "defaultDescription": "Ein Fehler ist aufgetreten",
+        "goToHomepage": "Zur Startseite"
     },
     "error": {
         "403": {

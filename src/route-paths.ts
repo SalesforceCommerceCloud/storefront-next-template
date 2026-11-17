@@ -130,6 +130,8 @@ export const routes = {
  * No site prefix — excluded via `config.server.ts` → `url.excludeRoutes`.
  */
 export const resourceRoutes = {
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    authRecovery: '/resource/auth-recovery',
     cartItemAdd: '/action/cart-item-add',
     cartReorder: '/action/cart-reorder',
     cartItemRemove: '/action/cart-item-remove',

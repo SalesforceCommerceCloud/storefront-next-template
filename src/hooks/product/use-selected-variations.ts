@@ -16,6 +16,7 @@
 import { useMemo } from 'react';
 import { useNavigation, useSearchParams } from 'react-router';
 import type { ShopperProducts } from '@/scapi';
+import { getInitialVariationValues } from '@/lib/product/initial-variant';
 
 interface UseSelectedVariationsParams {
     product: ShopperProducts.schemas['Product'];
@@ -126,51 +127,9 @@ export const useSelectedVariations = ({
         // fall back to a merchant-configured variant when SCAPI provides one via representedProduct.
         // representedProduct isn't in the typed Product schema (only ShopperSearch hits) but the
         // schema is open so SCAPI may include it. Read defensively via the open extension.
-        const representedProductId = (product as { representedProduct?: { id?: string } }).representedProduct?.id;
-        const representedVariant =
-            !product.variationValues && representedProductId
-                ? product.variants?.find((v) => v.productId === representedProductId)
-                : undefined;
-
-        // For child products in sets/bundles where merchants didn't pre-configure defaults
-        // (no variationValues, no representedProduct), pick the first orderable variant's
-        // variationValues as a coherent default — this guarantees auto-selected attributes
-        // are mutually compatible (avoids selecting a color+size combo that isn't orderable).
-        const firstOrderableChildVariant =
-            isChildProduct && !product.variationValues && !representedVariant
-                ? (product.variants?.find((v) => v.orderable) ?? product.variants?.[0])
-                : undefined;
-
-        const fallbackVariant = representedVariant ?? firstOrderableChildVariant;
-
-        // Build object of currently selected variation values from the override/URL with fallback to defaults
-        // (the product's default variationValues for variant products, then variant fallbacks).
-        const result = product?.variationAttributes?.reduce(
-            (selections, attribute) => {
-                // First priority: caller override (modal) or URL param (PDP) for this attribute
-                const explicitValue = getSelected(attribute.id);
-
-                // Second priority: product's default variationValues (for variant products)
-                // Third priority: a fallback variant's values (representedProduct hint or, for child
-                //   products without merchant defaults, the first orderable variant — keeps the
-                //   selected (color, size, ...) tuple internally consistent)
-                // Fourth priority: when an attribute has only ONE possible value, auto-select it
-                const onlyValue =
-                    attribute.values && attribute.values.length === 1 ? attribute.values[0]?.value : undefined;
-                const defaultValue =
-                    product.variationValues?.[attribute.id] ??
-                    fallbackVariant?.variationValues?.[attribute.id] ??
-                    onlyValue;
-
-                // Use explicit value if available, otherwise use default, otherwise skip this attribute
-                const value = explicitValue || defaultValue;
-
-                // This keeps the returned object clean - no undefined/null values
-                return value ? { ...selections, [attribute.id]: value } : selections;
-            },
-            {} as Record<string, string>
+        const explicit = Object.fromEntries(
+            product.variationAttributes.map((attribute) => [attribute.id, getSelected(attribute.id)])
         );
-
-        return result;
+        return getInitialVariationValues(product, explicit, isChildProduct);
     }, [product, searchParams, navigation.location, isChildProduct, selectionsOverride]);
 };

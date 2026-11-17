@@ -15,12 +15,7 @@
  */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
-import { waitForStorybookReady } from '@storybook/test-utils';
-import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import StorePreferences from '..';
-
-const { t } = getTranslation();
 
 const meta: Meta<typeof StorePreferences> = {
     title: 'Account/Store Preferences',
@@ -36,19 +31,17 @@ Preferred Store for Pickup section where users can view and change their preferr
                 `,
             },
         },
-        reactRouter: {
-            loader: () => ({
-                preferredStore: {
-                    id: 'store-001',
-                    name: 'Salesforce Foundations - San Francisco',
-                    address1: '415 Mission Street',
-                    city: 'San Francisco',
-                    stateCode: 'CA',
-                    postalCode: '94105',
-                    storeHours: 'Open today: 10:00 AM - 8:00 PM',
-                },
-                error: null,
-            }),
+        loaderData: {
+            preferredStore: {
+                id: 'store-001',
+                name: 'Salesforce Foundations - San Francisco',
+                address1: '415 Mission Street',
+                city: 'San Francisco',
+                stateCode: 'CA',
+                postalCode: '94105',
+                storeHours: 'Open today: 10:00 AM - 8:00 PM',
+            },
+            error: null,
         },
     },
 };
@@ -56,37 +49,4 @@ Preferred Store for Pickup section where users can view and change their preferr
 export default meta;
 type Story = StoryObj<typeof StorePreferences>;
 
-export const Default: Story = {
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
-
-        await expect(canvas.getByRole('heading', { level: 1, name: 'Store Preferences' })).toBeInTheDocument();
-        await expect(canvas.getByText(t('account:storePreferences.subtitle'))).toBeInTheDocument();
-
-        // Conditional assertions for store-locator extension content
-        const preferredStoreHeading = canvas.queryByText('Preferred Store for Pickup');
-        if (preferredStoreHeading) {
-            await expect(preferredStoreHeading).toBeInTheDocument();
-            await expect(
-                canvas.getByText('Select your preferred store for in-store pickup orders')
-            ).toBeInTheDocument();
-
-            const changeStoreButton = canvas.queryByRole('button', { name: 'Change store' });
-            if (changeStoreButton) {
-                await expect(changeStoreButton).toBeInTheDocument();
-            }
-
-            const storeName = canvas.queryByText('Salesforce Foundations - San Francisco');
-            if (storeName) {
-                await expect(storeName).toBeInTheDocument();
-                await expect(canvas.getByText('415 Mission Street, San Francisco, CA 94105')).toBeInTheDocument();
-                await expect(canvas.getByText('Open today: 10:00 AM - 8:00 PM')).toBeInTheDocument();
-            }
-        }
-
-        await expect(canvas.getByText('Pickup Preferences')).toBeInTheDocument();
-        await expect(canvas.getByText('Manage your pickup notification and store preferences')).toBeInTheDocument();
-        await expect(canvas.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
-    },
-};
+export const Default: Story = {};

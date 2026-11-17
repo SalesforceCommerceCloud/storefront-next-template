@@ -35,6 +35,7 @@ coverage/
 
 # Storybook
 storybook-static/
+.storybook/.static-assets/
 .storybook/tests/generated-stories/
 
 # OS

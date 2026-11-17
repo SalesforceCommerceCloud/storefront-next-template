@@ -18,10 +18,11 @@ import { type ShopperBasketsV2 } from '@/scapi';
 import { onAuthenticationChange } from '@/lib/auth/commerce-context.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { BASKET_COOKIE_NAME, validateBasketSnapshot } from '@/lib/basket/cookie';
-import { getCookieConfig } from '@/lib/cookie-utils.server';
+import { getCookieConfig, createCookie as createSiteCookie } from '@/lib/cookie-utils.server';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { getLogger } from '@/lib/logger.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
+import { uncertainBasketHandoffContext } from '@/middlewares/auth.utils';
 
 // Types
 type Basket = ShopperBasketsV2.schemas['Basket'];
@@ -85,6 +86,8 @@ export type BasketMetadata = {
     basketMarkedForDeletion: boolean;
     /** Opaque lookup hint after auth changes; SCAPI must reauthorize before any basket data is exposed. */
     lookupBasketId?: string;
+    /** Guest snapshot retired by an authentication change; restored only when a basket handoff stays unverified. */
+    retainedSnapshot?: BasketSnapshot | null;
 };
 
 // Constants
@@ -101,6 +104,7 @@ const DEFAULT_BASKET_MIDDLEWARE_CONFIG: Required<
 
 export const basketResourceContext = createContext<BasketResource | undefined>();
 export const basketMetadataContext = createContext<BasketMetadata | undefined>();
+export const basketHandoffWarningContext = createContext(false);
 
 // Thrown when basket context is accessed without the middleware initializing it.
 export class BasketContextError extends Error {
@@ -309,6 +313,9 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
                     lookupBasketId: metadata.basketMarkedForDeletion
                         ? undefined
                         : (current?.current?.basketId ?? current?.snapshot?.basketId ?? metadata.lookupBasketId),
+                    retainedSnapshot: metadata.basketMarkedForDeletion
+                        ? undefined
+                        : (current?.snapshot ?? metadata.retainedSnapshot),
                 });
             }
             context.set(basketResourceContext, createBasketResource(null, undefined, false, null));
@@ -328,6 +335,16 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
 
         // Call the next middleware.
         const response = await next();
+        if (context.get(basketHandoffWarningContext)) {
+            response.headers.append(
+                'Set-Cookie',
+                await createSiteCookie<string>(
+                    'basket-handoff',
+                    getCookieConfig({ httpOnly: false, maxAge: 60, path: '/' }, context),
+                    context
+                ).serialize('1')
+            );
+        }
 
         // Update basket reference as it could have been created/modified in other middleware or actions/loaders.
         basket = (await getBasket(context, { ensureBasket: false })).current ?? undefined;
@@ -383,6 +400,7 @@ export const getBasket = async (
 ): Promise<BasketResource> => {
     const basketResource = context.get(basketResourceContext);
     const { ensureBasket = true } = options;
+    if (context.get(uncertainBasketHandoffContext) && basketResource) return basketResource;
 
     if (!basketResource) {
         throw new BasketContextError();
@@ -471,6 +489,7 @@ export const getBasket = async (
                 ...successMetadata,
                 basketMarkedForDeletion: false,
                 lookupBasketId: undefined,
+                retainedSnapshot: undefined,
             });
         }
         logger.debug('Basket: hydration succeeded');
@@ -595,3 +614,12 @@ export const destroyBasket = (context: Readonly<RouterContextProvider>): void =>
 };
 
 export default createBasketMiddleware;
+
+/**
+ * Restore the guest snapshot retired by an authentication change when the basket handoff could not be verified, so
+ * the guest basket stays visible (and its cookie retained) until ownership is established.
+ */
+export const restoreRetainedBasketSnapshot = (context: Readonly<RouterContextProvider>): void => {
+    const retained = context.get(basketMetadataContext)?.retainedSnapshot;
+    if (retained) context.set(basketResourceContext, createBasketResource(retained, undefined));
+};

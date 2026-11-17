@@ -129,7 +129,7 @@ These rules take priority when designing routes, components, and state. Apply th
 2. **Classify every data field per route.** Critical data (SEO, LCP, CLS, HTTP status) is `await`ed in the loader. Non-critical data is returned as an unresolved Promise. Interaction-driven data is fetched via `useFetcher` on user action.
 3. **Never block the loader on non-critical data.** Return the Promise directly — don't `await` recommendations, reviews, or below-the-fold content.
 4. **Export `shouldRevalidate` on routes with URL-driven filtering.** Prevent redundant loader re-execution when only search params change and the loader already handles them on the next navigation.
-5. **No `clientLoader` or `clientAction`.** Only server `loader` and server `action` exports are permitted in route modules.
+5. **No `clientLoader` or `clientAction`.** Only server `loader` and server `action` exports are permitted in route modules. The sole exception is the selected-store route's transport-only `clientAction`: call native `serverAction()` exactly once, return its result unchanged, and map only recognized lost-response errors to an unknown preference outcome. Never retry/replay writes or move server validation or persistence to the client; redirects, aborts, CSRF failures and unrelated errors retain native behavior. See [Selection workflow](./docs/README-PREFERRED-STORE.md#selection-workflow).
 
 ### Rendering & Visual Stability
 

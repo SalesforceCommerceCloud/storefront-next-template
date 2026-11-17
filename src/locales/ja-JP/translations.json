@@ -329,6 +329,7 @@
         "insufficientStock": "在庫が不足しています。"
     },
     "cart": {
+        "handoffWarning": "ログインしましたが、カートの移行を確認できませんでした。お支払い前にカートをご確認ください。",
         "title": "買い物カゴ",
         "delivery": {
             "heading": "配送 - {{totalCount}} 点中 {{deliveryCount}} 点",
@@ -719,7 +720,8 @@
                 "changeStore": "店舗を変更",
                 "noStoreSelected": "店舗が選択されていません。店舗検索を使用して、受け取り用の優先店舗を選択してください。",
                 "storeHoursTitle": "営業時間",
-                "error": "店舗の詳細を読み込めませんでした。しばらくしてから、もう一度お試しください。"
+                "error": "店舗の詳細を読み込めませんでした。しばらくしてから、もう一度お試しください。",
+                "savedStoreUnavailable": "保存した店舗はこのサイトでは利用できません。変更できます。"
             },
             "authorizedPickupPeople": {
                 "heading": "代理受取人",
@@ -1466,6 +1468,11 @@
     },
     "maintenancePage": {
         "apology": "We apologise for any inconvenience. Thank you for your patience!"
+    },
+    "routeError": {
+        "defaultTitle": "問題が発生しました",
+        "defaultDescription": "エラーが発生しました",
+        "goToHomepage": "ホームページへ"
     },
     "error": {
         "403": {

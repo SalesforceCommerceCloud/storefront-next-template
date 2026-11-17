@@ -51,14 +51,23 @@ const vertical = process.env.VERTICAL ?? 'fashion';
 // 417596, footwear 415592, cosmetic 413822, furniture 413507; each tier keeps ~1.5 KB headroom. Lazy-loading
 // the toast leaf was rejected: the async import gap lets React Router purge the settled fetcher before the
 // leaf re-attaches, reintroducing the lost-toast bug. Fashion/foundations (411000) still pass, untouched.
+// Raised ~2.4 KB on the non-canonical home tiers for the native preferred-store selection workflow
+// (@W-24887497@): the root-mounted selection provider, serialized selection coordinator and store-locator
+// provider/store changes ship in the shared root chunk every page loads. The chooser UI is already
+// lazy-loaded and the coordinator cannot be (its first-gesture ordering depends on synchronous creation),
+// so the growth stays in the root chunk. CI medians: luxury 420276, footwear 417835, furniture 416134,
+// cosmetic 415926; each tier keeps ~1.5 KB headroom. Fashion/foundations (411000) still passed then.
+// Raised again for the shop-by-store merge into main (@W-24926803@): the merged root chunk grew every tier
+// (CI medians: fashion 412386, foundations 411750, footwear 419503, furniture 417653, luxury 422013), so
+// each tier keeps ~1.5 KB headroom over its median, including fashion/foundations.
 const homeScriptSizeLimit =
     vertical === 'luxury'
-        ? 419000
+        ? 423500
         : vertical === 'footwear'
-          ? 417000
+          ? 421000
           : vertical === 'cosmetic' || vertical === 'furniture'
-            ? 415000
-            : 411000;
+            ? 419200
+            : 413900;
 // Product ceilings re-measured after the latest upstream/main merge: the combined PDP chunk landed a
 // touch above the earlier raise on the three verticals that carry the most PDP code (CI medians:
 // footwear 499656, luxury 491466, cosmetic 486286). Each ceiling sits ~1.5 KB above its measured
@@ -72,16 +81,20 @@ const homeScriptSizeLimit =
 // Furniture PDP raised 495000 -> 498000 for the same close-flush watcher (@W-24310245@): the shared root
 // chunk lands on the product view too, so furniture's PDP median rose to 496618. 498000 keeps ~1.4 KB
 // headroom. The other verticals' PDP tiers still pass (only furniture breached here) and stay untouched.
+// Raised for the shop-by-store merge into main (@W-24926803@): the larger shared root chunk and the
+// root-mounted store-locator provider land on the product view too (CI medians: footwear 505826,
+// furniture 503827, cosmetic 492150, fashion 487549, grocery 487320, foundations 487034). Each tier keeps
+// ~1.5 KB headroom; luxury still passes and is untouched.
 const productScriptSizeLimit =
     vertical === 'footwear'
-        ? 501000
+        ? 507400
         : vertical === 'luxury'
           ? 493000
           : vertical === 'furniture'
-            ? 498000
+            ? 505400
             : vertical === 'cosmetic'
-              ? 488000
-              : 485000;
+              ? 493700
+              : 489100;
 const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
 const cartScriptSizeLimit = vertical === 'footwear' ? 543000 : vertical === 'luxury' ? 541500 : 535000;
 /**

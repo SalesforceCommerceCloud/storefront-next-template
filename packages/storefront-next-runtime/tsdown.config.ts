@@ -30,6 +30,7 @@ export default defineConfig([
             'data-store': 'src/data-store/index.ts',
             'site-context': 'src/site-context/index.ts',
             routing: 'src/routing/index.ts',
+            'routing-compiled-routes': 'src/routing/compiled-routes.ts',
             'routing-app-wrapper': 'src/routing/app-wrapper.tsx',
             workspace: 'src/workspace/index.ts',
             i18n: 'src/i18n/index.ts',

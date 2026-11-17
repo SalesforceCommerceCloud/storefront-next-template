@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { resolveRequestOrigin, getAppOrigin, isSameOrigin } from './origin';
+import { resolveRequestOrigin, getAppOrigin, getTrustedProxyPublicOrigin, isSameOrigin } from './origin';
 import { getRequestFromContext } from '@/middlewares/request-origin';
 
 vi.mock('@/middlewares/request-origin', () => ({
@@ -25,6 +25,32 @@ const mockGetRequestFromContext = vi.mocked(getRequestFromContext);
 
 const buildRequest = (headers: Record<string, string> = {}, url = 'http://internal.lambda/path'): Request =>
     new Request(url, { headers });
+
+describe('trusted proxy public origin', () => {
+    afterEach(() => vi.unstubAllEnvs());
+    it('uses ingress-stripped production headers', () => {
+        vi.stubEnv('NODE_ENV', 'production');
+        expect(getTrustedProxyPublicOrigin(buildRequest({ 'x-forwarded-host': 'shop.example.com' }))).toBe(
+            'https://shop.example.com'
+        );
+    });
+    it('pins local proxy compatibility and ignores arbitrary hosts and protocols', () => {
+        vi.stubEnv('NODE_ENV', 'development');
+        vi.stubEnv('EXTERNAL_DOMAIN_NAME', 'localhost:5174');
+        expect(
+            getTrustedProxyPublicOrigin(
+                buildRequest({ 'x-forwarded-host': 'localhost:5174', 'x-forwarded-proto': 'https' })
+            )
+        ).toBe('http://localhost:5174');
+        expect(getTrustedProxyPublicOrigin(buildRequest({ 'x-forwarded-host': 'foreign.example' }))).toBeNull();
+        vi.stubEnv('EXTERNAL_DOMAIN_NAME', 'proxy.example.com');
+        expect(
+            getTrustedProxyPublicOrigin(
+                buildRequest({ 'x-forwarded-host': 'proxy.example.com', 'x-forwarded-proto': 'http' })
+            )
+        ).toBe('https://proxy.example.com');
+    });
+});
 
 describe('resolveRequestOrigin', () => {
     describe('x-forwarded-host', () => {

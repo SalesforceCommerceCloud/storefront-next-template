@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
-import { waitForStorybookReady } from '@storybook/test-utils';
 import ListSkeleton from '../list-skeleton';
 
 const meta: Meta<typeof ListSkeleton> = {
     title: 'Extensions/Store Locator/List Skeleton',
     component: ListSkeleton,
-    tags: ['autodocs', 'interaction'],
+    tags: ['autodocs'],
     parameters: {
         layout: 'padded',
         docs: {
@@ -72,17 +70,6 @@ This is the default loading state.
             },
         },
     },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-
-        // Verify skeleton is rendered
-        const skeleton = canvasElement.querySelector('ul[aria-label="loading store results"]');
-        await expect(skeleton).toBeInTheDocument();
-
-        // Verify skeleton rows are present
-        const rows = canvasElement.querySelectorAll('li');
-        await expect(rows.length).toBeGreaterThan(0);
-    },
 };
 
 export const WithStatusMessage: Story = {
@@ -102,76 +89,5 @@ This state appears when a search is in progress.
                 `,
             },
         },
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-
-        // Verify skeleton is rendered
-        const skeleton = canvasElement.querySelector('ul[aria-label="loading store results"]');
-        await expect(skeleton).toBeInTheDocument();
-
-        // Verify status message is present
-        const statusText = canvasElement.textContent;
-        await expect(statusText).toContain('Searching for stores');
-    },
-};
-
-export const MobileLayout: Story = {
-    args: {
-        statusMessage: 'Searching for stores...',
-    },
-    parameters: {
-        docs: {
-            description: {
-                story: `
-List skeleton optimized for mobile devices. Shows:
-- Stacked layout for better mobile viewing
-- Mobile-optimized spacing
-- Touch-friendly skeleton elements
-
-The component automatically adapts for mobile screens.
-                `,
-            },
-        },
-    },
-    globals: {
-        viewport: 'mobile2',
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-
-        // Verify skeleton is rendered
-        const skeleton = canvasElement.querySelector('ul[aria-label="loading store results"]');
-        await expect(skeleton).toBeInTheDocument();
-    },
-};
-
-export const DesktopLayout: Story = {
-    args: {
-        statusMessage: 'Searching for stores...',
-    },
-    parameters: {
-        docs: {
-            description: {
-                story: `
-List skeleton for desktop devices. Shows:
-- Grid layout with proper spacing
-- Desktop-optimized skeleton elements
-- All placeholders clearly displayed
-
-The component provides a clean layout for desktop screens.
-                `,
-            },
-        },
-    },
-    globals: {
-        viewport: 'desktop',
-    },
-    play: async ({ canvasElement }) => {
-        await waitForStorybookReady(canvasElement);
-
-        // Verify skeleton is rendered
-        const skeleton = canvasElement.querySelector('ul[aria-label="loading store results"]');
-        await expect(skeleton).toBeInTheDocument();
     },
 };

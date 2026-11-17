@@ -13,6 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { fingerprintCredential } from '@/lib/auth/credential-fingerprint';
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+import {
+    isAuthRecoveryRequest,
+    isPreferredStoreMutationRequest,
+    authRecoveryReturnContext,
+    validateAuthRecoveryDestination,
+} from '@/lib/auth/auth-recovery.server';
+import { createRecoveryErrorResponse } from '@/lib/auth/recovery-error.server';
+import type { AppConfig } from '@/types/config';
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 import {
     createContext,
     type MiddlewareFunction,
@@ -29,13 +40,16 @@ import {
     type AuthStorageData,
     createAuthPromise,
     updateAuthStorageData,
-    updateStorageAndCache,
+    updateStorageAndCache as publishCredentialsToStorage,
     getSLASAccessTokenClaims,
+    decodeSLASAccessToken,
     getLoginEmailFromToken,
     getCustomerIdFromClaims,
     deriveUserTypeFromClaims,
     isTrackingConsentEnabled,
     AUTH_TOKEN_INVALID_ERROR,
+    registeredLoginCompletedContext,
+    completedLoginRecoveryContext,
     COOKIE_REFRESH_TOKEN_GUEST,
     COOKIE_REFRESH_TOKEN_REGISTERED,
     COOKIE_ACCESS_TOKEN,
@@ -90,6 +104,13 @@ export function getSlasLocale(context: Readonly<RouterContextProvider>): string 
 }
 
 /**
+ * Refresh this long before the access token expires. Streamed (non-awaited) reads settle after the
+ * response head is sent and cannot recover from a 401, so a token that expires mid-request would
+ * otherwise surface as a late auth failure.
+ */
+const ACCESS_TOKEN_REFRESH_SKEW_MS = 90_000;
+
+/**
  * Refresh access token using refresh token.
  * Returns AuthResponse which includes dwsid (automatically extracted from Set-Cookie header by SDK).
  */
@@ -128,7 +149,11 @@ export async function refreshAccessToken(
         logger.debug('Auth: refreshAccessToken succeeded');
         return result;
     } catch (error) {
-        logger.error('Auth: refreshAccessToken failed', { error });
+        logger.error('Auth: refreshAccessToken failed', {
+            category: 'token-refresh',
+            status: error instanceof ApiError ? error.status : undefined,
+            name: error instanceof ApiError ? 'ApiError' : error instanceof Error ? 'Error' : undefined,
+        });
         throw error;
     } finally {
         performanceTimer?.mark(PERFORMANCE_MARKS.authRefreshAccessToken, 'end');
@@ -776,15 +801,11 @@ const retrieveAuthStorageData = async (
     const refreshToken = storage.get('refreshToken');
     const performanceTimer = context.get(performanceTimerContext);
 
-    // Check if access token exists and is not expired
+    // Check if access token exists and is not expired (or about to expire, see ACCESS_TOKEN_REFRESH_SKEW_MS)
     // We use the expiry injected from JWT during middleware initialization for fast comparison
-    if (
-        accessToken &&
-        typeof accessToken === 'string' &&
-        accessToken.length &&
-        typeof accessTokenExpiry === 'number' &&
-        accessTokenExpiry > Date.now()
-    ) {
+    const hasAccessToken = Boolean(accessToken && typeof accessToken === 'string' && accessToken.length);
+    const tokenStillValid = hasAccessToken && typeof accessTokenExpiry === 'number' && accessTokenExpiry > Date.now();
+    if (tokenStillValid && accessTokenExpiry - ACCESS_TOKEN_REFRESH_SKEW_MS > Date.now()) {
         logger.debug('Auth: access token valid', {
             expiresIn: Math.round((accessTokenExpiry - Date.now()) / 1000),
         });
@@ -808,6 +829,8 @@ const retrieveAuthStorageData = async (
             return 'tokenRefreshed';
         } catch (error) {
             logger.warn('Auth: refresh token failed', { error, storedUserType });
+            // An early (skew-window) refresh must not sign out a shopper whose current token still works.
+            if (tokenStillValid) return 'tokenValid';
             // Registered shopper whose refresh failed: set a sentinel so the post-handler
             // can redirect to login instead of silently creating a guest session. The guest
             // login below still runs so next() has a valid token and does not crash; the
@@ -819,6 +842,10 @@ const retrieveAuthStorageData = async (
             // Guest refresh failure: fall through to guest login (no sentinel needed).
         }
     }
+
+    // Inside the skew window with nothing to refresh with: keep serving the unexpired token (it may be a
+    // registered session) instead of replacing it with a guest login.
+    if (tokenStillValid) return 'tokenValid';
 
     // Otherwise, get a new guest token (fallback for users not logged in)
     // Note: Registered users should log in through `/login` action, not here
@@ -898,23 +925,6 @@ const handleAuthTokenInvalidation = async ({
         throw error;
     }
 
-    // Clear stale error/access-token state so refresh/guest flow can run cleanly.
-    resetRecoveryStorageState(authStorage);
-
-    // Refresh before redirect so the next request arrives with fresh cookies,
-    // and to fail fast if recovery is not possible (avoid a pointless redirect).
-    await retrieveAuthStorageData(context, authStorage, authCache).catch(() => {
-        // Intentionally empty
-    });
-
-    // If recovery failed, rethrow so ErrorBoundary can handle it.
-    if (authStorage.has('error')) {
-        logger.error('Auth: token invalidation recovery failed', { error });
-        throw error;
-    }
-
-    logger.info('Auth: token invalidation recovery succeeded, redirecting');
-
     // For action-only routes (no component), redirecting back to request.url leaves
     // the browser on a blank page. Use the Referer instead so the user lands back on
     // the page that submitted the action. Fall back to request.url for normal pages.
@@ -926,22 +936,98 @@ const handleAuthTokenInvalidation = async ({
     const refererUrl = referer ? URL.parse(referer) : null;
     const isSameOriginReferer = refererUrl !== null && refererUrl.origin === requestUrlObj.origin;
     const redirectingToReferer = isActionRoute && isSameOriginReferer && referer !== null;
-    const redirectLocation = redirectingToReferer ? referer : request.url;
+
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    // Reject an invalid explicit destination before consuming/rotating a refresh token.
+    const explicitRecoveryReturn = context.get(authRecoveryReturnContext);
+    const recoveryDestination =
+        explicitRecoveryReturn === null ? null : validateAuthRecoveryDestination(explicitRecoveryReturn, request.url);
+    // A preference PATCH may have reached the backend before its response failed.
+    // Recover auth and read the document; never retry the set/clear POST automatically.
+    // Resolve the destination before consuming/rotating a refresh token.
+    const isPreferenceWrite = isPreferredStoreMutationRequest(request);
+    let preferenceDestination: string | null = null;
+    if (isPreferenceWrite) {
+        try {
+            preferenceDestination = validateAuthRecoveryDestination(redirectingToReferer ? referer : '/', request.url);
+        } catch (destinationError) {
+            // An action/resource Referer is not a document destination; fall back to the root.
+            if (!(destinationError instanceof Response)) throw destinationError;
+            try {
+                preferenceDestination = validateAuthRecoveryDestination('/', request.url);
+            } catch (rootError) {
+                if (!(rootError instanceof Response)) throw rootError;
+                preferenceDestination = '/';
+            }
+        }
+    }
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
+    // Clear stale error/access-token state so refresh/guest flow can run cleanly.
+    resetRecoveryStorageState(authStorage);
+
+    // Refresh before redirect so the next request arrives with fresh cookies,
+    // and to fail fast if recovery is not possible (avoid a pointless redirect).
+    await retrieveAuthStorageData(context, authStorage, authCache).catch(() => {
+        // Intentionally empty
+    });
+
+    // A registered shopper whose refresh token is also dead is signed out: guest login ran, so send
+    // them to login (same redirect as the post-handler branch) instead of surfacing a 500.
+    if (authStorage.get('error') === SESSION_EXPIRED_REDIRECT) {
+        authStorage.delete('error');
+        let requestPath = new URL(request.url).pathname;
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        // A preference write posts to an action endpoint with no page; return to the validated document.
+        requestPath = preferenceDestination ?? requestPath;
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+        logger.info('Auth: token invalidation recovery found no valid refresh token, redirecting to login');
+        return {
+            authRecoveryTriggered: true,
+            response: new Response(null, {
+                status: 307,
+                headers: {
+                    Location: `${buildUrlFromContext('/login', context)}?returnUrl=${encodeURIComponent(requestPath)}&error=session_expired`,
+                    'Cache-Control': 'no-store',
+                    'x-sfnext-auth-recovery': '1',
+                },
+            }),
+        };
+    }
+
+    // If recovery failed, rethrow so ErrorBoundary can handle it.
+    if (authStorage.has('error')) {
+        logger.error('Auth: token invalidation recovery failed', { error });
+        throw error;
+    }
+
+    logger.info('Auth: token invalidation recovery succeeded, redirecting');
+
+    const recoveryRedirect = {
+        location: redirectingToReferer ? referer : request.url,
+        status: redirectingToReferer ? 303 : 307,
+    };
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    recoveryRedirect.location =
+        recoveryDestination ?? preferenceDestination ?? (redirectingToReferer ? referer : request.url);
 
     // A referer-redirect lands on a page route, which typically has no `action` export.
     // 307 preserves the original method, so a POST would be replayed there and rejected
     // with 405. 303 forces the browser to follow up with GET, matching the page's loader.
-    // Falling back to request.url still targets the action route itself, so 307 is kept
-    // there to correctly replay the original POST against fresh auth state.
-    const status = redirectingToReferer ? 303 : 307;
+    // Other baseline action routes retain their existing 307 fallback. The preferred-store
+    // write above always goes to a document because its persistence outcome can be unknown.
+    recoveryRedirect.status = recoveryDestination || preferenceDestination || redirectingToReferer ? 303 : 307;
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
     // Restart the request lifecycle with fresh auth cookies.
     return {
         authRecoveryTriggered: true,
         response: new Response(null, {
-            status,
+            status: recoveryRedirect.status,
             headers: {
-                Location: redirectLocation,
+                Location: recoveryRedirect.location,
+                // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+                ...(recoveryDestination !== null || isPreferenceWrite ? { 'Cache-Control': 'no-store' } : {}),
                 // Observability only: marks recovery redirect in logs/debugging.
                 'x-sfnext-auth-recovery': '1',
             },
@@ -950,6 +1036,106 @@ const handleAuthTokenInvalidation = async ({
 };
 
 const authCacheContext = createContext<{ ref: AuthData | undefined }>();
+
+/**
+ * Publish a token response to auth storage and cache. Every credential-publication path goes through here so
+ * identity-bound commerce snapshots and helpers are cleared before any consumer reads under the new credential.
+ */
+async function updateStorageAndCache(
+    context: Readonly<RouterContextProvider>,
+    ...args: Parameters<typeof publishCredentialsToStorage> extends [unknown, ...infer Rest] ? Rest : never
+): Promise<void> {
+    invalidateAuthenticatedCommerce(context);
+    await publishCredentialsToStorage(context, ...args);
+}
+
+/** Refresh a completed login once without replaying its consumed proof or mutations. */
+export async function recoverCompletedLogin(context: Readonly<RouterContextProvider>): Promise<void> {
+    const recovery = context.get(completedLoginRecoveryContext);
+    const logger = getLogger(context);
+    if (!recovery || recovery.guard) {
+        if (recovery) recovery.failed = true;
+        logger.warn('Auth audit', {
+            category: 'auth-audit',
+            actor: recovery ? 'registered-shopper' : 'unknown',
+            action: 'completed-login-recovery',
+            target: 'authenticated-session',
+            timestamp: new Date().toISOString(),
+            outcome: 'denied',
+            reason: recovery ? 'recovery-guard' : 'completion-context-missing',
+        });
+        throw new AuthTokenInvalidError();
+    }
+    const storage = context.get(authStorageContext);
+    const cache = context.get(authCacheContext);
+    if (recovery.refresh) {
+        await recovery.refresh;
+        if (storage.get('error') === AUTH_TOKEN_INVALID_ERROR) throw new AuthTokenInvalidError();
+        return;
+    }
+    recovery.refresh = (async () => {
+        const refreshToken = storage.get('refreshToken');
+        let reason = 'refresh-token-missing';
+        try {
+            if (typeof refreshToken !== 'string' || !refreshToken) throw new AuthTokenInvalidError();
+            reason = 'credential-invalid';
+            const accessToken = storage.get('accessToken');
+            if (typeof accessToken === 'string')
+                recovery.supersededCredential = await fingerprintCredential(`Bearer ${accessToken}`);
+            resetRecoveryStorageState(storage);
+            reason = 'refresh-failed';
+            const token = await refreshAccessToken(context, refreshToken);
+            reason = 'credential-invalid';
+            const claims = getSLASAccessTokenClaims(token.access_token);
+            const identitySubject = decodeSLASAccessToken(token.access_token).isb;
+            const tokenSite =
+                typeof identitySubject === 'string'
+                    ? identitySubject
+                          .split('::')
+                          .find((part) => part.startsWith('chid:'))
+                          ?.slice(5)
+                    : undefined;
+            reason = 'identity-mismatch';
+            if (
+                deriveUserTypeFromClaims(claims) !== 'registered' ||
+                getCustomerIdFromClaims(claims) !== recovery.customerId ||
+                claims.usid !== recovery.usid ||
+                tokenSite !== recovery.siteId ||
+                context.get(siteContext)?.site.id !== recovery.siteId
+            ) {
+                throw new AuthTokenInvalidError();
+            }
+            recovery.recoveredCredential = await fingerprintCredential(`Bearer ${token.access_token}`);
+            reason = 'credential-publication-failed';
+            await updateStorageAndCache(context, storage, cache, token);
+        } catch (error) {
+            recovery.failed = true;
+            storage.set('error', AUTH_TOKEN_INVALID_ERROR);
+            // Diagnose the failed stage without serializing credentials or upstream errors.
+            // Warn also keeps these audit outcomes visible with production's default level.
+            logger.warn('Auth audit', {
+                category: 'auth-audit',
+                actor: 'registered-shopper',
+                action: 'completed-login-recovery',
+                target: 'authenticated-session',
+                timestamp: new Date().toISOString(),
+                outcome: 'failure',
+                reason,
+                ...(error instanceof ApiError || error instanceof Response ? { status: error.status } : {}),
+            });
+            throw new AuthTokenInvalidError();
+        }
+        logger.warn('Auth audit', {
+            category: 'auth-audit',
+            actor: 'registered-shopper',
+            action: 'completed-login-recovery',
+            target: 'authenticated-session',
+            timestamp: new Date().toISOString(),
+            outcome: 'success',
+        });
+    })();
+    return recovery.refresh;
+}
 
 /**
  * Middleware to retrieve or refresh the Commerce API token and provide it as part of the router `context`.
@@ -991,10 +1177,28 @@ const authCacheContext = createContext<{ ref: AuthData | undefined }>();
  *
  * The router context is available in other middlewares, loader and action functions. Use it as root middleware,
  * to ensure the Commerce API context portion becomes available throughout the whole application.
+ * @environment MRT_ENV_BASE_PATH - Optional deployment basename, e.g. `/site-a`; used to identify the recovery endpoint before auth setup.
  */
 const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }, next) => {
     const logger = getLogger(context);
     logger.debug('Auth middleware: start');
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    // The recovery loader runs after initial auth setup. Validate its input here too,
+    // so an expired incoming token cannot be rotated before a rejected destination.
+    const recoveryUrl = new URL(request.url);
+    if (isAuthRecoveryRequest(request)) {
+        try {
+            context.set(
+                authRecoveryReturnContext,
+                validateAuthRecoveryDestination(recoveryUrl.searchParams.get('returnTo') ?? '/', request.url)
+            );
+        } catch (error) {
+            if (!(error instanceof Response) || error.status !== 400) throw error;
+            // oxlint-disable-next-line @typescript-eslint/only-throw-error
+            throw createRecoveryErrorResponse(request, getConfig<AppConfig>(context));
+        }
+    }
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
     // Before calling the handler: Load current Commerce API data from incoming cookies, if applicable
     const cookieConfig = getCookieConfig({ httpOnly: true }, context);
     const cookieHeader = request.headers.get('Cookie');
@@ -1019,6 +1223,10 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
     const dwsid = getAuthCookie(COOKIE_DWSID);
     const authRecoveryGuard = getAuthCookie(COOKIE_AUTH_RECOVERY_GUARD);
     const hasAuthRecoveryGuard = authRecoveryGuard === '1';
+    context.set(completedLoginRecoveryContext, {
+        siteId: context.get(siteContext)?.site?.id ?? '',
+        guard: hasAuthRecoveryGuard,
+    });
     // Read tracking consent cookie directly as TrackingConsent enum (values match)
     const trackingConsentCookieValue = getAuthCookie(COOKIE_TRACKING_CONSENT);
     let trackingConsent: TrackingConsent | undefined =
@@ -1231,6 +1439,7 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
         if (!isAuthTokenInvalidError(error)) {
             throw error;
         }
+        if (context.get(registeredLoginCompletedContext)) throw error;
 
         logger.warn('Auth middleware: token invalidation detected, attempting recovery', {
             hasRecoveryGuard: hasAuthRecoveryGuard,
@@ -1257,17 +1466,23 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
         logger.warn('Auth middleware: deferred token invalidation error, attempting recovery', {
             hasRecoveryGuard: hasAuthRecoveryGuard,
         });
-        authStorage.delete('error');
-        const recovery = await handleAuthTokenInvalidation({
-            request,
-            context,
-            authStorage,
-            authCache,
-            hasAuthRecoveryGuard,
-            error: new AuthTokenInvalidError(),
-        });
-        authRecoveryTriggered = recovery.authRecoveryTriggered;
-        response = recovery.response;
+        if (context.get(registeredLoginCompletedContext)) {
+            // A callback code/assertion may already be consumed. Recover the registered
+            // session, but never redirect back to replay this completed request.
+            await recoverCompletedLogin(context);
+            response.headers.set('x-sfnext-auth-recovery', '1');
+        } else {
+            const recovery = await handleAuthTokenInvalidation({
+                request,
+                context,
+                authStorage,
+                authCache,
+                hasAuthRecoveryGuard,
+                error: new AuthTokenInvalidError(),
+            });
+            authRecoveryTriggered = recovery.authRecoveryTriggered;
+            response = recovery.response;
+        }
     }
 
     if (storedAuthError === SESSION_EXPIRED_REDIRECT) {

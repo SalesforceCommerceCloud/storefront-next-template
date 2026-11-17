@@ -2,56 +2,22 @@
 
 exports[`StoreAddress stories snapshot > Default story renders and matches snapshot 1`] = `
 <div>
-  <div>
-    123 Main Street
-  </div>
-  <div>
-    San Francisco, CA 94102
-  </div>
-</div>
-`;
-
-exports[`StoreAddress stories snapshot > DesktopLayout story renders and matches snapshot 1`] = `
-<div>
-  <div>
-    123 Main Street
-  </div>
-  <div>
-    San Francisco, CA 94102
-  </div>
-</div>
-`;
-
-exports[`StoreAddress stories snapshot > MobileLayout story renders and matches snapshot 1`] = `
-<div>
-  <div>
-    123 Main Street
-  </div>
-  <div>
-    San Francisco, CA 94102
-  </div>
+  123 Main Street
 </div>
 `;
 
 exports[`StoreAddress stories snapshot > SingleLine story renders and matches snapshot 1`] = `
 <div>
-  <div>
-    123 Main Street, San Francisco, CA 94102
-  </div>
+  123 Main Street, San Francisco, CA 94102
 </div>
 `;
 
 exports[`StoreAddress stories snapshot > WithStoreName story renders and matches snapshot 1`] = `
 <div>
-  <div>
-    <span>
-      Downtown Store
-       - 
-    </span>
-    123 Main Street
-  </div>
-  <div>
-    San Francisco, CA 94102
-  </div>
+  <span>
+    Downtown Store
+     - 
+  </span>
+  123 Main Street
 </div>
 `;

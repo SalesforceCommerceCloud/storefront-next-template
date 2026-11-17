@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useFetcher } from 'react-router';
-import { useToast } from '@/components/toast';
-import { useTranslation } from 'react-i18next';
-import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { isNativeStoreSelectionEnabled } from '@/lib/shopper-context/store-selection';
-import type { action as selectStoreAction } from '@/extensions/store-locator/routes/action.set-selected-store';
+import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { resourceRoutes } from '@/route-paths';
 import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
-import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
+import { useStoreSelection } from '@/extensions/store-locator/providers/selection';
+import {
+    clearStoreLocatorSearchMemory,
+    setStoreLocatorSearchMemory,
+} from '@/extensions/store-locator/stores/store-locator-search-memory';
 import type {
     loader as searchStoresLoader,
     SearchStoresResult,
@@ -41,54 +41,48 @@ export type { SearchStoresResult };
  * // render list and call setPage((p)=>p+1) for Load More
  */
 export function useStoreLocatorList() {
+    const { site } = useSite();
+    const generation = useStoreLocator((s) => s.generation);
     const mode = useStoreLocator((s) => s.mode);
     const searchParams = useStoreLocator((s) => s.searchParams);
     const deviceCoordinates = useStoreLocator((s) => s.deviceCoordinates);
     const config = useStoreLocator((s) => s.config);
     const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
-    const setSelectedStoreInfoRaw = useStoreLocator((s) => s.setSelectedStoreInfo);
+    const { select: setSelectedStoreInfo, retry: retrySelection } = useStoreSelection();
+    const selectionPending = useStoreLocator((s) => s.selectionPending);
+    const selectionError = useStoreLocator((s) => s.selectionError);
+    const chooserStoreInfo = useStoreLocator((s) => (s.isOpen ? s.chooserStoreInfo : s.selectedStoreInfo));
     const geoError = useStoreLocator((s) => s.geoError);
     const shouldSearch = useStoreLocator((s) => s.shouldSearch);
     const setShouldSearch = useStoreLocator((s) => s.setShouldSearch);
+    const searchResult = useStoreLocator((s) => s.searchResult);
+    const setSearchResult = useStoreLocator((s) => s.setSearchResult);
 
     const fetcher = useFetcher<typeof searchStoresLoader>();
-    const storeFetcher = useFetcher<typeof selectStoreAction>();
-    const nativeEnabled = isNativeStoreSelectionEnabled(useConfig().features.shopperContext);
-    const selectionPending = useRef(false);
-    const isSelecting = nativeEnabled && storeFetcher.state !== 'idle';
-    const { addToast } = useToast();
-    const { t } = useTranslation('extStoreLocator');
-    const lastSelectionError = useRef<unknown>(null);
-    const lastSelectionSuccess = useRef<unknown>(null);
-    useEffect(() => {
-        if (!nativeEnabled || storeFetcher.state !== 'idle' || storeFetcher.data?.success !== false) return;
-        if (lastSelectionError.current === storeFetcher.data) return;
-        lastSelectionError.current = storeFetcher.data;
-        addToast(
-            t(
-                storeFetcher.data.code === 'STORE_CHANGE_CONFIRMATION_REQUIRED'
-                    ? 'storeLocator.list.storeChangeUnavailable'
-                    : 'storeLocator.list.fetchError'
-            ),
-            'error'
-        );
-    }, [nativeEnabled, storeFetcher.state, storeFetcher.data, addToast, t]);
-    useEffect(() => {
-        if (
-            nativeEnabled &&
-            storeFetcher.state === 'idle' &&
-            storeFetcher.data?.success &&
-            'selectedStoreInfo' in storeFetcher.data &&
-            lastSelectionSuccess.current !== storeFetcher.data
-        ) {
-            lastSelectionSuccess.current = storeFetcher.data;
-            setSelectedStoreInfoRaw(storeFetcher.data.selectedStoreInfo);
-        }
-    }, [nativeEnabled, storeFetcher.state, storeFetcher.data, setSelectedStoreInfoRaw]);
     const [page, setPage] = useState<number>(1);
     const [hasSearched, setHasSearched] = useState<boolean>(false);
     // Track intentional search loads to distinguish from revalidation-triggered loads
     const isSearchingRef = useRef(false);
+    const pendingSearchRef = useRef<{
+        mode: 'input' | 'device';
+        searchParams: typeof searchParams;
+    } | null>(null);
+    const lastHandledSearchResultRef = useRef<unknown>(undefined);
+    const generationRef = useRef(generation);
+    const [acceptedSearch, setAcceptedSearch] = useState<{ generation: number; data: typeof fetcher.data } | null>(
+        null
+    );
+
+    useEffect(() => {
+        if (generationRef.current === generation) return;
+        generationRef.current = generation;
+        pendingSearchRef.current = null;
+        isSearchingRef.current = false;
+        setAcceptedSearch(null);
+        lastHandledSearchResultRef.current = fetcher.data;
+        setHasSearched(false);
+        setPage(1);
+    }, [generation, fetcher.data]);
 
     useEffect(() => {
         if (!shouldSearch) return;
@@ -119,6 +113,11 @@ export function useStoreLocatorList() {
         }
 
         if (canFetch) {
+            pendingSearchRef.current = {
+                mode,
+                searchParams: searchParams ? { ...searchParams } : null,
+            };
+            clearStoreLocatorSearchMemory(site.id);
             setHasSearched(true);
             isSearchingRef.current = true;
             void fetcher.load(`${resourceRoutes.stores}?${params.toString()}`);
@@ -133,6 +132,7 @@ export function useStoreLocatorList() {
         searchParams?.postalCode,
         deviceCoordinates.latitude,
         deviceCoordinates.longitude,
+        site.id,
     ]);
 
     // Clear the intentional search flag once the fetcher settles
@@ -140,44 +140,37 @@ export function useStoreLocatorList() {
         isSearchingRef.current = false;
     }
 
-    const stores = useMemo(() => fetcher.data?.stores?.data ?? [], [fetcher.data]);
-    // Selection failures are nonblocking toast feedback; search results remain retryable.
-    const hasError = fetcher.data?.success === false;
+    useEffect(() => {
+        if (fetcher.state !== 'idle' || !fetcher.data || fetcher.data === lastHandledSearchResultRef.current) {
+            return;
+        }
+
+        lastHandledSearchResultRef.current = fetcher.data;
+        const pendingSearch = pendingSearchRef.current;
+        pendingSearchRef.current = null;
+        if (!pendingSearch) {
+            return;
+        }
+
+        setSearchResult(fetcher.data);
+        setAcceptedSearch({ generation, data: fetcher.data });
+        if (fetcher.data.success) {
+            setStoreLocatorSearchMemory(site.id, {
+                mode: pendingSearch.mode,
+                searchParams: pendingSearch.searchParams,
+                searchResult: fetcher.data,
+            });
+        }
+    }, [fetcher.data, fetcher.state, setSearchResult, site.id, generation]);
+
+    const fallback = acceptedSearch?.generation === generation ? acceptedSearch.data : undefined;
+    const stores = useMemo(() => searchResult?.stores?.data ?? fallback?.stores?.data ?? [], [searchResult, fallback]);
+    const hasError = searchResult?.success === false || fallback?.success === false;
     const showCount = page * 10;
     const storesPaginated = stores.slice(0, showCount);
 
     // Only show loading skeleton for intentional searches, not revalidation-triggered reloads
     const isLoading = fetcher.state === 'loading' && isSearchingRef.current;
-
-    // Wrapper function that updates store selection via server action.
-    // Native selection publishes only after success; legacy selection stays optimistic.
-    // Middleware persists the cookie and React Router revalidates after the action.
-    const setSelectedStoreInfo = useCallback(
-        (info: SelectedStoreInfo | null) => {
-            if (nativeEnabled && (selectionPending.current || storeFetcher.state !== 'idle')) return;
-            // Optimistic client state update
-            if (!nativeEnabled) setSelectedStoreInfoRaw(info);
-
-            // Submit to server action for cookie persistence
-            const formData = new FormData();
-            formData.set('storeInfo', info ? JSON.stringify(info) : '');
-            if (!nativeEnabled) {
-                void storeFetcher.submit(formData, { method: 'POST', action: resourceRoutes.setSelectedStore });
-                return;
-            }
-            selectionPending.current = true;
-            void (async () => {
-                try {
-                    await storeFetcher.submit(formData, { method: 'POST', action: resourceRoutes.setSelectedStore });
-                } catch {
-                    addToast(t('storeLocator.list.fetchError'), 'error');
-                } finally {
-                    selectionPending.current = false;
-                }
-            })();
-        },
-        [nativeEnabled, setSelectedStoreInfoRaw, storeFetcher, addToast, t]
-    );
 
     return {
         // store state
@@ -185,14 +178,16 @@ export function useStoreLocatorList() {
         searchParams,
         config,
         selectedStoreInfo,
+        chooserStoreInfo,
+        selectionPending,
+        selectionError,
+        retrySelection,
         setSelectedStoreInfo,
         geoError,
         // fetch state
-        hasSearched,
+        hasSearched: hasSearched || searchResult !== null,
         hasError,
         isLoading,
-        isSelecting,
-        selectionResult: storeFetcher.data,
         stores,
         storesPaginated,
         setPage,

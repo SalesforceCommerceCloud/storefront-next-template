@@ -5,6 +5,14 @@
         }
     },
     "storeLocator": {
+        "selection": {
+            "unknown": "The save outcome could not be confirmed. Try again to check your current preference before continuing.",
+            "saving": "Saving your store…",
+            "clearing": "Clearing your preferred store…",
+            "error": "Your store could not be saved. Your previous store is unchanged. Try again.",
+            "retry": "Try again",
+            "checking": "Checking your preferred store…"
+        },
         "title": "Find a Store",
         "description": "Search for stores by country and postal code or use your current location.",
         "form": {
@@ -21,7 +29,16 @@
         },
         "trigger": {
             "ariaLabel": "Find a Store",
-            "openAriaLabel": "Open Find a Store"
+            "openAriaLabel": "Open Find a Store",
+            "chooseAriaLabel": "Choose your store",
+            "selectedAriaLabel": "Change your store: {{storeName}}, {{postalCode}}",
+            "selectedWithoutPostalAriaLabel": "Change your store: {{storeName}}"
+        },
+        "homePrompt": {
+            "title": "Choose your store",
+            "description": "Choose a preferred store to save it. You can change it anytime.",
+            "open": "Choose a store",
+            "dismiss": "Not now"
         },
         "sheet": {
             "closeAriaLabel": "Close store locator"
