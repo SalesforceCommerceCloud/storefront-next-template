@@ -7,6 +7,10 @@
         {
             "name": "sfcc.app.order.sendOrderAccessCode",
             "script": "./cartridge/scripts/hooks/sendOrderAccessCode"
+        },
+        {
+            "name": "dw.shop.shopper_configuration.modifyGETResponse",
+            "script": "./cartridge/scripts/hooks/shopperConfiguration"
         }
     ]
 }

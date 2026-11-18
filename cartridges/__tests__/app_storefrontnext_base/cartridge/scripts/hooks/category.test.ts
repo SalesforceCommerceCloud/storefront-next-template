@@ -18,7 +18,9 @@ import { resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
 import { describe, expect, it, vi } from 'vitest';
 
-const hookSource = readFileSync(resolve(import.meta.dirname, 'category.js'), 'utf8');
+// Mirrors the cartridge layout so the tests live outside the deployed cartridge.
+const cartridgeDir = resolve(import.meta.dirname, '../../../../../app_storefrontnext_base');
+const hookSource = readFileSync(resolve(cartridgeDir, 'cartridge/scripts/hooks/category.js'), 'utf8');
 
 function loadHook(select: string | null) {
     const logger = { error: vi.fn() };
@@ -40,7 +42,7 @@ function loadHook(select: string | null) {
 
 describe('category response hook', () => {
     it('is registered for category GET responses', () => {
-        const hooks = JSON.parse(readFileSync(resolve(import.meta.dirname, '../../../hooks.json'), 'utf8'));
+        const hooks = JSON.parse(readFileSync(resolve(cartridgeDir, 'hooks.json'), 'utf8'));
 
         expect(hooks.hooks).toContainEqual({
             name: 'dw.ocapi.shop.category.modifyGETResponse',

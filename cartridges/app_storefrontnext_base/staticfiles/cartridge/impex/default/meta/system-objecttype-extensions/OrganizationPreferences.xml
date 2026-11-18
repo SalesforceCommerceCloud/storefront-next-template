@@ -37,6 +37,15 @@
                 <display-name xml:lang="x-default">Storefront Next</display-name>
                 <attribute attribute-id="sfnextNotifyEnabled"/>
             </attribute-group>
+
+            <!--
+                Global preferences exposed to shoppers through the Shopper Configurations API
+                (c_customGlobalPreferences) by the shopperConfiguration hook. Ships empty; assign only
+                values that are safe to make public. Password attributes are never exposed.
+            -->
+            <attribute-group group-id="sfnextShopperConfiguration">
+                <display-name xml:lang="x-default">Storefront Next Shopper Configuration</display-name>
+            </attribute-group>
         </group-definitions>
     </type-extension>
 

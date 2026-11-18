@@ -40,6 +40,15 @@
                 <display-name xml:lang="x-default">Storefront Next</display-name>
                 <attribute attribute-id="sfnextStorefrontHost"/>
             </attribute-group>
+
+            <!--
+                Site preferences exposed to shoppers through the Shopper Configurations API
+                (c_customSitePreferences) by the shopperConfiguration hook. Ships empty; assign only
+                values that are safe to make public. Password attributes are never exposed.
+            -->
+            <attribute-group group-id="sfnextShopperConfiguration">
+                <display-name xml:lang="x-default">Storefront Next Shopper Configuration</display-name>
+            </attribute-group>
         </group-definitions>
     </type-extension>
 

@@ -12,6 +12,7 @@ This package uses Vitest for unit tests, running under Vite.
 ## Test layout
 
 - Test files live alongside source in `src/**` and end with `.test.ts` or `.test.tsx`.
+- Cartridge tests live in `cartridges/__tests__/<cartridge>/`, mirroring the cartridge's layout, not inside the cartridge itself — everything under a cartridge folder is uploaded to the instance.
 - Path alias `@/` resolves to `src/` (Vite + TS config).
 
 ## Environment
