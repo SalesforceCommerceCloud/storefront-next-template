@@ -666,7 +666,7 @@ Scenario('Add an interest via the tabbed dialog', async () => {
     I.seeElement(accountDetailsPage.locators.interestsDialog);
 
     accountDetailsPage.switchInterestsDialogTab('room_types');
-    accountDetailsPage.toggleInterestCheckbox('living_room');
+    accountDetailsPage.setInterestChecked('living_room');
     accountDetailsPage.saveInterestsDialog();
 
     const isBadgeVisible = await accountDetailsPage.isInterestBadgeVisible('living_room');
@@ -700,7 +700,7 @@ Scenario('Remove an interest badge in edit mode', async () => {
     // First add a known interest via the dialog to seed state
     accountDetailsPage.openInterestsDialog();
     accountDetailsPage.switchInterestsDialogTab('design_styles');
-    accountDetailsPage.toggleInterestCheckbox('minimalist');
+    accountDetailsPage.setInterestChecked('minimalist');
     accountDetailsPage.saveInterestsDialog();
 
     const isBadgeVisible = await accountDetailsPage.isInterestBadgeVisible('minimalist');
@@ -740,7 +740,7 @@ Scenario('Add a product category via multi-select dialog', async () => {
     accountDetailsPage.clickEditInterestsPreferences();
     accountDetailsPage.openProductCategoriesDialog();
 
-    accountDetailsPage.toggleProductCategoryCheckbox('geometric');
+    accountDetailsPage.setProductCategoryChecked('geometric');
     accountDetailsPage.saveProductCategoriesDialog();
 
     const isBadgeVisible = await accountDetailsPage.isProductCategoryBadgeVisible('geometric');
@@ -774,12 +774,12 @@ Scenario('I&P full save flow shows success toast and reflects state in view mode
 
     accountDetailsPage.openInterestsDialog();
     accountDetailsPage.switchInterestsDialogTab('design_styles');
-    accountDetailsPage.toggleInterestCheckbox('minimalist');
+    accountDetailsPage.setInterestChecked('minimalist');
     accountDetailsPage.saveInterestsDialog();
 
     accountDetailsPage.clickSaveInterestsPreferences();
 
-    accountDetailsPage.validateSuccessToast();
+    accountDetailsPage.validateInterestsPreferencesSaved();
 
     // In view mode, the badge should now be visible
     const isBadgeVisible = await accountDetailsPage.isInterestBadgeVisible('minimalist');
@@ -811,7 +811,7 @@ Scenario('I&P cancel discards all pending changes', async () => {
 
     accountDetailsPage.openInterestsDialog();
     accountDetailsPage.switchInterestsDialogTab('design_styles');
-    accountDetailsPage.toggleInterestCheckbox('geometric');
+    accountDetailsPage.setInterestChecked('geometric');
     accountDetailsPage.saveInterestsDialog();
 
     accountDetailsPage.clickCancelInterestsPreferences();

@@ -241,7 +241,6 @@ Scenario('Registered shopper with 4+ addresses can use View All/View Less and ad
     expect(viewAllVisible, 'View All button should be visible with 4+ addresses').to.be.true;
 
     checkoutPage.clickViewAllAddresses();
-    await checkoutPage.waitForUiSettle(1);
 
     const expandedCount = await checkoutPage.getSavedAddressCount();
     expect(expandedCount, 'Should display all 4 addresses after View All').to.equal(4);
@@ -250,7 +249,6 @@ Scenario('Registered shopper with 4+ addresses can use View All/View Less and ad
     expect(viewLessVisible, 'View Less button should be visible after expanding').to.be.true;
 
     checkoutPage.clickViewLessAddresses();
-    await checkoutPage.waitForUiSettle(1);
 
     const collapsedCount = await checkoutPage.getSavedAddressCount();
     expect(collapsedCount, 'Should display 3 addresses again after View Less').to.equal(3);

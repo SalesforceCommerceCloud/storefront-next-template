@@ -45,7 +45,7 @@ Scenario('Place Order button is hidden when editing shipping address', async () 
     expect(placeOrderVisibleInitially, 'Place Order button should be visible in summary view').to.be.true;
 
     checkoutPage.expandShippingAddressStep();
-    checkoutPage.waitForUiSettle(1);
+    checkoutPage.waitForPlaceOrderButtonHidden();
 
     const placeOrderVisibleDuringEdit = await checkoutPage.isPlaceOrderButtonVisible();
     expect(placeOrderVisibleDuringEdit, 'Place Order button should be hidden while editing shipping address').to.be
@@ -74,7 +74,7 @@ Scenario('Place Order button is hidden when editing shipping method', async () =
     expect(placeOrderVisibleInitially, 'Place Order button should be visible in summary view').to.be.true;
 
     checkoutPage.expandShippingOptionsStep();
-    checkoutPage.waitForUiSettle(1);
+    checkoutPage.waitForPlaceOrderButtonHidden();
 
     const placeOrderVisibleDuringEdit = await checkoutPage.isPlaceOrderButtonVisible();
     expect(placeOrderVisibleDuringEdit, 'Place Order button should be hidden while editing shipping method').to.be
@@ -87,7 +87,7 @@ Scenario('Place Order button is hidden when editing shipping method', async () =
         checkoutPage.continueFromShippingOptions();
     }
 
-    checkoutPage.waitForUiSettle(2);
+    checkoutPage.waitForPlaceOrderButton();
 
     const placeOrderVisibleAfterContinue = await checkoutPage.isPlaceOrderButtonVisible();
     expect(
@@ -110,7 +110,7 @@ Scenario('Clicking Edit on a checkout section does not accidentally place the or
 
     // Click Edit on Shipping Address — Place Order should disappear
     checkoutPage.expandShippingAddressStep();
-    checkoutPage.waitForUiSettle(1);
+    checkoutPage.waitForPlaceOrderButtonHidden();
 
     const placeOrderDuringEdit = await checkoutPage.isPlaceOrderButtonVisible();
     expect(placeOrderDuringEdit, 'Place Order button should be hidden while editing shipping address').to.be.false;

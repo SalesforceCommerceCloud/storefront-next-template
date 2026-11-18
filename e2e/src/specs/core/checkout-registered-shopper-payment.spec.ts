@@ -119,7 +119,6 @@ Scenario('Registered shopper can edit payment, verify default at top, and place 
     expect(paymentPreviewText, 'Payment preview should show card info').to.have.length.greaterThan(0);
 
     await checkoutPage.expandPaymentStep();
-    checkoutPage.waitForUiSettle(2);
 
     const savedPaymentCount = await checkoutPage.getSavedPaymentMethodsCount();
     expect(savedPaymentCount, 'Should have at least 1 saved payment method').to.be.at.least(1);
@@ -178,13 +177,12 @@ Scenario('Registered shopper can change shipping method and place order', async 
     expect(shippingOptionsInPreview, 'Shipping options should be in preview mode initially').to.be.true;
 
     checkoutPage.expandShippingOptionsStep();
-    checkoutPage.waitForUiSettle(1);
 
     const shippingMethodCount = await checkoutPage.getShippingMethodCount();
     expect(shippingMethodCount, 'Should have multiple shipping methods to test selection').to.be.at.least(2);
 
     await checkoutPage.selectShippingMethod(1);
-    checkoutPage.waitForUiSettle(2);
+    checkoutPage.waitForPaymentPreview();
 
     const paymentInPreview = await checkoutPage.isPaymentInPreviewMode();
     expect(paymentInPreview, 'Payment should advance to preview mode').to.be.true;
@@ -238,7 +236,6 @@ Scenario('Registered shopper with 4+ saved payments can use View All/View Less a
     expect(paymentInPreview, 'Payment should be in preview mode initially').to.be.true;
 
     await checkoutPage.expandPaymentStep();
-    checkoutPage.waitForUiSettle(1);
 
     const initialVisibleCount = await checkoutPage.getSavedPaymentMethodsCount();
     expect(initialVisibleCount, 'Should display exactly 3 saved payment methods initially').to.equal(3);
@@ -247,7 +244,6 @@ Scenario('Registered shopper with 4+ saved payments can use View All/View Less a
     expect(viewAllVisible, 'View All button should be visible with 4+ payment methods').to.be.true;
 
     await checkoutPage.clickPaymentViewAll();
-    checkoutPage.waitForUiSettle(1);
 
     const expandedCount = await checkoutPage.getSavedPaymentMethodsCount();
     expect(expandedCount, 'Should display all 4 payment methods after View All').to.equal(4);
@@ -256,13 +252,11 @@ Scenario('Registered shopper with 4+ saved payments can use View All/View Less a
     expect(viewLessVisible, 'View Less button should be visible after expanding').to.be.true;
 
     await checkoutPage.clickPaymentViewLess();
-    checkoutPage.waitForUiSettle(1);
 
     const collapsedCount = await checkoutPage.getSavedPaymentMethodsCount();
     expect(collapsedCount, 'Should display 3 payment methods again after View Less').to.equal(3);
 
     await checkoutPage.selectNewCardPaymentMethod();
-    checkoutPage.waitForUiSettle(1);
 
     checkoutPage.fillPaymentFieldsOnly({
         cardNumber: '4111111111111111',
@@ -323,7 +317,6 @@ Scenario('Registered shopper can save new card during checkout and card is saved
     await checkoutPage.validateAllCheckoutSectionsPrefilled();
 
     await checkoutPage.expandPaymentStep();
-    checkoutPage.waitForUiSettle(1);
 
     const initialVisibleCount = await checkoutPage.getSavedPaymentMethodsCount();
     expect(initialVisibleCount, 'Should display exactly 3 saved payment methods initially').to.equal(3);
@@ -332,19 +325,16 @@ Scenario('Registered shopper can save new card during checkout and card is saved
     expect(viewAllVisible, 'View All button should be visible').to.be.true;
 
     await checkoutPage.clickPaymentViewAll();
-    checkoutPage.waitForUiSettle(1);
 
     const expandedCount = await checkoutPage.getSavedPaymentMethodsCount();
     expect(expandedCount, 'Should display all 4 payment methods after View All').to.equal(4);
 
     await checkoutPage.clickPaymentViewLess();
-    checkoutPage.waitForUiSettle(1);
 
     const collapsedCount = await checkoutPage.getSavedPaymentMethodsCount();
     expect(collapsedCount, 'Should display 3 payment methods after View Less').to.equal(3);
 
     await checkoutPage.selectNewCardPaymentMethod();
-    checkoutPage.waitForUiSettle(1);
 
     checkoutPage.fillPaymentFieldsOnly({
         cardNumber: '4012888888881881',
@@ -393,10 +383,8 @@ Scenario('Registered shopper places order with new card without saving and card 
     await checkoutPage.validateAllCheckoutSectionsPrefilled();
 
     await checkoutPage.expandPaymentStep();
-    checkoutPage.waitForUiSettle(1);
 
     await checkoutPage.selectNewCardPaymentMethod();
-    checkoutPage.waitForUiSettle(1);
 
     checkoutPage.fillPaymentFieldsOnly({
         cardNumber: '4012888888881881',
@@ -466,7 +454,6 @@ Scenario('Registered shopper can select different saved payment method and place
     expect(paymentInPreview, 'Payment should be in preview mode with default payment').to.be.true;
 
     await checkoutPage.expandPaymentStep();
-    checkoutPage.waitForUiSettle(1);
 
     const initialVisibleCount = await checkoutPage.getSavedPaymentMethodsCount();
     expect(initialVisibleCount, 'Should display exactly 3 saved payment methods initially').to.equal(3);
@@ -475,16 +462,13 @@ Scenario('Registered shopper can select different saved payment method and place
     expect(viewAllVisible, 'View All button should be visible').to.be.true;
 
     await checkoutPage.clickPaymentViewAll();
-    checkoutPage.waitForUiSettle(1);
 
     const expandedCount = await checkoutPage.getSavedPaymentMethodsCount();
     expect(expandedCount, 'Should display all 4 payment methods after View All').to.equal(4);
 
     await checkoutPage.clickPaymentViewLess();
-    checkoutPage.waitForUiSettle(1);
 
     await checkoutPage.selectSavedPaymentMethod(1);
-    checkoutPage.waitForUiSettle(1);
 
     checkoutPage.clickPlaceOrder();
     checkoutPage.waitForOrderConfirmation();

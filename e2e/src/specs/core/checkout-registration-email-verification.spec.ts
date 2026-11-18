@@ -97,7 +97,6 @@ Scenario('Guest should be able to resend OTP code during checkout registration',
     if (otpModalAppeared) {
         checkoutPage.clickOtpResendCode();
         checkoutPage.waitForOtpResendCooldown(5);
-        checkoutPage.waitForUiSettle(2);
         checkoutPage.clickOtpCheckoutAsGuest();
         checkoutPage.waitForOtpModalClosed(20);
     }

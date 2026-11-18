@@ -22,6 +22,8 @@ const { I } = inject();
  * Cart Page Object
  * Handles interactions with the shopping cart page
  */
+const CART_ITEM_SELECTOR = '[data-testid*="product-item"]';
+
 class CartPage {
     // Locators for cart page elements
     locators = {
@@ -29,7 +31,7 @@ class CartPage {
         cartContainer: locate('main, [data-testid*="cart"], [class*="cart"]').as('Cart Container'),
 
         // Cart items - based on actual HTML: data-testid="sf-product-item-..."
-        cartItems: locate('[data-testid*="product-item"]').as('Cart Items'),
+        cartItems: locate(CART_ITEM_SELECTOR).as('Cart Items'),
 
         // Item details within cart items
         // Title: <h2><a title="Product Name">...</a></h2>
@@ -180,16 +182,23 @@ class CartPage {
      */
     async removeItem(index: number = 0): Promise<void> {
         const cartItem = this.locators.cartItems.at(index + 1);
+        let itemCountBefore = 0;
+        I.usePlaywrightTo('count cart items before removal', async ({ page }) => {
+            itemCountBefore = await page.locator(CART_ITEM_SELECTOR).count();
+        });
         I.click(cartItem.find(this.locators.removeButton));
-        for (let i = 0; i < 10; i++) {
-            const visible = (await I.grabNumberOfVisibleElements(this.locators.removeConfirmButton)) > 0;
-            if (visible) {
-                I.click(this.locators.removeConfirmButton);
-                I.wait(2);
-                return;
-            }
-            I.wait(0.5);
-        }
+        I.waitForElement(this.locators.removeConfirmButton, 5);
+        I.click(this.locators.removeConfirmButton);
+        I.waitForInvisible(this.locators.removeConfirmButton, 10);
+        // The dialog closes before the removal request finishes, so wait for the item itself to go.
+        I.usePlaywrightTo('wait for the cart item to be removed', async ({ page }) => {
+            await page.waitForFunction(
+                ({ selector, before }: { selector: string; before: number }) =>
+                    document.querySelectorAll(selector).length < before,
+                { selector: CART_ITEM_SELECTOR, before: itemCountBefore },
+                { timeout: 10_000 }
+            );
+        });
     }
 
     /**

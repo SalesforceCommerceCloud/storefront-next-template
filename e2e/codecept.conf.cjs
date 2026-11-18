@@ -141,7 +141,10 @@ exports.config = {
   // Using { Scenario: 2 } (not the shorthand number) sets retries at the test
   // level directly, which is more reliable than the suite-level inheritance
   // that the numeric form produces.
-  retry: { Scenario: 2 },
+  // Set RETRY_SCENARIO=0 to run without retries, so a scenario that only passes
+  // on a retry shows up as a failure (useful when measuring flakiness). An empty
+  // value falls back to the default rather than parsing to NaN.
+  retry: { Scenario: process.env.RETRY_SCENARIO ? parseInt(process.env.RETRY_SCENARIO, 10) : 2 },
 
   // Mocha configuration
   mocha: {

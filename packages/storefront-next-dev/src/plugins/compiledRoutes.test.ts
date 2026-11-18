@@ -101,18 +101,28 @@ describe('compiled routes SDK virtual module', () => {
         expect(first.routes.resource.isDocument).toBe(initiallyDocument);
         expect(first.routes.error.isDocument).toBe(true);
         expect(first.routes.document).not.toHaveProperty('hasDefaultExport');
-        // Keep every export flag RR compares unchanged: only hasDefaultExport changes.
-        writeFileSync(resourceFile, initiallyDocument ? resourceSource : documentSource);
-        await expect
-            .poll(async () => (await load()).default.routes.resource.isDocument, { timeout: 10000 })
-            .toBe(!initiallyDocument);
+        // The file watcher can drop a write that lands right after the previous one. The first attempt
+        // writes the exact source (a single edit must be enough); only retries append a comment so
+        // they register as a new change. The comment never alters an export, so only
+        // hasDefaultExport changes, which is the one flag RR's own HMR comparison omits.
+        const rewriteUntilDocumentIs = async (source: string, expectedIsDocument: boolean) => {
+            let attempt = 0;
+            await expect
+                .poll(
+                    async () => {
+                        writeFileSync(resourceFile, attempt === 0 ? source : `${source} // retry ${attempt}`);
+                        attempt++;
+                        return (await load()).default.routes.resource.isDocument;
+                    },
+                    { timeout: 10000, interval: 500 }
+                )
+                .toBe(expectedIsDocument);
+        };
+        await rewriteUntilDocumentIs(initiallyDocument ? resourceSource : documentSource, !initiallyDocument);
         const second = (await load()).default;
         expect(second).not.toBe(first);
         expect(first.routes.resource.isDocument).toBe(initiallyDocument);
-        writeFileSync(resourceFile, initiallyDocument ? documentSource : resourceSource);
-        await expect
-            .poll(async () => (await load()).default.routes.resource.isDocument, { timeout: 10000 })
-            .toBe(initiallyDocument);
+        await rewriteUntilDocumentIs(initiallyDocument ? documentSource : resourceSource, initiallyDocument);
         expect((await load()).default).not.toBe(second);
         expect(second.routes.resource.isDocument).toBe(!initiallyDocument);
     }, 30000);

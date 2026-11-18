@@ -77,7 +77,13 @@ function extractCustomerIdAndUsidFromJwt(
  * 4. Payment
  * 5. Review & Place Order
  */
+const ERROR_TOAST_SELECTOR = '[data-sonner-toast][data-type="error"]';
+
 class CheckoutPage {
+    // Error toasts on screen when Place Order was clicked. Recorded before the click so a rejection
+    // toast that renders right away is still counted as new by waitForOrderConfirmation.
+    private errorToastCountBeforePlaceOrder: number | undefined;
+
     locators = {
         checkoutContainer: locate('main').as('Checkout Container'),
         emailInput: locate('[data-testid="sf-toggle-card-contact-info"] input[type="email"]').as('Email Input'),
@@ -502,8 +508,31 @@ class CheckoutPage {
     }
 
     waitForOrderConfirmation(timeout: number = 60): void {
-        // Wait for redirect to order confirmation page or confirmation message
-        I.waitForURL(/\/order-confirmation\//, timeout);
+        // Race the redirect against an error toast so a rejected payment or order reports the
+        // server's message immediately instead of a bare 60s URL timeout.
+        I.usePlaywrightTo('wait for order confirmation or an error toast', async ({ page }) => {
+            // Toasts from earlier steps can still be on screen (they last about 5s); only a new one counts.
+            const errorToastsBefore =
+                this.errorToastCountBeforePlaceOrder ?? (await page.locator(ERROR_TOAST_SELECTOR).count());
+            this.errorToastCountBeforePlaceOrder = undefined;
+            const confirmation = page.waitForURL(/\/order-confirmation\//, { timeout: timeout * 1000 });
+            const errorToast = page
+                .waitForFunction(
+                    ({ selector, before }: { selector: string; before: number }) =>
+                        document.querySelectorAll(selector).length > before,
+                    { selector: ERROR_TOAST_SELECTOR, before: errorToastsBefore },
+                    { timeout: timeout * 1000 }
+                )
+                .then(async () => {
+                    const message = await page.locator(ERROR_TOAST_SELECTOR).last().innerText();
+                    throw new Error(`Checkout showed an error toast instead of confirming the order: ${message}`);
+                });
+            // The race loser keeps running and rejects later (page closes or its timeout fires);
+            // a no-op handler keeps that from surfacing as an unhandled rejection.
+            confirmation.catch(() => undefined);
+            errorToast.catch(() => undefined);
+            await Promise.race([confirmation, errorToast]);
+        });
         I.waitForElement(this.locators.confirmationMessage);
     }
 
@@ -649,6 +678,9 @@ class CheckoutPage {
         const placeOrderLocator = locate('button[type="submit"]').withText('Place Order');
         I.waitForElement(placeOrderLocator, 10);
         I.scrollTo(placeOrderLocator);
+        I.usePlaywrightTo('record error toasts before placing the order', async ({ page }) => {
+            this.errorToastCountBeforePlaceOrder = await page.locator(ERROR_TOAST_SELECTOR).count();
+        });
         I.click(placeOrderLocator);
     }
 
@@ -867,6 +899,7 @@ class CheckoutPage {
      */
     clickViewAllAddresses(): void {
         I.click(this.locators.viewAllButton);
+        I.waitForElement(this.locators.viewLessButton, 10);
     }
 
     /**
@@ -874,6 +907,7 @@ class CheckoutPage {
      */
     clickViewLessAddresses(): void {
         I.click(this.locators.viewLessButton);
+        I.waitForElement(this.locators.viewAllButton, 10);
     }
 
     /**
@@ -1481,6 +1515,10 @@ class CheckoutPage {
 
             const label = paymentContent.locator(`label[for="${radioId}"]`);
             await label.click();
+            await paymentContent.locator(`[id="${radioId}"][aria-checked="true"]`).waitFor({
+                state: 'attached',
+                timeout: 10_000,
+            });
         }) as unknown as Promise<void>);
     }
 
@@ -1701,6 +1739,14 @@ class CheckoutPage {
         return await I.grabAttributeFrom('#create-account-checkbox', 'checked');
     }
 
+    waitForPaymentPreview(timeout: number = 15): void {
+        I.waitForElement(this.locators.paymentEditButton, timeout);
+    }
+
+    waitForPlaceOrderButtonHidden(timeout: number = 10): void {
+        I.waitForInvisible(locate('button[type="submit"]').withText('Place Order'), timeout);
+    }
+
     waitForPlaceOrderButton(timeout: number = 20): void {
         I.waitForElement(locate('button[type="submit"]').withText('Place Order'), timeout);
     }
@@ -1722,10 +1768,6 @@ class CheckoutPage {
     navigateToHomepage(): void {
         I.amOnPage('/');
         I.waitForElement(locate('main'), 10);
-    }
-
-    waitForUiSettle(seconds: number = 2): void {
-        I.wait(seconds);
     }
 
     async getSavedAddressText(index: number): Promise<string> {
@@ -1834,6 +1876,7 @@ class CheckoutPage {
     // =========================================================================
 
     async getShippingMethodCount(): Promise<number> {
+        I.waitForElement(this.locators.shippingMethodOption, 10);
         return await I.grabNumberOfVisibleElements(this.locators.shippingMethodOption);
     }
 
@@ -1970,6 +2013,7 @@ class CheckoutPage {
             const paymentSection = await page.locator('[data-testid="sf-toggle-card-payment"]');
             const viewAllButton = paymentSection.locator('button:has-text("View All")');
             await viewAllButton.click();
+            await paymentSection.locator('button:has-text("View Less")').waitFor({ state: 'visible', timeout: 10_000 });
         }) as unknown as Promise<void>);
     }
 
@@ -1981,6 +2025,7 @@ class CheckoutPage {
             const paymentSection = await page.locator('[data-testid="sf-toggle-card-payment"]');
             const viewLessButton = paymentSection.locator('button:has-text("View Less")');
             await viewLessButton.click();
+            await paymentSection.locator('button:has-text("View All")').waitFor({ state: 'visible', timeout: 10_000 });
         }) as unknown as Promise<void>);
     }
 

@@ -389,6 +389,15 @@ class AccountDetailsPage {
     }
 
     /**
+     * Wait for the Interests & Preferences save: the success toast, then the section back in view mode.
+     * The toast is required, so a save that completes without notifying the shopper fails the scenario.
+     */
+    validateInterestsPreferencesSaved(): void {
+        this.validateSuccessToast();
+        I.waitForElement('[data-testid="interests-preferences-edit-button"]', 10);
+    }
+
+    /**
      * Wait for and validate error toast message
      * @param message - Optional expected message text
      */
@@ -574,11 +583,15 @@ class AccountDetailsPage {
     }
 
     /**
-     * Toggle an interest checkbox by clicking its label
+     * Set an interest checkbox to an explicit state. Idempotent, so a retried scenario on an
+     * account that already saved the interest does not flip it back off.
      * @param interestId - The interest ID
+     * @param checked - Desired state
      */
-    toggleInterestCheckbox(interestId: string): void {
-        I.click(this.locators.interestCheckbox(interestId));
+    setInterestChecked(interestId: string, checked: boolean = true): void {
+        I.usePlaywrightTo(`set interest ${interestId} checked=${checked}`, async ({ page }) => {
+            await page.locator(`#dialog-interest-${interestId}`).setChecked(checked);
+        });
     }
 
     /**
@@ -598,11 +611,14 @@ class AccountDetailsPage {
     }
 
     /**
-     * Toggle a product category checkbox by clicking its label
+     * Set a product category checkbox to an explicit state (idempotent, see setInterestChecked).
      * @param val - The option value
+     * @param checked - Desired state
      */
-    toggleProductCategoryCheckbox(val: string): void {
-        I.click(this.locators.productCategoryCheckbox(val));
+    setProductCategoryChecked(val: string, checked: boolean = true): void {
+        I.usePlaywrightTo(`set product category ${val} checked=${checked}`, async ({ page }) => {
+            await page.locator(`#dialog-pref-${val}`).setChecked(checked);
+        });
     }
 
     /**
@@ -695,7 +711,7 @@ class AccountDetailsPage {
         this.clickEditInterestsPreferences();
         this.openInterestsDialog();
         this.switchInterestsDialogTab(categoryId);
-        this.toggleInterestCheckbox(interestId);
+        this.setInterestChecked(interestId);
         this.saveInterestsDialog();
     }
 
@@ -707,7 +723,7 @@ class AccountDetailsPage {
     addProductCategory(categoryValue: string): void {
         this.clickEditInterestsPreferences();
         this.openProductCategoriesDialog();
-        this.toggleProductCategoryCheckbox(categoryValue);
+        this.setProductCategoryChecked(categoryValue);
         this.saveProductCategoriesDialog();
     }
 }
