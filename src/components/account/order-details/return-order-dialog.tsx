@@ -25,7 +25,6 @@ import {
 } from 'react';
 import { useFetcher } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import defaultTheme from 'tailwindcss/defaultTheme';
 import {
     Dialog,
     DialogClose,
@@ -58,6 +57,7 @@ import {
 } from '@/lib/order-management/return';
 import type { ReturnErrorKind } from '@/lib/order-management/return-error';
 import { getDisplayVariationValues } from '@/lib/product/product-utils';
+import { minWidthQuery } from '@/lib/theme/breakpoints';
 import { useToast } from '@/components/toast';
 import type { OmsMetaDataResult } from '@/lib/api/order.server';
 
@@ -183,8 +183,8 @@ function maxQuantityFor(item: ReturnableItem): number {
     return typeof qty === 'number' && Number.isFinite(qty) && qty > 0 ? qty : 1;
 }
 
-/** Tailwind `md` breakpoint — below it the return flow presents as a bottom-sheet Drawer, at/above it a centered Dialog. */
-const DESKTOP_MEDIA_QUERY = `(min-width: ${defaultTheme.screens.md})`;
+/** The theme's `md` breakpoint — below it the return flow presents as a bottom-sheet Drawer, at/above it a centered Dialog. */
+const DESKTOP_MEDIA_QUERY = minWidthQuery('md');
 
 function subscribeToDesktopQuery(callback: () => void) {
     const mql = globalThis.matchMedia?.(DESKTOP_MEDIA_QUERY);

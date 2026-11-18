@@ -26,6 +26,7 @@ import { storefrontNext } from './vite-plugins/storefront-next';
 import { bundlesize } from './vite-plugins/bundlesize';
 import { bundleVisualizer } from './vite-plugins/bundle-visualizer';
 import { hybridProxy } from './vite-plugins/hybrid-proxy';
+import { themeBreakpoints } from './vite-plugins/theme-breakpoints';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const imageGalleryDirectory = `${normalizePath(resolve(__dirname, 'src/components/image-gallery'))}/`;
@@ -87,6 +88,7 @@ export default defineConfig(({ mode }) => {
             bundlesize(),
             bundleVisualizer(),
             hybridProxy({ mode, env }),
+            themeBreakpoints({ entry: resolve(__dirname, './src/theme/index.css') }),
         ],
     };
 });

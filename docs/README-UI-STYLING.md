@@ -36,6 +36,8 @@ Use breakpoints consistently:
 </div>
 ```
 
+Breakpoints come from `--breakpoint-*` in your theme's `@theme` block; `DynamicImage` and the JS breakpoint checks read the same values (see [README-IMAGES.md](./README-IMAGES.md)).
+
 ---
 
 ## shadcn/ui

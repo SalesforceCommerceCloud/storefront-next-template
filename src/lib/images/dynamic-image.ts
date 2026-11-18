@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import defaultTheme from 'tailwindcss/defaultTheme';
+import { breakpoints as themeBreakpointValues, warnUnknownBreakpoints } from '@/lib/theme/breakpoints';
 import type { AppConfig } from '@/types/config';
 import { createLogger } from '@/lib/logger';
 
@@ -544,11 +544,12 @@ export const isDynamicImageSource = (src: string | undefined): boolean => {
     return imageExtensions.test(src);
 };
 
-// Tailwind CSS default breakpoints (converted from rem to px)
+// The active theme's Tailwind breakpoints (`--breakpoint-*`), converted from rem to px. `base` is the implicit
+// zero-width breakpoint below the first one.
 const defaultBreakpoints = {
     base: '0px',
     ...Object.fromEntries(
-        Object.entries(defaultTheme.screens).map(([key, value]) => [
+        Object.entries(themeBreakpointValues).map(([key, value]) => [
             key,
             remValue.test(value) ? `${parseFloat(value) * 16}px` : value,
         ])
@@ -558,9 +559,12 @@ const defaultBreakpoints = {
 type Breakpoints = typeof defaultBreakpoints;
 type BreakpointKey = keyof Breakpoints;
 
+// Sorts by width in px, so a theme mixing `em` with `px`/`rem` still orders its breakpoints by actual width.
+const pxEquivalent = (value: string): number => parseFloat(value) * (emValue.test(value) ? 16 : 1);
+
 const getBreakpointLabels = (breakpoints: Record<string, string>): string[] =>
     Object.entries(breakpoints)
-        .sort((a, b) => parseFloat(a[1]) - parseFloat(b[1]))
+        .sort((a, b) => pxEquivalent(a[1]) - pxEquivalent(b[1]))
         .map(([key]) => key);
 
 let themeBreakpoints = defaultBreakpoints;
@@ -604,6 +608,7 @@ const isObject = (o: unknown): o is Record<string, unknown> =>
  * widthsAsArray({base: 10, lg: 50})
  */
 const widthsAsArray = (widths: Record<string, number | string>): Array<number | string> => {
+    warnUnknownBreakpoints(Object.keys(widths), breakpointLabels);
     const biggestBreakpoint = breakpointLabels.filter((bp) => Boolean(widths[bp])).pop();
 
     if (!biggestBreakpoint) {
@@ -627,11 +632,11 @@ const widthsAsArray = (widths: Record<string, number | string>): Array<number | 
 const emToPx = (em: number, browserDefaultFontSize = 16): number => Math.round(em * browserDefaultFontSize);
 
 const vwToPx = (vw: number, breakpoint: string): number => {
-    const result = (vw / 100) * parseFloat(themeBreakpoints[breakpoint as BreakpointKey]);
-    const breakpointsDefinedInPx = Object.values(themeBreakpoints).some((val) => pxValue.test(val));
+    const value = themeBreakpoints[breakpoint as BreakpointKey];
+    const result = (vw / 100) * parseFloat(value);
 
-    // Assumes theme's breakpoints are defined in either em or px
-    return breakpointsDefinedInPx ? result : emToPx(result);
+    // The breakpoint is either px (rem is converted to px up front) or em; only em needs converting.
+    return emValue.test(value) ? emToPx(result) : result;
 };
 
 /** Anchored DIS path check — the `/dw/image/v\d+/` prefix must be at the START of `url.pathname`. */

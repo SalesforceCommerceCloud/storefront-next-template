@@ -20,6 +20,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { transformTargetPlaceholderPlugin } from '@salesforce/storefront-next-dev';
+import { themeBreakpoints } from '../vite-plugins/theme-breakpoints';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PAGE_DESIGNER_PRELOAD_MANIFEST_ID = 'virtual:storefront-next/page-designer-preload-manifest';
@@ -58,6 +59,7 @@ export default defineConfig({
         tailwindcss(), // Include Tailwind CSS plugin
         tsconfigPaths(),
         pageDesignerPreloadManifestStub,
+        themeBreakpoints({ entry: path.resolve(__dirname, '../src/theme/storybook.css') }),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Plugin type mismatch with Vite plugin types
         transformTargetPlaceholderPlugin() as any, // Transform target placeholders for extensibility
     ],

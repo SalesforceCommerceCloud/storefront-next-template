@@ -1145,6 +1145,133 @@ describe('getResponsivePictureAttributes()', () => {
     });
 });
 
+/** Loads `dynamic-image` against a theme that declares exactly `themeBreakpoints` (`--breakpoint-*` values). */
+async function loadWithTheme(themeBreakpoints: Record<string, string>) {
+    vi.resetModules();
+    vi.doMock('virtual:storefront-next/theme-breakpoints', () => ({ default: themeBreakpoints }));
+    return import('./dynamic-image');
+}
+
+describe('getAttributes() theme breakpoints', () => {
+    afterEach(() => {
+        vi.doUnmock('virtual:storefront-next/theme-breakpoints');
+        vi.resetModules();
+    });
+
+    test('px breakpoints drive `<source>` media and preload `<link>` media', async () => {
+        const { getResponsivePictureAttributes: getAttributes } = await loadWithTheme({
+            sm: '320px',
+            md: '768px',
+            lg: '960px',
+            xl: '1200px',
+            '2xl': '1536px',
+        });
+
+        const { sources, links } = getAttributes({
+            src: disImageURL.withOptionalParams,
+            widths: ['100vw', 360],
+        });
+
+        expect(sources.map(({ media, sizes }) => ({ media, sizes }))).toEqual([
+            { media: '(min-width: 320px)', sizes: '360px' },
+            { media: '', sizes: '100vw' },
+        ]);
+        expect(links.map(({ media, sizes }) => ({ media, sizes }))).toEqual([
+            { media: '(max-width: 319px)', sizes: '100vw' },
+            { media: '(min-width: 320px)', sizes: '360px' },
+        ]);
+    });
+
+    test('rem breakpoints are converted at 16px per rem', async () => {
+        const { getResponsivePictureAttributes: getAttributes } = await loadWithTheme({ sm: '20rem', md: '48rem' });
+
+        const { sources } = getAttributes({
+            src: disImageURL.withOptionalParams,
+            widths: ['100vw', 360],
+        });
+
+        expect(sources.map(({ media }) => media)).toEqual(['(min-width: 320px)', '']);
+    });
+
+    test.each([
+        ['em', { sm: '20em', md: '48em' }],
+        ['rem', { sm: '20rem', md: '48rem' }],
+        ['mixed em/rem', { sm: '20em', md: '48rem' }],
+    ])('vw widths resolve to the same pixels for %s breakpoints as for px', async (_unit, theme) => {
+        const widths = ['50vw', '50vw', 400];
+        const px = await loadWithTheme({ sm: '320px', md: '768px' });
+        const expected = px.getResponsivePictureAttributes({ src: disImageURL.withOptionalParams, widths });
+
+        const other = await loadWithTheme(theme);
+        const actual = other.getResponsivePictureAttributes({ src: disImageURL.withOptionalParams, widths });
+
+        expect(actual.sources.map(({ srcSet }) => srcSet)).toEqual(expected.sources.map(({ srcSet }) => srcSet));
+    });
+
+    test('em breakpoints stay em in `<source>` and preload `<link>` media', async () => {
+        const { getResponsivePictureAttributes: getAttributes } = await loadWithTheme({ sm: '20em', md: '48em' });
+
+        const { sources, links } = getAttributes({
+            src: disImageURL.withOptionalParams,
+            widths: ['100vw', 360, 720],
+        });
+
+        expect(sources.map(({ media }) => media)).toEqual(['(min-width: 48em)', '(min-width: 20em)', '']);
+        expect(links.map(({ media }) => media)).toEqual([
+            '(max-width: 19.99em)',
+            '(min-width: 20em) and (max-width: 47.99em)',
+            '(min-width: 48em)',
+        ]);
+    });
+
+    test('breakpoint names defined by the theme (not just Tailwind defaults) are usable as width keys', async () => {
+        const { getResponsivePictureAttributes: getAttributes } = await loadWithTheme({
+            tablet: '640px',
+            desktop: '1024px',
+        });
+
+        const { sources } = getAttributes({
+            src: disImageURL.withOptionalParams,
+            widths: { base: 320, tablet: 640, desktop: 960 },
+        });
+
+        expect(sources.map(({ media, sizes }) => ({ media, sizes }))).toEqual([
+            { media: '(min-width: 1024px)', sizes: '960px' },
+            { media: '(min-width: 640px)', sizes: '640px' },
+            { media: '', sizes: '320px' },
+        ]);
+    });
+
+    test('width keys the theme does not define are ignored, with a development warning', async () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        const { getResponsivePictureAttributes: getAttributes } = await loadWithTheme({ md: '48rem' });
+
+        const { sources } = getAttributes({
+            src: disImageURL.withOptionalParams,
+            widths: { base: 100, tablet: 300 },
+        });
+
+        expect(sources.map(({ media }) => media)).toEqual(['']);
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('Breakpoint "tablet" is not defined by the theme'));
+        warn.mockRestore();
+    });
+
+    test('breakpoints mixing em with px or rem are ordered by their width', async () => {
+        const { getResponsivePictureAttributes: getAttributes } = await loadWithTheme({
+            sm: '40rem',
+            md: '48rem',
+            lg: '64em',
+        });
+
+        const { sources } = getAttributes({
+            src: disImageURL.withOptionalParams,
+            widths: { base: 100, sm: 200, lg: 400 },
+        });
+
+        expect(sources.map(({ media }) => media)).toEqual(['(min-width: 64em)', '(min-width: 640px)', '']);
+    });
+});
+
 describe('toDisImageUrl()', () => {
     describe('basic conversion', () => {
         test('converts SFCC static URL to DIS URL', () => {

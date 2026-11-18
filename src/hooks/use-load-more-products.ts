@@ -19,6 +19,7 @@ import type { ShopperSearch } from '@/scapi';
 import type { CategoryProductsResult, loader as categoryProductsLoader } from '@/routes/resource.category-products';
 import { resourceRoutes } from '@/route-paths';
 import { PRODUCT_SEARCH_QUERY_PARAMS } from '@/lib/query-params';
+import { minWidthQuery } from '@/lib/theme/breakpoints';
 
 type ProductSearchHit = ShopperSearch.schemas['ProductSearchHit'];
 
@@ -38,8 +39,8 @@ function asCategoryProductsResult(data: unknown): CategoryProductsResult | null 
     return candidate as CategoryProductsResult;
 }
 
-/** Viewport (max-)width below which the mobile batch size applies. Matches the Tailwind `md` breakpoint. */
-const MOBILE_QUERY = '(max-width: 767px)';
+/** Viewports below the theme's `md` breakpoint get the mobile batch size (the exact complement of `md:` styles). */
+const MOBILE_QUERY = `not all and ${minWidthQuery('md')}`;
 
 /**
  * @property refine - The active search refinements (one route-authoritative `cgid` or `cgslug`, plus facets).

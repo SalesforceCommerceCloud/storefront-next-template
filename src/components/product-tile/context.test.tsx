@@ -18,6 +18,7 @@ import { act, render, renderHook, screen } from '@testing-library/react';
 import { type PropsWithChildren, useReducer } from 'react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { minWidthQuery } from '@/lib/theme/breakpoints';
 import { isDesktopViewport, ProductTileProvider, useProductTileContext } from './context';
 
 const mockNavigate = vi.fn();
@@ -419,6 +420,15 @@ describe('isDesktopViewport', () => {
         }));
 
         expect(isDesktopViewport()).toBe(false);
+    });
+
+    test('asks for the theme lg breakpoint', () => {
+        const matchMedia = vi.fn().mockReturnValue({ matches: true });
+        globalThis.matchMedia = matchMedia;
+
+        isDesktopViewport();
+
+        expect(matchMedia).toHaveBeenCalledWith(minWidthQuery('lg'));
     });
 
     test('returns true at or above the lg breakpoint (desktop)', () => {

@@ -22,6 +22,7 @@ import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { ReturnOrderDialog } from './return-order-dialog';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { minWidthQuery } from '@/lib/theme/breakpoints';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import type { ShopperOrders } from '@/scapi';
 import type { OrderLike } from '@/lib/order-management/types';
@@ -129,7 +130,7 @@ function renderDialog(props: Partial<React.ComponentProps<typeof ReturnOrderDial
  * we pin the stable Dialog path. The Drawer↔Dialog swap itself is covered by its own test below.
  */
 function mockViewport(isDesktop: boolean) {
-    window.matchMedia = ((query: string) => ({
+    const matchMedia = vi.fn((query: string) => ({
         matches: isDesktop,
         media: query,
         onchange: null,
@@ -138,7 +139,9 @@ function mockViewport(isDesktop: boolean) {
         addEventListener: () => {},
         removeEventListener: () => {},
         dispatchEvent: () => true,
-    })) as unknown as typeof window.matchMedia;
+    }));
+    window.matchMedia = matchMedia as unknown as typeof window.matchMedia;
+    return matchMedia;
 }
 
 describe('ReturnOrderDialog', () => {
@@ -226,8 +229,9 @@ describe('ReturnOrderDialog', () => {
 
     test('renders the bottom-sheet drawer below the md breakpoint and the centered dialog at/above it', () => {
         // Below md: the Drawer shell (vaul) is used — its content carries data-vaul-drawer-direction.
-        mockViewport(false);
+        const matchMedia = mockViewport(false);
         const { unmount } = renderDialog();
+        expect(matchMedia).toHaveBeenCalledWith(minWidthQuery('md'));
         expect(document.querySelector('[data-slot="drawer-content"]')).toBeInTheDocument();
         expect(document.querySelector('[data-slot="dialog-content"]')).not.toBeInTheDocument();
         unmount();

@@ -18,12 +18,12 @@ import type { NavigateFunction } from 'react-router';
 import { useNavigate } from '@/hooks/use-navigate';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import defaultTheme from 'tailwindcss/defaultTheme';
 import type { ShopperSearch } from '@/scapi';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import type { AppConfig, BadgeDetail } from '@/types/config';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { getProductBadges } from '@/lib/product/product-badges';
+import { minWidthQuery } from '@/lib/theme/breakpoints';
 import type { SeoUrlContext } from '@/route-paths';
 
 type ProductBadgesResult = { badges: BadgeDetail[]; hasBadges: boolean };
@@ -39,10 +39,10 @@ interface ProductTileContextValue {
 
 const ProductTileContext = createContext<ProductTileContextValue | null>(null);
 
-const DESKTOP_QUERY = `(min-width: ${defaultTheme.screens.lg})`;
+const DESKTOP_QUERY = minWidthQuery('lg');
 
 /**
- * Whether the viewport is at or above tailwind's `lg` breakpoint (desktop device). Read this at event time (e.g. from a
+ * Whether the viewport is at or above the theme's `lg` breakpoint (desktop device). Read this at event time (e.g. from a
  * swatch-hover handler), never during render: it depends on `matchMedia`, which is unavailable during SSR and returns a
  * different value on the client, so reading it while rendering causes a hydration mismatch and a post-hydration
  * re-render. On the server (no `matchMedia`) it returns `false`.

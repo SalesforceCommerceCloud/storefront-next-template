@@ -17,6 +17,7 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useFetcher } from 'react-router';
 import { resourceRoutes } from '@/route-paths';
+import { minWidthQuery } from '@/lib/theme/breakpoints';
 import { useLoadMoreProducts, type UseLoadMoreProductsOptions } from './use-load-more-products';
 
 vi.mock('react-router', () => ({
@@ -54,6 +55,43 @@ beforeEach(() => {
 afterEach(() => vi.clearAllMocks());
 
 describe('useLoadMoreProducts', () => {
+    describe('mobile batch size', () => {
+        const originalMatchMedia = globalThis.matchMedia;
+        afterEach(() => {
+            globalThis.matchMedia = originalMatchMedia;
+        });
+
+        function mockMatchMedia(matches: boolean) {
+            const matchMedia = vi.fn((query: string) => ({
+                matches,
+                media: query,
+                addEventListener: vi.fn(),
+                removeEventListener: vi.fn(),
+            }));
+            globalThis.matchMedia = matchMedia as unknown as typeof globalThis.matchMedia;
+            return matchMedia;
+        }
+
+        it('treats viewports below the theme `md` breakpoint as mobile', () => {
+            const matchMedia = mockMatchMedia(true);
+            const { result } = renderHook(() => useLoadMoreProducts(baseOptions));
+
+            expect(matchMedia).toHaveBeenCalledWith(`not all and ${minWidthQuery('md')}`);
+            act(() => result.current.loadMore());
+            const params = new URLSearchParams((fetcher.load.mock.calls[0][0] as string).split('?')[1]);
+            expect(params.get('limit')).toBe('12');
+        });
+
+        it('uses the regular batch size at or above the theme `md` breakpoint', () => {
+            mockMatchMedia(false);
+            const { result } = renderHook(() => useLoadMoreProducts(baseOptions));
+
+            act(() => result.current.loadMore());
+            const params = new URLSearchParams((fetcher.load.mock.calls[0][0] as string).split('?')[1]);
+            expect(params.get('limit')).toBe('24');
+        });
+    });
+
     it('reports loaded/total/hasMore from the initial page', () => {
         const { result } = renderHook(() => useLoadMoreProducts(baseOptions));
         expect(result.current.loadedCount).toBe(24);

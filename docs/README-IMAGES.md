@@ -196,7 +196,7 @@ The `widths` prop controls how wide each `<source>` requests its image from DIS.
 
 When using `vw` units, `DynamicImage` calculates the actual pixel width at each breakpoint to request the correct size from DIS.
 
-**Object with breakpoint keys** (maps to Tailwind's default breakpoints):
+**Object with breakpoint keys** (maps to your theme's Tailwind breakpoints):
 
 ```jsx
 <DynamicImage src={imageSrc} widths={{ base: 400, sm: 600, md: 800, lg: 1000 }} />
@@ -205,7 +205,20 @@ When using `vw` units, `DynamicImage` calculates the actual pixel width at each 
 <DynamicImage src={imageSrc} widths={{ base: '100vw', sm: '50vw', md: '680px' }} />
 ```
 
-Breakpoint keys correspond to Tailwind's default theme: `base`, `sm`, `md`, `lg`, `xl`, `2xl`. Values are carried forward: `{ base: 400, lg: 800 }` produces `[400, 400, 400, 800]`.
+Breakpoint keys are `base` plus the `--breakpoint-*` theme variables of your theme (Tailwind defaults: `sm`, `md`, `lg`, `xl`, `2xl`). Values are carried forward: `{ base: 400, lg: 800 }` produces `[400, 400, 400, 800]`.
+
+To change the breakpoints, declare them in your theme's `@theme` block; `DynamicImage` and the `sm:`/`md:`/… utilities then use the same values. A `vite-plugins/theme-breakpoints.ts` plugin reads them at build time and exposes them to `@/lib/theme/breakpoints`:
+
+```css
+@theme {
+    --breakpoint-2xl: 100rem;
+    --breakpoint-3xl: 120rem;
+}
+```
+
+Breakpoints must be `px`, `rem` or `em` lengths. `rem` is converted to `px` for `media` and `vw` sizing; `em` is kept in `media`. Only CSS is read: breakpoints from a JS `@plugin`/`@config` are ignored, and stylesheet `@import`s must be relative, root-absolute, absolute or package paths (no `@/` aliases); if a package declares `exports`, the imported subpath must be listed there. The build fails, and the dev server reports an error on the first request, when the theme lacks a breakpoint the template code looks up: `md` (load-more batch size, return dialog) and `lg` (`isDesktopViewport()`). If you replace those usages, list the breakpoints you still need in the `required` option of `themeBreakpoints()` (`[]` disables the check). In development, `widths` keys the theme does not define are ignored with a console warning.
+
+Array `widths` map to breakpoints by position (`base`, then each breakpoint by ascending width), so adding or removing breakpoints shifts which entry applies where. Prefer the object form with breakpoint keys when you customize them.
 
 Use fixed px widths when the image container has a predetermined size (e.g., carousels):
 
