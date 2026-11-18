@@ -79,8 +79,17 @@ async function loadRuntimeConfig(projectDirectory) {
 		throw new Error(`[storefront-next-dev] Found config.server.ts at ${configPath} but failed to import it.\n${reason}`, { cause: error });
 	}
 }
-const buildMrtConfig = async (_buildDirectory, projectDirectory) => {
-	const ssrEntryPoint = getMrtEntryFile("production");
+/**
+* Build the MRT SSR configuration from the `runtime` section of `config.server.ts`.
+*
+* Patterns from `runtime` are merged with the defaults rather than replacing them. Pure and
+* synchronous so build tooling that already has the runtime config loaded can reuse the defaults.
+*
+* @param runtime - The `runtime` section of `config.server.ts`, if any
+* @param mode - Build mode; `production` selects the streaming entry point unless `MRT_BUNDLE_TYPE=ssr`
+*/
+const buildMrtSsrConfig = (runtime, mode = "production") => {
+	const ssrEntryPoint = getMrtEntryFile(mode);
 	const defaultSsrOnly = [
 		"server/**/*",
 		"package.json",
@@ -107,12 +116,11 @@ const buildMrtConfig = async (_buildDirectory, projectDirectory) => {
 		"**/*.eot"
 	];
 	const defaultSsrParameters = { ssrFunctionNodeVersion: "24.x" };
-	const runtimeConfig = await loadRuntimeConfig(projectDirectory);
-	const ssrOnly = mergePatterns(defaultSsrOnly, runtimeConfig?.ssrOnly);
-	const ssrShared = mergePatterns(defaultSsrShared, runtimeConfig?.ssrShared);
+	const ssrOnly = mergePatterns(defaultSsrOnly, runtime?.ssrOnly);
+	const ssrShared = mergePatterns(defaultSsrShared, runtime?.ssrShared);
 	const ssrParameters = {
 		...defaultSsrParameters,
-		...runtimeConfig?.ssrParameters ?? {}
+		...runtime?.ssrParameters ?? {}
 	};
 	if (!ssrParameters.envBasePath) delete ssrParameters.envBasePath;
 	return {
@@ -121,6 +129,7 @@ const buildMrtConfig = async (_buildDirectory, projectDirectory) => {
 		ssrParameters
 	};
 };
+const buildMrtConfig = async (_buildDirectory, projectDirectory) => buildMrtSsrConfig(await loadRuntimeConfig(projectDirectory));
 
 //#endregion
 export { assertValidCartridgeName as a, loadRuntimeConfig as c, SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR as i, GENERATE_AND_DEPLOY_CARTRIDGE_ON_MRT_PUSH as n, buildMrtConfig as o, SFNEXT_BASE_CARTRIDGE_NAME as r, cartridgeExperienceDir as s, CARTRIDGES_BASE_DIR as t };

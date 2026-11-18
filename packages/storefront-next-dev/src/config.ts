@@ -136,10 +136,19 @@ export async function loadRuntimeConfig(projectDirectory?: string): Promise<Runt
     }
 }
 
-export const buildMrtConfig = async (_buildDirectory: string, projectDirectory?: string): Promise<MrtSsrConfig> => {
+/**
+ * Build the MRT SSR configuration from the `runtime` section of `config.server.ts`.
+ *
+ * Patterns from `runtime` are merged with the defaults rather than replacing them. Pure and
+ * synchronous so build tooling that already has the runtime config loaded can reuse the defaults.
+ *
+ * @param runtime - The `runtime` section of `config.server.ts`, if any
+ * @param mode - Build mode; `production` selects the streaming entry point unless `MRT_BUNDLE_TYPE=ssr`
+ */
+export const buildMrtSsrConfig = (runtime?: RuntimeConfig['runtime'], mode = 'production'): MrtSsrConfig => {
     // SSR-only files: Server bundles and entry points
     // These are deployed only to Lambda functions, not to CDN
-    const ssrEntryPoint = getMrtEntryFile('production');
+    const ssrEntryPoint = getMrtEntryFile(mode);
 
     const defaultSsrOnly = [
         'server/**/*', // All server-side code
@@ -176,12 +185,11 @@ export const buildMrtConfig = async (_buildDirectory: string, projectDirectory?:
         ssrFunctionNodeVersion: '24.x',
     };
 
-    const runtimeConfig = await loadRuntimeConfig(projectDirectory);
-    const ssrOnly = mergePatterns(defaultSsrOnly, runtimeConfig?.ssrOnly);
-    const ssrShared = mergePatterns(defaultSsrShared, runtimeConfig?.ssrShared);
+    const ssrOnly = mergePatterns(defaultSsrOnly, runtime?.ssrOnly);
+    const ssrShared = mergePatterns(defaultSsrShared, runtime?.ssrShared);
     const ssrParameters: MrtSsrConfig['ssrParameters'] = {
         ...defaultSsrParameters,
-        ...(runtimeConfig?.ssrParameters ?? {}),
+        ...(runtime?.ssrParameters ?? {}),
     };
 
     // Remove envBasePath if empty — MRT rejects empty string as invalid.
@@ -196,3 +204,6 @@ export const buildMrtConfig = async (_buildDirectory: string, projectDirectory?:
         ssrParameters,
     };
 };
+
+export const buildMrtConfig = async (_buildDirectory: string, projectDirectory?: string): Promise<MrtSsrConfig> =>
+    buildMrtSsrConfig(await loadRuntimeConfig(projectDirectory));

@@ -27,3 +27,6 @@ export { hybridProxyPlugin, type HybridProxyPluginOptions } from './plugins/hybr
 
 // Named export: eCDN routing rule matcher (injected into hybridProxyPlugin as routeMatcher)
 export { shouldRouteToNext } from './plugins/ecdnMatcher';
+
+// Named export: default MRT bundle config (ssrOnly/ssrShared/ssrParameters) merged with `config.server.ts` overrides
+export { buildMrtSsrConfig } from './config';
