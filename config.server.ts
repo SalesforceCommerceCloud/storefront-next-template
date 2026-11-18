@@ -255,6 +255,7 @@ export default defineConfig<Config>(
                 shopperAgent: {
                     enabled: '',
                     commerceClientScriptSourceUrl: '',
+                    commerceClientImageSourceUrls: [],
                     scrt2Url: '',
                     salesforceOrgId: '',
                     esDeveloperName: '',
@@ -768,6 +769,7 @@ export default defineConfig<Config>(
             cimulateAgent: {
                 enabled: '',
                 commerceClientScriptSourceUrl: '',
+                commerceClientImageSourceUrls: [],
                 scrt2Url: '',
                 salesforceOrgId: '',
                 esDeveloperName: '',

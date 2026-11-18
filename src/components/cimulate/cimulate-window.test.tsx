@@ -51,7 +51,7 @@ const storeConversation = (id = 'existing-conversation-id') =>
 
 const config = {
     enabled: true,
-    commerceClientScriptSourceUrl: 'https://cdn.search.cimulate.ai/copilot-widget/1.39.0/messaging.umd.js',
+    commerceClientScriptSourceUrl: 'https://cdn.search.cimulate.ai/copilot-widget/1.57.0/messaging.umd.js',
     scrt2Url: 'https://example.salesforce-scrt.com',
     salesforceOrgId: '00D000000000001',
     esDeveloperName: 'Commerce_Agent',
@@ -74,6 +74,109 @@ describe('CimulateWindow identity linking', () => {
     afterEach(() => {
         cleanup();
         delete window.CimulateMessaging;
+    });
+
+    it('injects the Commerce recipe without host styles overriding the widget theme', async () => {
+        const { CimulateWindow } = await loadWindow();
+        render(<CimulateWindow config={config} />);
+        await waitFor(() => expect(injectMessagingWidget).toHaveBeenCalledOnce());
+        expect(injectMessagingWidget.mock.calls[0][0].theme).toEqual({ preset: 'commerce' });
+        expect(document.head.querySelector('style[data-cimulate-theme]')).toBeNull();
+        expect(document.head.querySelector('style[data-cimulate-buttons]')).toBeNull();
+    });
+
+    it('labels the launcher from the theme and cleans up on unmount', async () => {
+        const button = document.createElement('button');
+        button.className = 'cim-widget-minimized-button';
+        document.body.appendChild(button);
+        try {
+            const { CimulateWindow } = await loadWindow();
+            const { unmount } = render(
+                <CimulateWindow
+                    config={{
+                        ...config,
+                        headerText: 'Header',
+                        commerceClientTheme: { preset: 'commerce', fabIconLabel: 'Ask AI' },
+                    }}
+                />
+            );
+
+            await waitFor(() => expect(button.getAttribute('data-label')).toBe('Ask AI'));
+            expect(document.head.querySelector('style[data-cimulate-fab]')).not.toBeNull();
+
+            unmount();
+            expect(document.head.querySelector('style[data-cimulate-fab]')).toBeNull();
+            expect(document.head.querySelector('style[data-cimulate-theme]')).toBeNull();
+        } finally {
+            button.remove();
+        }
+    });
+
+    it('keeps an open panel pushed across theme, label, and width changes', async () => {
+        Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1280 });
+        const toggleWidgetMinimized = vi.fn();
+        window.CimulateMessaging = {
+            injectMessagingWidget,
+            ...window.CimulateMessaging,
+            eventHandlers: { components: { toggleWidgetMinimized } },
+        };
+        const main = document.createElement('main');
+        document.body.appendChild(main);
+        try {
+            const { CimulateWindow } = await loadWindow();
+            const { rerender } = render(<CimulateWindow config={config} />);
+            await waitFor(() => expect(injectMessagingWidget).toHaveBeenCalledOnce());
+            void act(() => {
+                window.dispatchEvent(
+                    new CustomEvent('cimulate:ui-state-update', {
+                        detail: { property: 'isOpen', value: true },
+                    })
+                );
+            });
+            await waitFor(() => expect(main.style.marginRight).toBe('var(--cc-panel-push)'));
+            rerender(
+                <CimulateWindow
+                    config={{
+                        ...config,
+                        commerceClientTheme: {
+                            preset: 'commerce',
+                            fabIconLabel: 'Updated',
+                            tokens: { text: '#112233' },
+                        },
+                        commerceClientPanelWidth: '480px',
+                    }}
+                />
+            );
+            expect(main.style.marginRight).toBe('var(--cc-panel-push)');
+            expect(document.documentElement.style.getPropertyValue('--cc-panel-width')).toBe('480px');
+            act(() => {
+                window.dispatchEvent(
+                    new CustomEvent('cimulate:ui-state-update', { detail: { property: 'isOpen', value: false } })
+                );
+            });
+            expect(toggleWidgetMinimized).toHaveBeenCalledExactlyOnceWith(true);
+        } finally {
+            cleanup();
+            main.remove();
+        }
+    });
+
+    it('restores the launcher after closing an initially open widget', async () => {
+        const toggleWidgetMinimized = vi.fn();
+        window.CimulateMessaging = {
+            injectMessagingWidget,
+            ...window.CimulateMessaging,
+            eventHandlers: { components: { toggleWidgetMinimized } },
+        };
+        const { CimulateWindow } = await loadWindow();
+        render(<CimulateWindow config={{ ...config, cc_isOpen: true }} />);
+        await waitFor(() => expect(injectMessagingWidget).toHaveBeenCalledOnce());
+        act(() => {
+            window.dispatchEvent(
+                new CustomEvent('cimulate:ui-state-update', { detail: { property: 'isOpen', value: false } })
+            );
+        });
+        expect(toggleWidgetMinimized).toHaveBeenCalledExactlyOnceWith(true);
     });
 
     it('links on every widget-ready event, not just the first', async () => {

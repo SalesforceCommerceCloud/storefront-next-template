@@ -35,6 +35,11 @@
         }
     }
 
+    /* Header controls are already visible; reserving header space makes caret scrolling move the page. */
+    html:has(header :focus) {
+        scroll-padding-top: 0;
+    }
+
     /* Cursor pointer for all interactive elements */
     button:not(:disabled),
     [role="button"]:not([aria-disabled="true"]):not([data-disabled]),

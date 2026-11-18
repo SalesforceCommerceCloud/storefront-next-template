@@ -22,16 +22,12 @@ import UserActions from './user-actions/user-actions';
 import WishlistIcon from './wishlist-icon';
 import { useTranslation } from 'react-i18next';
 import logo from '/images/logo.svg';
-import { Button } from '@/components/ui/button';
-import { SparklesIcon } from '@/components/icons';
+import ChatPill from '@/components/header/chat-pill';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import {
-    openAgentWidget,
-    isCimulateEnabled,
-    validateCimulateConfig,
-    resolveShopperAgentConfig,
-} from '@/components/cimulate';
+import { isCimulateEnabled, validateCimulateConfig, resolveShopperAgentConfig } from '@/components/cimulate';
 import { UITarget } from '@/targets/ui-target';
+import { cn } from '@/lib/utils';
+import { useCompactOnScroll } from './use-compact-on-scroll';
 import { Component } from '@/lib/decorators/component';
 import { RegionDefinition } from '@/lib/decorators';
 
@@ -76,6 +72,7 @@ export default function Header({
     const shopperAgent = resolveShopperAgentConfig(config);
     const showChat =
         variant === 'full' && isCimulateEnabled(shopperAgent?.enabled) && validateCimulateConfig(shopperAgent);
+    const compact = useCompactOnScroll();
     const updateHeaderHeight = useCallback(() => {
         if (headerRef.current) {
             const height = `${headerRef.current.offsetHeight}px`;
@@ -119,44 +116,54 @@ export default function Header({
         <>
             <header
                 ref={headerRef}
-                className="bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static">
+                data-compact={compact}
+                className={cn(
+                    'bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static',
+                    // Shrinks once the page scrolls; the divider separates it from content scrolling underneath.
+                    'border-b border-transparent transition-[border-color] duration-200 ease-out',
+                    compact && 'border-header-border'
+                )}>
                 {announcementSlot}
                 <div className="flex justify-end section-container">{beforeHeader}</div>
-                <div className="section-container py-6">
+                <div
+                    className={cn(
+                        'section-container lg:px-8 xl:px-12 transition-[padding] duration-200 ease-out motion-reduce:transition-none',
+                        compact ? 'py-3' : 'py-6'
+                    )}>
                     {/* Top row: Logo left, Icons right */}
-                    <div className="flex items-center gap-x-1 lg:gap-x-6">
+                    <div className="flex items-center gap-x-1 lg:gap-x-2 xl:gap-x-4">
                         {/* Logo - color swapped by theme via --header-logo-filter in app.css */}
                         <Link to="/" className="flex-shrink-0 flex items-center" data-testid="header-logo">
                             <img
                                 src={logo}
                                 alt={t('logoAlt')}
-                                className="h-3 lg:h-4 w-auto [filter:var(--header-logo-filter)]"
+                                className="h-3 w-auto lg:h-auto lg:w-[clamp(7rem,12vw,10.25rem)] [filter:var(--header-logo-filter)]"
                             />
                         </Link>
 
                         {/* Navigation Menu - desktop only, next to logo */}
-                        <div className="hidden lg:flex min-w-0 flex-1 self-stretch items-center">{children}</div>
+                        <div className="hidden lg:flex min-w-0 flex-1 self-stretch items-center [&_[data-slot=navigation-menu-trigger]]:px-1 [&_[data-slot=navigation-menu-trigger]]:text-xs xl:[&_[data-slot=navigation-menu-trigger]]:px-2 xl:[&_[data-slot=navigation-menu-trigger]]:text-sm [&_[data-slot=navigation-menu-trigger]]:whitespace-nowrap [&_[data-slot=navigation-menu-link]]:px-1 [&_[data-slot=navigation-menu-link]]:text-xs xl:[&_[data-slot=navigation-menu-link]]:px-2 xl:[&_[data-slot=navigation-menu-link]]:text-sm [&_[data-slot=navigation-menu-link]]:whitespace-nowrap">
+                            {children}
+                        </div>
 
                         {/* Spacer - takes remaining space on mobile */}
                         <div className="flex-1 lg:hidden" />
 
                         {/* Search - desktop only */}
-                        <div className="hidden lg:block" data-testid="header-search-desktop">
+                        <div
+                            className="hidden lg:block min-w-32 w-[clamp(8rem,14vw,14rem)] shrink"
+                            data-testid="header-search-desktop">
                             <LocationKeyedSearch />
                         </div>
 
                         {/* Icons group - includes mobile hamburger */}
-                        <div className="flex items-center">
+                        <div className="flex shrink-0 items-center [&_[data-slot=button]]:size-9 [&_[data-slot=button]]:px-0 [&_[data-header-control]]:w-9 [&_[data-header-label]]:hidden [&_[data-header-detail]]:hidden">
                             <UITarget targetId="sfcc.header.before.cart" />
                             {showChat && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="cursor-pointer lg:px-4 px-1 text-header-foreground hover:bg-transparent hover:opacity-50 transition-opacity"
-                                    onClick={() => openAgentWidget()}
-                                    aria-label={t('openChat')}>
-                                    <SparklesIcon />
-                                </Button>
+                                <ChatPill
+                                    label={shopperAgent?.headerText}
+                                    className="w-9 justify-center lg:px-0 [&_span]:hidden"
+                                />
                             )}
                             <UserActions />
                             <WishlistIcon />

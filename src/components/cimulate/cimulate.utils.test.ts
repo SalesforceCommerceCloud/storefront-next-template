@@ -170,6 +170,7 @@ describe('buildMessagingWidgetOptions', () => {
         // 'panel' renders as a full-height dialog.
         expect(options.componentConfig).toEqual({
             isOpen: false,
+            isMinimized: true,
             type: 'dialog',
             options: {
                 dialogPosition: 'bottom-right',
@@ -204,6 +205,7 @@ describe('buildMessagingWidgetOptions', () => {
         });
         expect(options.componentConfig).toEqual({
             isOpen: true,
+            isMinimized: false,
             type: 'dialog',
             options: {
                 dialogPosition: 'bottom-left',
@@ -320,16 +322,21 @@ describe('buildMessagingWidgetOptions', () => {
         });
         expect(options.componentConfig).toEqual({
             isOpen: true,
+            isMinimized: false,
             type: 'modal',
             options: { dialogPosition: 'top-right' },
         });
     });
 
-    it('merges commerceClientTheme over the defaults', () => {
+    it('defaults to Commerce and does not forward the removed layoutPreset option', () => {
+        const options = buildMessagingWidgetOptions(populated);
+        expect(options.theme).toEqual({ preset: 'commerce' });
+        expect(options).not.toHaveProperty('layoutPreset');
+    });
+
+    it('passes existing flat themes through without injecting host defaults', () => {
         const options = buildMessagingWidgetOptions({ ...populated, commerceClientTheme: { primaryColor: '#ff0000' } });
-        expect(options.theme.primaryColor).toBe('#ff0000');
-        // Untouched defaults survive the merge.
-        expect(options.theme.backgroundColor).toBe('#ffffff');
+        expect(options.theme).toEqual({ primaryColor: '#ff0000' });
     });
 
     it('forwards routingAttributes into messagingConfig when present', () => {
@@ -349,5 +356,14 @@ describe('buildMessagingWidgetOptions', () => {
         expect(options.disclaimerMarkdown).toBe('_AI generated_');
         expect(options.logoUrl).toBe('https://cdn.example.cimulate.ai/logo.svg');
         expect(options.searchConfig).toEqual({ placeholder: 'Search…' });
+    });
+
+    it('leaves the send button defaults to the widget and preserves explicit overrides', () => {
+        expect(buildMessagingWidgetOptions(populated)).not.toHaveProperty('searchConfig');
+        const options = buildMessagingWidgetOptions({
+            ...populated,
+            commerceClientSearchConfig: { buttonType: 'text' },
+        });
+        expect(options.searchConfig).toEqual({ buttonType: 'text' });
     });
 });

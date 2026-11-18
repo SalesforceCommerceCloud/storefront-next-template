@@ -52,7 +52,10 @@ export function createCimulateCspContributor(config: ShopperAgentCspConfig): Csp
             const { overridesUrl } = resolveCimulateOverrideOptions(config);
             const scriptSrc = origins(config?.commerceClientScriptSourceUrl, overridesUrl);
             const connectSrc = origins(config?.scrt2Url, config?.commerceClientScriptSourceUrl);
-            const imgSrc = origins(config?.commerceClientLogoUrl, config?.commerceClientScriptSourceUrl);
+            const imageUrls = Array.isArray(config?.commerceClientImageSourceUrls)
+                ? config.commerceClientImageSourceUrls.filter((url) => typeof url === 'string')
+                : [];
+            const imgSrc = origins(config?.commerceClientLogoUrl, config?.commerceClientScriptSourceUrl, ...imageUrls);
             const styleSrc = widgetOrigin;
             const fontSrc = widgetOrigin;
             const frameSrc = origins(config?.scrt2Url);

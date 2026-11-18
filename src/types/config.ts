@@ -21,6 +21,7 @@
  * pages, features, engagement, etc. `Config` wraps it in `BaseConfig<AppConfig>`
  * which adds `metadata` and `runtime` sections.
  */
+import type { CommerceClientTheme } from '@/components/cimulate/cimulate-theme';
 import type { BaseConfig, Url } from '@salesforce/storefront-next-runtime/config';
 import type { ConsentCategory } from '@salesforce/storefront-next-runtime/events';
 import type { SecurityConfig } from '@salesforce/storefront-next-runtime/security';
@@ -93,6 +94,7 @@ export type SeoFallbackSitePolicy = {
  */
 export type ShopperAgentConfig = {
     enabled: string | boolean;
+    /** Messaging bundle URL; theme recipes require widget 1.57.0+ with matching CSS. */
     commerceClientScriptSourceUrl: string;
     scrt2Url: string;
     salesforceOrgId: string;
@@ -100,6 +102,8 @@ export type ShopperAgentConfig = {
     commerceClientDisplayMode?: 'panel' | 'dialog' | 'modal';
     commerceClientElementId?: string;
     commerceClientLogoUrl?: string;
+    /** Additional HTTPS image URLs whose origins may be used in agent messages. */
+    commerceClientImageSourceUrls?: string[];
     commerceClientPanelWidth?: string;
     commerceClientMode?: string;
     headerText?: string;
@@ -110,7 +114,7 @@ export type ShopperAgentConfig = {
         buttonType?: string;
         buttonIconUrl?: string;
     };
-    commerceClientTheme?: Record<string, string>;
+    commerceClientTheme?: CommerceClientTheme;
     routingAttributes?: Record<string, unknown>;
     isDevelopment?: string;
     /** Optional widget options; keep in sync with `CimulateConfig` in `@/components/cimulate`. */

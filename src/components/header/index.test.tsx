@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import 'reflect-metadata';
 import Header, { HeaderMetadata } from './index';
@@ -107,6 +107,34 @@ describe('Header', () => {
         it('renders the provided announcementSlot above the main row', () => {
             renderHeader(<Header announcementSlot={<div data-testid="announcement-slot">Announcement</div>} />);
             expect(screen.getByTestId('announcement-slot')).toBeInTheDocument();
+        });
+
+        it('compacts with a divider once the page scrolls', () => {
+            const frames: FrameRequestCallback[] = [];
+            vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frames.push(cb));
+            const scrollTo = (y: number) =>
+                act(() => {
+                    Object.defineProperty(window, 'scrollY', { configurable: true, value: y });
+                    window.dispatchEvent(new Event('scroll'));
+                    for (const cb of frames.splice(0)) cb(0);
+                });
+            try {
+                const { container } = renderHeader(<Header />);
+                const header = container.querySelector('header');
+                expect(header).toHaveAttribute('data-compact', 'false');
+                expect(container.querySelector('.py-6')).not.toBeNull();
+
+                scrollTo(200);
+                expect(header).toHaveAttribute('data-compact', 'true');
+                expect(header).toHaveClass('border-header-border');
+                expect(container.querySelector('.py-3')).not.toBeNull();
+
+                scrollTo(0);
+                expect(header).toHaveAttribute('data-compact', 'false');
+            } finally {
+                vi.unstubAllGlobals();
+                Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+            }
         });
     });
 

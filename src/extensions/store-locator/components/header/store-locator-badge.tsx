@@ -31,7 +31,8 @@ function truncateStoreName(storeName: string): string {
 
 export default function StoreLocatorBadge(): ReactElement {
     return (
-        <SelectedStoreBoundary fallback={<span className="inline-block h-9 w-32" aria-hidden="true" />}>
+        <SelectedStoreBoundary
+            fallback={<span data-header-control className="inline-block h-9 w-32" aria-hidden="true" />}>
             {(selection) => <StoreLocatorBadgeContent selection={selection} />}
         </SelectedStoreBoundary>
     );
@@ -81,10 +82,14 @@ function StoreLocatorBadgeContent({ selection }: { selection?: SelectedStoreInfo
                 aria-label={storeAriaLabel}
                 data-slot="store-locator-selected-store">
                 <Store className="size-6" aria-hidden="true" />
-                <span className="hidden lg:inline">{visibleStoreLabel}</span>
-                <span className="mx-0.5 hidden h-4 w-px bg-current/30 lg:block" aria-hidden="true" />
-                <MapPin className="size-5" aria-hidden="true" />
-                <span className="hidden lg:inline">{selectedStoreInfo.postalCode}</span>
+                <span data-header-label className="hidden lg:inline">
+                    {visibleStoreLabel}
+                </span>
+                <span data-header-detail className="mx-0.5 hidden h-4 w-px bg-current/30 lg:block" aria-hidden="true" />
+                <MapPin data-header-detail className="size-5" aria-hidden="true" />
+                <span data-header-label className="hidden lg:inline">
+                    {selectedStoreInfo.postalCode}
+                </span>
             </Button>
         );
     }
@@ -98,7 +103,9 @@ function StoreLocatorBadgeContent({ selection }: { selection?: SelectedStoreInfo
             aria-expanded={isOpen}
             aria-label={storeAriaLabel}>
             <Store className="size-6" aria-hidden="true" />
-            <span className="hidden lg:inline">{selectedStoreInfo ? visibleStoreLabel : storeAriaLabel}</span>
+            <span data-header-label className="hidden lg:inline">
+                {selectedStoreInfo ? visibleStoreLabel : storeAriaLabel}
+            </span>
         </Button>
     );
 }

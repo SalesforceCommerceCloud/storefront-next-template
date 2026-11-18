@@ -19,6 +19,9 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { endCimulateConversation, linkCimulateIdentity } from './cimulate-identity-link';
 import { buildMessagingWidgetOptions, flushPendingCimulateActions, type CimulateConfig } from './cimulate.utils';
+import { startSparklesFab } from './cimulate-fab';
+import { startSearchOverlay } from './cimulate-layout';
+import { startPagePush } from './cimulate-page-push';
 import {
     buildCimulateComboKey,
     buildCimulateIdentityKey,
@@ -342,7 +345,46 @@ export function CimulateWindow({ config, identity }: CimulateWindowProps) {
         } catch (error) {
             logger.error('Error injecting Cimulate messaging widget', { error });
         }
-    }, [scriptLoaded, widgetOptions]);
+    }, [scriptLoaded, widgetOptions, config.commerceClientTheme]);
+
+    const fabLabel = widgetOptions.theme.fabIconLabel;
+    const { commerceClientDisplayMode = 'panel' } = config;
+    const { isOpen, options: componentOptions } = widgetOptions.componentConfig;
+    const dialogPosition = String(componentOptions.dialogPosition);
+    const panelWidth = String(componentOptions.dialogWidth ?? '');
+    const dialogFullHeight = componentOptions.dialogFullHeight !== false;
+
+    // Remember live state independently of configuration/effect restarts.
+    const liveOpen = useRef<boolean | undefined>(undefined);
+    useEffect(() => {
+        const onUiState = (event: Event): void => {
+            const detail = (event as CustomEvent<{ property?: string; value?: unknown }>).detail;
+            if (detail?.property === 'isOpen') liveOpen.current = Boolean(detail.value);
+        };
+        window.addEventListener('cimulate:ui-state-update', onUiState);
+        return () => window.removeEventListener('cimulate:ui-state-update', onUiState);
+    }, []);
+
+    useEffect(() => {
+        if (!scriptLoaded || quarantined) return;
+        return startSearchOverlay();
+    }, [scriptLoaded, quarantined]);
+
+    useEffect(() => {
+        if (!scriptLoaded || quarantined) return;
+        return startPagePush({
+            displayMode: commerceClientDisplayMode,
+            position: dialogPosition,
+            panelWidth,
+            initialOpen: liveOpen.current ?? isOpen,
+            fullHeight: dialogFullHeight,
+        });
+    }, [scriptLoaded, quarantined, commerceClientDisplayMode, panelWidth, dialogPosition, dialogFullHeight, isOpen]);
+
+    useEffect(() => {
+        if (!scriptLoaded || quarantined) return;
+        return startSparklesFab(fabLabel, liveOpen.current ?? isOpen);
+    }, [scriptLoaded, quarantined, fabLabel, isOpen]);
 
     return (
         <div

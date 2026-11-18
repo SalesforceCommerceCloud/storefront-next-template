@@ -18,6 +18,8 @@ import { createLogger } from '@/lib/logger';
 
 const logger = createLogger();
 
+import { resolveWidgetTheme, type CommerceClientTheme } from './cimulate-theme';
+
 const onClient = typeof window !== 'undefined';
 
 let pendingOpen = false;
@@ -28,6 +30,7 @@ const TRUSTED_CIMULATE_DOMAINS = ['cimulate.ai', 'sfcc-store-internal.net'];
 
 export interface CimulateConfig {
     enabled: string | boolean;
+    /** Messaging bundle URL; theme recipes require widget 1.57.0+ with matching CSS. */
     commerceClientScriptSourceUrl: string;
     scrt2Url: string;
     salesforceOrgId: string;
@@ -45,7 +48,7 @@ export interface CimulateConfig {
         buttonType?: string;
         buttonIconUrl?: string;
     };
-    commerceClientTheme?: Record<string, string>;
+    commerceClientTheme?: CommerceClientTheme;
     routingAttributes?: Record<string, unknown>;
     isDevelopment?: string;
     /**
@@ -77,17 +80,6 @@ const DEFAULT_ELEMENT_ID = 'cimulate-messaging-container';
 const DEFAULT_PANEL_WIDTH = '420px';
 const GLOBAL_CLASS = 'commerce-client-shopper-agent';
 const DEFAULT_CAPABILITIES_VERSION = '65';
-
-/** Theme defaults; `commerceClientTheme` is merged over these. */
-const DEFAULT_THEME: Record<string, string> = {
-    primaryColor: '#0176d3',
-    secondaryColor: '#014486',
-    fontColor: '#1a202c',
-    fontFamily: 'inherit',
-    backgroundColor: '#ffffff',
-    borderColor: '#dddddd',
-};
-
 /** Coerces a string/boolean config value to a boolean; `undefined` when unset so callers can omit it. */
 export function toWidgetBoolean(value: string | boolean | undefined | null): boolean | undefined {
     if (value === undefined || value === null) return undefined;
@@ -145,10 +137,11 @@ export interface MessagingWidgetOptions {
     isDevelopment: boolean;
     componentConfig: {
         isOpen: boolean;
+        isMinimized: boolean;
         type: string;
         options: Record<string, unknown>;
     };
-    theme: Record<string, string>;
+    theme: CommerceClientTheme;
     overrides?: Record<string, unknown>;
     overridesUrl?: string;
     headerConfig?: Record<string, unknown>;
@@ -165,7 +158,7 @@ export interface MessagingWidgetOptions {
  * Builds the `injectMessagingWidget` options from the resolved config. Pure/side-effect-free
  * so it can be unit-tested without a DOM. Connection fields map to `messagingConfig`; the
  * `cc_` knobs map to the widget's option names — some with defaults, the rest forwarded only
- * when set (so the widget's own default otherwise applies).
+ * when set (so the widget's own default otherwise applies). Theme recipes are resolved by the widget.
  */
 export function buildMessagingWidgetOptions(config: CimulateConfig): MessagingWidgetOptions {
     const {
@@ -221,10 +214,12 @@ export function buildMessagingWidgetOptions(config: CimulateConfig): MessagingWi
         messagingConfig.showProductCaptions = showProductCaptions;
     }
 
-    // 'panel' renders as a full-height dialog; other modes keep their own type.
+    // 'panel' renders as a full-height dialog; other modes keep their own type. A closed widget starts
+    // minimized so its launcher (restyled as the sparkles FAB) renders.
     const componentConfig = isPanel
         ? {
               isOpen,
+              isMinimized: !isOpen,
               type: 'dialog',
               options: {
                   dialogPosition,
@@ -234,6 +229,7 @@ export function buildMessagingWidgetOptions(config: CimulateConfig): MessagingWi
           }
         : {
               isOpen,
+              isMinimized: !isOpen,
               type: commerceClientDisplayMode,
               options: { dialogPosition },
           };
@@ -250,13 +246,11 @@ export function buildMessagingWidgetOptions(config: CimulateConfig): MessagingWi
         ...(commerceClientLogoUrl ? { logoUrl: commerceClientLogoUrl } : {}),
         ...(headerText ? { headerText } : {}),
         ...(disclaimerMarkdown ? { disclaimerMarkdown } : {}),
-        ...(commerceClientSearchConfig && typeof commerceClientSearchConfig === 'object'
-            ? { searchConfig: commerceClientSearchConfig }
-            : {}),
+        ...(commerceClientSearchConfig ? { searchConfig: commerceClientSearchConfig } : {}),
         globalClassName: GLOBAL_CLASS,
         isDevelopment: isDevelopment === 'true',
         componentConfig,
-        theme: { ...DEFAULT_THEME, ...commerceClientTheme },
+        theme: resolveWidgetTheme(commerceClientTheme),
         ...resolveCimulateOverrideOptions(config),
         // Forwarded only when set.
         ...(cc_headerConfig && typeof cc_headerConfig === 'object' ? { headerConfig: cc_headerConfig } : {}),
@@ -453,6 +447,8 @@ declare global {
                 };
                 components?: {
                     toggleWidgetOpen?: (show: boolean) => void;
+                    /** Minimizing also closes; the widget renders its launcher only while minimized. */
+                    toggleWidgetMinimized?: (minimized: boolean) => void;
                 };
                 messaging?: {
                     sendMessage?: (message: string) => void;
