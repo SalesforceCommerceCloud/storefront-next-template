@@ -40,7 +40,7 @@ for (const key of Object.keys(process.env)) {
 // Set window.__APP_CONFIG__ before any modules are imported
 // This ensures getConfig() works during module initialization in tests where it is used before the config provider is rendered.
 // to initialize AuthContext for hydration.
-(window as unknown as Window & { __APP_CONFIG__: typeof mockConfig }).__APP_CONFIG__ = mockConfig;
+(globalThis as unknown as { __APP_CONFIG__: typeof mockConfig }).__APP_CONFIG__ = mockConfig;
 
 // Initialize i18next for tests that use components with useTranslation
 // This runs before all tests but individual tests can reinitialize as needed
@@ -152,7 +152,7 @@ afterEach(() => {
 
 // Mock window.matchMedia for required components
 // Use a regular function instead of vi.fn() to prevent vi.restoreAllMocks() from clearing it
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(globalThis, 'matchMedia', {
     writable: true,
     value: (query: string) => ({
         matches: false,

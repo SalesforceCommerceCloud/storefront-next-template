@@ -211,7 +211,7 @@ importers:
         version: 4.1.2(storybook@10.2.19(@testing-library/dom@10.4.1)(prettier@3.10.1)(react@19.2.3))
       '@lhci/cli':
         specifier: 0.15.1
-        version: 0.15.1(bare-buffer@3.7.2)
+        version: 0.15.1(bare-buffer@3.7.3)
       '@react-router/dev':
         specifier: 7.18.2
         version: 7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0)
@@ -223,7 +223,7 @@ importers:
         version: 7.18.2(@react-router/dev@7.18.2(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))(yaml@2.9.0))(typescript@5.9.2)
       '@salesforce/b2c-cli':
         specifier: 2.15.0
-        version: 2.15.0(@types/node@24.3.0)(bare-buffer@3.7.2)(typescript@5.9.2)
+        version: 2.15.0(@types/node@24.3.0)(bare-buffer@3.7.3)(typescript@5.9.2)
       '@storybook/addon-a11y':
         specifier: 10.2.19
         version: 10.2.19(storybook@10.2.19(@testing-library/dom@10.4.1)(prettier@3.10.1)(react@19.2.3))
@@ -521,7 +521,7 @@ importers:
         version: 7.18.2(express@5.3.0)(react-router@7.18.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.2)
       '@salesforce/b2c-tooling-sdk':
         specifier: 2.14.0
-        version: 2.14.0(@oclif/core@4.14.0)(bare-buffer@3.7.2)(typescript@5.9.2)
+        version: 2.14.0(@oclif/core@4.14.0)(bare-buffer@3.7.3)(typescript@5.9.2)
       '@salesforce/playhouse':
         specifier: 0.1.2
         version: 0.1.2(@opentelemetry/core@1.30.1(@opentelemetry/api@1.10.0))(yauzl@2.10.0)
@@ -533,7 +533,7 @@ importers:
         version: 8.20.0
       archiver:
         specifier: ^7.0.1
-        version: 7.0.1(bare-buffer@3.7.2)
+        version: 7.0.1(bare-buffer@3.7.3)
       babel-dead-code-elimination:
         specifier: 1.0.12
         version: 1.0.12
@@ -4952,8 +4952,8 @@ packages:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
     engines: {node: 18 || 20 || >=22}
 
-  bare-buffer@3.7.2:
-    resolution: {integrity: sha512-kI35SYpVg0JCk+a+gkUEJZY39mt+g71y1NRwBrEj7SbxLnwngYYMf0T/kouYIujlJwelvPZ9TTbBCbCSPw059Q==}
+  bare-buffer@3.7.3:
+    resolution: {integrity: sha512-77owW16RX6YgdOzddHtM0oGz8wsd0/F9k/0coz6TPmjUHnr/9FwWODVMNKwyYWM/a/ESdTum855nfQxnsKUygA==}
     engines: {bare: '>=1.20.0'}
 
   bare-events@2.9.2:
@@ -4990,14 +4990,14 @@ packages:
       bare-events:
         optional: true
 
-  bare-url@2.5.7:
-    resolution: {integrity: sha512-pWAiECRdNYPJAXYKVOb4HuTQedQyRjtGBUu86kO/vOt4GM7e45PghHXQ/Erm5NumaDSWNBzehIfpc768esW7gA==}
+  bare-url@2.5.8:
+    resolution: {integrity: sha512-G5KTe5Bj6z5pqIxcn3lWlIFIv0rkXbccx0T0Xuf7t4RapfSWvFlcVbrwYXxFZ00PC4lp57OCIk6uXP/r3GbpDw==}
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
-  baseline-browser-mapping@2.11.37:
-    resolution: {integrity: sha512-QYph+vfurmaxhNwi9FprfmtkT5cx2Keg8FzZ0vnjO8ukscIybVyZGMFwdllKGlTI6qyU8ck43OM9UXh+IFJihQ==}
+  baseline-browser-mapping@2.11.38:
+    resolution: {integrity: sha512-rMgy5YW7x28SMfXHLlVZDBqlWzYZ0x2rVR/6FWrNBF0chjigARK1H6nM0hKA1Um3kPOlkQFVtjJs00d2N1ezuw==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -5675,8 +5675,8 @@ packages:
     resolution: {integrity: sha512-dtXmacXJr28KdnoQ07sP9fD7mdiG9A2AaRoFNyxOdV6EPoNrSZu4C9WVU3WTnZhVF12g1H0Q3ZRdt+mESYAW7g==}
     engines: {node: '>=8'}
 
-  csstype@3.2.3:
-    resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
+  csstype@3.2.4:
+    resolution: {integrity: sha512-PoKaoPzQapnEoqUSnHx1u6W6ku8CVEgKsnpmmzU3m1nwkidpPBQ8V/Zq2+bWNrsOKoKLwTGdbx6xF7BXP1zLVQ==}
 
   cwd@0.10.0:
     resolution: {integrity: sha512-YGZxdTTL9lmLkCUTpg4j0zQ7IhRB5ZmqNBbGCl3Tg6MP/d5/6sY7L5mmTjzbc6JKgVZYiqTQTNhPFsbXNGlRaA==}
@@ -5958,8 +5958,8 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.486:
-    resolution: {integrity: sha512-rpybw4Ac4ak/An6G1Me2+61xzwobowDGyuJe71QHHOVpkZv4fPVobsLl7WH6zHSKusAMpaHxGKTpOvpy7+r3dQ==}
+  electron-to-chromium@1.5.487:
+    resolution: {integrity: sha512-qWotOhQYeYEj+DK4+Y+cfPj44qiC6ETIiWtJLfmDJydED2BJJ7loPA4SfBbbrMI6X/X3tryJgxnY9nxsO545Zw==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -9135,8 +9135,8 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  router@2.2.0:
-    resolution: {integrity: sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==}
+  router@2.3.0:
+    resolution: {integrity: sha512-bpowRfGjEPe8t9R6fJIzhwmyCGAXwKvxBUsgJm+bJukwdcWmUXbMo7p22w7aYmQBPQTUMNqMV39YX0kMou3z8w==}
     engines: {node: '>= 18'}
 
   run-applescript@7.1.0:
@@ -12204,16 +12204,16 @@ snapshots:
       '@jsonjoy.com/codegen': 17.67.0(tslib@2.9.1)
       tslib: 2.9.1
 
-  '@lhci/cli@0.15.1(bare-buffer@3.7.2)':
+  '@lhci/cli@0.15.1(bare-buffer@3.7.3)':
     dependencies:
-      '@lhci/utils': 0.15.1(bare-buffer@3.7.2)
+      '@lhci/utils': 0.15.1(bare-buffer@3.7.3)
       chrome-launcher: 0.13.4
       compression: 1.8.2
       debug: 4.4.3(supports-color@10.2.2)
       express: 4.22.3
       inquirer: 6.5.2
       isomorphic-fetch: 3.0.0
-      lighthouse: 12.6.1(bare-buffer@3.7.2)
+      lighthouse: 12.6.1(bare-buffer@3.7.3)
       lighthouse-logger: 1.2.0
       open: 7.4.2
       proxy-agent: 6.5.0
@@ -12230,12 +12230,12 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@lhci/utils@0.15.1(bare-buffer@3.7.2)':
+  '@lhci/utils@0.15.1(bare-buffer@3.7.3)':
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
       isomorphic-fetch: 3.0.0
       js-yaml: 3.15.0
-      lighthouse: 12.6.1(bare-buffer@3.7.2)
+      lighthouse: 12.6.1(bare-buffer@3.7.3)
       tree-kill: 1.2.2
     transitivePeerDependencies:
       - bare-abort-controller
@@ -12732,14 +12732,14 @@ snapshots:
 
   '@protobufjs/utf8@1.1.1': {}
 
-  '@puppeteer/browsers@2.13.2(bare-buffer@3.7.2)':
+  '@puppeteer/browsers@2.13.2(bare-buffer@3.7.3)':
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
       extract-zip: 2.0.1
       progress: 2.0.3
       proxy-agent: 6.5.0
       semver: 7.8.6
-      tar-fs: 3.1.3(bare-buffer@3.7.2)
+      tar-fs: 3.1.3(bare-buffer@3.7.3)
       yargs: 17.7.3
     transitivePeerDependencies:
       - bare-abort-controller
@@ -13581,7 +13581,7 @@ snapshots:
     dependencies:
       postcss: 8.5.23
 
-  '@salesforce/b2c-cli@2.15.0(@types/node@24.3.0)(bare-buffer@3.7.2)(typescript@5.9.2)':
+  '@salesforce/b2c-cli@2.15.0(@types/node@24.3.0)(bare-buffer@3.7.3)(typescript@5.9.2)':
     dependencies:
       '@inquirer/prompts': 8.2.0(@types/node@24.3.0)
       '@oclif/core': 4.8.0
@@ -13591,7 +13591,7 @@ snapshots:
       '@oclif/plugin-plugins': 5.4.53
       '@oclif/plugin-version': 2.2.36
       '@oclif/plugin-warn-if-update-available': 3.1.52
-      '@salesforce/b2c-tooling-sdk': 2.15.0(@oclif/core@4.8.0)(bare-buffer@3.7.2)(typescript@5.9.2)
+      '@salesforce/b2c-tooling-sdk': 2.15.0(@oclif/core@4.8.0)(bare-buffer@3.7.3)(typescript@5.9.2)
       cliui: 9.0.1
       glob: 13.0.0
       marked: 15.0.12
@@ -13605,7 +13605,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@salesforce/b2c-tooling-sdk@2.14.0(@oclif/core@4.14.0)(bare-buffer@3.7.2)(typescript@5.9.2)':
+  '@salesforce/b2c-tooling-sdk@2.14.0(@oclif/core@4.14.0)(bare-buffer@3.7.3)(typescript@5.9.2)':
     dependencies:
       '@vscode/debugadapter': 1.68.0
       chokidar: 5.0.0
@@ -13625,7 +13625,7 @@ snapshots:
       pino: 10.1.0
       pino-pretty: 13.1.2
       protobufjs: 7.6.5
-      tar-fs: 3.1.2(bare-buffer@3.7.2)
+      tar-fs: 3.1.2(bare-buffer@3.7.3)
       undici: 7.30.2
       xml2js: 0.6.2
     optionalDependencies:
@@ -13636,7 +13636,7 @@ snapshots:
       - react-native-b4a
       - typescript
 
-  '@salesforce/b2c-tooling-sdk@2.15.0(@oclif/core@4.8.0)(bare-buffer@3.7.2)(typescript@5.9.2)':
+  '@salesforce/b2c-tooling-sdk@2.15.0(@oclif/core@4.8.0)(bare-buffer@3.7.3)(typescript@5.9.2)':
     dependencies:
       '@vscode/debugadapter': 1.68.0
       chokidar: 5.0.0
@@ -13656,7 +13656,7 @@ snapshots:
       pino: 10.1.0
       pino-pretty: 13.1.2
       protobufjs: 7.6.5
-      tar-fs: 3.1.2(bare-buffer@3.7.2)
+      tar-fs: 3.1.2(bare-buffer@3.7.3)
       undici: 7.30.2
       xml2js: 0.6.2
     optionalDependencies:
@@ -14429,7 +14429,7 @@ snapshots:
 
   '@types/react@19.1.13':
     dependencies:
-      csstype: 3.2.3
+      csstype: 3.2.4
 
   '@types/readdir-glob@1.1.5':
     dependencies:
@@ -14836,14 +14836,14 @@ snapshots:
       normalize-path: 3.0.0
       readable-stream: 4.8.0
 
-  archiver@7.0.1(bare-buffer@3.7.2):
+  archiver@7.0.1(bare-buffer@3.7.3):
     dependencies:
       archiver-utils: 5.0.2
       async: 3.2.6
       buffer-crc32: 1.0.0
       readable-stream: 4.8.0
       readdir-glob: 1.1.3
-      tar-stream: 3.2.2(bare-buffer@3.7.2)
+      tar-stream: 3.2.2(bare-buffer@3.7.3)
       zip-stream: 6.0.1
     transitivePeerDependencies:
       - bare-abort-controller
@@ -15036,44 +15036,44 @@ snapshots:
 
   balanced-match@4.0.4: {}
 
-  bare-buffer@3.7.2: {}
+  bare-buffer@3.7.3: {}
 
   bare-events@2.9.2: {}
 
-  bare-fs@4.8.4(bare-buffer@3.7.2):
+  bare-fs@4.8.4(bare-buffer@3.7.3):
     dependencies:
       bare-events: 2.9.2
       bare-path: 3.1.3
-      bare-stream: 2.13.4(bare-buffer@3.7.2)(bare-events@2.9.2)
-      bare-url: 2.5.7
+      bare-stream: 2.13.4(bare-buffer@3.7.3)(bare-events@2.9.2)
+      bare-url: 2.5.8
       fast-fifo: 1.3.2
     optionalDependencies:
-      bare-buffer: 3.7.2
+      bare-buffer: 3.7.3
     transitivePeerDependencies:
       - bare-abort-controller
       - react-native-b4a
 
   bare-path@3.1.3: {}
 
-  bare-stream@2.13.4(bare-buffer@3.7.2)(bare-events@2.9.2):
+  bare-stream@2.13.4(bare-buffer@3.7.3)(bare-events@2.9.2):
     dependencies:
       b4a: 1.9.0
       streamx: 2.28.1
       teex: 1.0.1
     optionalDependencies:
-      bare-buffer: 3.7.2
+      bare-buffer: 3.7.3
       bare-events: 2.9.2
     transitivePeerDependencies:
       - react-native-b4a
 
-  bare-url@2.5.7:
+  bare-url@2.5.8:
     dependencies:
-      bare-buffer: 3.7.2
+      bare-buffer: 3.7.3
       bare-path: 3.1.3
 
   base64-js@1.5.1: {}
 
-  baseline-browser-mapping@2.11.37: {}
+  baseline-browser-mapping@2.11.38: {}
 
   basic-auth@2.0.1:
     dependencies:
@@ -15161,9 +15161,9 @@ snapshots:
 
   browserslist@4.29.6:
     dependencies:
-      baseline-browser-mapping: 2.11.37
+      baseline-browser-mapping: 2.11.38
       caniuse-lite: 1.0.30001826
-      electron-to-chromium: 1.5.486
+      electron-to-chromium: 1.5.487
       node-releases: 2.0.64
       update-browserslist-db: 1.4.0(browserslist@4.29.6)
 
@@ -15893,7 +15893,7 @@ snapshots:
     dependencies:
       css-what: 3.3.0
 
-  csstype@3.2.3: {}
+  csstype@3.2.4: {}
 
   cwd@0.10.0:
     dependencies:
@@ -16163,7 +16163,7 @@ snapshots:
 
   ejs@6.0.1: {}
 
-  electron-to-chromium@1.5.486: {}
+  electron-to-chromium@1.5.487: {}
 
   embla-carousel-react@8.6.0(react@19.2.3):
     dependencies:
@@ -16463,7 +16463,7 @@ snapshots:
       proxy-addr: 2.0.8
       qs: 6.16.2
       range-parser: 1.3.0
-      router: 2.2.0
+      router: 2.3.0
       send: 1.2.1
       serve-static: 2.2.1
       statuses: 2.0.2
@@ -18208,7 +18208,7 @@ snapshots:
 
   lighthouse-stack-packs@1.12.3: {}
 
-  lighthouse@12.6.1(bare-buffer@3.7.2):
+  lighthouse@12.6.1(bare-buffer@3.7.3):
     dependencies:
       '@paulirish/trace_engine': 0.0.53
       '@sentry/node': 7.120.4
@@ -18229,7 +18229,7 @@ snapshots:
       metaviewport-parser: 0.3.0
       open: 8.4.2
       parse-cache-control: 1.0.1
-      puppeteer-core: 24.43.1(bare-buffer@3.7.2)
+      puppeteer-core: 24.43.1(bare-buffer@3.7.3)
       robots-parser: 3.0.1
       semver: 5.7.3
       speedline-core: 1.4.3
@@ -19613,9 +19613,9 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  puppeteer-core@24.43.1(bare-buffer@3.7.2):
+  puppeteer-core@24.43.1(bare-buffer@3.7.3):
     dependencies:
-      '@puppeteer/browsers': 2.13.2(bare-buffer@3.7.2)
+      '@puppeteer/browsers': 2.13.2(bare-buffer@3.7.3)
       chromium-bidi: 14.0.0(devtools-protocol@0.0.1608973)
       debug: 4.4.3(supports-color@10.2.2)
       devtools-protocol: 0.0.1608973
@@ -20124,7 +20124,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.62.2
       fsevents: 2.3.3
 
-  router@2.2.0:
+  router@2.3.0:
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
       depd: 2.0.0
@@ -20628,34 +20628,34 @@ snapshots:
 
   tapable@2.3.4: {}
 
-  tar-fs@3.1.2(bare-buffer@3.7.2):
+  tar-fs@3.1.2(bare-buffer@3.7.3):
     dependencies:
       pump: 3.0.4
-      tar-stream: 3.2.2(bare-buffer@3.7.2)
+      tar-stream: 3.2.2(bare-buffer@3.7.3)
     optionalDependencies:
-      bare-fs: 4.8.4(bare-buffer@3.7.2)
+      bare-fs: 4.8.4(bare-buffer@3.7.3)
       bare-path: 3.1.3
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
       - react-native-b4a
 
-  tar-fs@3.1.3(bare-buffer@3.7.2):
+  tar-fs@3.1.3(bare-buffer@3.7.3):
     dependencies:
       pump: 3.0.4
-      tar-stream: 3.2.2(bare-buffer@3.7.2)
+      tar-stream: 3.2.2(bare-buffer@3.7.3)
     optionalDependencies:
-      bare-fs: 4.8.4(bare-buffer@3.7.2)
+      bare-fs: 4.8.4(bare-buffer@3.7.3)
       bare-path: 3.1.3
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
       - react-native-b4a
 
-  tar-stream@3.2.2(bare-buffer@3.7.2):
+  tar-stream@3.2.2(bare-buffer@3.7.3):
     dependencies:
       b4a: 1.9.0
-      bare-fs: 4.8.4(bare-buffer@3.7.2)
+      bare-fs: 4.8.4(bare-buffer@3.7.3)
       fast-fifo: 1.3.2
       streamx: 2.28.1
     transitivePeerDependencies:
