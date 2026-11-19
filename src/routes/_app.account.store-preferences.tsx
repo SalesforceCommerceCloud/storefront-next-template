@@ -20,33 +20,31 @@ import { SeoMeta } from '@/components/seo-meta';
 import { useTranslation } from 'react-i18next';
 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
-import { resolveSelectedStore } from '@/extensions/store-locator/lib/resolve-selected-store.server';
-import { getPreferredStoreId } from '@/extensions/store-locator/lib/api/preferred-store.server';
+import {
+    resolveDefaultStore,
+    resolveSelectedStore,
+} from '@/extensions/store-locator/lib/resolve-selected-store.server';
 // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
 /**
- * Shares the root/PDP identity-separated store resolution, including full store details.
+ * Returns the active store (shared root/PDP resolution) and the saved account default separately.
  */
 export function loader(args: Route.LoaderArgs) {
     // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
     const { context } = args;
     const { t } = getTranslation(context);
-    // The profile default is the explicit preference; the active store is the reconciled selection.
-    return Promise.all([
-        resolveSelectedStore(context),
-        getPreferredStoreId(context).then(
-            (id) => ({ id, failed: false }),
-            () => ({ id: null, failed: true })
-        ),
-    ]).then(([resolution, preference]) => ({
-        preferredStore: resolution.store,
-        preferredStoreId: preference.id,
-        error: resolution.error || preference.failed ? t('storePreferences.preferredStore.error') : null,
+    // The saved default (profile) and the active store (reconciled selection) are independent.
+    return Promise.all([resolveSelectedStore(context), resolveDefaultStore(context)]).then(([active, saved]) => ({
+        activeStore: active.store,
+        defaultStore: saved.store,
+        defaultStoreId: saved.preferredStoreId,
+        activeError: active.error ? t('storePreferences.preferredStore.error') : null,
+        defaultError: saved.error ? t('storePreferences.preferredStore.error') : null,
     }));
     // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
     void args;
-    return { preferredStore: null, preferredStoreId: null, error: null };
+    return { activeStore: null, defaultStore: null, defaultStoreId: null, activeError: null, defaultError: null };
 }
 
 /**

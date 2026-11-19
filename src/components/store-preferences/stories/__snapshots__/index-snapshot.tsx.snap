@@ -46,113 +46,176 @@ exports[`StorePreferences stories snapshot > Default story renders and matches s
           Select your preferred store for in-store pickup orders
         </div>
       </div>
-      <div
-        class="col-start-2 row-span-2 row-start-1 self-start justify-self-end"
-        data-slot="card-action"
-      >
-        <div
-          aria-busy="false"
-          class="flex flex-wrap gap-2"
-        >
-          <button
-            aria-expanded="false"
-            aria-haspopup="dialog"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
-            data-size="default"
-            data-slot="button"
-            data-variant="outline"
-            type="button"
-          >
-            Change store
-          </button>
-        </div>
-      </div>
     </div>
     <div
       class="px-6"
       data-slot="card-content"
     >
       <div
-        class="text-card-foreground flex flex-col rounded-ui border-ui shadow-ui bg-muted/40 rounded-ui border border-border gap-0 py-0"
-        data-slot="card"
+        class="flex flex-col gap-6"
       >
-        <div
-          class="px-4 py-3"
-          data-slot="card-content"
+        <section
+          aria-labelledby="default-store-heading"
+          class="flex flex-col gap-3"
         >
-          <p
+          <h3
             class="text-sm font-semibold text-left"
+            id="default-store-heading"
           >
-            Salesforce Foundations - San Francisco
+            Saved default store
+          </h3>
+          <p
+            class="text-sm text-muted-foreground text-left"
+          >
+            No default store saved. Save one to use it every time you sign in.
           </p>
           <div
-            class="text-sm text-muted-foreground text-left mt-1"
+            class="flex flex-wrap items-start gap-2"
           >
-            <div>
-              415 Mission Street, San Francisco, CA 94105
+            <div
+              aria-busy="false"
+              class="flex flex-col gap-1"
+            >
+              <button
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+                data-size="default"
+                data-slot="button"
+                data-variant="outline"
+                type="button"
+              >
+                Save current store as default
+              </button>
+              <p
+                aria-live="polite"
+                class="text-sm min-h-5"
+                role="status"
+              />
+              <p
+                class="text-sm text-destructive empty:hidden"
+                role="alert"
+              />
+            </div>
+            <button
+              aria-haspopup="dialog"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+              data-size="default"
+              data-slot="button"
+              data-variant="outline"
+              type="button"
+            >
+              Choose a different default
+            </button>
+          </div>
+        </section>
+        <section
+          aria-labelledby="current-store-heading"
+          class="flex flex-col gap-3"
+        >
+          <h3
+            class="text-sm font-semibold text-left"
+            id="current-store-heading"
+          >
+            Current store
+          </h3>
+          <div
+            class="text-card-foreground flex flex-col rounded-ui border-ui shadow-ui bg-muted/40 rounded-ui border border-border gap-0 py-0"
+            data-slot="card"
+          >
+            <div
+              class="px-4 py-3"
+              data-slot="card-content"
+            >
+              <p
+                class="text-sm font-semibold text-left"
+              >
+                Salesforce Foundations - San Francisco
+              </p>
+              <div
+                class="text-sm text-muted-foreground text-left mt-1"
+              >
+                <div>
+                  415 Mission Street, San Francisco, CA 94105
+                </div>
+              </div>
+              <div
+                class="mt-1"
+                data-orientation="vertical"
+                data-slot="accordion"
+              >
+                <div
+                  class="border-b last:border-b-0 border-none"
+                  data-orientation="vertical"
+                  data-slot="accordion-item"
+                  data-state="closed"
+                >
+                  <h3
+                    class="flex"
+                    data-orientation="vertical"
+                    data-state="closed"
+                  >
+                    <button
+                      aria-controls="radix-_r_5_"
+                      aria-expanded="false"
+                      class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 py-1 text-sm text-primary font-normal underline cursor-pointer hover:underline"
+                      data-orientation="vertical"
+                      data-radix-collection-item=""
+                      data-slot="accordion-trigger"
+                      data-state="closed"
+                      id="radix-_r_4_"
+                      type="button"
+                    >
+                      Store Hours
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="m6 9 6 6 6-6"
+                        />
+                      </svg>
+                    </button>
+                  </h3>
+                  <div
+                    aria-labelledby="radix-_r_4_"
+                    class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+                    data-orientation="vertical"
+                    data-slot="accordion-content"
+                    data-state="closed"
+                    hidden=""
+                    id="radix-_r_5_"
+                    role="region"
+                    style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <div
-            class="mt-1"
-            data-orientation="vertical"
-            data-slot="accordion"
+            aria-busy="false"
+            class="flex flex-wrap gap-2"
           >
-            <div
-              class="border-b last:border-b-0 border-none"
-              data-orientation="vertical"
-              data-slot="accordion-item"
-              data-state="closed"
+            <button
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+              data-size="default"
+              data-slot="button"
+              data-variant="outline"
+              type="button"
             >
-              <h3
-                class="flex"
-                data-orientation="vertical"
-                data-state="closed"
-              >
-                <button
-                  aria-controls="radix-_r_3_"
-                  aria-expanded="false"
-                  class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 py-1 text-sm text-primary font-normal underline cursor-pointer hover:underline"
-                  data-orientation="vertical"
-                  data-radix-collection-item=""
-                  data-slot="accordion-trigger"
-                  data-state="closed"
-                  id="radix-_r_2_"
-                  type="button"
-                >
-                  Store Hours
-                  <svg
-                    aria-hidden="true"
-                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                    fill="none"
-                    height="24"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m6 9 6 6 6-6"
-                    />
-                  </svg>
-                </button>
-              </h3>
-              <div
-                aria-labelledby="radix-_r_2_"
-                class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-                data-orientation="vertical"
-                data-slot="accordion-content"
-                data-state="closed"
-                hidden=""
-                id="radix-_r_3_"
-                role="region"
-                style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-              />
-            </div>
+              Change store
+            </button>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>
@@ -311,26 +374,26 @@ exports[`StorePreferences stories snapshot > Default story renders and matches s
           <label
             class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-sm font-medium text-foreground"
             data-slot="label"
-            for="_r_a_-auto-select-store"
+            for="_r_c_-auto-select-store"
           >
             Auto-select preferred store
           </label>
           <p
             class="text-xs text-muted-foreground mt-1"
-            id="_r_a_-auto-select-store-desc"
+            id="_r_c_-auto-select-store-desc"
           >
             Automatically use your preferred store for pickup orders
           </p>
         </div>
         <button
           aria-checked="false"
-          aria-describedby="_r_a_-auto-select-store-desc"
+          aria-describedby="_r_c_-auto-select-store-desc"
           class="peer inline-flex h-6 w-11 cursor-pointer items-center rounded-full border-2 border-transparent shadow-ui transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input shrink-0"
           data-disabled=""
           data-slot="switch"
           data-state="unchecked"
           disabled=""
-          id="_r_a_-auto-select-store"
+          id="_r_c_-auto-select-store"
           role="switch"
           type="button"
           value="on"
@@ -352,26 +415,26 @@ exports[`StorePreferences stories snapshot > Default story renders and matches s
           <label
             class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-sm font-medium text-foreground"
             data-slot="label"
-            for="_r_a_-pickup-notifications"
+            for="_r_c_-pickup-notifications"
           >
             Pickup notifications
           </label>
           <p
             class="text-xs text-muted-foreground mt-1"
-            id="_r_a_-pickup-notifications-desc"
+            id="_r_c_-pickup-notifications-desc"
           >
             Get notified when your order is ready for pickup
           </p>
         </div>
         <button
           aria-checked="false"
-          aria-describedby="_r_a_-pickup-notifications-desc"
+          aria-describedby="_r_c_-pickup-notifications-desc"
           class="peer inline-flex h-6 w-11 cursor-pointer items-center rounded-full border-2 border-transparent shadow-ui transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input shrink-0"
           data-disabled=""
           data-slot="switch"
           data-state="unchecked"
           disabled=""
-          id="_r_a_-pickup-notifications"
+          id="_r_c_-pickup-notifications"
           role="switch"
           type="button"
           value="on"
@@ -393,26 +456,26 @@ exports[`StorePreferences stories snapshot > Default story renders and matches s
           <label
             class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-sm font-medium text-foreground"
             data-slot="label"
-            for="_r_a_-store-events-promotions"
+            for="_r_c_-store-events-promotions"
           >
             Store events & promotions
           </label>
           <p
             class="text-xs text-muted-foreground mt-1"
-            id="_r_a_-store-events-promotions-desc"
+            id="_r_c_-store-events-promotions-desc"
           >
             Receive updates about events and promotions at your preferred store
           </p>
         </div>
         <button
           aria-checked="false"
-          aria-describedby="_r_a_-store-events-promotions-desc"
+          aria-describedby="_r_c_-store-events-promotions-desc"
           class="peer inline-flex h-6 w-11 cursor-pointer items-center rounded-full border-2 border-transparent shadow-ui transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input shrink-0"
           data-disabled=""
           data-slot="switch"
           data-state="unchecked"
           disabled=""
-          id="_r_a_-store-events-promotions"
+          id="_r_c_-store-events-promotions"
           role="switch"
           type="button"
           value="on"

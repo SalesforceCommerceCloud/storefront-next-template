@@ -68,42 +68,18 @@ describe('set-selected-store action', () => {
         vi.mocked(getAuth).mockReturnValue({ userType: 'guest' } as never);
     });
 
-    describe('account default persistence', () => {
+    describe('account default', () => {
         beforeEach(() => {
             vi.mocked(getAuth).mockReturnValue({ userType: 'registered' } as never);
         });
 
-        test('registered set saves the store as the account default after selection', async () => {
-            const result = await action(args(form({ intent: 'set', storeId: 'Store-1' })));
-            expect(updatePreferredStoreId).toHaveBeenCalledWith(context, 'Store-1');
+        test.each([
+            ['set', { intent: 'set', storeId: 'Store-1' }],
+            ['clear', { intent: 'clear' }],
+        ])('registered %s never writes the account default', async (_name, fields) => {
+            const result = await action(args(form(fields)));
+            expect(updatePreferredStoreId).not.toHaveBeenCalled();
             expect(result.init?.status).toBe(200);
-        });
-
-        test('registered clear removes the account default', async () => {
-            await action(args(form({ intent: 'clear' })));
-            expect(updatePreferredStoreId).toHaveBeenCalledWith(context, null);
-        });
-
-        test('guest selection never writes the profile', async () => {
-            vi.mocked(getAuth).mockReturnValue({ userType: 'guest' } as never);
-            await action(args(form({ intent: 'set', storeId: 'Store-1' })));
-            expect(updatePreferredStoreId).not.toHaveBeenCalled();
-        });
-
-        test('a 409 confirmation refusal does not touch the profile', async () => {
-            vi.mocked(selectStore).mockResolvedValue({
-                success: false,
-                code: 'STORE_CHANGE_CONFIRMATION_REQUIRED',
-            } as never);
-            await action(args(form({ intent: 'set', storeId: 'Store-2' })));
-            expect(updatePreferredStoreId).not.toHaveBeenCalled();
-        });
-
-        test('a failed profile write answers 502 with a structured code', async () => {
-            vi.mocked(updatePreferredStoreId).mockRejectedValue(new Error('boom'));
-            const result = await action(args(form({ intent: 'set', storeId: 'Store-1' })));
-            expect(result.init?.status).toBe(502);
-            expect(result.data).toMatchObject({ success: false, code: 'PREFERRED_STORE_PERSISTENCE_FAILED' });
         });
     });
 

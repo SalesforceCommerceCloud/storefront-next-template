@@ -723,6 +723,27 @@
                 "error": "Impossible de charger les détails du magasin. Veuillez réessayer plus tard.",
                 "savedStoreUnavailable": "Votre magasin enregistré n'est pas disponible sur ce site. Vous pouvez le modifier."
             },
+            "defaultStore": {
+                "heading": "Magasin par défaut enregistré",
+                "currentHeading": "Magasin actuel",
+                "none": "Aucun magasin par défaut enregistré. Enregistrez-en un pour le retrouver à chaque connexion.",
+                "saveCurrent": "Enregistrer le magasin actuel par défaut",
+                "choose": "Choisir un autre magasin par défaut",
+                "saving": "Enregistrement de votre magasin par défaut…",
+                "saved": "Magasin par défaut enregistré.",
+                "saveFailed": "Impossible d'enregistrer votre magasin par défaut. Votre magasin actuel n'a pas changé. Veuillez réessayer.",
+                "retry": "Réessayer l'enregistrement",
+                "dialogTitle": "Choisir un magasin par défaut",
+                "dialogDescription": "Recherchez un magasin à enregistrer par défaut. Cela ne modifie pas le magasin avec lequel vous faites vos achats.",
+                "country": "Pays",
+                "postalCode": "Code postal",
+                "postalRequired": "Saisissez un code postal pour lancer la recherche.",
+                "search": "Rechercher",
+                "searchFailed": "La recherche de magasins a échoué. Veuillez réessayer.",
+                "noResults": "Aucun magasin trouvé pour cet emplacement.",
+                "results": "Magasins",
+                "saveAsDefault": "Enregistrer par défaut"
+            },
             "authorizedPickupPeople": {
                 "heading": "Personnes autorisées au retrait",
                 "description": "Ajoutez des personnes autorisées à retirer les commandes en votre nom",

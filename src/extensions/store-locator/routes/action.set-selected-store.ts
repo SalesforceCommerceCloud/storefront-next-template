@@ -17,7 +17,6 @@
 import { data } from 'react-router';
 import { containMutationTransport } from '@/lib/mutation-transport';
 import { getLogger } from '@/lib/logger.server';
-import { getTrustedProxyPublicOrigin } from '@/lib/origin';
 import type { Route } from './+types/action.set-selected-store';
 import {
     parseSelectedStore,
@@ -29,33 +28,8 @@ import {
     invalidateSelectedStoreResolution,
     resolveSelectedStore,
 } from '@/extensions/store-locator/lib/resolve-selected-store.server';
-import { updatePreferredStoreId } from '@/extensions/store-locator/lib/api/preferred-store.server';
-import { getAuth } from '@/middlewares/auth.server';
+import { isTrustedSameOrigin, isValidStoreId } from '@/extensions/store-locator/lib/trusted-same-origin.server';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
-
-/** Same-origin check pinned to the trusted public origin; unlike the shared helper it ignores spoofable forwarded hosts outside production. */
-function isTrustedSameOrigin(request: Request): boolean {
-    try {
-        const requestOrigin = new URL(request.url).origin;
-        const trusted = new URL(getTrustedProxyPublicOrigin(request) ?? request.url).origin;
-        const source = request.headers.get('origin') ?? request.headers.get('referer');
-        if (!source) return false;
-        const sourceOrigin = new URL(source).origin;
-        return sourceOrigin === trusted || sourceOrigin === requestOrigin;
-    } catch {
-        return false;
-    }
-}
-
-function isValidStoreId(id: unknown): id is string {
-    return (
-        typeof id === 'string' &&
-        !!id.trim() &&
-        id.length <= 256 &&
-        !/[,{}[\]]/.test(id) &&
-        !Array.from(id).some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
-    );
-}
 
 // oxlint-disable-next-line no-restricted-exports -- AGENTS.md permits this single-call transport-only boundary.
 export const clientAction = ({ serverAction }: Route.ClientActionArgs) => containMutationTransport(serverAction);
@@ -65,7 +39,8 @@ export const clientAction = ({ serverAction }: Route.ClientActionArgs) => contai
  * Display/inventory metadata always come from the server. Set and clear go through the shared
  * `selectStore` service, so a change that needs shopper confirmation (basket has items) is
  * answered with 409 `STORE_CHANGE_CONFIRMATION_REQUIRED`. The legacy `storeInfo` JSON field is
- * still accepted and routed through the same service.
+ * still accepted and routed through the same service. Selection never writes the account default;
+ * that is the separate explicit `action.save-default-store` route.
  */
 export const action = async ({ request, context }: Route.ActionArgs) => {
     const failure = (code: string, status: number, headers?: HeadersInit) =>
@@ -117,18 +92,6 @@ export const action = async ({ request, context }: Route.ActionArgs) => {
             candidate = intent === 'set' ? { id: ids[0] as string } : null;
         }
         const result = await selectStore(context, candidate);
-        if (result.success && getAuth(context).userType === 'registered') {
-            // Explicit account-default persistence is separate from selection and runs only after
-            // selectStore accepts the change, so the 409 basket-consent guard is never bypassed.
-            try {
-                await updatePreferredStoreId(context, candidate?.id ?? null);
-            } catch (error) {
-                if (error instanceof Error && error.name === 'AuthTokenInvalidError') throw error;
-                invalidateSelectedStoreResolution(context);
-                getLogger(context).error('SetSelectedStore: account default persistence failed', { error });
-                return failure('PREFERRED_STORE_PERSISTENCE_FAILED', 502);
-            }
-        }
         invalidateSelectedStoreResolution(context);
         return data(result, { status: result.success ? 200 : 409 });
     } catch (error) {

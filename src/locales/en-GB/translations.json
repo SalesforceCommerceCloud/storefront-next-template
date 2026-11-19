@@ -845,6 +845,27 @@
                 "error": "Failed to load store details. Please try again later.",
                 "savedStoreUnavailable": "Your saved store is unavailable on this site. You can change it."
             },
+            "defaultStore": {
+                "heading": "Saved default store",
+                "currentHeading": "Current store",
+                "none": "No default store saved. Save one to use it every time you sign in.",
+                "saveCurrent": "Save current store as default",
+                "choose": "Choose a different default",
+                "saving": "Saving your default store…",
+                "saved": "Default store saved.",
+                "saveFailed": "We couldn't save your default store. Your current store is unchanged. Please try again.",
+                "retry": "Try saving again",
+                "dialogTitle": "Choose a default store",
+                "dialogDescription": "Search for a store to save as your default. This does not change the store you are shopping with.",
+                "country": "Country",
+                "postalCode": "Postal code",
+                "postalRequired": "Enter a postal code to search.",
+                "search": "Search",
+                "searchFailed": "Store search failed. Please try again.",
+                "noResults": "No stores found for that location.",
+                "results": "Stores",
+                "saveAsDefault": "Save as default"
+            },
             "authorizedPickupPeople": {
                 "heading": "Authorised Pickup People",
                 "description": "Add people who are authorised to pick up orders on your behalf",

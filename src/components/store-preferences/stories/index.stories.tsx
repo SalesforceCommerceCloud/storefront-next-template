@@ -32,7 +32,7 @@ Preferred Store for Pickup section where users can view and change their preferr
             },
         },
         loaderData: {
-            preferredStore: {
+            activeStore: {
                 id: 'store-001',
                 name: 'Salesforce Foundations - San Francisco',
                 address1: '415 Mission Street',
@@ -41,7 +41,8 @@ Preferred Store for Pickup section where users can view and change their preferr
                 postalCode: '94105',
                 storeHours: 'Open today: 10:00 AM - 8:00 PM',
             },
-            error: null,
+            activeError: null,
+            defaultError: null,
         },
     },
 };

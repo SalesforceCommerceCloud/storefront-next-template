@@ -115,6 +115,12 @@ export function shouldRevalidate({ defaultShouldRevalidate, formAction }: Should
         return false;
     }
 
+    // Saving the default store only changes the store-preferences child loader, which still
+    // re-runs; skip the customer and subscription loaders in this layout.
+    if (formAction?.includes(resourceRoutes.saveDefaultStore)) {
+        return false;
+    }
+
     return defaultShouldRevalidate;
 }
 

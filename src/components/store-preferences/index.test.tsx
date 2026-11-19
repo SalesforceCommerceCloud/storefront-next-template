@@ -33,6 +33,14 @@ vi.mock('react-router', async (importOriginal) => {
 
 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
 // Mock ChangeStoreButton to avoid client component issues in tests
+// Mock the default-store controls (own fetchers and locator config are covered in save-default-store tests)
+vi.mock('./preferred-store/save-default-store', () => ({
+    SaveCurrentStoreAsDefault: ({ activeStore }: { activeStore: { id: string } }) => (
+        <button data-testid="save-current-button">{activeStore.id}</button>
+    ),
+    ChooseDefaultStore: () => <button data-testid="choose-default-button">Choose</button>,
+}));
+
 vi.mock('./preferred-store/change-store-button', () => ({
     default: () => <button>Change store</button>,
 }));
@@ -50,7 +58,7 @@ vi.mock('@/components/toast', () => ({
 
 describe('StorePreferences', () => {
     const renderStorePreferences = () => {
-        vi.mocked(useLoaderData).mockReturnValue({ preferredStore: null, error: null });
+        vi.mocked(useLoaderData).mockReturnValue({ activeStore: null, activeError: null, defaultError: null });
         return render(<StorePreferences />);
     };
 

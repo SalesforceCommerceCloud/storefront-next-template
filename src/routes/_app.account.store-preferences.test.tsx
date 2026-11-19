@@ -21,7 +21,6 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
 import { loader } from './_app.account.store-preferences';
-import { getPreferredStoreId } from '@/extensions/store-locator/lib/api/preferred-store.server';
 import { createTestContext, ROUTE_PATTERN } from '@/lib/test-utils';
 vi.mock('@/extensions/store-locator/providers/selection', () => ({
     default: ({ children }: { children: React.ReactNode }) => children,
@@ -54,9 +53,14 @@ vi.mock('@/lib/api-clients.server', () => ({
     }),
 }));
 
-import { resolveSelectedStore } from '@/extensions/store-locator/lib/resolve-selected-store.server';
-vi.mock('@/extensions/store-locator/lib/resolve-selected-store.server', () => ({ resolveSelectedStore: vi.fn() }));
-vi.mock('@/extensions/store-locator/lib/api/preferred-store.server', () => ({ getPreferredStoreId: vi.fn() }));
+import {
+    resolveDefaultStore,
+    resolveSelectedStore,
+} from '@/extensions/store-locator/lib/resolve-selected-store.server';
+vi.mock('@/extensions/store-locator/lib/resolve-selected-store.server', () => ({
+    resolveSelectedStore: vi.fn(),
+    resolveDefaultStore: vi.fn(),
+}));
 
 vi.mock('@/extensions/store-locator/middlewares/selected-store.server', () => ({
     selectedStoreContext: { id: 'selectedStoreContext' },
@@ -84,7 +88,12 @@ describe('Store Preferences page', () => {
             status: 'empty',
             error: null,
         });
-        vi.mocked(getPreferredStoreId).mockResolvedValue(null);
+        vi.mocked(resolveDefaultStore).mockResolvedValue({
+            preferredStoreId: null,
+            store: null,
+            status: 'empty',
+            error: null,
+        });
         // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
     });
 
@@ -117,106 +126,99 @@ describe('Store Preferences page', () => {
     });
 
     // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
-    describe('when loading preferred store data on the server', () => {
-        test('returns no preferred store when the shopper has not selected a store', async () => {
+    describe('when loading store data on the server', () => {
+        const runLoader = (context = createTestContext()) =>
+            loader({
+                context,
+                params: { siteId: 'test-site', localeId: 'en-US' },
+                request: new Request('http://localhost/account/store-preferences'),
+                url: new URL('http://localhost/account/store-preferences'),
+                pattern: ROUTE_PATTERN,
+            });
+        const active = (store: unknown) => ({
+            store,
+            selectedStoreInfo: store ? { id: 'active-1' } : null,
+            preferredStoreId: null,
+            status: store ? 'resolved' : 'empty',
+            error: null,
+        });
+
+        test('returns no stores when nothing is selected or saved', async () => {
             const context = createTestContext();
             context.set(selectedStoreContext, null);
-
-            const result = await loader({
-                context,
-                params: { siteId: 'test-site', localeId: 'en-US' },
-                request: new Request('http://localhost/account/store-preferences'),
-                url: new URL('http://localhost/account/store-preferences'),
-                pattern: ROUTE_PATTERN,
+            expect(await runLoader(context)).toEqual({
+                activeStore: null,
+                defaultStore: null,
+                defaultStoreId: null,
+                activeError: null,
+                defaultError: null,
             });
-
-            expect(result).toMatchObject({ preferredStore: null, error: null });
-            expect(mockGetStores).not.toHaveBeenCalled();
         });
 
-        test('loads the preferred store details when the shopper has a saved store', async () => {
-            const mockStore = { id: 'store-1', name: 'Downtown Store', city: 'San Francisco' };
-            vi.mocked(resolveSelectedStore).mockResolvedValue({
-                store: mockStore,
-                selectedStoreInfo: { id: 'store-1' },
-                preferredStoreId: 'store-1',
+        test('keeps the active store and the saved default independent when they differ', async () => {
+            const activeStore = { id: 'active-1', name: 'Active Store' };
+            const defaultStore = { id: 'default-1', name: 'Default Store' };
+            vi.mocked(resolveSelectedStore).mockResolvedValue(active(activeStore) as never);
+            vi.mocked(resolveDefaultStore).mockResolvedValue({
+                preferredStoreId: 'default-1',
+                store: defaultStore,
                 status: 'resolved',
                 error: null,
+            } as never);
+            const result = await runLoader();
+            expect(result).toEqual({
+                activeStore,
+                defaultStore,
+                defaultStoreId: 'default-1',
+                activeError: null,
+                defaultError: null,
             });
-            vi.mocked(getPreferredStoreId).mockResolvedValue('store-1');
-            mockGetStores.mockResolvedValue({
-                data: { data: [mockStore] },
-            });
-
-            const context = createTestContext();
-            context.set(selectedStoreContext, { id: 'store-1' });
-
-            const result = await loader({
-                context,
-                params: { siteId: 'test-site', localeId: 'en-US' },
-                request: new Request('http://localhost/account/store-preferences'),
-                url: new URL('http://localhost/account/store-preferences'),
-                pattern: ROUTE_PATTERN,
-            });
-
-            expect(result).toMatchObject({ preferredStore: mockStore, error: null });
-            expect(resolveSelectedStore).toHaveBeenCalledWith(context);
-            expect(mockGetStores).not.toHaveBeenCalled();
         });
 
-        test('shows an error message when the store lookup fails', async () => {
-            vi.mocked(resolveSelectedStore).mockResolvedValue({
-                store: null,
-                selectedStoreInfo: null,
-                preferredStoreId: 'store-1',
-                status: 'error',
-                error: 'store',
-            });
-            mockGetStores.mockRejectedValue(new Error('Network error'));
-
-            const context = createTestContext();
-            context.set(selectedStoreContext, { id: 'store-1' });
-
-            const result = await loader({
-                context,
-                params: { siteId: 'test-site', localeId: 'en-US' },
-                request: new Request('http://localhost/account/store-preferences'),
-                url: new URL('http://localhost/account/store-preferences'),
-                pattern: ROUTE_PATTERN,
-            });
-
-            expect(result.preferredStore).toBeNull();
-            expect(typeof result.error).toBe('string');
-            expect(result.error).toBe('storePreferences.preferredStore.error');
-            expect(resolveSelectedStore).toHaveBeenCalledWith(context);
+        test('does not present the active store as the default when no default is saved', async () => {
+            vi.mocked(resolveSelectedStore).mockResolvedValue(active({ id: 'active-1' }) as never);
+            const result = await runLoader();
+            expect(result.activeStore).toEqual({ id: 'active-1' });
+            expect(result.defaultStore).toBeNull();
+            expect(result.defaultStoreId).toBeNull();
         });
 
-        test('returns no preferred store when the saved store no longer exists', async () => {
-            vi.mocked(resolveSelectedStore).mockResolvedValue({
-                store: null,
-                selectedStoreInfo: null,
-                error: null,
+        test('reports a stale default id without a store', async () => {
+            vi.mocked(resolveDefaultStore).mockResolvedValue({
                 preferredStoreId: 'deleted-store',
+                store: null,
                 status: 'stale',
+                error: null,
             });
-            mockGetStores.mockResolvedValue({
-                data: { data: [] },
+            const result = await runLoader();
+            expect(result).toMatchObject({
+                defaultStore: null,
+                defaultStoreId: 'deleted-store',
+                activeError: null,
+                defaultError: null,
             });
+        });
 
-            const context = createTestContext();
-            context.set(selectedStoreContext, { id: 'store-1' });
-
-            const result = await loader({
-                context,
-                params: { siteId: 'test-site', localeId: 'en-US' },
-                request: new Request('http://localhost/account/store-preferences'),
-                url: new URL('http://localhost/account/store-preferences'),
-                pattern: ROUTE_PATTERN,
-            });
-
-            expect(result).toEqual({ preferredStore: null, preferredStoreId: null, error: null });
-            expect(resolveSelectedStore).toHaveBeenCalledExactlyOnceWith(context);
-            expect(mockGetStores).not.toHaveBeenCalled();
+        test.each(['active', 'default'])('shows an error message when the %s lookup fails', async (which) => {
+            if (which === 'active') {
+                vi.mocked(resolveSelectedStore).mockResolvedValue({
+                    ...active(null),
+                    status: 'error',
+                    error: 'store',
+                } as never);
+            } else {
+                vi.mocked(resolveDefaultStore).mockResolvedValue({
+                    preferredStoreId: null,
+                    store: null,
+                    status: 'error',
+                    error: 'profile',
+                });
+            }
+            const result = await runLoader();
+            const message = 'storePreferences.preferredStore.error';
+            // Only the failing lookup reports an error; the other section stays clean.
+            expect(result.activeError).toBe(which === 'active' ? message : null);
+            expect(result.defaultError).toBe(which === 'default' ? message : null);
         });
     });
     // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR

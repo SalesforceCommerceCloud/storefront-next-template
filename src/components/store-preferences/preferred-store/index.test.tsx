@@ -40,6 +40,14 @@ vi.mock('./change-store-button', () => ({
     default: () => <button data-testid="change-store-button">Change store</button>,
 }));
 
+// Mock the default-store controls (own fetchers and locator config are covered in save-default-store tests)
+vi.mock('./save-default-store', () => ({
+    SaveCurrentStoreAsDefault: ({ activeStore }: { activeStore: { id: string } }) => (
+        <button data-testid="save-current-button">{activeStore.id}</button>
+    ),
+    ChooseDefaultStore: () => <button data-testid="choose-default-button">Choose</button>,
+}));
+
 // Mock StoreAddress extension component
 vi.mock('@/extensions/store-locator/components/store-locator/address', () => ({
     default: ({ store }: { store: ShopperStores.schemas['Store'] }) => (
@@ -73,7 +81,7 @@ describe('PreferredStore', () => {
 
     describe('With Store Selected', () => {
         beforeEach(() => {
-            vi.mocked(useLoaderData).mockReturnValue({ preferredStore: mockStore, error: null });
+            vi.mocked(useLoaderData).mockReturnValue({ activeStore: mockStore, activeError: null, defaultError: null });
         });
 
         test('renders Preferred Store for Pickup heading', () => {
@@ -132,7 +140,11 @@ describe('PreferredStore', () => {
 
         test('does not render store hours when not available', () => {
             const storeWithoutHours = { ...mockStore, storeHours: undefined };
-            vi.mocked(useLoaderData).mockReturnValue({ preferredStore: storeWithoutHours, error: null });
+            vi.mocked(useLoaderData).mockReturnValue({
+                activeStore: storeWithoutHours,
+                activeError: null,
+                defaultError: null,
+            });
 
             render(<PreferredStore />);
             expect(screen.queryByText('Store Hours')).not.toBeInTheDocument();
@@ -141,7 +153,7 @@ describe('PreferredStore', () => {
 
     describe('Without Store Selected', () => {
         beforeEach(() => {
-            vi.mocked(useLoaderData).mockReturnValue({ preferredStore: null, error: null });
+            vi.mocked(useLoaderData).mockReturnValue({ activeStore: null, activeError: null, defaultError: null });
         });
 
         test('renders empty state message', () => {
@@ -163,29 +175,89 @@ describe('PreferredStore', () => {
         });
     });
 
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    describe('Saved default store', () => {
+        const defaultStore = { ...mockStore, id: 'store-default', name: 'Uptown Default Store' };
+
+        test('shows the saved default and the current store independently when they differ', () => {
+            vi.mocked(useLoaderData).mockReturnValue({
+                activeStore: mockStore,
+                defaultStore,
+                defaultStoreId: 'store-default',
+                activeError: null,
+                defaultError: null,
+            });
+            render(<PreferredStore />);
+            expect(screen.getByText('Uptown Default Store')).toBeInTheDocument();
+            expect(screen.getByText('Downtown Store')).toBeInTheDocument();
+            expect(screen.getByTestId('save-current-button')).toBeInTheDocument();
+        });
+
+        test('hides save-current when the active store is already the default', () => {
+            vi.mocked(useLoaderData).mockReturnValue({
+                activeStore: mockStore,
+                defaultStore: mockStore,
+                defaultStoreId: 'store-001',
+                activeError: null,
+                defaultError: null,
+            });
+            render(<PreferredStore />);
+            expect(screen.queryByTestId('save-current-button')).not.toBeInTheDocument();
+            expect(screen.getByTestId('choose-default-button')).toBeInTheDocument();
+        });
+
+        test('shows the no-default state without borrowing the active store', () => {
+            vi.mocked(useLoaderData).mockReturnValue({
+                activeStore: mockStore,
+                defaultStore: null,
+                defaultStoreId: null,
+                activeError: null,
+                defaultError: null,
+            });
+            render(<PreferredStore />);
+            expect(screen.getByText(t('account:storePreferences.defaultStore.none'))).toBeInTheDocument();
+            expect(screen.getByTestId('save-current-button')).toBeInTheDocument();
+        });
+
+        test('shows the default without an active store and offers no save-current', () => {
+            vi.mocked(useLoaderData).mockReturnValue({
+                activeStore: null,
+                defaultStore,
+                defaultStoreId: 'store-default',
+                activeError: null,
+                defaultError: null,
+            });
+            render(<PreferredStore />);
+            expect(screen.queryByTestId('save-current-button')).not.toBeInTheDocument();
+            expect(screen.getByText(t('account:storePreferences.preferredStore.noStoreSelected'))).toBeInTheDocument();
+        });
+    });
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
     describe('Error Handling', () => {
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
         test('shows saved-store-unavailable messaging for an unresolved saved ID', () => {
             vi.mocked(useLoaderData).mockReturnValue({
-                preferredStore: null,
-                preferredStoreId: 'other-site',
-                error: null,
+                activeStore: null,
+                defaultStoreId: 'other-site',
+                activeError: null,
+                defaultError: null,
             });
             render(<PreferredStore />);
             expect(
                 screen.getByText('Your saved store is unavailable on this site. You can change it.')
             ).toBeInTheDocument();
-            expect(
-                screen.queryByText(t('account:storePreferences.preferredStore.noStoreSelected'))
-            ).not.toBeInTheDocument();
+            // The default section reports the unavailable store; the (empty) current store is separate.
+            expect(screen.queryByText(t('account:storePreferences.defaultStore.none'))).not.toBeInTheDocument();
         });
         // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
         test('shows the lookup error instead of saved-store messaging when profile lookup failed', () => {
             vi.mocked(useLoaderData).mockReturnValue({
-                preferredStore: null,
-                preferredStoreId: null,
-                error: 'Lookup failed',
+                activeStore: null,
+                defaultStoreId: null,
+                activeError: 'Lookup failed',
+                defaultError: null,
             });
             render(<PreferredStore />);
             expect(
@@ -196,8 +268,9 @@ describe('PreferredStore', () => {
 
         test('shows error toast when store fetch fails', () => {
             vi.mocked(useLoaderData).mockReturnValue({
-                preferredStore: null,
-                error: 'Failed to load store details. Please try again later.',
+                activeStore: null,
+                activeError: 'Failed to load store details. Please try again later.',
+                defaultError: null,
             });
 
             render(<PreferredStore />);
@@ -206,7 +279,7 @@ describe('PreferredStore', () => {
         });
 
         test('does not show toast when there is no error', () => {
-            vi.mocked(useLoaderData).mockReturnValue({ preferredStore: mockStore, error: null });
+            vi.mocked(useLoaderData).mockReturnValue({ activeStore: mockStore, activeError: null, defaultError: null });
 
             render(<PreferredStore />);
 
@@ -215,20 +288,29 @@ describe('PreferredStore', () => {
     });
 
     describe('Loading State', () => {
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        test('shows one skeleton card per section when the locator is enabled', () => {
+            vi.mocked(useLoaderData).mockReturnValue({ activeStore: mockStore, activeError: null, defaultError: null });
+            vi.mocked(useNavigation).mockReturnValue({ state: 'loading' } as ReturnType<typeof useNavigation>);
+            render(<PreferredStore />);
+            expect(screen.getAllByTestId('skeleton')).toHaveLength(6);
+        });
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
         test('shows skeleton while revalidating', () => {
-            vi.mocked(useLoaderData).mockReturnValue({ preferredStore: mockStore, error: null });
+            vi.mocked(useLoaderData).mockReturnValue({ activeStore: mockStore, activeError: null, defaultError: null });
             vi.mocked(useNavigation).mockReturnValue({ state: 'loading' } as ReturnType<typeof useNavigation>);
 
             render(<PreferredStore />);
 
             // Should show skeletons instead of actual content
             expect(screen.queryByText('Downtown Store')).not.toBeInTheDocument();
-            expect(screen.getAllByTestId('skeleton')).toHaveLength(3);
+            expect(screen.getAllByTestId('skeleton').length).toBeGreaterThanOrEqual(3);
         });
 
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
         test('shows content when not revalidating', () => {
-            vi.mocked(useLoaderData).mockReturnValue({ preferredStore: mockStore, error: null });
+            vi.mocked(useLoaderData).mockReturnValue({ activeStore: mockStore, activeError: null, defaultError: null });
             vi.mocked(useNavigation).mockReturnValue({ state: 'idle' } as ReturnType<typeof useNavigation>);
 
             render(<PreferredStore />);

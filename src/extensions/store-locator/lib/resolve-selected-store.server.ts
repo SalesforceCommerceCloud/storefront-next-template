@@ -23,6 +23,7 @@ import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { getAuth } from '@/middlewares/auth.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getLogger } from '@/lib/logger.server';
+import { getPreferredStoreId } from '@/extensions/store-locator/lib/api/preferred-store.server';
 import { selectedStoreContext } from '@/extensions/store-locator/middlewares/selected-store.server';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
 import { ApiError, AuthTokenInvalidError, type ShopperStores } from '@/scapi';
@@ -204,4 +205,56 @@ export async function resolveSelectedStore(context: Readonly<RouterContextProvid
     })();
     context.set(resolutionContext, { key, promise });
     return promise;
+}
+
+export type DefaultStoreResolution = {
+    /** Profile default exactly as saved; null when none is saved. */
+    preferredStoreId: string | null;
+    store: ShopperStores.schemas['Store'] | null;
+    /** `stale`: an id is saved but the store is gone or not pickup-capable. */
+    status: 'empty' | 'resolved' | 'stale' | 'error';
+    error: 'profile' | 'store' | null;
+    authError?: boolean;
+};
+
+/** Resolve the registered shopper's saved default store; read-only, independent of the active selection. */
+export async function resolveDefaultStore(context: Readonly<RouterContextProvider>): Promise<DefaultStoreResolution> {
+    let preferredStoreId: string | null;
+    try {
+        preferredStoreId = await getPreferredStoreId(context);
+    } catch (error) {
+        return {
+            preferredStoreId: null,
+            store: null,
+            status: 'error',
+            error: 'profile',
+            authError: isAuthError(error),
+        };
+    }
+    if (!preferredStoreId) return { preferredStoreId: null, store: null, status: 'empty', error: null };
+    const clients = createApiClients(context);
+    try {
+        const { store, status } = await lookupStore(clients, preferredStoreId, context);
+        return { preferredStoreId, store, status: status === 'resolved' ? 'resolved' : 'stale', error: null };
+    } catch (error) {
+        getLogger(context).error('DefaultStore: store resolution failed', {
+            category: 'store',
+            status: error instanceof ApiError || error instanceof Response ? error.status : undefined,
+            name: error instanceof Error ? error.name : undefined,
+        });
+        return { preferredStoreId, store: null, status: 'error', error: 'store', authError: isAuthError(error) };
+    }
+}
+
+/**
+ * Fresh (uncached) store lookup used to validate a default candidate before saving.
+ * `store` is null when the id does not exist; `eligible` is false when it exists but cannot serve pickup (no inventoryId).
+ */
+export async function lookupStoreFresh(
+    context: Readonly<RouterContextProvider>,
+    id: string
+): Promise<{ store: ShopperStores.schemas['Store'] | null; eligible: boolean }> {
+    const { data } = await createApiClients(context).shopperStores.getStores({ params: { query: { ids: id } } });
+    const store = data?.data?.find((candidate) => candidate.id === id) ?? null;
+    return { store, eligible: Boolean(store?.inventoryId) };
 }

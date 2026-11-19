@@ -80,7 +80,9 @@ Keep redacted HTTP/persistence/cross-site evidence separate from local fetch-moc
 
 POST `/action/set-selected-store` with `intent=set` and one opaque `storeId`, or `intent=clear` without an ID. The server derives customer identity and validates current-site store metadata; caller-provided names and inventory IDs are not authoritative. Direct requests require same-origin Origin, or same-origin Referer when Origin is absent. Replacement guest selections expire after 30 days.
 
-Registered writes use the native current-site `preferredStoreId`. Clear affects only that site and never falls back to a legacy custom attribute. The account page offers only Change store; an unresolved saved ID is replaced through it. The `clear` intent remains for programmatic use.
+Selecting or clearing the active store never writes the account default. Registered shoppers save the default explicitly through POST `/action/save-default-store` (one `storeId`): same-origin, registered only (guests get 401 `SIGN_IN_REQUIRED`), the store is validated fresh (404 `STORE_NOT_FOUND` if unknown, 422 `STORE_NOT_ELIGIBLE` if it cannot serve pickup), then written to the native current-site `preferredStoreId` and read back. A failed write or readback mismatch returns 502 `DEFAULT_SAVE_FAILED`, never a false success. It does not touch the active selection, selection cookie, basket, prices or fulfillment. Writes never fall back to a legacy custom attribute.
+
+The account Store Preferences page shows the saved default and the current store independently. Change store changes only the current store; "Save current store as default" and an isolated "Choose a different default" dialog save the default. Clearing the default has no UI.
 
 Unknown write outcomes require an explicit `intent=reconcile` read, never a repeated write. Reconciliation publishes current truth, including a different store or null for an unavailable store. Only a matching result in the still-open initiating chooser session emits its owned confirmation notification. Manual cancellation, a new chooser, and scope changes invalidate notification ownership.
 

@@ -166,6 +166,7 @@ export const resourceRoutes = {
     customerPreferencesUpdate: '/action/customer-preferences-update',
     cartPickupStoreUpdate: '/action/cart-pickup-store-update',
     setSelectedStore: '/action/set-selected-store',
+    saveDefaultStore: '/action/save-default-store',
     addReview: '/action/add-review',
     recommendations: '/resource/recommendations',
     basketProducts: '/resource/basket-products',

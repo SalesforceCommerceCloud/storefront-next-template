@@ -1,5 +1,5 @@
 import { a as HstsConfig, c as SecurityConfig, i as CspDirectives, n as defaultSecurityHeaders, o as ReferrerPolicyValue, r as CspConfig, s as ResolvedSecurityConfig, t as defaultCspDirectives } from "./defaults.js";
-import * as react_router2 from "react-router";
+import * as react_router3 from "react-router";
 import { MiddlewareFunction, RouterContextProvider } from "react-router";
 
 //#region src/security/contributors/types.d.ts
@@ -89,7 +89,7 @@ declare function createSecurityHeadersMiddleware(input?: SecurityConfig, contrib
 //#endregion
 //#region src/security/nonce.d.ts
 /** React Router context carrying the current request's CSP nonce. */
-declare const securityContext: react_router2.RouterContext<{
+declare const securityContext: react_router3.RouterContext<{
   nonce: string;
 } | null>;
 /**

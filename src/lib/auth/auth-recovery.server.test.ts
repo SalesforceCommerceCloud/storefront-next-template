@@ -39,6 +39,7 @@ it.each([
     '/search?q=auth-recovery',
     '/resource/auth-recovery-extra',
     '/action/set-selected-store-extra',
+    '/action/save-default-store-extra',
     '/p/50%25-off',
     '/c/%E4%BD%A0%E5%A5%BD',
 ])('skips compiled matching for a definite endpoint miss: %s', (path) => {
@@ -75,6 +76,12 @@ it('recognizes prefixed preference writes under a basename', () => {
     const request = new Request('https://example.com/site-a/shop/global/ACTION/SET-SELECTED-STORE///', {
         method: 'POST',
     });
+    expect(isPreferredStoreMutationRequest(request)).toBe(true);
+    expect(isPreferredStoreMutationRequest(new Request(request.url))).toBe(false);
+});
+
+it('recognizes the save-default-store write, but only as a POST', () => {
+    const request = new Request('https://example.com/action/save-default-store', { method: 'POST' });
     expect(isPreferredStoreMutationRequest(request)).toBe(true);
     expect(isPreferredStoreMutationRequest(new Request(request.url))).toBe(false);
 });

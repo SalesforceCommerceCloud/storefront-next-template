@@ -76,9 +76,13 @@ export function isAuthRecoveryRequest(request: Request): boolean {
     return matchesEndpoint(request, '/resource/auth-recovery');
 }
 
-/** Preferred-store persistence recovery must never replay its POST. */
+/** Preferred-store persistence recovery must never replay its POST (set/clear selection or save default store). */
 export function isPreferredStoreMutationRequest(request: Request): boolean {
-    return request.method === 'POST' && matchesEndpoint(request, '/action/set-selected-store');
+    return (
+        request.method === 'POST' &&
+        (matchesEndpoint(request, '/action/set-selected-store') ||
+            matchesEndpoint(request, '/action/save-default-store'))
+    );
 }
 
 /** @environment MRT_ENV_BASE_PATH - Optional deployment basename, e.g. `/site-a`; resolved by getBasePath. */

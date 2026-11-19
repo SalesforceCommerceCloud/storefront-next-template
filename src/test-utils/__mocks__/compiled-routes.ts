@@ -44,7 +44,13 @@ export function setRecoveryManifest(
             'error-page',
         ].map((path) => ({ id: `document-${path}`, path, file: 'document.tsx' })),
         ...(catchAll ? [{ id: 'document-*', path: '*', file: 'document.tsx' }] : []),
-        ...['resource/auth-recovery', 'resource/basket', 'action/login', 'action/set-selected-store'].map((path) => ({
+        ...[
+            'resource/auth-recovery',
+            'resource/basket',
+            'action/login',
+            'action/set-selected-store',
+            'action/save-default-store',
+        ].map((path) => ({
             id: `resource-${path}`,
             path,
             file: 'resource.ts',
