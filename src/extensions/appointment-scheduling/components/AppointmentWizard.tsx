@@ -16,13 +16,15 @@
 /** @sfdc-extension-file SFDC_EXT_APPOINTMENT_SCHEDULING */
 import { type FormEvent, type ReactElement, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFetcher } from 'react-router';
+import { useSearchParams } from 'react-router';
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import type { ServiceTerritoryOption } from '@/lib/appointment-scheduler';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { DynamicImage } from '@/components/dynamic-image';
+import { maskEmail } from '@/lib/order/redact';
 
 // Local type — canonical wizard does not require a commerce catalogue.
 type AppointmentPiece = {
@@ -257,13 +259,13 @@ function MonthCalendar({
 }
 
 export type AppointmentWizardProps = {
-    stores: ServiceTerritoryOption[];
+    /** Seed store list for Storybook/tests; in production supplied by the loader. */
+    stores?: ServiceTerritoryOption[];
     productId?: string;
     productName?: string;
     /**
      * Real appointment availability slots — used as a prop fallback for tests/Storybook
-     * when the `useFetcher` hasn't run yet. In production the component fetches its own
-     * availability via the `/resource/appointment-availability` resource route.
+     * when the loader hasn't run yet.
      */
     availability?: { startTime: string; endTime: string }[];
     /**
@@ -296,6 +298,62 @@ export type AppointmentWizardProps = {
      * an error when the fetcher settles.
      */
     bookingResult?: { success: boolean; serviceAppointmentId?: string; error?: string };
+    /**
+     * Enriched work types from the loader (present when a territory is selected).
+     */
+    workTypes?: ServiceEntry[];
+    /**
+     * Enriched availability slots from the loader (present when territory + workType selected).
+     */
+    slots?: { startTime: string; endTime: string }[];
+    /**
+     * Static service list shown when schedulerEnabled=false (scheduler not provisioned).
+     */
+    fallbackServices?: ServiceEntry[];
+    /**
+     * Whether Salesforce Scheduler is provisioned for this environment.
+     * When false, skips the location step and work-type fetch; uses `fallbackServices` instead.
+     * Default: true.
+     */
+    schedulerEnabled?: boolean;
+    /**
+     * Whether a React Router navigation is in-flight (from useNavigation in the parent).
+     * Used to show loading indicators while the loader fetches data.
+     */
+    isNavigating?: boolean;
+    /**
+     * Custom renderer for the location step content (replaces default plain store list).
+     * When absent the wizard renders a simple text list of stores.
+     * Luxury vertical passes BoutiqueDirectory (which embeds BoutiqueMap).
+     */
+    renderLocationStep?: (props: {
+        stores: ServiceTerritoryOption[];
+        selectedId: string;
+        onSelect: (id: string) => void;
+        chrome: ReactNode;
+    }) => ReactNode;
+    /**
+     * Optional sidebar rendered to the left of all non-location step content.
+     * When present step content is wrapped in a two-column layout (sidebar left, content right).
+     * Luxury vertical passes StoreStill (boutique map + store details).
+     */
+    renderStepSidebar?: (props: { store: ServiceTerritoryOption | null }) => ReactNode;
+    /**
+     * When true, suppress the root px-4/sm:px-6/lg:px-8/py-8 page padding.
+     * Use when the wizard is embedded inside a custom layout that provides its own padding.
+     */
+    noPadding?: boolean;
+    /**
+     * Logged-in shopper's display name.
+     * When provided, pre-fills the name input as read-only.
+     */
+    shopperName?: string;
+    /**
+     * Logged-in shopper's email address (unmasked).
+     * When provided, the visible input shows a masked version and a hidden input carries the
+     * actual value for form submission.
+     */
+    shopperEmail?: string;
 };
 
 function formatReviewDate(iso: string, locale: string): string {
@@ -396,7 +454,14 @@ function ServiceCard({
                 image ? 'grid grid-cols-[7.5rem_minmax(0,1fr)]' : '',
                 selected ? 'border-foreground bg-muted/40' : 'border-border hover:border-foreground/40'
             )}>
-            {image ? <img src={image} alt="" className="h-full min-h-[7.5rem] w-full object-cover" /> : null}
+            {image ? (
+                <DynamicImage
+                    src={image}
+                    alt=""
+                    className="h-full min-h-[7.5rem] w-full overflow-hidden [&_img]:h-full [&_img]:w-full [&_img]:object-cover"
+                    widths={[240, 480]}
+                />
+            ) : null}
             <span className="flex min-w-0 flex-col justify-center p-3 sm:p-4">
                 <span className="font-serif text-lg">{title}</span>
                 <span className="mt-1 text-sm text-muted-foreground">{details}</span>
@@ -516,6 +581,12 @@ function ReviewDetail({ term, title, detail }: { term: string; title: string; de
     );
 }
 
+// Layout constants for the two-column stage layout used when renderStepSidebar is provided.
+const _stageGrid = 'grid h-full min-h-0 lg:grid-cols-[minmax(18rem,32rem)_minmax(0,1fr)] lg:items-stretch';
+const _stageLeft = 'relative min-h-[18rem] overflow-hidden lg:h-full lg:min-h-0';
+const _stageRight =
+    '@container flex min-h-0 flex-col border-border px-[var(--page-gutter)] pt-16 pb-8 lg:h-full lg:overflow-y-auto lg:overscroll-y-contain lg:border-l lg:py-8';
+
 export default function AppointmentWizard({
     stores,
     productId,
@@ -526,83 +597,59 @@ export default function AppointmentWizard({
     onBook,
     bookingSubmitting,
     bookingResult,
+    workTypes,
+    slots,
+    fallbackServices,
+    schedulerEnabled = true,
+    isNavigating,
+    renderLocationStep,
+    renderStepSidebar,
+    noPadding,
+    shopperName,
+    shopperEmail,
 }: AppointmentWizardProps): ReactElement {
     const { t, i18n } = useTranslation('extAppointmentScheduling');
     const [done, setDone] = useState(false);
-    const [step, setStep] = useState<WizardStep>('location');
-    const [maxReached, setMaxReached] = useState(0);
-    const [externalId, setExternalId] = useState('');
-    const [reason, setReason] = useState('');
-    const [workType, setWorkType] = useState('');
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
     // Store the full slot at pick time so submit doesn't depend on daySlots being recomputed.
     const [chosenSlot, setChosenSlot] = useState<{ startTime: string; endTime: string } | null>(null);
     const [bookingError, setBookingError] = useState<string | null>(null);
-    const store = stores.find((entry) => entry.id === externalId) ?? null;
+
+    const [searchParams, setSearchParams] = useSearchParams();
+    const territoryId = searchParams.get('territory') ?? '';
+    const workTypeId = searchParams.get('workType') ?? '';
+
+    const store = (stores ?? []).find((entry) => entry.id === territoryId) ?? null;
+
+    // If a territory is in the URL but doesn't exist in the loaded territories list,
+    // clear it so the wizard returns to step 1 (location). This handles the case where
+    // auth recovery or browser history restores a URL with a stale territory param.
+    useEffect(() => {
+        if (territoryId && stores?.length && !store) {
+            setSearchParams({}, { replace: true });
+        }
+    }, [territoryId, stores, store, setSearchParams]);
     const locked = useMemo(() => enrichPiece(null, productId, productName), [productId, productName]);
     const minDate = useMemo(() => localIsoToday(), []);
 
-    const workTypesFetcher = useFetcher<{
-        success: boolean;
-        workTypes?: { id: string; name: string; durationMinutes: number; workTypeGroupId: string }[];
-        /** Echoed from the server so we can verify the response belongs to the requested territory. */
-        territoryId?: string;
-    }>();
+    // Derive step from URL params and local slot selection state.
+    // date alone (day selected) stays on 'when' — only a chosen time slot advances to 'review'.
+    const step: WizardStep = !territoryId ? 'location' : !workTypeId ? 'service' : !time ? 'when' : 'review';
 
-    // ref tracks which store is currently in-flight (won't cause re-renders)
-    const fetchingForStore = useRef('');
-    // state tracks which store's data is actually loaded and valid to display
-    const [dataExternalId, setDataExternalId] = useState('');
+    const maxReached = STEPS.indexOf(step);
 
-    useEffect(() => {
-        if (externalId && workTypesFetcher.state === 'idle' && externalId !== fetchingForStore.current) {
-            fetchingForStore.current = externalId;
-            void workTypesFetcher.load(
-                `/resource/appointment-work-types?territoryId=${encodeURIComponent(externalId)}`
-            );
-        }
-    }, [externalId, workTypesFetcher]);
+    // When scheduler is disabled, work types come from fallbackServices (loader-enriched from dataset).
+    // When scheduler is enabled, work types come from the loader's workTypes prop.
+    const effectiveServices: ServiceEntry[] = !schedulerEnabled ? (fallbackServices ?? []) : (workTypes ?? []);
 
-    // Only mark data as valid when the server confirms the response belongs to the current territory.
-    // Using the echoed territoryId from the response (not fetchingForStore.current) prevents a race
-    // where switching boutiques advances the ref before the old response arrives.
-    // On failure the server omits territoryId — fall back to the ref so isLoadingWorkTypes clears.
-    useEffect(() => {
-        const respondedId = workTypesFetcher.data?.territoryId;
-        if (workTypesFetcher.state === 'idle' && workTypesFetcher.data !== undefined) {
-            setDataExternalId(respondedId ?? fetchingForStore.current);
-        }
-    }, [workTypesFetcher.state, workTypesFetcher.data]);
+    // Prefer the slots prop (from loader); fall back to the availability prop (Storybook/tests only).
+    const realSlots = slots ?? availability;
+    const isLoadingAvailability = isNavigating === true && !!territoryId && !!workTypeId && !slots;
+    const isLoadingTerritories = isNavigating === true && !stores?.length;
 
-    const dynamicServices = useMemo(() => {
-        if (
-            workTypesFetcher.data?.success &&
-            workTypesFetcher.data.workTypes?.length &&
-            dataExternalId === externalId
-        ) {
-            return workTypesFetcher.data.workTypes.map((wt) => ({
-                id: wt.id,
-                workType: wt.id,
-                minutes: wt.durationMinutes,
-                titleKey: null as null,
-                title: wt.name,
-                workTypeGroupId: wt.workTypeGroupId,
-            }));
-        }
-        return null;
-    }, [workTypesFetcher.data, dataExternalId, externalId]);
-
-    // Loading: territory selected but no fetch result yet (includes in-flight).
-    // Show loading when selected territory's data hasn't arrived yet (dataExternalId lags behind externalId).
-    const isLoadingWorkTypes = externalId !== '' && externalId !== dataExternalId;
-    const effectiveServices: ServiceEntry[] = isLoadingWorkTypes ? [] : (dynamicServices ?? []);
-
-    const availabilityFetcher = useFetcher<{
-        success: boolean;
-        slots: { startTime: string; endTime: string }[];
-        timezone?: string;
-    }>();
+    // Territory timezone: prefer the store's timezone, then the prop override.
+    const territoryTimezone = store?.timezone ?? timezone;
 
     // Transition to the confirmation screen (or show an error) when the booking fetcher settles.
     useEffect(() => {
@@ -612,17 +659,6 @@ export default function AppointmentWizard({
             setBookingError(bookingResult.error || t('boutiquesPage.bookingError'));
         }
     }, [bookingResult, t]);
-
-    // Prefer fetcher data (production); fall back to the `availability` prop (tests/Storybook).
-    const realSlots = availabilityFetcher.data?.success ? availabilityFetcher.data.slots : availability;
-    const isLoadingAvailability = availabilityFetcher.state === 'loading';
-
-    // Territory timezone: prefer what the server returned (OperatingHours.TimeZone), then the
-    // prop (territory-level override). When neither is available (e.g. in Storybook / tests where
-    // availability is prop-driven and slots are authored in local time), leave undefined so
-    // slotTimeLabel and slotDateKey fall back to the runtime's local timezone — making test
-    // assertions timezone-safe.
-    const territoryTimezone = availabilityFetcher.data?.timezone ?? timezone;
 
     // Group real slots by local date for calendar highlighting and time-slot display.
     // Slots starting within `advanceNoticeMinutes` of now are filtered out.
@@ -648,10 +684,7 @@ export default function AppointmentWizard({
     }, [realSlots, i18n.language, territoryTimezone, advanceNoticeMinutes]);
 
     const availabilityUnavailable =
-        availabilityFetcher.state === 'idle' &&
-        availabilityFetcher.data !== undefined &&
-        (availabilityFetcher.data.success === false ||
-            (availabilityFetcher.data.success === true && availableByDate !== null && availableByDate.size === 0));
+        !isLoadingAvailability && realSlots !== undefined && availableByDate !== null && availableByDate.size === 0;
 
     const daySlots = useMemo(() => {
         if (!availableByDate) return [];
@@ -666,60 +699,54 @@ export default function AppointmentWizard({
         [time, i18n.language, territoryTimezone]
     );
 
-    const selectedService = effectiveServices.find((entry) => entry.id === reason);
-    const stepIndex = STEPS.indexOf(step);
+    const selectedService = effectiveServices.find((entry) => entry.id === workTypeId);
 
     const goTo = (next: WizardStep) => {
-        const index = STEPS.indexOf(next);
-        if (index <= maxReached) setStep(next);
-    };
-
-    const advanceTo = (next: WizardStep) => {
-        const index = STEPS.indexOf(next);
-        setMaxReached((current) => Math.max(current, index));
-        setStep(next);
+        if (STEPS.indexOf(next) > maxReached) return;
+        if (next === 'location') setSearchParams({});
+        else if (next === 'service') setSearchParams({ territory: territoryId });
+        else if (next === 'when') {
+            setTime('');
+            setChosenSlot(null);
+            setSearchParams({ territory: territoryId, workType: workTypeId });
+        }
+        // 'review' is handled by date/time local state
     };
 
     const goBack = () => {
-        if (stepIndex > 0) setStep(STEPS[stepIndex - 1]);
+        if (step === 'service') setSearchParams({});
+        else if (step === 'when') setSearchParams({ territory: territoryId });
+        else if (step === 'review') {
+            // Clear time (and chosen slot) to go back to the 'when' step.
+            // Keep date so the calendar stays on the previously selected day.
+            setTime('');
+            setChosenSlot(null);
+        }
     };
 
     const pickBoutique = (id: string) => {
-        if (id !== externalId) {
-            setDate('');
-            setTime('');
-        }
-        setExternalId(id);
-        advanceTo('service');
+        setDate('');
+        setTime('');
+        setChosenSlot(null);
+        setSearchParams({ territory: id });
     };
 
     const pickService = (id: string) => {
-        const service = effectiveServices.find((entry) => entry.id === id);
-        if (!service) return;
-        setReason(service.id);
-        setWorkType(service.workType);
-        const groupId = service.workTypeGroupId ?? '';
-
-        // Fetch real availability for this territory + service (next 30 days).
-        const startTime = new Date().toISOString();
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + 30);
-        const availUrl = new URL('/resource/appointment-availability', window.location.origin);
-        availUrl.searchParams.set('startTime', startTime);
-        availUrl.searchParams.set('endTime', endDate.toISOString());
-        availUrl.searchParams.set('territoryId', externalId);
-        availUrl.searchParams.set('workTypeId', id);
-        if (groupId) availUrl.searchParams.set('workTypeGroupId', groupId);
-        void availabilityFetcher.load(availUrl.pathname + availUrl.search);
-
-        advanceTo('when');
+        setDate('');
+        setTime('');
+        setChosenSlot(null);
+        setSearchParams({ territory: territoryId, workType: id });
     };
 
     const pickTime = (slotStartTime: string) => {
         const slot = daySlots.find((s) => s.startTime === slotStartTime) ?? null;
         setTime(slotStartTime);
         setChosenSlot(slot); // cache at pick time — submit won't re-lookup from daySlots
-        advanceTo('review');
+        // Set date if not already set (derive from the slot's date).
+        if (!date) {
+            const key = slotDateKey(slotStartTime, territoryTimezone);
+            setDate(key);
+        }
     };
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -730,11 +757,10 @@ export default function AppointmentWizard({
         const formProductName = String(form.get('productName') ?? '').trim();
         const formProductReference = String(form.get('productReference') ?? '').trim();
         const name = String(form.get('name') ?? '').trim();
-        const email = String(form.get('email') ?? '').trim();
         const phone = String(form.get('phone') ?? '').trim();
         const notes = String(form.get('notes') ?? '').trim();
 
-        if (!name || !email || !date || !time) return;
+        if (!date || !time) return;
 
         if (onBook) {
             // Use the slot cached at pick time — avoids any re-computation dependency on daySlots.
@@ -756,9 +782,13 @@ export default function AppointmentWizard({
             const fd = new FormData();
             fd.append('schedStartTime', chosenSlot.startTime);
             fd.append('schedEndTime', chosenSlot.endTime);
-            fd.append('email', email);
+            // Forward shopper-entered email when shopperEmail is unavailable (e.g. profile
+            // lookup failed). Server prefers customer.email for registered sessions; this
+            // only takes effect when getCurrentCustomer() returns null.
+            const formEmail = String(form.get('email') ?? '').trim();
+            if (formEmail) fd.append('email', formEmail);
             if (subject) fd.append('subject', subject);
-            if (reason) fd.append('workTypeId', reason);
+            if (workTypeId) fd.append('workTypeId', workTypeId);
             if (store.id) fd.append('territoryId', store.id);
             onBook(fd);
         } else {
@@ -769,10 +799,10 @@ export default function AppointmentWizard({
                 productId: locked?.id || formProductId || null,
                 productName: locked?.name || formProductName || null,
                 productReference: locked?.reference || formProductReference || null,
-                reason,
-                workType,
+                reason: workTypeId,
+                workType: workTypeId,
                 name,
-                email,
+                email: shopperEmail ?? String(form.get('email') ?? '').trim(),
                 phone,
                 date,
                 time: timeLabel,
@@ -808,11 +838,8 @@ export default function AppointmentWizard({
     const pieceLead = locked && step !== 'review' ? <PieceCard piece={locked} /> : null;
 
     if (done && store) {
-        return (
-            <div
-                id="appointment"
-                className="flex h-full min-h-0 flex-1 flex-col scroll-mt-[calc(var(--header-height,72px)+1.5rem)] px-4 sm:px-6 lg:px-8 py-8"
-                data-testid="boutique-appointment">
+        const doneContent = (
+            <>
                 <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">{heading}</header>
                 <p
                     ref={confirmationStatusRef}
@@ -863,6 +890,24 @@ export default function AppointmentWizard({
                         />
                     </dl>
                 </section>
+            </>
+        );
+        return (
+            <div
+                id="appointment"
+                data-testid="boutique-appointment"
+                className={cn(
+                    'flex h-full min-h-0 flex-1 flex-col scroll-mt-[calc(var(--header-height,72px)+1.5rem)]',
+                    !noPadding && 'px-4 sm:px-6 lg:px-8 py-8'
+                )}>
+                {renderStepSidebar ? (
+                    <div className={cn(_stageGrid, 'flex-1 min-h-0')}>
+                        <div className={_stageLeft}>{renderStepSidebar({ store })}</div>
+                        <div className={_stageRight}>{doneContent}</div>
+                    </div>
+                ) : (
+                    doneContent
+                )}
             </div>
         );
     }
@@ -874,7 +919,7 @@ export default function AppointmentWizard({
             {step === 'service' ? (
                 <fieldset className="mt-6 flex min-w-0 flex-col p-0">
                     <legend className="float-none mb-0 p-0 font-serif text-2xl">{t('boutiquesPage.stepReason')}</legend>
-                    {isLoadingWorkTypes ? (
+                    {isNavigating && !!territoryId && !workTypes?.length ? (
                         <div
                             role="status"
                             className="flex items-center justify-center py-12 text-sm text-muted-foreground">
@@ -892,7 +937,7 @@ export default function AppointmentWizard({
                             {effectiveServices.map((entry) => (
                                 <ServiceCard
                                     key={entry.id}
-                                    selected={reason === entry.id}
+                                    selected={workTypeId === entry.id}
                                     title={
                                         entry.titleKey
                                             ? t(entry.titleKey as never)
@@ -1019,11 +1064,23 @@ export default function AppointmentWizard({
                             {t('boutiquesPage.contactDetails')}
                         </legend>
                         <Field id="appointment-name" label={t('boutiquesPage.name')}>
-                            <Input id="appointment-name" name="name" required autoComplete="name" />
+                            {shopperName ? (
+                                <p className="rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
+                                    {shopperName}
+                                </p>
+                            ) : (
+                                <Input id="appointment-name" name="name" autoComplete="name" />
+                            )}
                         </Field>
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <Field id="appointment-email" label={t('boutiquesPage.email')}>
-                                <Input id="appointment-email" name="email" type="email" required autoComplete="email" />
+                                {shopperEmail ? (
+                                    <p className="rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
+                                        {maskEmail(shopperEmail)}
+                                    </p>
+                                ) : (
+                                    <Input id="appointment-email" name="email" type="email" autoComplete="email" />
+                                )}
                             </Field>
                             <Field id="appointment-phone" label={t('boutiquesPage.phone')}>
                                 <Input id="appointment-phone" name="phone" type="tel" autoComplete="tel" />
@@ -1090,42 +1147,69 @@ export default function AppointmentWizard({
             id="appointment"
             data-testid="boutique-appointment"
             data-step={step}
-            className="flex h-full min-h-0 flex-1 flex-col scroll-mt-[calc(var(--header-height,72px)+1.5rem)] px-4 sm:px-6 lg:px-8 py-8">
+            className={cn(
+                'flex h-full min-h-0 flex-1 flex-col scroll-mt-[calc(var(--header-height,72px)+1.5rem)]',
+                !noPadding && 'px-4 sm:px-6 lg:px-8 py-8'
+            )}>
             {step === 'location' ? (
-                <div className="flex flex-col gap-6">
-                    {chrome}
-                    {pieceLead ? <div>{pieceLead}</div> : null}
-                    <ul className="flex flex-col gap-4">
-                        {stores.map((s) => (
-                            <li key={s.id}>
-                                <div
-                                    className={cn(
-                                        'border p-4',
-                                        externalId === s.id ? 'border-foreground' : 'border-border'
-                                    )}>
-                                    <p className="font-serif text-lg">{s.name}</p>
-                                    {s.address1 ? <p className="mt-1 text-sm">{s.address1}</p> : null}
-                                    {s.city || s.stateCode || s.postalCode ? (
-                                        <p className="text-sm text-muted-foreground">
-                                            {[s.city, s.stateCode, s.postalCode].filter(Boolean).join(', ')}
-                                        </p>
-                                    ) : null}
-                                    {s.phone ? <p className="mt-1 text-sm text-muted-foreground">{s.phone}</p> : null}
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="mt-3"
-                                        onClick={() => pickBoutique(s.id)}>
-                                        {t('boutiquesPage.select')}
-                                    </Button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                renderLocationStep ? (
+                    renderLocationStep({
+                        stores: stores ?? [],
+                        selectedId: territoryId,
+                        onSelect: pickBoutique,
+                        chrome,
+                    })
+                ) : (
+                    <div className="flex flex-col gap-6">
+                        {chrome}
+                        {pieceLead ? <div>{pieceLead}</div> : null}
+                        {isLoadingTerritories ? (
+                            <div
+                                role="status"
+                                className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+                                {t('boutiquesPage.loadingServices')}
+                            </div>
+                        ) : (
+                            <ul className="flex flex-col gap-4">
+                                {(stores ?? []).map((s) => (
+                                    <li key={s.id}>
+                                        <div
+                                            className={cn(
+                                                'border p-4',
+                                                territoryId === s.id ? 'border-foreground' : 'border-border'
+                                            )}>
+                                            <p className="font-serif text-lg">{s.name}</p>
+                                            {s.address1 ? <p className="mt-1 text-sm">{s.address1}</p> : null}
+                                            {s.city || s.stateCode || s.postalCode ? (
+                                                <p className="text-sm text-muted-foreground">
+                                                    {[s.city, s.stateCode, s.postalCode].filter(Boolean).join(', ')}
+                                                </p>
+                                            ) : null}
+                                            {s.phone ? (
+                                                <p className="mt-1 text-sm text-muted-foreground">{s.phone}</p>
+                                            ) : null}
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="mt-3"
+                                                onClick={() => pickBoutique(s.id)}>
+                                                {t('boutiquesPage.select')}
+                                            </Button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                )
+            ) : renderStepSidebar && store ? (
+                <div className={cn(_stageGrid, 'flex-1 min-h-0')}>
+                    <div className={_stageLeft}>{renderStepSidebar({ store })}</div>
+                    <div className={_stageRight}>{stageRight}</div>
                 </div>
-            ) : store ? (
+            ) : (
                 <div>{stageRight}</div>
-            ) : null}
+            )}
         </div>
     );
 }

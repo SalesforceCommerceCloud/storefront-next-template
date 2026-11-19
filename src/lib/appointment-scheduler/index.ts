@@ -15,4 +15,3 @@
  */
 /** @sfdc-extension-file SFDC_EXT_APPOINTMENT_SCHEDULING */
 export type * from './types';
-export { getAppointmentProvider } from './get-provider.server';

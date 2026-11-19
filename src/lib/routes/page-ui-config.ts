@@ -58,6 +58,17 @@ export interface PageUIConfig {
          */
         hasTopPadding?: boolean;
     };
+    /** Footer configuration for this page. */
+    footer?: {
+        /**
+         * When true, the footer is hidden and `<main>` expands to fill the
+         * remaining viewport height. Use for immersive full-screen pages
+         * (e.g. appointment booking, full-screen maps).
+         *
+         * @default false
+         */
+        hide?: boolean;
+    };
 }
 
 /**

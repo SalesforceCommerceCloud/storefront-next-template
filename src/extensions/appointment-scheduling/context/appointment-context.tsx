@@ -18,12 +18,41 @@
 import { createContext, useContext, type PropsWithChildren, type ReactElement } from 'react';
 import type { ServiceTerritoryOption } from '@/lib/appointment-scheduler/types';
 
+/** Enriched work-type entry from the scheduler loader or fallback list. */
+export interface ServiceEntry {
+    id: string;
+    workType: string;
+    minutes: number;
+    titleKey: string | null;
+    title?: string;
+    hintKey?: string;
+    image?: string;
+    workTypeGroupId?: string;
+    externalId?: string;
+}
+
 export interface AppointmentContextValue {
     territories: ServiceTerritoryOption[];
     advanceNoticeMinutes: number;
     onBook: (formData: FormData) => void;
     bookingSubmitting: boolean;
     bookingResult?: { success: boolean; serviceAppointmentId?: string; error?: string };
+    /** Pre-populated from the authenticated shopper session for the review step form. */
+    shopperName?: string;
+    shopperEmail?: string;
+    /**
+     * Whether the Salesforce Scheduler is configured for this site. When false the wizard
+     * skips the work-types fetch entirely and shows the dataset-provisioned fallback services
+     * immediately. When true the wizard fetches work types and shows an error state on failure
+     * — never falls back to the hardcoded list.
+     */
+    schedulerEnabled?: boolean;
+    /** Enriched work types from the loader (present when a territory is selected). */
+    workTypes?: ServiceEntry[];
+    /** Enriched availability slots from the loader. */
+    slots?: { startTime: string; endTime: string }[];
+    /** Whether a React Router navigation is in-flight. */
+    isNavigating?: boolean;
 }
 
 const AppointmentContext = createContext<AppointmentContextValue | null>(null);
@@ -40,11 +69,29 @@ export function AppointmentProvider({
     onBook,
     bookingSubmitting,
     bookingResult,
+    shopperName,
+    shopperEmail,
+    schedulerEnabled,
+    workTypes,
+    slots,
+    isNavigating,
     children,
 }: AppointmentProviderProps): ReactElement {
     return (
         <AppointmentContext.Provider
-            value={{ territories, advanceNoticeMinutes, onBook, bookingSubmitting, bookingResult }}>
+            value={{
+                territories,
+                advanceNoticeMinutes,
+                onBook,
+                bookingSubmitting,
+                bookingResult,
+                shopperName,
+                shopperEmail,
+                schedulerEnabled,
+                workTypes,
+                slots,
+                isNavigating,
+            }}>
             {children}
         </AppointmentContext.Provider>
     );

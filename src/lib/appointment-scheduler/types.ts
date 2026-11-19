@@ -26,6 +26,8 @@ export interface WorkTypeOption {
     /** WorkTypeGroup.Id — carried here so getAvailability gets it directly from the selection
      *  without a separate WorkTypeGroupMember lookup. */
     workTypeGroupId: string;
+    /** WorkType.ExternalId__c — used to match SFCC dataset content (images, titles). */
+    externalId?: string;
 }
 
 /** Work types result (success or error). */

@@ -26,7 +26,7 @@ vi.mock('@/middlewares/auth.server', () => ({
 vi.mock('@/lib/logger.server', () => ({
     getLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() })),
 }));
-vi.mock('@/lib/appointment-scheduler', () => ({
+vi.mock('@/lib/appointment-scheduler/get-provider.server', () => ({
     getAppointmentProvider: vi.fn(() => ({
         getServiceTerritories: vi.fn(() =>
             Promise.resolve({ success: false, error: { code: 'NOT_CONFIGURED', retryable: false } })
@@ -34,7 +34,7 @@ vi.mock('@/lib/appointment-scheduler', () => ({
     })),
 }));
 
-import { getAppointmentProvider } from '@/lib/appointment-scheduler';
+import { getAppointmentProvider } from '@/lib/appointment-scheduler/get-provider.server';
 
 const BASE_URL = 'http://localhost/resource/appointment-territories';
 

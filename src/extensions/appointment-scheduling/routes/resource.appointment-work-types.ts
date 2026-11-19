@@ -15,7 +15,7 @@
  */
 import { data, type LoaderFunctionArgs } from 'react-router';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
-import { getAppointmentProvider } from '@/lib/appointment-scheduler';
+import { getAppointmentProvider } from '@/lib/appointment-scheduler/get-provider.server';
 import { getAuth as getAuthServer } from '@/middlewares/auth.server';
 import { getLogger } from '@/lib/logger.server';
 import type { WorkTypeOption } from '@/lib/appointment-scheduler/types';

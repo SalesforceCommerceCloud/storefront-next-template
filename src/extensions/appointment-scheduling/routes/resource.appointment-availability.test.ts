@@ -29,7 +29,7 @@ vi.mock('@/lib/logger.server', () => ({
 vi.mock('@/lib/origin', () => ({
     isSameOrigin: vi.fn(() => true),
 }));
-vi.mock('@/lib/appointment-scheduler', () => ({
+vi.mock('@/lib/appointment-scheduler/get-provider.server', () => ({
     getAppointmentProvider: vi.fn(() => ({
         getAvailability: vi.fn(() =>
             Promise.resolve({ success: false, error: { message: 'unavailable', status: 503 } })
@@ -87,7 +87,7 @@ describe('resource.appointment-availability loader', () => {
 
     test('forwards workTypeGroupId from URL to provider.getAvailability()', async () => {
         const mockGetAvailability = vi.fn().mockResolvedValue({ success: true, slots: [] });
-        const { getAppointmentProvider } = await import('@/lib/appointment-scheduler');
+        const { getAppointmentProvider } = await import('@/lib/appointment-scheduler/get-provider.server');
         vi.mocked(getAppointmentProvider).mockReturnValue({
             getAvailability: mockGetAvailability,
         } as any);

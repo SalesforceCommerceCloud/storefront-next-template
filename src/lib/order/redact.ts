@@ -92,7 +92,7 @@ function copyFieldPath(source: unknown, target: Record<string, unknown>, path: s
  * Mask an email address to `t***@example.com` format.
  * First character of local part is kept, rest replaced with `***`, domain kept.
  */
-function maskEmail(email: string): string {
+export function maskEmail(email: string): string {
     const atIndex = email.indexOf('@');
     if (atIndex === -1) {
         // Malformed email (no `@`) — mask fully rather than leaking the raw value to the client.

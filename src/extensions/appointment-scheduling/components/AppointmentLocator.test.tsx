@@ -16,6 +16,7 @@
 /** @sfdc-extension-file SFDC_EXT_APPOINTMENT_SCHEDULING */
 import { render, screen } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
+import { MemoryRouter } from 'react-router';
 import { AppointmentProvider } from '../context/appointment-context';
 import AppointmentLocator from './AppointmentLocator';
 
@@ -38,9 +39,15 @@ describe('AppointmentLocator', () => {
 
     test('renders empty state when territories list is empty', () => {
         render(
-            <AppointmentProvider territories={[]} advanceNoticeMinutes={120} onBook={noop} bookingSubmitting={false}>
-                <AppointmentLocator />
-            </AppointmentProvider>
+            <MemoryRouter>
+                <AppointmentProvider
+                    territories={[]}
+                    advanceNoticeMinutes={120}
+                    onBook={noop}
+                    bookingSubmitting={false}>
+                    <AppointmentLocator />
+                </AppointmentProvider>
+            </MemoryRouter>
         );
         // Wizard renders stepper (4 steps) but no territory tiles in the location list
         expect(screen.queryByTestId('appointment-locator')).not.toBeInTheDocument();
@@ -52,13 +59,15 @@ describe('AppointmentLocator', () => {
             { id: '0HhSB002', sfId: '0HhSB002', name: 'Market Street Downtown', timezone: 'America/New_York' },
         ];
         render(
-            <AppointmentProvider
-                territories={territories}
-                advanceNoticeMinutes={120}
-                onBook={noop}
-                bookingSubmitting={false}>
-                <AppointmentLocator />
-            </AppointmentProvider>
+            <MemoryRouter>
+                <AppointmentProvider
+                    territories={territories}
+                    advanceNoticeMinutes={120}
+                    onBook={noop}
+                    bookingSubmitting={false}>
+                    <AppointmentLocator />
+                </AppointmentProvider>
+            </MemoryRouter>
         );
         expect(screen.getAllByText('Market Street Flagship').length).toBeGreaterThan(0);
         expect(screen.getAllByText('Market Street Downtown').length).toBeGreaterThan(0);

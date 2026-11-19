@@ -15,9 +15,10 @@
  */
 import { data, type ActionFunctionArgs } from 'react-router';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
-import { getAppointmentProvider } from '@/lib/appointment-scheduler';
+import { getAppointmentProvider } from '@/lib/appointment-scheduler/get-provider.server';
 import { getAuth as getAuthServer } from '@/middlewares/auth.server';
 import { getLogger } from '@/lib/logger.server';
+import { getCurrentCustomer } from '@/lib/api/customer.server';
 
 /**
  * Result of the appointment-book action.
@@ -76,9 +77,12 @@ export async function action({
         return data({ success: false, error: 'A registered shopper session is required to book' }, { status: 401 });
     }
 
+    const customer = await getCurrentCustomer(context).catch(() => null);
+
     let schedStartTime: string;
     let schedEndTime: string;
     let email: string;
+    let shopperName: string | undefined;
     let subject: string | undefined;
     let workTypeId: string | undefined;
     let territoryId: string | undefined;
@@ -86,7 +90,12 @@ export async function action({
         const form = await request.formData();
         schedStartTime = String(form.get('schedStartTime') ?? '');
         schedEndTime = String(form.get('schedEndTime') ?? '');
-        email = String(form.get('email') ?? '').trim();
+        // Prefer server-side customer email for registered shoppers — never trust client-submitted email
+        const formEmail = String(form.get('email') ?? '').trim();
+        email = (customer?.email ?? customer?.login ?? formEmail).trim();
+        shopperName = customer
+            ? [customer.firstName, customer.lastName].filter(Boolean).join(' ') || undefined
+            : undefined;
         const rawSubject = form.get('subject');
         subject = typeof rawSubject === 'string' && rawSubject.trim() ? rawSubject.trim() : undefined;
         if (subject && subject.length > 255) {
@@ -100,6 +109,12 @@ export async function action({
         return data({ success: false, error: 'Invalid form data' }, { status: 400 });
     }
 
+    // If the form didn't supply a subject, derive one from the shopper's name so the Core
+    // ServiceAppointment Subject field is human-readable when no product context is provided.
+    if (!subject && shopperName) {
+        subject = shopperName;
+    }
+
     if (!ISO_DATETIME.test(schedStartTime) || !ISO_DATETIME.test(schedEndTime)) {
         return data({ success: false, error: 'schedStartTime/schedEndTime must be ISO 8601' }, { status: 400 });
     }
@@ -111,7 +126,7 @@ export async function action({
     } catch {
         return data({ success: false, error: 'schedStartTime/schedEndTime could not be parsed' }, { status: 400 });
     }
-    if (!EMAIL.test(email) || email.length > 254) {
+    if (!email || !EMAIL.test(email) || email.length > 254) {
         return data({ success: false, error: 'A valid email is required' }, { status: 400 });
     }
 

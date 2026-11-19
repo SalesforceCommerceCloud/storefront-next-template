@@ -758,7 +758,7 @@ export async function getWorkTypes(
 
         // Fetch all WorkTypes via WorkTypeGroupMember relationship — avoids nested-subquery
         // FLS issues with certain fields. Results are scoped to the resolved group.
-        const soql = `SELECT WorkType.Id, WorkType.Name, WorkType.EstimatedDuration FROM WorkTypeGroupMember WHERE WorkTypeGroupId = '${escapeSoql(workTypeGroupId)}' ORDER BY WorkType.Name ASC`;
+        const soql = `SELECT WorkType.Id, WorkType.Name, WorkType.EstimatedDuration, WorkType.ExternalId__c FROM WorkTypeGroupMember WHERE WorkTypeGroupId = '${escapeSoql(workTypeGroupId)}' ORDER BY WorkType.Name ASC`;
         const resp = await withAuthRetry(origin, core.clientId, options, (token) =>
             fetch(`${origin}/services/data/${core.apiVersion}/query?q=${encodeURIComponent(soql)}`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -771,7 +771,9 @@ export async function getWorkTypes(
         }
 
         const json = (await resp.json()) as {
-            records?: Array<{ WorkType?: { Id: string; Name: string; EstimatedDuration?: number } }>;
+            records?: Array<{
+                WorkType?: { Id: string; Name: string; EstimatedDuration?: number; ExternalId__c?: string };
+            }>;
         };
         if (!json || !Array.isArray(json.records)) {
             return { success: false, error: { code: 'SCHEDULER_UNAVAILABLE', retryable: true } };
@@ -783,14 +785,21 @@ export async function getWorkTypes(
         const effectiveGroupId = workTypeGroupId;
         // Deduplicate by WorkType.Name — re-seeding can create multiple WorkType records with the
         // same name but different Salesforce IDs, all in the same WorkTypeGroup.
+        // Sort so records WITH ExternalId__c come first so enrichment data is preserved.
         const seen = new Set<string>();
         const workTypes = (json.records ?? [])
+            .sort((a, b) => {
+                const aHas = a.WorkType?.ExternalId__c ? 0 : 1;
+                const bHas = b.WorkType?.ExternalId__c ? 0 : 1;
+                return aHas - bHas;
+            })
             .filter((r) => r.WorkType?.Id && r.WorkType.Name && !seen.has(r.WorkType.Name) && seen.add(r.WorkType.Name))
             .map((r) => ({
                 id: r.WorkType?.Id ?? '',
                 name: r.WorkType?.Name ?? '',
                 durationMinutes: r.WorkType?.EstimatedDuration ?? 30,
                 workTypeGroupId: effectiveGroupId,
+                externalId: r.WorkType?.ExternalId__c ?? undefined,
             }));
         return { success: true, workTypes };
     } catch (error) {

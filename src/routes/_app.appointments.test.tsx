@@ -33,13 +33,16 @@ vi.mock('@/lib/url.server', () => ({
 vi.mock('@/utils/canonical-url', () => ({
     buildCanonicalUrl: vi.fn((_origin, path) => `https://example.com${path}`),
 }));
-vi.mock('@/lib/appointment-scheduler', () => ({
+vi.mock('@/lib/appointment-scheduler/get-provider.server', () => ({
     getAppointmentProvider: vi.fn(() => ({
         getServiceTerritories: vi.fn(() => Promise.resolve({ success: true, territories: [] })),
     })),
 }));
+vi.mock('@/lib/api/customer.server', () => ({
+    getCurrentCustomer: vi.fn(() => Promise.resolve(null)),
+}));
 
-import { getAppointmentProvider } from '@/lib/appointment-scheduler';
+import { getAppointmentProvider } from '@/lib/appointment-scheduler/get-provider.server';
 
 const BASE_URL = 'http://localhost/global/en-US/appointments';
 
@@ -49,7 +52,7 @@ describe('_app.appointments loader', () => {
         vi.mocked(getAuth).mockReturnValue({ userType: 'registered', customerId: 'shopper-1' } as never);
         vi.mocked(getConfig).mockReturnValue({
             scheduler: { siteId: 'Fashion' },
-            features: { appointment: { advanceNoticeMinutes: 120 } },
+            features: { appointment: { enabled: true, advanceNoticeMinutes: 120 } },
         } as never);
         vi.mocked(getAppointmentProvider).mockReturnValue({
             getServiceTerritories: vi.fn(() => Promise.resolve({ success: true, territories: [] })),
