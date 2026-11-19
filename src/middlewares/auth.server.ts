@@ -64,16 +64,16 @@ import {
     COOKIE_DWSID,
     COOKIE_AUTH_RECOVERY_GUARD,
 } from '@/middlewares/auth.utils';
-import { getBasePath, isAbsoluteURL } from '@/lib/utils';
+import { isAbsoluteURL } from '@/lib/utils';
 import { getAppOrigin } from '@/lib/origin';
-import { buildUrlFromContext } from '@/lib/url.server';
+import { buildUrlFromContext, stripMrtBasePathFromUrl } from '@/lib/url.server';
 import { getLogger } from '@/lib/logger.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { performanceTimerContext, PERFORMANCE_MARKS } from '@/middlewares/performance-metrics';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { createCookie, getCookieConfig, getCookieNameWithSiteId, parseAllCookies } from '@/lib/cookie-utils.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
-import { siteContext, stripPathPrefix } from '@salesforce/storefront-next-runtime/site-context';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { TrackingConsent, trackingConsentToBoolean } from '@/types/tracking-consent';
 import { SHOPPER_CONTEXT_COOKIE_NAME_BASE, SOURCE_CODE_COOKIE_NAME_BASE } from '@/lib/shopper-context/constants';
 
@@ -83,6 +83,20 @@ import { SHOPPER_CONTEXT_COOKIE_NAME_BASE, SOURCE_CODE_COOKIE_NAME_BASE } from '
  * falling through to guest login.
  */
 const SESSION_EXPIRED_REDIRECT = '__session_expired_redirect__';
+
+/**
+ * Where to send a registered shopper whose session expired, and with which redirect status.
+ * GET/HEAD return to the requested page (site/locale prefix kept, MRT base path removed because
+ * `buildUrlFromContext` applies it). Any other method came from an action or resource endpoint that
+ * is not a page, so go to the root and use 303 so the browser follows with GET instead of replaying
+ * the request body against the login route.
+ */
+function getSessionExpiredReturn(request: Request): { path: string; status: 303 | 307 } {
+    if (request.method === 'GET' || request.method === 'HEAD') {
+        return { path: stripMrtBasePathFromUrl(new URL(request.url).pathname), status: 307 };
+    }
+    return { path: '/', status: 303 };
+}
 
 /**
  * Resolve the commerce locale to the language-country format required by SLAS templates.
@@ -976,18 +990,21 @@ const handleAuthTokenInvalidation = async ({
     // them to login (same redirect as the post-handler branch) instead of surfacing a 500.
     if (authStorage.get('error') === SESSION_EXPIRED_REDIRECT) {
         authStorage.delete('error');
-        let requestPath = new URL(request.url).pathname;
+        const loginReturn = getSessionExpiredReturn(request);
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
         // A preference write posts to an action endpoint with no page; return to the validated document.
-        requestPath = preferenceDestination ?? requestPath;
+        if (preferenceDestination !== null) {
+            loginReturn.path = stripMrtBasePathFromUrl(preferenceDestination);
+            loginReturn.status = 303;
+        }
         // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
         logger.info('Auth: token invalidation recovery found no valid refresh token, redirecting to login');
         return {
             authRecoveryTriggered: true,
             response: new Response(null, {
-                status: 307,
+                status: loginReturn.status,
                 headers: {
-                    Location: `${buildUrlFromContext('/login', context)}?returnUrl=${encodeURIComponent(requestPath)}&error=session_expired`,
+                    Location: `${buildUrlFromContext('/login', context)}?returnUrl=${encodeURIComponent(loginReturn.path)}&error=session_expired`,
                     'Cache-Control': 'no-store',
                     'x-sfnext-auth-recovery': '1',
                 },
@@ -1496,17 +1513,16 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
             // to avoid an infinite redirect loop.
             logger.warn('Auth middleware: registered refresh failure blocked by guard, falling back to guest');
         } else {
-            // Redirect the registered shopper to the login page. Keep the site/locale prefix in
-            // returnUrl, but remove the MRT base path because buildUrlFromContext owns applying it.
-            const requestPath = new URL(request.url).pathname;
-            const returnPath = stripPathPrefix({ pathname: requestPath, prefix: getBasePath() }) || '/';
+            // Redirect the registered shopper to the login page. See getSessionExpiredReturn for the
+            // returnUrl and status rules.
+            const { path: returnPath, status } = getSessionExpiredReturn(request);
             const loginPath = buildUrlFromContext('/login', context);
             const loginUrl = `${loginPath}?returnUrl=${encodeURIComponent(returnPath)}&error=session_expired`;
             logger.info('Auth middleware: registered refresh failed, redirecting to login', { returnPath });
             authRecoveryTriggered = true;
             response = new Response(null, {
-                status: 307,
-                headers: { Location: loginUrl },
+                status,
+                headers: { Location: loginUrl, 'Cache-Control': 'no-store' },
             });
         }
     }

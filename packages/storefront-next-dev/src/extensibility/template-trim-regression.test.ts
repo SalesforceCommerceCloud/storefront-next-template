@@ -174,6 +174,34 @@ it('executes stripped auth/site middleware and retained core login coverage afte
         'virtual:storefront-next/compiled-routes'
     );
     expect(fs.existsSync(path.join(root, 'src/extensions/bopis'))).toBe(false);
+    // Lint the stripped middleware: code that is only reassigned or used inside an extension block
+    // (prefer-const, no-unused-vars) passes in the full template but fails once the block is removed.
+    const lintConfig = path.join(root, 'stripped-lint.oxlintrc.json');
+    fs.writeFileSync(
+        lintConfig,
+        JSON.stringify({
+            categories: { correctness: 'off' },
+            rules: { 'prefer-const': 'error', 'no-unused-vars': 'error' },
+        })
+    );
+    // Run the JS entry through node: `.bin/oxlint` is a `.cmd` shim on Windows and can't be spawned directly.
+    const lint = spawnSync(
+        process.execPath,
+        [
+            path.join(templateRoot, 'node_modules/oxlint/bin/oxlint'),
+            '--disable-nested-config',
+            '--config',
+            lintConfig,
+            '--max-warnings',
+            '0',
+            '--ignore-pattern',
+            '**/*.test.ts',
+            'src/middlewares',
+        ],
+        { cwd: root, encoding: 'utf8', timeout: 60000 }
+    );
+    expect(lint.error, lint.stderr).toBeUndefined();
+    expect(lint.status, `${lint.stdout}\n${lint.stderr}`).toBe(0);
     // Run against this copy's aliases and real middleware imports in a separate Vitest
     // process. Sharing only installed dependencies prevents the source tree's module
     // cache or aliases from silently substituting untrimmed implementations.

@@ -356,10 +356,32 @@ describe('auth middleware (server)', () => {
             [undefined, '/'],
         ])('returns a failed preferred-store write to the document after login (Referer %s)', async (referer, expected) => {
             const response = (await recover(null, '', referer, undefined, undefined, true)) as Response;
-            expect(response.status).toBe(307);
+            expect(response.status).toBe(303);
             const location = response.headers.get('Location') ?? '';
             expect(location).toContain('error=session_expired');
             expect(new URL(location, 'https://example.com').searchParams.get('returnUrl')).toBe(expected);
+            expect(response.headers.get('Cache-Control')).toBe('no-store');
+            expect(response.headers.get('x-sfnext-auth-recovery')).toBe('1');
+        });
+        it('omits the MRT base path and keeps the query when a failed preferred-store write returns to login', async () => {
+            vi.mocked(getBasePath).mockReturnValue('/site-a');
+            try {
+                const response = (await recover(
+                    null,
+                    '/site-a',
+                    'https://example.com/site-a/MarketStreet/en-US/cart?q=shirt',
+                    undefined,
+                    undefined,
+                    true
+                )) as Response;
+                expect(response.status).toBe(303);
+                const location = response.headers.get('Location') ?? '';
+                expect(new URL(location, 'https://example.com').searchParams.get('returnUrl')).toBe(
+                    '/MarketStreet/en-US/cart?q=shirt'
+                );
+            } finally {
+                vi.mocked(getBasePath).mockImplementation(realGetBasePath);
+            }
         });
         it.each([
             [undefined, '/site-a/'],
@@ -3436,6 +3458,113 @@ describe('auth middleware (server)', () => {
             expect(mockLogger.error).toHaveBeenCalledWith(
                 'Auth: SLAS access token isb claim is missing the customer ID (gcid/rcid)'
             );
+        });
+
+        describe('registered session expired: login redirect', () => {
+            // `invalidation` reaches handleAuthTokenInvalidation (corrupt access token); `sentinel` reaches the
+            // post-refresh branch (cold start with only a dead refresh token).
+            type Via = 'invalidation' | 'sentinel';
+            const via: Via[] = ['invalidation', 'sentinel'];
+
+            async function expire(path: string, method: string, mode: Via): Promise<Response> {
+                // A registered access token that the handler later reports as rejected (401), so the
+                // middleware recovers; the registered refresh then fails.
+                mockParseAllCookies.mockReturnValue(
+                    mode === 'invalidation'
+                        ? {
+                              'cc-nx': 'expired-registered-refresh-token',
+                              'cc-at': buildMockAccessToken({ rcid: 'reg-cust-1' }),
+                          }
+                        : { 'cc-nx': 'expired-registered-refresh-token' }
+                );
+                mockAuth.refreshToken.mockRejectedValue(new Error('SLAS 400: invalid refresh token'));
+                mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(getMockTokenResponse()));
+
+                const request = new Request(`https://example.com${path}`, { method });
+                const context = new RouterContextProvider();
+                const originalGet = context.get.bind(context);
+                vi.spyOn(context, 'get').mockImplementation((key) => {
+                    if (key === performanceTimerContext) return mockPerformanceTimer;
+                    if (key === appConfigContext) return mockConfig;
+                    return originalGet(key);
+                });
+                mockCreateCookie.mockReturnValue({ serialize: vi.fn().mockResolvedValue('Set-Cookie: mock=value') });
+
+                return (await authMiddleware(
+                    { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                    () => {
+                        if (mode === 'invalidation')
+                            context.get(authStorageContext).set('error', AUTH_TOKEN_INVALID_ERROR);
+                        return Promise.resolve(new Response('OK'));
+                    }
+                )) as Response;
+            }
+
+            function returnUrlOf(response: Response): string | null {
+                const location = response.headers.get('Location') ?? '';
+                expect(location).toContain('error=session_expired');
+                return new URL(location, 'https://example.com').searchParams.get('returnUrl');
+            }
+
+            it.each(via)('returns a GET to the requested page with 307 (%s)', async (mode) => {
+                const response = await expire('/en-US/checkout?step=2', 'GET', mode);
+                expect(response.status).toBe(307);
+                // Only the pathname is carried, as before.
+                expect(returnUrlOf(response)).toBe('/en-US/checkout');
+            });
+
+            it.each(via)('returns a HEAD to the requested page with 307 (%s)', async (mode) => {
+                const response = await expire('/en-US/checkout', 'HEAD', mode);
+                expect(response.status).toBe(307);
+                expect(returnUrlOf(response)).toBe('/en-US/checkout');
+            });
+
+            it.each(via)('omits the MRT base path from a GET returnUrl (%s)', async (mode) => {
+                vi.mocked(getBasePath).mockReturnValue('/shop');
+                try {
+                    const response = await expire('/shop/en-US/checkout', 'GET', mode);
+                    expect(returnUrlOf(response)).toBe('/en-US/checkout');
+                    const root = await expire('/shop', 'GET', mode);
+                    expect(returnUrlOf(root)).toBe('/');
+                } finally {
+                    vi.mocked(getBasePath).mockImplementation(realGetBasePath);
+                }
+            });
+
+            it.each(
+                via.flatMap((mode) => ['POST', 'PUT', 'PATCH', 'DELETE'].map((method) => [mode, method] as const))
+            )('sends a %s %s to the root with 303 so the action URL is never a return target', async (mode, method) => {
+                const response = await expire('/en-US/action/cart-item-add', method, mode);
+                expect(response.status).toBe(303);
+                expect(returnUrlOf(response)).toBe('/');
+            });
+
+            it.each(via)('sends a POST to a non-action URL to the root with 303 (%s)', async (mode) => {
+                const response = await expire('/en-US/checkout', 'POST', mode);
+                expect(response.status).toBe(303);
+                expect(returnUrlOf(response)).toBe('/');
+            });
+
+            it.each(via)('keeps the base path out of a POST returnUrl (%s)', async (mode) => {
+                vi.mocked(getBasePath).mockReturnValue('/shop');
+                try {
+                    const response = await expire('/shop/en-US/action/cart-item-add', 'POST', mode);
+                    expect(response.status).toBe(303);
+                    expect(returnUrlOf(response)).toBe('/');
+                } finally {
+                    vi.mocked(getBasePath).mockImplementation(realGetBasePath);
+                }
+            });
+
+            it('marks both redirects no-store but sets the recovery header on the invalidation branch only', async () => {
+                const invalidation = await expire('/en-US/action/cart-item-add', 'POST', 'invalidation');
+                expect(invalidation.headers.get('x-sfnext-auth-recovery')).toBe('1');
+                expect(invalidation.headers.get('Cache-Control')).toBe('no-store');
+
+                const sentinel = await expire('/en-US/action/cart-item-add', 'POST', 'sentinel');
+                expect(sentinel.headers.get('x-sfnext-auth-recovery')).toBeNull();
+                expect(sentinel.headers.get('Cache-Control')).toBe('no-store');
+            });
         });
 
         it('should route through recovery when JWT sub claim is missing usid', async () => {

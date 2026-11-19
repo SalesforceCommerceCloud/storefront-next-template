@@ -22,7 +22,7 @@ auth.server.ts middleware
   • decode access-token JWT (userType, customerId, usid, expiry, tracking consent)
   • if access token valid → use it
     elif refresh token present → refresh
-      if refresh fails AND user was registered → 307 redirect to /login?returnUrl=...&error=session_expired
+      if refresh fails AND user was registered → 307 (GET/HEAD) or 303 (other methods) redirect to /login?returnUrl=...&error=session_expired
       if refresh fails AND user was guest → guest login
     else → guest login
   • write updated tokens/metadata via Set-Cookie
@@ -83,7 +83,14 @@ To prevent loops, a short-lived guard cookie `cc-auth-recover` (`Max-Age=30`) is
 
 ### Registered session expiry redirect
 
-When a **registered** shopper's SLAS refresh token fails (SLAS returns a 400), the middleware redirects to `/login` (with the site/locale prefix) instead of silently downgrading the shopper to a guest session. The redirect carries `returnUrl` (the original request path, already prefixed) and `error=session_expired` so the login page can display a contextual message. A fresh guest session is created in parallel so the application has a valid token while the redirect is processed.
+When a **registered** shopper's SLAS refresh token fails (SLAS returns a 400), the middleware redirects to `/login` (with the site/locale prefix) instead of silently downgrading the shopper to a guest session. The redirect carries `returnUrl` and `error=session_expired` so the login page can display a contextual message. This applies to both the cold-start refresh failure and the 401 recovery path:
+
+| Request | `returnUrl` | Status |
+| ------- | ----------- | ------ |
+| GET / HEAD | Requested path (site/locale prefix kept, MRT base path removed) | 307 |
+| Any other method | `/` — an action or resource endpoint is not a page to return to | 303, so the browser follows with GET instead of replaying the body against `/login` |
+
+A failed [preferred-store write](./README-PREFERRED-STORE.md#late-preferred-store-read-recovery) is the exception: it returns to its validated document (base path removed) with a 303. A fresh guest session is created in parallel so the application has a valid token while the redirect is processed.
 
 The same `cc-auth-recover` guard cookie prevents redirect loops: if the guard is already set when the redirect would fire, the middleware falls through to the guest session rather than redirecting again. The guard expires after 30 seconds and is cleared on the follow-up request.
 
