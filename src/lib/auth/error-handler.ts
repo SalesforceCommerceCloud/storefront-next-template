@@ -19,11 +19,12 @@
  */
 
 // Shared error patterns for token-based auth features (passwordless login, password reset)
-const TOKEN_BASED_AUTH_FEATURE_UNAVAILABLE_ERRORS = [
-    /no callback_uri is registered/i,
-    /callback_uri doesn't match/i,
-    /monthly quota/i,
-];
+// SLAS validates the callback URI against the client registration, so these do not depend on
+// which user was submitted. Shared by the public reset-request routes (see
+// getSurfacedPasswordResetErrorMessageKey) and the broader feature-unavailable mapping below.
+const CLIENT_CALLBACK_URI_ERRORS = [/no callback_uri is registered/i, /callback_uri doesn't match/i];
+
+const TOKEN_BASED_AUTH_FEATURE_UNAVAILABLE_ERRORS = [...CLIENT_CALLBACK_URI_ERRORS, /monthly quota/i];
 
 const PASSWORDLESS_FEATURE_UNAVAILABLE_ERRORS = [
     ...TOKEN_BASED_AUTH_FEATURE_UNAVAILABLE_ERRORS,
@@ -108,6 +109,30 @@ export function getPasswordResetErrorMessageKey(
         return ERROR_MESSAGE_KEYS.INVALID_TOKEN;
     }
     return ERROR_MESSAGE_KEYS.GENERIC;
+}
+
+/**
+ * Password reset errors that are safe to show to a caller who has not proven they own the email.
+ *
+ * Those routes must answer identically whether or not the submitted email has an account,
+ * otherwise they become an account-enumeration oracle. Only client callback-URI registration
+ * failures qualify: SLAS checks them against the client, so they don't vary by user. Everything
+ * else is suppressed because it could differ between an existing and a non-existing account:
+ * unknown account, rate limiting, invalid token, transport or backend errors, and monthly quota
+ * (usage state SLAS may only hit once it actually sends, which only happens for real accounts).
+ *
+ * Whether SLAS evaluates each of these identically for unknown users has not been verified
+ * against a live tenant, so the list is kept as small as possible.
+ *
+ * @param errorMessage - The error message from the API
+ * @returns The translation key to show, or `undefined` when the failure must not be surfaced
+ */
+export function getSurfacedPasswordResetErrorMessageKey(
+    errorMessage: string
+): typeof ERROR_MESSAGE_KEYS.FEATURE_UNAVAILABLE | undefined {
+    return CLIENT_CALLBACK_URI_ERRORS.some((pattern) => pattern.test(errorMessage))
+        ? ERROR_MESSAGE_KEYS.FEATURE_UNAVAILABLE
+        : undefined;
 }
 
 /**

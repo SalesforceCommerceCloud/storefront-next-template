@@ -205,3 +205,9 @@ global.IntersectionObserver = class IntersectionObserver {
         return [];
     }
 };
+
+// jsdom replaces `Uint8Array` with its own realm's constructor, so Node's `TextEncoder` output is no longer an
+// `instanceof Uint8Array`. esbuild (pulled in through the SDK) asserts that invariant at load time.
+if (!(new TextEncoder().encode('') instanceof Uint8Array)) {
+    globalThis.Uint8Array = Object.getPrototypeOf(new TextEncoder().encode('')).constructor;
+}

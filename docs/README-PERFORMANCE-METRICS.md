@@ -31,6 +31,7 @@ Performance metrics are controlled through feature flags in `config.server.ts`:
 - **`serverTimingHeaderEnabled`** (default: `false`)
     - When enabled, adds a [`Server-Timing`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing) HTTP header to responses
     - ⚠️ **Warning**: This **blocks** the response until all operations complete. Only enable for development/debugging.
+    - The `auth.getPasswordResetToken` metric is never written to this header. The public password reset routes pad their response time so a known email can't be told from an unknown one, and this metric is the unpadded SLAS duration. It is still logged on the server.
 
 ## What Gets Tracked
 

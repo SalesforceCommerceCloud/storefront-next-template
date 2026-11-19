@@ -650,13 +650,15 @@ function AccountDetailsContent({
 
     /**
      * Handles password reset request for users without a password.
-     * Sends password reset email by submitting to /action/request-password-reset.
+     * Sends password reset email by submitting the account login to /action/request-password-reset.
      * Success/error feedback is shown via passwordResetFetcher useFetcherEffect.
      */
     const handlePasswordReset = () => {
-        if (userInfo.email) {
+        // SLAS keys a reset on the account login, which can differ from the editable profile email.
+        const resetIdentifier = displayCustomer?.login || userInfo.email;
+        if (resetIdentifier) {
             const formData = new FormData();
-            formData.append('email', userInfo.email);
+            formData.append('email', resetIdentifier);
 
             void passwordResetFetcher.submit(formData, {
                 method: 'POST',

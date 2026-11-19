@@ -32,6 +32,12 @@ vi.mock('@/lib/auth/remembered-email-cookie.server', () => ({
     ),
 }));
 
+// The response-time floor is covered in its own tests; here it would only slow every case by a second.
+vi.mock('@/lib/auth/response-time-floor.server', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/lib/auth/response-time-floor.server')>()),
+    withMinimumDuration: vi.fn(<T,>(_minMs: number, work: () => Promise<T>) => work()),
+}));
+
 // Successful requests return data() so they can set the remembered-email cookie
 const getActionData = (result: unknown) =>
     result && typeof result === 'object' && 'data' in result ? (result as { data: unknown }).data : result;
@@ -46,13 +52,15 @@ vi.mock('@/lib/url.server', () => ({
     buildUrlFromContext: vi.fn((to: string) => to),
 }));
 
+const mockLogger = vi.hoisted(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+}));
+
 vi.mock('@/lib/logger.server', () => ({
-    getLogger: vi.fn(() => ({
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        debug: vi.fn(),
-    })),
+    getLogger: vi.fn(() => mockLogger),
 }));
 
 // Mock the form component
@@ -286,101 +294,137 @@ describe('forgot-password route', () => {
             });
         });
 
-        describe('API errors', () => {
-            it('should return generic error when getPasswordResetToken fails', async () => {
-                const mockGetPasswordResetToken = vi.mocked(getPasswordResetToken);
-                mockGetPasswordResetToken.mockRejectedValue(new Error('API Error'));
-
-                const formData = new URLSearchParams();
-                formData.append('email', 'test@example.com');
-
+        describe('account enumeration', () => {
+            const submit = async (email: string) => {
                 const mockRequest = new Request('http://localhost/forgot-password', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: formData.toString(),
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ email }).toString(),
                 });
-
-                const args = {
+                return action({
                     request: mockRequest,
                     url: new URL(mockRequest.url),
                     params: { siteId: 'test-site', localeId: 'en-US' },
                     context: mockContext,
                     pattern: 'forgot-password',
-                };
-
-                const result = await action(args);
-
-                expect(mockGetPasswordResetToken).toHaveBeenCalledWith(mockContext, {
-                    email: 'test@example.com',
                 });
-                // Should show generic error, not the actual API error
-                expect(result).toEqual({
-                    error: t('errors:genericTryAgain'),
+            };
+
+            const setCookieOf = (result: unknown) =>
+                new Headers((result as { init?: ResponseInit }).init?.headers).get('Set-Cookie');
+
+            // Every way the send can end for an account that is not (or cannot be) reset
+            const suppressedFailures: Array<[string, Error]> = [
+                ['unknown account', new Error('Email not found')],
+                ['generic API error', new Error('API Error')],
+                ['Marketing Cloud failure', new Error('Marketing Cloud API Error')],
+                ['network failure', new Error('Network timeout')],
+                ['invalid token style error', new Error('Invalid authentication token provided.')],
+                ['rate limit', new Error('Too many password reset requests. Please try again later.')],
+                ['monthly quota', new Error('Monthly quota exceeded for password resets')],
+            ];
+
+            it.each(
+                suppressedFailures
+            )('returns the same response and Set-Cookie as a successful send for %s', async (_label, failure) => {
+                const email = 'someone@example.com';
+
+                vi.mocked(getPasswordResetToken).mockResolvedValueOnce({
+                    data: undefined,
+                    response: Response.json({}),
                 });
+                const known = await submit(email);
+
+                vi.mocked(getPasswordResetToken).mockRejectedValueOnce(failure);
+                const suppressed = await submit(email);
+
+                expect(getActionData(suppressed)).toEqual(getActionData(known));
+                expect(getActionData(suppressed)).toEqual({ success: true, email });
+                expect(setCookieOf(suppressed)).toBe('cc-pwreset-email_Site=someone%40example.com; HttpOnly');
+                expect(setCookieOf(suppressed)).toBe(setCookieOf(known));
             });
 
-            it('should return generic error for non-existent email (security)', async () => {
-                const mockGetPasswordResetToken = vi.mocked(getPasswordResetToken);
-                mockGetPasswordResetToken.mockRejectedValue(new Error('Email not found'));
+            it('does not surface any error to the client when the send fails', async () => {
+                vi.mocked(getPasswordResetToken).mockRejectedValueOnce(new Error('Email not found'));
 
-                const formData = new URLSearchParams();
-                formData.append('email', 'nonexistent@example.com');
+                const result = await submit('nonexistent@example.com');
 
-                const mockRequest = new Request('http://localhost/forgot-password', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: formData.toString(),
-                });
-
-                const args = {
-                    request: mockRequest,
-                    url: new URL(mockRequest.url),
-                    params: { siteId: 'test-site', localeId: 'en-US' },
-                    context: mockContext,
-                    pattern: 'forgot-password',
-                };
-
-                const result = await action(args);
-
-                // Should not reveal that email doesn't exist (security best practice)
-                expect(result).toEqual({
-                    error: t('errors:genericTryAgain'),
-                });
+                expect(getActionData(result)).not.toHaveProperty('error');
             });
 
-            it('should return generic error when Marketing Cloud fails', async () => {
-                const mockGetPasswordResetToken = vi.mocked(getPasswordResetToken);
-                mockGetPasswordResetToken.mockRejectedValue(new Error('Marketing Cloud API Error'));
+            it('still logs the suppressed failure server-side', async () => {
+                const failure = new Error('Email not found');
+                vi.mocked(getPasswordResetToken).mockRejectedValueOnce(failure);
 
-                const formData = new URLSearchParams();
-                formData.append('email', 'test@example.com');
+                await submit('nonexistent@example.com');
 
+                expect(mockLogger.error).toHaveBeenCalledWith(
+                    expect.stringContaining('ForgotPassword'),
+                    expect.objectContaining({ error: failure })
+                );
+            });
+
+            it('never puts the raw email in a log line', async () => {
+                vi.mocked(getPasswordResetToken).mockRejectedValueOnce(new Error('Email not found'));
+
+                await submit('nonexistent@example.com');
+
+                const logged = JSON.stringify([...mockLogger.info.mock.calls, ...mockLogger.error.mock.calls]);
+                expect(logged).not.toContain('nonexistent@example.com');
+            });
+
+            it.each([
+                ['no callback_uri is registered', 'No callback_uri is registered for this client'],
+                ['callback_uri mismatch', "Callback_uri doesn't match the registered value"],
+            ])('still surfaces feature-unavailable (%s) because it is a client-level configuration check', async (_l, msg) => {
+                vi.mocked(getPasswordResetToken).mockRejectedValueOnce(new Error(msg));
+
+                const result = await submit('someone@example.com');
+
+                expect(getActionData(result)).toEqual({ error: t('errors:featureUnavailable') });
+                // No remembered-email cookie for a request that could not be sent for any account
+                expect(setCookieOf(result)).toBeNull();
+            });
+        });
+
+        describe('response time', () => {
+            const submit = async (formData: URLSearchParams) => {
                 const mockRequest = new Request('http://localhost/forgot-password', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: formData.toString(),
                 });
-
-                const args = {
+                return action({
                     request: mockRequest,
                     url: new URL(mockRequest.url),
                     params: { siteId: 'test-site', localeId: 'en-US' },
                     context: mockContext,
                     pattern: 'forgot-password',
-                };
-
-                const result = await action(args);
-
-                // Should not expose Marketing Cloud error details
-                expect(result).toEqual({
-                    error: t('errors:genericTryAgain'),
                 });
+            };
+
+            it('runs known and unknown email outcomes inside the response-time floor', async () => {
+                const { withMinimumDuration, PASSWORD_RESET_MIN_RESPONSE_MS } = await import(
+                    '@/lib/auth/response-time-floor.server'
+                );
+                vi.mocked(withMinimumDuration).mockClear();
+
+                vi.mocked(getPasswordResetToken).mockResolvedValueOnce(undefined as any);
+                await submit(new URLSearchParams({ email: 'known@example.com' }));
+                vi.mocked(getPasswordResetToken).mockRejectedValueOnce(new Error('Email not found'));
+                await submit(new URLSearchParams({ email: 'unknown@example.com' }));
+
+                expect(withMinimumDuration).toHaveBeenCalledTimes(2);
+                expect(withMinimumDuration).toHaveBeenCalledWith(PASSWORD_RESET_MIN_RESPONSE_MS, expect.any(Function));
+            });
+
+            it('does not pad a request with no email (it reveals nothing about any account)', async () => {
+                const { withMinimumDuration } = await import('@/lib/auth/response-time-floor.server');
+                vi.mocked(withMinimumDuration).mockClear();
+
+                await submit(new URLSearchParams({}));
+
+                expect(withMinimumDuration).not.toHaveBeenCalled();
             });
         });
 

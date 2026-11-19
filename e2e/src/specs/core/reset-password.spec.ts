@@ -20,25 +20,21 @@ Feature('Reset Password').tag('@core').tag('@auth');
 // instead of the UI signup form, so the magic-link scenario's setup no longer
 // flakes (cc-nx_ cookie timeout / "Last Name Input" disappearing mid-form).
 //
-// "User can request password reset" depends on SLAS environment state. It
-// asserts the "Check Your Email" heading, which only renders after the reset
-// request to SLAS succeeds. That request can fail for several environment-side
-// reasons, all surfacing as the heading never showing:
-//   - Too many reset emails sent at once, exceeding the email provider's
-//     rate/concurrency limits so the send is refused. This is why the scenario
-//     is @nightly-only (below): running it on every PR triggers many concurrent
-//     sends.
-//   - Password-reset email quota exhausted (when resetPassword.mode='email',
-//     SLAS sends the metered email itself) → FEATURE_UNAVAILABLE.
-//   - The SLAS client's callback_uri is not registered / doesn't match the
-//     request origin → FEATURE_UNAVAILABLE.
-//   - The SLAS client is missing password-reset Site Configuration in the SLAS
-//     Admin UI (e.g. the Domain Identity is not set).
+// "User can request password reset" depends on SLAS environment state. The
+// anonymous forgot-password form deliberately shows "Check Your Email" for every
+// outcome except a client callback_uri misconfiguration, so that it cannot be
+// used to tell which addresses have accounts. That means this heading no longer
+// proves the email was sent: send failures (rate/concurrency limits at the email
+// provider, exhausted password-reset quota when resetPassword.mode='email', a
+// SLAS client missing password-reset Site Configuration) are only visible in the
+// server logs, not in the UI. Only a callback_uri that is not registered or
+// doesn't match the request origin still surfaces as FEATURE_UNAVAILABLE.
+// The scenario is @nightly-only (below) because running it on every PR triggers
+// many concurrent sends.
 // This stability depends on SLAS environment state that isn't version-controlled
-// here, so a client-config regression flakes the scenario with no code-level
-// signal. If it starts failing on "Check Your Email", check the SLAS client's
-// Site Configuration (Clients > select client id > Site Configuration > Domain
-// Identity) and the email-send path before looking for a code cause.
+// here. If delivery stops, check the server logs for "ForgotPassword: failed"
+// and the SLAS client's Site Configuration (Clients > select client id > Site
+// Configuration > Domain Identity) before looking for a code cause.
 const { storefrontPage, forgotPasswordPage, resetPasswordPage, apiSignupFlow } = inject();
 import { expect } from 'chai';
 

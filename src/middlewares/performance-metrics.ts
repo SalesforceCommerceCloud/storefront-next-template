@@ -78,6 +78,16 @@ export const PERFORMANCE_MARKS = {
     },
 } as const;
 
+/**
+ * Marks that must never appear in the `Server-Timing` response header.
+ *
+ * The public password reset routes pad their response to a minimum duration so a known email can't
+ * be told from an unknown one by how long SLAS takes. This mark is that unpadded SLAS duration, so
+ * publishing it would let a caller read the difference the padding hides. It is still recorded and
+ * logged server-side.
+ */
+const SERVER_TIMING_EXCLUDED_MARKS: ReadonlySet<string> = new Set([PERFORMANCE_MARKS.authGetPasswordResetToken]);
+
 let sfdcPerformanceMetricsReported = false;
 
 /**
@@ -180,6 +190,9 @@ export class PerformanceTimer {
      *
      * see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing
      *
+     * Metrics named in `SERVER_TIMING_EXCLUDED_MARKS` are left out because the header is visible to
+     * the caller. They remain in `this.metrics` and in the console log.
+     *
      * @function
      * @private
      *
@@ -187,6 +200,7 @@ export class PerformanceTimer {
      */
     buildServerTimingHeader(): string {
         return this.metrics
+            .filter((metric) => !SERVER_TIMING_EXCLUDED_MARKS.has(metric.name))
             .map((metric) => {
                 return `${metric.name};dur=${metric.duration.toFixed(2)}`;
             })

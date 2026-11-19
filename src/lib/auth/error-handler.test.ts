@@ -21,6 +21,7 @@ import {
     extractErrorMessage,
     getPasswordlessErrorMessageKey,
     getPasswordResetErrorMessageKey,
+    getSurfacedPasswordResetErrorMessageKey,
     isLoginIdMismatchError,
 } from './error-handler';
 
@@ -84,6 +85,31 @@ describe('getPasswordResetErrorMessageKey', () => {
     it('returns GENERIC for unknown error messages', () => {
         const message = 'Some unexpected error from backend';
         expect(getPasswordResetErrorMessageKey(message)).toBe(ERROR_MESSAGE_KEYS.GENERIC);
+    });
+});
+
+describe('getSurfacedPasswordResetErrorMessageKey', () => {
+    it.each([
+        'No callback_uri is registered for this client',
+        "Callback_uri doesn't match the registered value",
+    ])('surfaces FEATURE_UNAVAILABLE for "%s" (client-level configuration check)', (message) => {
+        expect(getSurfacedPasswordResetErrorMessageKey(message)).toBe(ERROR_MESSAGE_KEYS.FEATURE_UNAVAILABLE);
+    });
+
+    it.each([
+        // Rate limiting is only safe to surface if SLAS counts unknown IDs the same as known ones
+        'Too many password reset requests. Please try again later.',
+        // Quota is usage state: SLAS may only hit it once it actually sends, which only happens for existing accounts
+        'Monthly quota exceeded for password resets',
+        // Anything that could differ between an existing and a non-existing account
+        'Email not found',
+        'User not found',
+        'Invalid authentication token provided.',
+        'Some unexpected error from backend',
+        'Network timeout',
+        '',
+    ])('suppresses "%s" so the response cannot reveal whether the account exists', (message) => {
+        expect(getSurfacedPasswordResetErrorMessageKey(message)).toBeUndefined();
     });
 });
 

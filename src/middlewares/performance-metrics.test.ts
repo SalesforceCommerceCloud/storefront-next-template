@@ -358,6 +358,31 @@ describe('PerformanceTimer', () => {
 
             expect(header).toMatch(/operation1;dur=\d+\.\d{2}, operation2;dur=\d+\.\d{2}/);
         });
+
+        test('omits the password reset token metric but keeps it in the recorded metrics', () => {
+            const timer = new PerformanceTimer({ enabled: true });
+            timer.mark('operation1', 'start');
+            timer.mark('operation1', 'end');
+            timer.mark('auth.getPasswordResetToken', 'start');
+            timer.mark('auth.getPasswordResetToken', 'end');
+            timer.mark('operation2', 'start');
+            timer.mark('operation2', 'end');
+
+            const header = timer.buildServerTimingHeader();
+
+            expect(header).not.toContain('getPasswordResetToken');
+            expect(header).toMatch(/^operation1;dur=\d+\.\d{2}, operation2;dur=\d+\.\d{2}$/);
+            // Still recorded, so the console log keeps it.
+            expect(timer.metrics.map((metric) => metric.name)).toContain('auth.getPasswordResetToken');
+        });
+
+        test('returns an empty string when the password reset token metric is the only one', () => {
+            const timer = new PerformanceTimer({ enabled: true });
+            timer.mark('auth.getPasswordResetToken', 'start');
+            timer.mark('auth.getPasswordResetToken', 'end');
+
+            expect(timer.buildServerTimingHeader()).toBe('');
+        });
     });
 });
 
@@ -451,6 +476,45 @@ describe('Performance Metrics Middlewares', () => {
             expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍'));
             expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('═'.repeat(120)));
             expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📊 Summary:'));
+        });
+
+        test('does not put the password reset token duration in the Server-Timing header', async () => {
+            // Both flags on is the only combination that emits the header.
+            const mockRequest = { url: 'https://example.com/action/request-password-reset' } as Request;
+            const mockContext = createTestContext({
+                appConfig: {
+                    performance: {
+                        metrics: {
+                            serverPerformanceMetricsEnabled: true,
+                            clientPerformanceMetricsEnabled: false,
+                            serverTimingHeaderEnabled: true,
+                        },
+                    },
+                } as TestContextConfig['appConfig'],
+            });
+            // The route marks the SLAS call through the timer the middleware put in context.
+            const mockNext = vi.fn().mockImplementation(() => {
+                // The file's PerformanceTimerType is the class; the context holds an instance.
+                const timer = mockContext.get(performanceTimerContext) as unknown as
+                    | InstanceType<PerformanceTimerType>
+                    | undefined;
+                timer?.mark('auth.getPasswordResetToken', 'start');
+                timer?.mark('auth.getPasswordResetToken', 'end');
+                timer?.mark('auth.refreshToken', 'start');
+                timer?.mark('auth.refreshToken', 'end');
+                return Promise.resolve(new Response('ok'));
+            });
+
+            const result = await performanceMetricsMiddlewareServer(
+                { request: mockRequest, context: mockContext, params: {}, pattern: '/', url: new URL(mockRequest.url) },
+                mockNext
+            );
+
+            const header = (result as Response).headers.get('Server-Timing') ?? '';
+            // The sentinel marks prove the header was emitted, so the absence below is meaningful.
+            expect(header).toContain('auth.refreshToken;dur=');
+            expect(header).toContain('ssr.total;dur=');
+            expect(header).not.toContain('getPasswordResetToken');
         });
     });
 

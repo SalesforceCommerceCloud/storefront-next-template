@@ -1140,6 +1140,45 @@ describe('AccountDetails', () => {
             expect(within(passwordCard).getByText('••••••••')).toBeInTheDocument();
             expect(within(passwordCard).getByRole('button', { name: 'Change password' })).toBeInTheDocument();
         });
+
+        describe('requesting a password reset email', () => {
+            const clickReset = async (customer: Customer) => {
+                await renderAccountDetails(customer);
+                mockFetcherSubmit.mockClear();
+                const passwordCard = screen.getByTestId('sf-toggle-card-password');
+                act(() => {
+                    within(passwordCard).getByRole('button', { name: 'Reset password' }).click();
+                });
+            };
+
+            test('submits the account login, which is what SLAS keys a reset on', async () => {
+                await clickReset({ ...mockCustomer, hasPassword: false, login: 'login@example.com' });
+
+                expect(mockFetcherSubmit).toHaveBeenCalledTimes(1);
+                const [formData, options] = mockFetcherSubmit.mock.calls[0];
+                expect((formData as FormData).get('email')).toBe('login@example.com');
+                expect(options).toMatchObject({ method: 'POST' });
+            });
+
+            test('submits the login rather than a different (editable) profile email', async () => {
+                await clickReset({
+                    ...mockCustomer,
+                    hasPassword: false,
+                    login: 'login@example.com',
+                    email: 'profile-contact@example.com',
+                });
+
+                const [formData] = mockFetcherSubmit.mock.calls[0];
+                expect((formData as FormData).get('email')).toBe('login@example.com');
+            });
+
+            test('falls back to the profile email when the customer has no login', async () => {
+                await clickReset({ ...mockCustomer, hasPassword: false, login: undefined, email: 'only@example.com' });
+
+                const [formData] = mockFetcherSubmit.mock.calls[0];
+                expect((formData as FormData).get('email')).toBe('only@example.com');
+            });
+        });
     });
 
     describe('Focus management', () => {

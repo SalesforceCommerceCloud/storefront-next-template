@@ -17,7 +17,7 @@ import type { ReactElement } from 'react';
 import { data, redirect, useActionData } from 'react-router';
 import type { Route } from './+types/_empty.forgot-password';
 import { useTranslation } from 'react-i18next';
-import { getPasswordResetErrorMessageKey, extractErrorMessage } from '@/lib/auth/error-handler';
+import { getSurfacedPasswordResetErrorMessageKey, extractErrorMessage } from '@/lib/auth/error-handler';
 
 // Components
 import { Link } from '@/components/link';
@@ -34,6 +34,7 @@ import { routes } from '@/route-paths';
 import { getAuth, getPasswordResetToken } from '@/middlewares/auth.server';
 import { getLogger } from '@/lib/logger.server';
 import { serializePasswordResetEmailCookie } from '@/lib/auth/remembered-email-cookie.server';
+import { PASSWORD_RESET_MIN_RESPONSE_MS, withMinimumDuration } from '@/lib/auth/response-time-floor.server';
 
 type ForgotPasswordActionData = {
     error?: string;
@@ -63,21 +64,31 @@ export async function action({
         return { error: t('resetPassword:emailRequired') };
     }
 
-    try {
-        //Send password reset token using SLAS and Marketing Cloud
-        await getPasswordResetToken(context, { email });
-        logger.info('ForgotPassword: reset token sent');
-        // Remember the email for the reset page; the reset link doesn't carry it
+    // Everything below depends on the submitted email, so it all takes at least the floor: a
+    // rate-limited known account otherwise answers measurably slower than an unknown one.
+    return withMinimumDuration(PASSWORD_RESET_MIN_RESPONSE_MS, async () => {
+        try {
+            //Send password reset token using SLAS and Marketing Cloud
+            await getPasswordResetToken(context, { email });
+            logger.info('ForgotPassword: reset token sent');
+        } catch (error) {
+            logger.error('ForgotPassword: failed', { error });
+            // Only configuration failures (same for every email) are shown. Any other failure, including
+            // "no such account" and rate limiting, is suppressed so this public route answers identically
+            // whether or not the email has an account.
+            const errorKey = getSurfacedPasswordResetErrorMessageKey(extractErrorMessage(error));
+            if (errorKey) {
+                return { error: t(errorKey) };
+            }
+        }
+
+        // Remember the email for the reset page; the reset link doesn't carry it. Set on every
+        // non-configuration outcome so the response headers can't distinguish known from unknown emails.
         return data(
             { success: true, email },
             { headers: { 'Set-Cookie': await serializePasswordResetEmailCookie(context, email) } }
         );
-    } catch (error) {
-        logger.error('ForgotPassword: failed', { error });
-        const errorMessage = extractErrorMessage(error);
-        const errorKey = getPasswordResetErrorMessageKey(errorMessage);
-        return { error: t(errorKey) };
-    }
+    });
 }
 
 export default function ForgotPassword(): ReactElement {
