@@ -38,6 +38,19 @@ import { parseBasketCookie } from '@/lib/basket/cookie';
 const subscribeBasketCookie = () => () => {};
 const getServerBasketCookieSnapshot = (): BasketSnapshot | null => null;
 
+// Cookie and loader snapshots can have equal fields but different references; useMemo alone cannot preserve
+// their identity. Shallowly compare all own fields for the context merge and props-sync bail-out. Primitive custom
+// fields are included; nested values are compared by reference and missing keys differ from undefined-valued keys.
+// When JSON serialization changes either, keep the existing cookie-wins behavior rather than normalizing props.
+const isSameSnapshot = (a?: BasketSnapshot | null, b?: BasketSnapshot | null): boolean => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    const keys = Object.keys(a);
+    return (
+        keys.length === Object.keys(b).length && keys.every((key) => Object.hasOwn(b, key) && Object.is(a[key], b[key]))
+    );
+};
+
 export type BasketProviderValue = {
     snapshot?: BasketSnapshot | null;
     current?: ShopperBasketsV2.schemas['Basket'];
@@ -107,7 +120,12 @@ const BasketUpdaterContext = createContext<BasketUpdater | undefined>(undefined)
  *    mutations. Read on the client via `useSyncExternalStore`. Treated as ground truth post-hydration: it overrides
  *    the prop snapshot whenever present.
  *
- * The merge rule is `cookieSnapshot ?? state.snapshot`, i.e. cookie wins whenever the visitor has one.
+ * The merge rule is `cookieSnapshot ?? state.snapshot`, i.e. cookie wins whenever the visitor has one. When the cookie
+ * shallowly matches the props snapshot field for field, the props snapshot object is kept: a new object with the same data would
+ * change the context identity right after hydration, re-rendering consumers and potentially interrupting hydration
+ * of pending Suspense boundaries.
+ * This avoids identity changes for the default flat snapshot and primitive custom fields. Nested custom values and
+ * keys omitted by cookie JSON serialization retain the existing cookie-wins behavior, not structural deduplication.
  *
  * ## Why two sources — enabling cache-safe SSR
  *
@@ -254,27 +272,40 @@ const BasketProvider = (
         getServerBasketCookieSnapshot
     );
 
-    const ctxValue = useMemo(() => {
-        const effectiveSnapshot = cookieSnapshot ?? state?.snapshot;
-        return {
+    const effectiveSnapshot =
+        cookieSnapshot && !isSameSnapshot(cookieSnapshot, state?.snapshot) ? cookieSnapshot : state?.snapshot;
+
+    const ctxValue = useMemo(
+        () => ({
             snapshot: effectiveSnapshot,
             current: state?.current,
             hydrated: state?.hydrated,
             error: state?.error,
-        };
-    }, [state, cookieSnapshot]);
+        }),
+        [state, effectiveSnapshot]
+    );
 
     // Update the internal state when the props change.
     useEffect(() => {
         if (basket === undefined && snapshot === undefined) {
             return;
         }
-        setState((current) => ({
-            current: basket === undefined ? current?.current : basket,
-            snapshot: snapshot === undefined ? current?.snapshot : snapshot,
-            hydrated: basket === undefined ? current?.hydrated : Boolean(basket),
-            error: basket === undefined ? current?.error : null,
-        }));
+        setState((current) => {
+            const next = {
+                current: basket === undefined ? current?.current : basket,
+                snapshot: snapshot === undefined ? current?.snapshot : snapshot,
+                hydrated: basket === undefined ? current?.hydrated : Boolean(basket),
+                error: basket === undefined ? current?.error : null,
+            };
+            // Keep the state object when nothing changed, so the context value stays stable.
+            return current &&
+                next.current === current.current &&
+                isSameSnapshot(next.snapshot, current.snapshot) &&
+                next.hydrated === current.hydrated &&
+                next.error === current.error
+                ? current
+                : next;
+        });
     }, [basket, snapshot]);
 
     // Provider-owned basket fetcher. Hosting it here (rather than in a hook called from arbitrary

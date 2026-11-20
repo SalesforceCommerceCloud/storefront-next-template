@@ -17,7 +17,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render, renderHook } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
-import type { ReactNode } from 'react';
+import { memo, useLayoutEffect, type ReactNode } from 'react';
 import AuthProvider, { useAuth } from './auth';
 import { getUserTypeCookieName } from '@/lib/auth/user-type-hint';
 import type { PublicSessionData } from '@/lib/api/types';
@@ -91,6 +91,25 @@ describe('providers/auth.tsx', () => {
             expect(result.current?.usid).toBe('loader-usid');
             // customerId is never carried in the hint, so it stays whatever the loader provided (absent here).
             expect(result.current?.customerId).toBeUndefined();
+        });
+
+        it('keeps the loader value object when the hint confirms its userType', () => {
+            document.cookie = `${cookieName}=${encode('guest')}`;
+            const value: PublicSessionData = { userType: 'guest', usid: 'loader-usid' };
+
+            const { result } = renderHook(() => useAuth(), { wrapper: withProviders(value) });
+
+            expect(result.current).toBe(value);
+        });
+
+        it('creates a new value when the hint differs from the loader userType', () => {
+            document.cookie = `${cookieName}=${encode('registered')}`;
+            const value: PublicSessionData = { userType: 'guest', usid: 'loader-usid' };
+
+            const { result } = renderHook(() => useAuth(), { wrapper: withProviders(value) });
+
+            expect(result.current).not.toBe(value);
+            expect(result.current).toEqual({ userType: 'registered', usid: 'loader-usid' });
         });
 
         it('restores userType even when the loader value is undefined (fully cached shell)', () => {
@@ -225,6 +244,85 @@ describe('providers/auth.tsx', () => {
                 document.body.removeChild(container);
             }
         });
+    });
+
+    // A new object with the same data would change the context identity right after hydration and re-render every
+    // consumer, potentially interrupting hydration of pending Suspense boundaries.
+    it('keeps one context value through hydration when the hint confirms the loader value', () => {
+        document.cookie = `${cookieName}=${encode('guest')}`;
+        const value: PublicSessionData = { userType: 'guest' };
+        const seen: Array<PublicSessionData | undefined> = [];
+        const committed: Array<PublicSessionData | undefined> = [];
+        const Probe = () => {
+            const auth = useAuth();
+            seen.push(auth);
+            useLayoutEffect(() => {
+                committed.push(auth);
+            });
+            return <span>probe</span>;
+        };
+        const tree = (
+            <AuthProvider value={value} siteId={SITE_ID}>
+                <Probe />
+            </AuthProvider>
+        );
+        const container = document.createElement('div');
+        container.innerHTML = renderToString(tree);
+        document.body.appendChild(container);
+        let root: ReturnType<typeof hydrateRoot> | undefined;
+        try {
+            act(() => {
+                root = hydrateRoot(container, tree);
+            });
+
+            expect(seen.length).toBeGreaterThan(0);
+            expect(seen.every((seenValue) => seenValue === value)).toBe(true);
+            expect(committed).toEqual([value]);
+        } finally {
+            act(() => root?.unmount());
+            document.body.removeChild(container);
+        }
+    });
+
+    it('skips consumer commits for a confirming hint but propagates hint and loader changes', () => {
+        const committed: Array<PublicSessionData | undefined> = [];
+        const Probe = memo(function Probe() {
+            const auth = useAuth();
+            useLayoutEffect(() => {
+                committed.push(auth);
+            });
+            return null;
+        });
+        const child = <Probe />;
+        const value: PublicSessionData = { userType: 'guest', usid: 'loader-usid' };
+        const tree = (session: PublicSessionData) => (
+            <AuthProvider value={session} siteId={SITE_ID}>
+                {child}
+            </AuthProvider>
+        );
+        const { rerender } = render(tree(value));
+        expect(committed).toEqual([value]);
+
+        document.cookie = `${cookieName}=${encode('guest')}`;
+        rerender(tree(value));
+        expect(committed).toEqual([value]);
+
+        document.cookie = `${cookieName}=${encode('registered')}`;
+        rerender(tree(value));
+        expect(committed.at(-1)).toEqual({ ...value, userType: 'registered' });
+        const hintCommits = committed.length;
+        expect(hintCommits).toBeGreaterThan(1);
+
+        const registered: PublicSessionData = { ...value, userType: 'registered', customerId: 'new-customer' };
+        rerender(tree(registered));
+        expect(committed.length).toBeGreaterThan(hintCommits);
+        expect(committed.at(-1)).toBe(registered);
+
+        const loaderCommits = committed.length;
+        clearCookies();
+        rerender(tree(value));
+        expect(committed.length).toBeGreaterThan(loaderCommits);
+        expect(committed.at(-1)).toBe(value);
     });
 
     describe('useAuth', () => {

@@ -16,7 +16,8 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { act, render, renderHook, waitFor } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
-import type { PropsWithChildren } from 'react';
+import { memo, useLayoutEffect, type PropsWithChildren } from 'react';
+import { hydrateRoot } from 'react-dom/client';
 import type { ShopperBasketsV2 } from '@/scapi';
 import type { BasketSnapshot } from '@/middlewares/basket.server';
 import BasketProvider, {
@@ -764,6 +765,51 @@ describe('BasketProvider hooks', () => {
             expect(result.current).toEqual(cookieSnapshot);
         });
 
+        it('keeps the props snapshot object when the cookie holds the same data', () => {
+            writeBasketCookie(btoa(JSON.stringify(mockSnapshot)));
+
+            const { result } = renderHook(() => useBasketSnapshot(), {
+                wrapper: wrapperWithProps({ snapshot: mockSnapshot }),
+            });
+
+            expect(result.current).toBe(mockSnapshot);
+        });
+
+        it.each([
+            { label: 'object', customValue: { count: 1 } },
+            { label: 'array', customValue: [1, 2] },
+            { label: 'undefined', customValue: undefined },
+        ])('uses the cookie copy for a $label custom field after its JSON round trip', ({ customValue }) => {
+            const snapshot: BasketSnapshot = { ...mockSnapshot, customValue };
+            const cookieCopy = JSON.parse(JSON.stringify(snapshot));
+            writeBasketCookie(btoa(JSON.stringify(snapshot)));
+
+            const { result, rerender } = renderHook(() => useBasketSnapshot(), {
+                wrapper: wrapperWithProps({ snapshot }),
+            });
+
+            // Shallow equality does not normalize JSON serialization or compare nested values structurally.
+            expect(result.current).not.toBe(snapshot);
+            expect(result.current).toEqual(cookieCopy);
+            expect(Object.hasOwn(result.current ?? {}, 'customValue')).toBe(customValue !== undefined);
+            const first = result.current;
+            rerender();
+            expect(result.current).toBe(first);
+            expect(mockFetcher.load).not.toHaveBeenCalled();
+        });
+
+        it('prefers the cookie snapshot when only one field differs', () => {
+            const cookieSnapshot: BasketSnapshot = { ...mockSnapshot, totalItemCount: mockSnapshot.totalItemCount + 1 };
+            writeBasketCookie(btoa(JSON.stringify(cookieSnapshot)));
+
+            const { result } = renderHook(() => useBasketSnapshot(), {
+                wrapper: wrapperWithProps({ snapshot: mockSnapshot }),
+            });
+
+            expect(result.current).not.toBe(mockSnapshot);
+            expect(result.current).toEqual(cookieSnapshot);
+        });
+
         it('falls back to the props snapshot when cookie JSON cannot be parsed', () => {
             writeBasketCookie(encodeURIComponent('not-a-valid-json-string'));
 
@@ -1415,6 +1461,164 @@ describe('BasketProvider hooks', () => {
                 expect(result.current.current).toBe(mockBasket);
             });
             expect(result.current.hydrated).toBe(true);
+        });
+    });
+
+    describe('stable context value', () => {
+        it('commits a consumer only once when hydration confirms the snapshot', () => {
+            writeBasketCookie(btoa(JSON.stringify(mockSnapshot)));
+            const committed: Array<BasketSnapshot | null | undefined> = [];
+            const Probe = () => {
+                const snapshot = useBasketSnapshot();
+                useLayoutEffect(() => {
+                    committed.push(snapshot);
+                });
+                return <span>{snapshot?.totalItemCount}</span>;
+            };
+            const tree = (
+                <BasketProvider snapshot={mockSnapshot}>
+                    <Probe />
+                </BasketProvider>
+            );
+            const container = document.createElement('div');
+            container.innerHTML = renderToString(tree);
+            document.body.appendChild(container);
+            let root: ReturnType<typeof hydrateRoot> | undefined;
+            try {
+                act(() => {
+                    root = hydrateRoot(container, tree);
+                });
+                expect(committed).toEqual([mockSnapshot]);
+                expect(committed[0]).toBe(mockSnapshot);
+                expect(mockFetcher.load).not.toHaveBeenCalled();
+            } finally {
+                act(() => root?.unmount());
+                container.remove();
+            }
+        });
+
+        it('does not commit consumers for equal props or a re-parsed equal cookie', () => {
+            const committed: Array<BasketSnapshot | null | undefined> = [];
+            const Probe = memo(function Probe() {
+                const snapshot = useBasketSnapshot();
+                useLayoutEffect(() => {
+                    committed.push(snapshot);
+                });
+                return null;
+            });
+            const child = <Probe />;
+            const tree = (snapshot: BasketSnapshot) => <BasketProvider snapshot={snapshot}>{child}</BasketProvider>;
+            const { rerender } = render(tree(mockSnapshot));
+            expect(committed).toEqual([mockSnapshot]);
+
+            rerender(tree({ ...mockSnapshot }));
+            expect(committed).toEqual([mockSnapshot]);
+
+            writeBasketCookie(btoa(JSON.stringify(mockSnapshot)));
+            rerender(tree({ ...mockSnapshot }));
+            expect(committed).toEqual([mockSnapshot]);
+
+            writeBasketCookie(
+                btoa(
+                    JSON.stringify({
+                        lastModified: '',
+                        uniqueProductCount: 0,
+                        totalItemCount: 0,
+                        basketId: 'basket-123',
+                    })
+                )
+            );
+            rerender(tree({ ...mockSnapshot }));
+            expect(committed).toEqual([mockSnapshot]);
+            expect(mockFetcher.load).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            { ...mockSnapshot, basketId: 'basket-next' },
+            { ...mockSnapshot, totalItemCount: 3 },
+            { ...mockSnapshot, uniqueProductCount: 2 },
+            { ...mockSnapshot, lastModified: '2026-01-01T00:05:00.000Z' },
+            { ...mockSnapshot, customCount: 1 },
+        ])('commits consumers for changed props and cookie fields: %j', (changed) => {
+            const committed: Array<BasketSnapshot | null | undefined> = [];
+            const Probe = memo(function Probe() {
+                const snapshot = useBasketSnapshot();
+                useLayoutEffect(() => {
+                    committed.push(snapshot);
+                });
+                return null;
+            });
+            const child = <Probe />;
+            const tree = (snapshot: BasketSnapshot | null) => (
+                <BasketProvider snapshot={snapshot}>{child}</BasketProvider>
+            );
+            const { rerender } = render(tree(mockSnapshot));
+            const initialCommits = committed.length;
+            rerender(tree(changed));
+            expect(committed.length).toBeGreaterThan(initialCommits);
+            expect(committed.at(-1)).toBe(changed);
+
+            const propsCommits = committed.length;
+            writeBasketCookie(btoa(JSON.stringify(mockSnapshot)));
+            rerender(tree(changed));
+            expect(committed.length).toBeGreaterThan(propsCommits);
+            expect(committed.at(-1)).toEqual(mockSnapshot);
+
+            clearBasketCookie();
+            rerender(tree(null));
+            expect(committed.at(-1)).toBeNull();
+            expect(mockFetcher.load).not.toHaveBeenCalled();
+        });
+
+        it('propagates full basket changes when the snapshot stays equal', () => {
+            const committed: Array<ShopperBasketsV2.schemas['Basket'] | undefined> = [];
+            const Probe = memo(function Probe() {
+                const basket = useBasket();
+                useLayoutEffect(() => {
+                    committed.push(basket);
+                });
+                return null;
+            });
+            const child = <Probe />;
+            const tree = (basket: ShopperBasketsV2.schemas['Basket']) => (
+                <BasketProvider basket={basket} snapshot={mockSnapshot}>
+                    {child}
+                </BasketProvider>
+            );
+            const { rerender } = render(tree(mockBasket));
+            const initialCommits = committed.length;
+            const changed = { ...mockBasket, orderTotal: 25 };
+            rerender(tree(changed));
+            expect(committed.length).toBeGreaterThan(initialCommits);
+            expect(committed.at(-1)).toBe(changed);
+            expect(mockFetcher.load).not.toHaveBeenCalled();
+        });
+
+        it('keeps the snapshot object when props arrive with the same data in a new object', async () => {
+            let currentSnapshot: BasketSnapshot = { ...mockSnapshot };
+            const { result, rerender } = renderHook(() => useBasketSnapshot(), {
+                wrapper: ({ children }) => <BasketProvider snapshot={currentSnapshot}>{children}</BasketProvider>,
+            });
+            const first = result.current;
+            expect(first).toEqual(mockSnapshot);
+
+            currentSnapshot = { ...mockSnapshot };
+            rerender();
+            await act(() => Promise.resolve());
+
+            expect(result.current).toBe(first);
+        });
+
+        it('takes a props snapshot whose data changed', async () => {
+            let currentSnapshot: BasketSnapshot = { ...mockSnapshot };
+            const { result, rerender } = renderHook(() => useBasketSnapshot(), {
+                wrapper: ({ children }) => <BasketProvider snapshot={currentSnapshot}>{children}</BasketProvider>,
+            });
+
+            currentSnapshot = { ...mockSnapshot, totalItemCount: 3 };
+            rerender();
+
+            await waitFor(() => expect(result.current?.totalItemCount).toBe(3));
         });
     });
 

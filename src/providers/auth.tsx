@@ -59,7 +59,11 @@ const getServerUserTypeSnapshot = (): UserType | null => null;
  * `userType` **only** from the JS-readable `__sfdc_usertype` companion cookie (written by the hints
  * middleware) when present:
  *
- *   cookieUserType ? { ...value, userType: cookieUserType } : value
+ *   cookieUserType && cookieUserType !== value?.userType ? { ...value, userType: cookieUserType } : value
+ *
+ * When the cookie confirms the loader value, `value` is kept as is. A new object with the same data would
+ * still change the context identity right after hydration, re-rendering consumers and potentially
+ * interrupting hydration of pending Suspense boundaries.
  *
  * The read uses `useSyncExternalStore` with asymmetric snapshots so SSR and the first hydration commit
  * both return `null` (matching server output — no hydration warning), and a post-hydration read then
@@ -113,7 +117,7 @@ const AuthProvider = ({
     // the cached-shell case where `value` is undefined (no per-visitor auth baked in) — the spread of
     // undefined yields `{ userType }`, which is the correct restored state.
     const effectiveValue = useMemo<PublicSessionData | undefined>(
-        () => (cookieUserType ? { ...value, userType: cookieUserType } : value),
+        () => (cookieUserType && cookieUserType !== value?.userType ? { ...value, userType: cookieUserType } : value),
         [value, cookieUserType]
     );
 
