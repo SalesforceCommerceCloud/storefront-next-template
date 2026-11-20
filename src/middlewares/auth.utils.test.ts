@@ -27,6 +27,8 @@ import {
     getPublicSessionData,
     hasUsableShopperSession,
     updateAuthStorageDataByTokenResponse,
+    getAuthRecoveryStage,
+    getScapiApiName,
     type AuthStorageData,
 } from './auth.utils';
 import { buildMockTokenResponse } from '@/test-utils/auth';
@@ -37,6 +39,38 @@ import { mockBuildConfig, mockSiteObject } from '@/test-utils/config';
 import { TrackingConsent } from '@/types/tracking-consent';
 
 describe('auth.utils', () => {
+    describe('getAuthRecoveryStage', () => {
+        it.each([
+            ['1', 1],
+            ['2', 2],
+            [undefined, 0],
+            [null, 0],
+            ['', 0],
+            ['3', 0],
+            ['planted', 0],
+        ] as const)('maps guard %s to stage %s', (value, stage) => {
+            expect(getAuthRecoveryStage(value)).toBe(stage);
+        });
+    });
+
+    describe('getScapiApiName', () => {
+        it.each([
+            [
+                'https://x.api.commercecloud.salesforce.com/checkout/shopper-baskets/v2/organizations/o/baskets/1',
+                'checkout/shopper-baskets/v2',
+            ],
+            [
+                'https://proxy.example/s/x/dw/shop/product/shopper-products/v1/organizations/o/products/p',
+                'product/shopper-products/v1',
+            ],
+            ['https://x.example/organizations/o/baskets', null],
+            ['https://x.example/no/org/segment', null],
+            ['', null],
+        ])('names %s as %s', (url, name) => {
+            expect(getScapiApiName(url)).toBe(name);
+        });
+    });
+
     let mockConfig: AppConfig;
 
     beforeEach(() => {

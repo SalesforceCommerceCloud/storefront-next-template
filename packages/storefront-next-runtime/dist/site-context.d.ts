@@ -1,7 +1,7 @@
 import { i as Url, r as Site$1, t as Locale$1 } from "./types.js";
 import { PropsWithChildren } from "react";
-import * as react_jsx_runtime2 from "react/jsx-runtime";
-import * as react_router19 from "react-router";
+import * as react_jsx_runtime3 from "react/jsx-runtime";
+import * as react_router21 from "react-router";
 import { Cookie, CookieOptions, MiddlewareFunction, RouterContextProvider } from "react-router";
 import { RouteConfigEntry } from "@react-router/dev/routes";
 
@@ -113,7 +113,7 @@ declare function SiteProvider({
   language,
   currency,
   children
-}: PropsWithChildren<SiteContextValue>): react_jsx_runtime2.JSX.Element;
+}: PropsWithChildren<SiteContextValue>): react_jsx_runtime3.JSX.Element;
 /**
  * React hook to get the current site context.
  * Returns `{ site, locale, language, currency }`.
@@ -248,7 +248,7 @@ declare function buildUrl({
 }): string;
 //#endregion
 //#region src/site-context/middleware.d.ts
-declare const siteContext: react_router19.RouterContext<SiteContext | null>;
+declare const siteContext: react_router21.RouterContext<SiteContext | null>;
 /**
  * Resolved site context result from {@link resolveSiteContext}.
  */
@@ -296,16 +296,16 @@ declare function resolveSiteContext(request: Request, settings: SiteSettings): P
  * ```
  */
 declare function getSiteContextCookies(context: Readonly<RouterContextProvider>): {
-  siteCookie: react_router19.Cookie;
-  localeCookie: react_router19.Cookie;
-  currencyCookie: react_router19.Cookie;
+  siteCookie: react_router21.Cookie;
+  localeCookie: react_router21.Cookie;
+  currencyCookie: react_router21.Cookie;
 } | null;
 /**
  * Resolve detection defaults and create the cookie instances for a site context config.
  * Shared by the middleware and by consumers that call {@link resolveSiteContext} or
  * {@link serializeContextCookies} outside the middleware chain.
  */
-declare function createSiteSettings(config: SiteConfig, cookieOptions?: react_router19.CookieOptions | undefined): SiteSettings;
+declare function createSiteSettings(config: SiteConfig, cookieOptions?: react_router21.CookieOptions | undefined): SiteSettings;
 /**
  * Serialize the `Set-Cookie` headers the middleware would write for a resolved context:
  * only cookies whose caching is enabled, whose value differs from the request's cookie,

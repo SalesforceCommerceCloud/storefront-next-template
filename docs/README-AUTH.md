@@ -77,9 +77,19 @@ All auth state is stored across separate cookies, each with its own purpose, exp
 
 ### 401 recovery redirect
 
-When a SCAPI call returns **401** for a non-SLAS endpoint, the SCAPI client throws `AuthTokenInvalidError`. The middleware catches it in `handleAuthTokenInvalidation`, clears stale token state, and re-runs the refresh/guest flow. Successful recovery normally redirects back to the same URL with **307**, preserving the method. An action with a same-origin Referer instead returns **303** for a document GET. [Preferred-store recovery](./README-PREFERRED-STORE.md#late-preferred-store-read-recovery) uses a no-store **303** and never automatically replays set/clear. Recovery redirects carry `x-sfnext-auth-recovery: 1` (observability only).
+When a SCAPI call returns **401** for a non-SLAS endpoint, the SCAPI client throws `AuthTokenInvalidError`. The middleware catches it in `handleAuthTokenInvalidation`, clears stale token state, and re-runs the refresh/guest flow. Successful recovery normally redirects back to the same URL with **307**, preserving the method. An action with a same-origin Referer instead returns **303** for a document GET. [Preferred-store recovery](./README-PREFERRED-STORE.md#late-preferred-store-read-recovery) uses a no-store **303** and never automatically replays set/clear. Recovery redirects carry `x-sfnext-auth-recovery` (`1`, or `session-cleared` at stage 1; observability only).
 
-To prevent loops, a short-lived guard cookie `cc-auth-recover` (`Max-Age=30`) is set during recovery. If a 401 recurs while the guard is present, recovery is **not** retried — the error surfaces and the response carries `x-sfnext-auth-recovery-guard: 1`. The guard is cleared on the follow-up request.
+To prevent loops, recovery is staged by a short-lived guard cookie `cc-auth-recover` (`Max-Age=30`, httpOnly). The guard value is the stage:
+
+| Guard (stage) | A 401 on this request | Guard written |
+|---|---|---|
+| none (0) | Refresh (or guest login) and redirect. | `1` |
+| `1` | Destroy the session (all auth cookies) and redirect; the next request starts as a guest. A registered shopper is first logged out of SLAS (best effort) and sent to `/login?error=session_expired`. The redirect carries `x-sfnext-auth-recovery: session-cleared`. | `2` |
+| `2` | The error surfaces; no redirect. | — |
+
+Any other guard value counts as stage 0. A request that completes without recovery clears the guard. Responses the middleware returns for a request that arrived with a guard carry `x-sfnext-auth-recovery-guard: <incoming stage>` (stage 2 throws, so it has none).
+
+Stage 1 destroys the session exactly like logout: a registered shopper is signed out, a guest loses their basket, and the consent, shopper-context and source-code cookies are cleared too. The redirect also expires the `__sfdc_basket` snapshot cookie, which the basket middleware cannot do on a recovery redirect, so the new guest does not keep the old cart count. It fires on any non-SLAS 401 that recurs within the guard window, including parallel requests that already carry guard `1`. It writes one `Auth audit` warning (`action: token-recovery-session-destroy`) after the destroy, naming the SCAPI API that rejected the token and whether the SLAS refresh token was revoked (`logout: revoked | failed | skipped`). It carries no shopper identifiers; the request's correlation ID links it to the rest of the request's logs.
 
 ### Registered session expiry redirect
 
@@ -90,9 +100,9 @@ When a **registered** shopper's SLAS refresh token fails (SLAS returns a 400), t
 | GET / HEAD | Requested path (site/locale prefix kept, MRT base path removed) | 307 |
 | Any other method | `/` — an action or resource endpoint is not a page to return to | 303, so the browser follows with GET instead of replaying the body against `/login` |
 
-A failed [preferred-store write](./README-PREFERRED-STORE.md#late-preferred-store-read-recovery) is the exception: it returns to its validated document (base path removed) with a 303. A fresh guest session is created in parallel so the application has a valid token while the redirect is processed.
+A failed [preferred-store write](./README-PREFERRED-STORE.md#late-preferred-store-read-recovery) is the exception: it returns to its validated document (base path removed) with a 303. A fresh guest session is created in parallel so the application has a valid token while the redirect is processed. Stage 1 above uses the same redirect for registered shoppers.
 
-The same `cc-auth-recover` guard cookie prevents redirect loops: if the guard is already set when the redirect would fire, the middleware falls through to the guest session rather than redirecting again. The guard expires after 30 seconds and is cleared on the follow-up request.
+If any guard stage is already set when this redirect would fire, the middleware falls through to the guest session rather than redirecting again.
 
 Guest shoppers whose refresh token fails are unaffected by this change. They continue to receive a new guest session silently.
 

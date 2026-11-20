@@ -18,7 +18,12 @@ import { createStaticHandler, RouterContextProvider } from 'react-router';
 import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 import { commerceContextRecoveryResponse } from '@/lib/auth/commerce-context-recovery.server';
 import type { SessionData as AuthData } from '@/lib/api/types';
-import { type AuthStorageData, AUTH_TOKEN_INVALID_ERROR, authStorageContext } from '@/middlewares/auth.utils';
+import {
+    type AuthStorageData,
+    AUTH_TOKEN_INVALID_ERROR,
+    authStorageContext,
+    authTokenInvalidApiContext,
+} from '@/middlewares/auth.utils';
 // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
 import { authRecoveryReturnContext } from '@/lib/auth/auth-recovery.server';
 // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
@@ -69,6 +74,7 @@ vi.mock('@/lib/logger.server', () => ({
 const mockAuth = {
     refreshToken: vi.fn(),
     loginAsGuest: vi.fn(),
+    logout: vi.fn(),
     loginWithCredentials: vi.fn(),
     passwordless: {
         authorize: vi.fn(),
@@ -347,9 +353,12 @@ describe('auth middleware (server)', () => {
         it('redirects a registered shopper whose refresh token expired to login instead of failing recovery', async () => {
             const response = (await recover('/cart', '', undefined, undefined, undefined, true)) as Response;
             expect(mockAuth.refreshToken).toHaveBeenCalled();
-            expect(response.status).toBe(307);
-            expect(response.headers.get('Location')).toContain('/login?');
-            expect(response.headers.get('Location')).toContain('error=session_expired');
+            // A resource request is not a document: 303 to login, returning to the explicit destination.
+            expect(response.status).toBe(303);
+            const location = response.headers.get('Location') ?? '';
+            expect(location).toContain('/login?');
+            expect(location).toContain('error=session_expired');
+            expect(new URL(location, 'https://example.com').searchParams.get('returnUrl')).toBe('/cart');
         });
         it.each([
             ['https://example.com/cart?q=shirt', '/cart?q=shirt'],
@@ -3109,32 +3118,440 @@ describe('auth middleware (server)', () => {
             expect(mockAuth.refreshToken).toHaveBeenCalledTimes(1);
         });
 
-        it('should not redirect again when recovery guard is present', async () => {
-            mockParseAllCookies.mockReturnValue({
-                'cc-auth-recover': '1',
+        describe('two-stage recovery guard', () => {
+            const run = async (
+                guard: string | undefined,
+                opts: {
+                    next?: (
+                        getStorage: () =>
+                            | Map<keyof AuthStorageData, AuthStorageData[keyof AuthStorageData]>
+                            | undefined,
+                        context: RouterContextProvider
+                    ) => unknown;
+                    url?: string;
+                    method?: string;
+                    headers?: Record<string, string>;
+                } = {}
+            ) => {
+                let authStorageRef: Map<keyof AuthStorageData, AuthStorageData[keyof AuthStorageData]> | undefined;
+                mockParseAllCookies.mockReturnValue(guard ? { 'cc-auth-recover': guard } : {});
+                mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(getMockTokenResponse()));
+                mockAuth.refreshToken.mockResolvedValue(getMockAuthResponse(getMockTokenResponse()));
+
+                const request = new Request(opts.url ?? 'https://example.com/test', {
+                    method: opts.method,
+                    headers: { ...(guard ? { Cookie: `cc-auth-recover=${guard}` } : {}), ...opts.headers },
+                });
+                const context = new RouterContextProvider();
+                const originalGet = context.get.bind(context);
+                vi.spyOn(context, 'get').mockImplementation((key) => {
+                    if (key === performanceTimerContext) return mockPerformanceTimer;
+                    if (key === appConfigContext) return mockConfig;
+                    return originalGet(key);
+                });
+                const originalSet = context.set.bind(context);
+                vi.spyOn(context, 'set').mockImplementation((key, value) => {
+                    if (key === authStorageContext && value instanceof Map) authStorageRef = value;
+                    return originalSet(key, value);
+                });
+                // One serialize mock per cookie name so assertions can tell the guard apart from session cookies.
+                const serializeByCookie = new Map<string, ReturnType<typeof vi.fn>>();
+                mockCreateCookie.mockImplementation(((name: string) => {
+                    if (!serializeByCookie.has(name)) {
+                        serializeByCookie.set(name, vi.fn().mockResolvedValue(`Set-Cookie: ${name}=mock`));
+                    }
+                    return { serialize: serializeByCookie.get(name) };
+                }) as never);
+                const callsFor = (name: string) => serializeByCookie.get(name)?.mock.calls ?? [];
+                const isDelete = (call: unknown[]) =>
+                    call[0] === '' && (call[1] as { expires?: unknown } | undefined)?.expires instanceof Date;
+                const next = vi
+                    .fn()
+                    .mockImplementation(
+                        opts.next
+                            ? () => opts.next?.(() => authStorageRef, context)
+                            : () => Promise.reject(createAuthTokenInvalidError())
+                    );
+                const result = await Promise.resolve(
+                    authMiddleware({ request, context, params: {}, pattern: '/', url: new URL(request.url) }, next)
+                ).then(
+                    (response): { response?: Response; error?: unknown } => ({ response: response as Response }),
+                    (error: unknown): { response?: Response; error?: unknown } => ({ error })
+                );
+                const guardCalls = callsFor('cc-auth-recover');
+                const guardWriteCalls = guardCalls.filter((call) => !isDelete(call));
+                const guardWrites = guardWriteCalls.map((call) => call[0]);
+                const guardWriteOptions = guardWriteCalls.map(
+                    (call) => call[1] as { maxAge?: number; httpOnly?: boolean }
+                );
+                const clearedGuard = guardCalls.some(isDelete);
+                const deletedCookies = [...serializeByCookie.keys()].filter(
+                    (name) => name !== 'cc-auth-recover' && callsFor(name).some(isDelete)
+                );
+                return { ...result, guardWrites, guardWriteOptions, clearedGuard, deletedCookies };
+            };
+
+            const registeredTokenRejected =
+                (api?: string) =>
+                (
+                    getStorage: () => Map<keyof AuthStorageData, AuthStorageData[keyof AuthStorageData]> | undefined,
+                    context: RouterContextProvider
+                ) => {
+                    getStorage()?.set('userType', 'registered');
+                    if (api) context.set(authTokenInvalidApiContext, api);
+                    throw createAuthTokenInvalidError();
+                };
+
+            it('stage 0: refreshes, redirects and sets guard 1', async () => {
+                const { response, guardWrites, clearedGuard } = await run(undefined);
+                expect(response?.status).toBe(307);
+                expect(response?.headers.get('Location')).toBe('https://example.com/test');
+                expect(guardWrites).toEqual(['1']);
+                expect(clearedGuard).toBe(false);
+                // Initial token setup plus the recovery refresh.
+                expect(mockAuth.refreshToken.mock.calls.length + mockAuth.loginAsGuest.mock.calls.length).toBe(2);
             });
 
-            mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(getMockTokenResponse()));
-
-            const request = new Request('https://example.com/test', {
-                headers: {
-                    Cookie: 'cc-auth-recover=1',
-                },
+            it('stage 1: destroys the session without a refresh, redirects to the same URL and sets guard 2', async () => {
+                const { response, guardWrites, clearedGuard, deletedCookies } = await run('1');
+                expect(response?.status).toBe(307);
+                expect(response?.headers.get('Location')).toBe('https://example.com/test');
+                // Only the initial token setup ran; recovery does not retry the refresh.
+                expect(mockAuth.refreshToken.mock.calls.length + mockAuth.loginAsGuest.mock.calls.length).toBe(1);
+                expect(guardWrites).toEqual(['2']);
+                // The session cookies are deleted, and the guard is never cleared (that would loop stages 0 and 1).
+                expect(clearedGuard).toBe(false);
+                expect(deletedCookies).toEqual(expect.arrayContaining(['cc-nx', 'cc-nx-g', 'cc-at', 'cc-cv']));
+                expect(response?.headers.get('x-sfnext-auth-recovery-guard')).toBe('1');
             });
 
-            const context = new RouterContextProvider();
-            const originalGet = context.get.bind(context);
-            vi.spyOn(context, 'get').mockImplementation((key) => {
-                if (key === performanceTimerContext) return mockPerformanceTimer;
-                if (key === appConfigContext) return mockConfig;
-                return originalGet(key);
+            it.each(['1', '2'])('guard %s: a successful request clears the guard and reports the stage', async (g) => {
+                const { response, guardWrites, clearedGuard } = await run(g, {
+                    next: () => new Response('OK'),
+                });
+                expect(response?.status).toBe(200);
+                expect(guardWrites).toEqual([]);
+                expect(clearedGuard).toBe(true);
+                expect(response?.headers.get('x-sfnext-auth-recovery-guard')).toBe(g);
             });
 
-            const next = vi.fn().mockRejectedValue(createAuthTokenInvalidError());
+            it('stage 1: an action route with a same-origin Referer redirects back with 303', async () => {
+                const { response, guardWrites } = await run('1', {
+                    url: 'https://example.com/action/cart-add',
+                    headers: { Referer: 'https://example.com/cart' },
+                });
+                expect(response?.status).toBe(303);
+                expect(response?.headers.get('Location')).toBe('https://example.com/cart');
+                expect(guardWrites).toEqual(['2']);
+            });
 
-            await expect(
-                authMiddleware({ request, context, params: {}, pattern: '/', url: new URL(request.url) }, next)
-            ).rejects.toThrow('Access token is invalid or revoked');
+            it('stage 1: the deferred token-invalid sentinel destroys the session and sets guard 2', async () => {
+                const { response, guardWrites, clearedGuard, deletedCookies } = await run('1', {
+                    next: (getStorage) => {
+                        getStorage()?.set('error', AUTH_TOKEN_INVALID_ERROR);
+                        return new Response('OK');
+                    },
+                });
+                expect(response?.status).toBe(307);
+                expect(guardWrites).toEqual(['2']);
+                expect(clearedGuard).toBe(false);
+                expect(deletedCookies).toEqual(expect.arrayContaining(['cc-nx', 'cc-nx-g', 'cc-at']));
+            });
+
+            it('stage 1: a registered shopper is sent to the session_expired login and the session is destroyed', async () => {
+                const { response, guardWrites, clearedGuard, deletedCookies } = await run('1', {
+                    next: (getStorage) => {
+                        getStorage()?.set('userType', 'registered');
+                        throw createAuthTokenInvalidError();
+                    },
+                });
+                expect(response?.status).toBe(307);
+                expect(response?.headers.get('Location')).toBe('/login?returnUrl=%2Ftest&error=session_expired');
+                expect(guardWrites).toEqual(['2']);
+                expect(clearedGuard).toBe(false);
+                expect(deletedCookies).toEqual(expect.arrayContaining(['cc-nx', 'cc-nx-g', 'cc-at']));
+            });
+
+            it.each([
+                ['a same-origin Referer', 'https://example.com/product/shirt?color=red'],
+                ['a cross-origin Referer', 'https://evil.example/page'],
+                ['no Referer', undefined],
+            ])('stage 1: a registered shopper POSTing to an action gets a 303 to login at the root (%s)', async (_label, referer) => {
+                const { response } = await run('1', {
+                    url: 'https://example.com/action/add-to-cart',
+                    method: 'POST',
+                    headers: referer ? { Referer: referer } : {},
+                    next: (getStorage) => {
+                        getStorage()?.set('userType', 'registered');
+                        throw createAuthTokenInvalidError();
+                    },
+                });
+                expect(response?.status).toBe(303);
+                expect(response?.headers.get('Location')).toBe('/login?returnUrl=%2F&error=session_expired');
+            });
+
+            it('stage 1: a guest is redirected back to the same URL without a login redirect', async () => {
+                const { response } = await run('1', {
+                    next: (getStorage) => {
+                        getStorage()?.set('userType', 'guest');
+                        throw createAuthTokenInvalidError();
+                    },
+                });
+                expect(response?.headers.get('Location')).toBe('https://example.com/test');
+            });
+
+            it('guard 2 with a session-expired refresh falls through to guest and clears the guard', async () => {
+                const { response, clearedGuard, guardWrites } = await run('2', {
+                    next: (getStorage) => {
+                        getStorage()?.set('error', '__session_expired_redirect__');
+                        return new Response('OK');
+                    },
+                });
+                expect(response?.status).toBe(200);
+                expect(guardWrites).toEqual([]);
+                expect(clearedGuard).toBe(true);
+            });
+
+            it('ignores an unknown guard value and treats it as stage 0', async () => {
+                const { response, guardWrites } = await run('planted');
+                expect(response?.status).toBe(307);
+                expect(guardWrites).toEqual(['1']);
+                // Stage 0 behaviour: the recovery refresh ran (initial setup plus retry).
+                expect(mockAuth.refreshToken.mock.calls.length + mockAuth.loginAsGuest.mock.calls.length).toBe(2);
+            });
+
+            it('stage 2: surfaces the error instead of redirecting again', async () => {
+                const { response, error, guardWrites, clearedGuard, deletedCookies } = await run('2');
+                expect(response).toBeUndefined();
+                expect((error as Error).message).toBe('Access token is invalid or revoked');
+                expect(guardWrites).toEqual([]);
+                expect(clearedGuard).toBe(false);
+                expect(deletedCookies).toEqual([]);
+            });
+
+            it('stage 0: the guard cookie expires after 30 seconds', async () => {
+                const { guardWriteOptions } = await run(undefined);
+                expect(guardWriteOptions).toEqual([expect.objectContaining({ maxAge: 30 })]);
+            });
+
+            describe('basket snapshot cookie', () => {
+                // The recovery redirect replaces the response the basket middleware would expire its cookie on, and
+                // BasketProvider prefers `__sfdc_basket`, so stage 1 must expire it or the new guest keeps the old cart.
+                const basketCookies = (response?: Response) =>
+                    (response?.headers.getSetCookie() ?? []).filter((value) => value.startsWith('__sfdc_basket='));
+                const isExpired = (value: string) => /expires=Thu, 01 Jan 1970/i.test(value);
+
+                it.each([
+                    ['guest', 'guest'],
+                    ['registered shopper', 'registered'],
+                ] as const)('stage 1: expires the basket cookie for a %s', async (_label, userType) => {
+                    const { response } = await run('1', {
+                        next: (getStorage) => {
+                            getStorage()?.set('userType', userType);
+                            throw createAuthTokenInvalidError();
+                        },
+                    });
+                    const cookies = basketCookies(response);
+                    expect(cookies).toHaveLength(1);
+                    expect(isExpired(cookies[0])).toBe(true);
+                    expect(cookies[0]).toMatch(/^__sfdc_basket=;/);
+                    // Same scope as the cookie the basket middleware writes, so the browser matches and removes it.
+                    expect(cookies[0]).toContain('Path=/');
+                    expect(cookies[0]).not.toMatch(/HttpOnly/i);
+                });
+
+                it('stage 1: expires the basket cookie when the deferred token-invalid sentinel triggers it', async () => {
+                    const { response } = await run('1', {
+                        next: (getStorage) => {
+                            getStorage()?.set('error', AUTH_TOKEN_INVALID_ERROR);
+                            return new Response('OK');
+                        },
+                    });
+                    expect(basketCookies(response).map(isExpired)).toEqual([true]);
+                });
+
+                it('stage 0: keeps the basket cookie, the shopper keeps the same session', async () => {
+                    const { response } = await run(undefined);
+                    expect(basketCookies(response)).toEqual([]);
+                });
+
+                it('guard 2: the surfaced error does not touch the basket cookie', async () => {
+                    const { response, error } = await run('2');
+                    expect(error).toBeDefined();
+                    expect(basketCookies(response)).toEqual([]);
+                });
+
+                it('a request that completes without recovery does not touch the basket cookie', async () => {
+                    const { response } = await run('1', { next: () => new Response('OK') });
+                    expect(basketCookies(response)).toEqual([]);
+                });
+            });
+
+            it('stage 1: marks the redirect as session-cleared', async () => {
+                const { response } = await run('1');
+                expect(response?.headers.get('x-sfnext-auth-recovery')).toBe('session-cleared');
+            });
+
+            it('stage 1: a guest session is destroyed without a SLAS logout', async () => {
+                const { guardWrites, deletedCookies } = await run('1', {
+                    next: (getStorage) => {
+                        getStorage()?.set('userType', 'guest');
+                        throw createAuthTokenInvalidError();
+                    },
+                });
+                expect(guardWrites).toEqual(['2']);
+                expect(deletedCookies).toEqual(expect.arrayContaining(['cc-nx', 'cc-nx-g', 'cc-at']));
+                expect(mockAuth.logout).not.toHaveBeenCalled();
+            });
+
+            it('stage 1: revokes a registered session with SLAS logout before destroying it', async () => {
+                const { response } = await run('1', { next: registeredTokenRejected() });
+                const tokens = getMockTokenResponse();
+                expect(mockAuth.logout).toHaveBeenCalledWith({
+                    accessToken: tokens.access_token,
+                    refreshToken: tokens.refresh_token,
+                });
+                expect(response?.headers.get('x-sfnext-auth-recovery')).toBe('session-cleared');
+            });
+
+            it('stage 1: a failed SLAS logout still destroys the session and redirects to login', async () => {
+                mockAuth.logout.mockRejectedValueOnce(
+                    new Error(
+                        'API Error 401: Unauthorized (GET https://slas.example/oauth2/logout?refresh_token=secret-rt)'
+                    )
+                );
+                const { response, guardWrites, deletedCookies } = await run('1', { next: registeredTokenRejected() });
+                expect(response?.headers.get('Location')).toBe('/login?returnUrl=%2Ftest&error=session_expired');
+                expect(guardWrites).toEqual(['2']);
+                expect(deletedCookies).toEqual(expect.arrayContaining(['cc-nx', 'cc-at']));
+                const logoutWarn = mockLogger.warn.mock.calls.find(
+                    ([message]) =>
+                        message === 'Auth: SLAS logout failed during recovery, continuing with session cleanup'
+                );
+                expect(logoutWarn).toBeDefined();
+                // The logout URL carries the refresh token: the log must never include the error or its message.
+                expect(JSON.stringify(logoutWarn)).not.toMatch(/refresh_token|secret-rt/);
+            });
+
+            it('stage 1: writes one audit log after the destroy with the failing API, the logout result and no identifiers', async () => {
+                await run('1', { next: registeredTokenRejected('checkout/shopper-baskets/v2') });
+                const audits = mockLogger.warn.mock.calls.filter(([message]) => message === 'Auth audit');
+                expect(audits).toEqual([
+                    [
+                        'Auth audit',
+                        {
+                            category: 'auth-audit',
+                            actor: 'registered-shopper',
+                            action: 'token-recovery-session-destroy',
+                            target: 'authenticated-session',
+                            timestamp: expect.any(String),
+                            outcome: 'session-destroyed',
+                            reason: 'token-rejected-after-refresh',
+                            logout: 'revoked',
+                            api: 'checkout/shopper-baskets/v2',
+                        },
+                    ],
+                ]);
+                // Written after the destroy, so the outcome it reports has happened.
+                const auditOrder =
+                    mockLogger.warn.mock.invocationCallOrder[
+                        mockLogger.warn.mock.calls.findIndex(([message]) => message === 'Auth audit')
+                    ];
+                expect(mockAuth.logout.mock.invocationCallOrder[0]).toBeLessThan(auditOrder);
+            });
+
+            it.each([
+                ['a registered session whose SLAS logout fails', 'registered', true, 'failed'],
+                ['a guest session, which has nothing to revoke', 'guest', false, 'skipped'],
+            ] as const)('stage 1: the audit log records logout "%s"', async (_label, userType, logoutFails, expected) => {
+                if (logoutFails) mockAuth.logout.mockRejectedValueOnce(new Error('SLAS down'));
+                await run('1', {
+                    next: (getStorage) => {
+                        getStorage()?.set('userType', userType);
+                        throw createAuthTokenInvalidError();
+                    },
+                });
+                const audit = mockLogger.warn.mock.calls.find(([message]) => message === 'Auth audit');
+                expect(audit?.[1]).toEqual(expect.objectContaining({ outcome: 'session-destroyed', logout: expected }));
+                expect(JSON.stringify(audit)).not.toMatch(/usid|customerId|access_token|refresh_token/);
+            });
+
+            it('stage 1: handles the 401 once when the API client also sets the error sentinel', async () => {
+                // The real SCAPI client sets the sentinel AND throws. Stage 1 must not re-run recovery from the
+                // deferred-sentinel check afterwards: that would log out, audit and redirect a second time.
+                const { response, guardWrites } = await run('1', {
+                    next: (getStorage) => {
+                        getStorage()?.set('userType', 'registered');
+                        getStorage()?.set('error', AUTH_TOKEN_INVALID_ERROR);
+                        throw createAuthTokenInvalidError();
+                    },
+                });
+                expect(response?.status).toBe(307);
+                expect(response?.headers.get('Location')).toBe('/login?returnUrl=%2Ftest&error=session_expired');
+                expect(response?.headers.get('x-sfnext-auth-recovery')).toBe('session-cleared');
+                expect(guardWrites).toEqual(['2']);
+                expect(mockAuth.logout).toHaveBeenCalledTimes(1);
+                expect(mockLogger.warn.mock.calls.filter(([message]) => message === 'Auth audit')).toHaveLength(1);
+            });
+
+            it('stage 1: strips the deployment base path from returnUrl and carries the path only', async () => {
+                vi.mocked(getBasePath).mockReturnValue('/site-a');
+                const { response } = await run('1', {
+                    url: 'https://example.com/site-a/search?q=shirt',
+                    next: registeredTokenRejected(),
+                });
+                const location = response?.headers.get('Location') ?? '';
+                expect(new URL(location, 'https://example.com').searchParams.get('returnUrl')).toBe('/search');
+            });
+
+            it('stage 2: a deferred token-invalid sentinel surfaces the error without another redirect', async () => {
+                const { response, error, guardWrites } = await run('2', {
+                    next: (getStorage) => {
+                        getStorage()?.set('error', AUTH_TOKEN_INVALID_ERROR);
+                        return new Response('OK');
+                    },
+                });
+                expect(response).toBeUndefined();
+                expect(error).toBeDefined();
+                expect(guardWrites).toEqual([]);
+            });
+
+            describe('registered refresh failure outside recovery (session-expired branch)', () => {
+                const sessionExpired = (
+                    getStorage: () => Map<keyof AuthStorageData, AuthStorageData[keyof AuthStorageData]> | undefined
+                ) => {
+                    getStorage()?.set('error', '__session_expired_redirect__');
+                    return new Response('OK');
+                };
+
+                it('redirects a document request to login with 307', async () => {
+                    const { response, guardWrites } = await run(undefined, { next: sessionExpired });
+                    expect(response?.status).toBe(307);
+                    expect(response?.headers.get('Location')).toBe('/login?returnUrl=%2Ftest&error=session_expired');
+                    expect(guardWrites).toEqual(['1']);
+                });
+
+                it.each([
+                    ['a same-origin Referer', 'https://example.com/product/shirt?color=red'],
+                    ['a cross-origin Referer', 'https://evil.example/page'],
+                    ['no Referer', undefined],
+                ])('an action POST gets a 303 to login at the root, never replaying the POST (%s)', async (_label, referer) => {
+                    const { response } = await run(undefined, {
+                        url: 'https://example.com/action/add-to-cart',
+                        method: 'POST',
+                        headers: referer ? { Referer: referer } : {},
+                        next: sessionExpired,
+                    });
+                    expect(response?.status).toBe(303);
+                    expect(response?.headers.get('Location')).toBe('/login?returnUrl=%2F&error=session_expired');
+                });
+
+                it('guard 1: falls back to guest instead of redirecting again', async () => {
+                    const { response, clearedGuard } = await run('1', { next: sessionExpired });
+                    expect(response?.status).toBe(200);
+                    expect(clearedGuard).toBe(true);
+                });
+            });
         });
 
         it('should recover when authStorage error sentinel is set after next()', async () => {

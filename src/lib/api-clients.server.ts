@@ -32,7 +32,9 @@ import {
     AUTH_TOKEN_INVALID_ERROR,
     authContext,
     authStorageContext,
+    authTokenInvalidApiContext,
     completedLoginRecoveryContext,
+    getScapiApiName,
     uncertainBasketHandoffContext,
 } from '@/middlewares/auth.utils';
 import { correlationContext } from '@/lib/correlation';
@@ -591,6 +593,10 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
             const authStorage = context.get(authStorageContext);
             if (authStorage && !authStorage.has('error')) {
                 authStorage.set('error', AUTH_TOKEN_INVALID_ERROR);
+                // Recorded for the recovery audit log; the API name only, never the path (it carries IDs).
+                if (!context.get(authTokenInvalidApiContext)) {
+                    context.set(authTokenInvalidApiContext, getScapiApiName(response.url));
+                }
             }
         } catch {
             // Intentionally ignore if auth storage is unavailable (client-side)

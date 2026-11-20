@@ -16,7 +16,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
-import { authContext, authStorageContext } from '@/middlewares/auth.utils';
+import { authContext, authStorageContext, authTokenInvalidApiContext } from '@/middlewares/auth.utils';
 import type { SessionData } from '@/lib/api/types';
 import type { Logger } from '@/lib/logger';
 import { loggerContext } from '@/lib/logger.server';
@@ -459,6 +459,33 @@ describe('createApiClients', () => {
                     baseUrl: 'https://custom123.api.commercecloud.salesforce.com',
                 })
             );
+        });
+    });
+
+    describe('onAuthTokenInvalid', () => {
+        const invalidResponse = (url: string) => ({ url }) as Response;
+
+        it('flags the request and records the first rejecting API without its IDs', () => {
+            const storage = new Map();
+            mockContextProvider.set(authStorageContext, storage as never);
+            createApiClients(mockContextProvider);
+            const { onAuthTokenInvalid } = mockCreateCommerceApiClients.mock.calls[0][0] as {
+                onAuthTokenInvalid: (response: Response) => void;
+            };
+
+            onAuthTokenInvalid(
+                invalidResponse(
+                    'https://x.api.commercecloud.salesforce.com/checkout/shopper-baskets/v2/organizations/f_ecom_x/baskets/b-123'
+                )
+            );
+            onAuthTokenInvalid(
+                invalidResponse(
+                    'https://x.api.commercecloud.salesforce.com/customer/shopper-customers/v1/organizations/f_ecom_x/customers/c-1'
+                )
+            );
+
+            expect(storage.get('error')).toBe('AUTH_TOKEN_INVALID');
+            expect(mockContextProvider.get(authTokenInvalidApiContext)).toBe('checkout/shopper-baskets/v2');
         });
     });
 

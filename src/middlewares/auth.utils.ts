@@ -48,7 +48,30 @@ export const COOKIE_CODE_VERIFIER = 'cc-cv'; // OAuth2 PKCE code verifier (serve
 export const COOKIE_TRACKING_CONSENT = 'dw_dnt'; // Tracking consent preference (cookie value matches TrackingConsent enum)
 export const COOKIE_DWSID = 'dwsid'; // Hybrid storefront session ID (for session bridge)
 export const COOKIE_AUTH_RECOVERY_GUARD = 'cc-auth-recover'; // Auth recovery loop guard
+
+/**
+ * Recovery stage encoded in the guard cookie: 0 = no guard, 1 = a refresh-and-redirect already ran,
+ * 2 = the session was already destroyed and redirected. Any other value is 0, so an unknown value never
+ * escalates. The cookie is not signed: a client can set `1` or `2` itself, which only skips earlier stages
+ * of recovery for that client's own session (a 401 must still follow).
+ */
+export type AuthRecoveryStage = 0 | 1 | 2;
+export const getAuthRecoveryStage = (guardCookieValue: string | null | undefined): AuthRecoveryStage =>
+    guardCookieValue === '2' ? 2 : guardCookieValue === '1' ? 1 : 0;
 export const AUTH_TOKEN_INVALID_ERROR = 'AUTH_TOKEN_INVALID';
+/** API (e.g. `checkout/shopper-baskets/v2`) of the first SCAPI call this request that rejected the access token. */
+export const authTokenInvalidApiContext = createContext<string | null>(null);
+/**
+ * Name the SCAPI API of a request URL without its IDs: up to three path segments before `organizations`,
+ * e.g. `https://host/checkout/shopper-baskets/v2/organizations/f_ecom_x/baskets/123` → `checkout/shopper-baskets/v2`.
+ */
+export const getScapiApiName = (url: string): string | null => {
+    const segments = (URL.parse(url)?.pathname ?? '').split('/').filter(Boolean);
+    const organizationsIndex = segments.indexOf('organizations');
+    return organizationsIndex > 0
+        ? segments.slice(Math.max(0, organizationsIndex - 3), organizationsIndex).join('/')
+        : null;
+};
 // Explicit login completion is distinct from refresh/setup: its proof cannot be replayed.
 export const registeredLoginCompletedContext = createContext(false);
 export const completedLoginRecoveryContext = createContext<{

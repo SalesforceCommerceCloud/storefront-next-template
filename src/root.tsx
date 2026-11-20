@@ -52,7 +52,7 @@ import {
 
 // Middlewares
 import authMiddlewareServer, { getAuth as getAuthServer } from '@/middlewares/auth.server';
-import { COOKIE_AUTH_RECOVERY_GUARD, getPublicSessionData } from '@/middlewares/auth.utils';
+import { COOKIE_AUTH_RECOVERY_GUARD, getAuthRecoveryStage, getPublicSessionData } from '@/middlewares/auth.utils';
 import createBasketMiddleware, { basketResourceContext, type BasketSnapshot } from '@/middlewares/basket.server';
 import shopperContextMiddlewareServer from '@/middlewares/shopper-context.server';
 import { userTypeHintMiddleware } from '@/middlewares/user-type-hint.server';
@@ -259,11 +259,11 @@ export const loader = async ({
         authError,
     }));
     // One-shot client retry after a late 401: await the read so the auth middleware sees the 401 before the
-    // response head is sent and can refresh. Skipped when the loop guard is present (a second 401 would throw).
+    // response head is sent and can refresh. Skipped while a recovery guard is present (further 401s escalate or throw instead of retrying).
     const cookies = parseAllCookies(request.headers.get('cookie'));
     // The auth middleware namespaces its guard cookie by site, so read it under the same name.
-    const recoveryGuard = cookies[getCookieNameWithSiteId(COOKIE_AUTH_RECOVERY_GUARD, context)];
-    if (cookies[STORE_RECOVER_COOKIE] && !recoveryGuard) await selectedStoreResolution;
+    const recoveryStage = getAuthRecoveryStage(cookies[getCookieNameWithSiteId(COOKIE_AUTH_RECOVERY_GUARD, context)]);
+    if (cookies[STORE_RECOVER_COOKIE] && recoveryStage === 0) await selectedStoreResolution;
     const homeStorePromptDismissed = context.get(homeStorePromptDismissedContext) ?? false;
     // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
