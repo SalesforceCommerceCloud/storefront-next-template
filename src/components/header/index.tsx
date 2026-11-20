@@ -157,7 +157,7 @@ export default function Header({
                         </div>
 
                         {/* Icons group - includes mobile hamburger */}
-                        <div className="flex shrink-0 items-center [&_[data-slot=button]]:size-9 [&_[data-slot=button]]:px-0 [&_[data-header-control]]:w-9 [&_[data-header-label]]:hidden [&_[data-header-detail]]:hidden">
+                        <div className="flex shrink-0 items-center [&_[data-slot=button]]:size-9 [&_[data-slot=button]]:px-0 [&_[data-header-control]]:max-lg:w-9 [&_[data-header-label]]:max-lg:hidden [&_[data-header-detail]]:max-lg:hidden">
                             <UITarget targetId="sfcc.header.before.cart" />
                             {showChat && (
                                 <ChatPill

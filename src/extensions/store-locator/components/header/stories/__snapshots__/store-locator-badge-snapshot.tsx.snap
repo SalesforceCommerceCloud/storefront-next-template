@@ -5,7 +5,7 @@ exports[`StoreLocatorBadge stories snapshot > Default story renders and matches 
   aria-expanded="false"
   aria-haspopup="dialog"
   aria-label="Choose your store"
-  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 has-[>svg]:px-3 hover:bg-transparent hover:opacity-50 transition-opacity"
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 has-[>svg]:px-3 hover:bg-transparent hover:text-inherit! hover:opacity-50 transition-opacity max-lg:w-9 max-lg:px-0! lg:w-auto! lg:max-w-64 lg:px-3!"
   data-size="default"
   data-slot="button"
   data-variant="ghost"
@@ -34,7 +34,7 @@ exports[`StoreLocatorBadge stories snapshot > Default story renders and matches 
     />
   </svg>
   <span
-    class="hidden lg:inline"
+    class="hidden max-w-40 truncate lg:inline"
     data-header-label="true"
   >
     Choose your store
@@ -47,7 +47,7 @@ exports[`StoreLocatorBadge stories snapshot > SelectedStore story renders and ma
   aria-expanded="false"
   aria-haspopup="dialog"
   aria-label="Change your store: Downtown Store · 1.20 km, 94105"
-  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 has-[>svg]:px-3 hover:bg-transparent hover:opacity-50 transition-opacity"
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 has-[>svg]:px-3 hover:bg-transparent hover:text-inherit! hover:opacity-50 transition-opacity max-lg:w-9 max-lg:px-0! lg:w-auto! lg:max-w-64 lg:px-3!"
   data-size="default"
   data-slot="store-locator-selected-store"
   data-variant="ghost"
@@ -76,7 +76,7 @@ exports[`StoreLocatorBadge stories snapshot > SelectedStore story renders and ma
     />
   </svg>
   <span
-    class="hidden lg:inline"
+    class="hidden max-w-40 truncate lg:inline"
     data-header-label="true"
   >
     Downtown Store · 1.20 km
@@ -110,7 +110,7 @@ exports[`StoreLocatorBadge stories snapshot > SelectedStore story renders and ma
     />
   </svg>
   <span
-    class="hidden lg:inline"
+    class="hidden max-w-40 shrink-0 truncate lg:inline"
     data-header-label="true"
   >
     94105

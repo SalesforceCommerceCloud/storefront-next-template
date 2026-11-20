@@ -68,7 +68,8 @@ function StoreLocatorBadgeContent({ selection }: { selection?: SelectedStoreInfo
               })
             : t('storeLocator.trigger.selectedWithoutPostalAriaLabel', { storeName: visibleStoreLabel })
         : t('storeLocator.trigger.chooseAriaLabel');
-    const triggerClassName = 'hover:bg-transparent hover:opacity-50 transition-opacity';
+    const triggerClassName =
+        'hover:bg-transparent hover:text-inherit! hover:opacity-50 transition-opacity max-lg:w-9 max-lg:px-0! lg:w-auto! lg:max-w-64 lg:px-3!';
     const openSelectedStoreLocator = selectedStoreInfo ? openSelectedStore : openStoreLocator;
 
     if (selectedStoreInfo?.postalCode) {
@@ -82,12 +83,12 @@ function StoreLocatorBadgeContent({ selection }: { selection?: SelectedStoreInfo
                 aria-label={storeAriaLabel}
                 data-slot="store-locator-selected-store">
                 <Store className="size-6" aria-hidden="true" />
-                <span data-header-label className="hidden lg:inline">
+                <span data-header-label className="hidden max-w-40 truncate lg:inline">
                     {visibleStoreLabel}
                 </span>
                 <span data-header-detail className="mx-0.5 hidden h-4 w-px bg-current/30 lg:block" aria-hidden="true" />
                 <MapPin data-header-detail className="size-5" aria-hidden="true" />
-                <span data-header-label className="hidden lg:inline">
+                <span data-header-label className="hidden max-w-40 shrink-0 truncate lg:inline">
                     {selectedStoreInfo.postalCode}
                 </span>
             </Button>
@@ -103,7 +104,7 @@ function StoreLocatorBadgeContent({ selection }: { selection?: SelectedStoreInfo
             aria-expanded={isOpen}
             aria-label={storeAriaLabel}>
             <Store className="size-6" aria-hidden="true" />
-            <span data-header-label className="hidden lg:inline">
+            <span data-header-label className="hidden max-w-40 truncate lg:inline">
                 {selectedStoreInfo ? visibleStoreLabel : storeAriaLabel}
             </span>
         </Button>
