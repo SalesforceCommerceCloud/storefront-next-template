@@ -78,6 +78,34 @@ describe('TrackingConsentBanner — optimistic dismissal', () => {
         expect(mockSetTrackingConsent).toHaveBeenCalledWith(TrackingConsent.Accepted);
     });
 
+    it('does not steal focus when an interactive element is active', async () => {
+        // Focus the input BEFORE rendering so it holds focus when the banner's effect runs.
+        const input = document.createElement('input');
+        document.body.appendChild(input);
+        input.focus();
+        expect(document.activeElement).toBe(input);
+
+        render(<TrackingConsentBanner />);
+        await screen.findByRole('dialog');
+
+        // Focus should remain on the input, not the dialog.
+        expect(document.activeElement).toBe(input);
+
+        document.body.removeChild(input);
+    });
+
+    it('focuses the dialog when only document.body has focus', async () => {
+        // body is the default active element when nothing is focused.
+        document.body.focus();
+        expect(document.activeElement).toBe(document.body);
+
+        render(<TrackingConsentBanner />);
+        const dialog = await screen.findByRole('dialog');
+
+        // The focus guard should allow focus when active element is body.
+        await waitFor(() => expect(document.activeElement).toBe(dialog));
+    });
+
     it('stays hidden when the consent write succeeds', async () => {
         // On success the server sets dw_dnt; emulate that so the durable gate also holds.
         mockSetTrackingConsent.mockImplementationOnce(() => {

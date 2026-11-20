@@ -160,11 +160,17 @@ export function TrackingConsentBanner({ onConsentChange }: TrackingConsentBanner
     const shouldShow =
         mounted && isTrackingConsentEnabled && !responded && !hasRespondedCookie && !rootData?.pageDesignerMode;
 
-    // Move keyboard focus into the banner once it appears. Without this the shopper has to tab
-    // through the whole page to reach it, since the banner is the last node in the DOM. (W-23325632)
+    // Move keyboard focus into the banner once it appears — but only when nothing else has
+    // focus. Without the guard the banner steals focus mid-interaction (e.g. while the shopper
+    // is filling in a form), silently swallowing their next keypress / button click.
+    // Skip focus when activeElement is any focused element other than body/null.
+    // (W-23325632, W-24929121)
     useEffect(() => {
         if (shouldShow) {
-            dialogRef.current?.focus();
+            const active = document.activeElement;
+            if (active === null || active === document.body) {
+                dialogRef.current?.focus();
+            }
         }
     }, [shouldShow]);
 
@@ -182,17 +188,20 @@ export function TrackingConsentBanner({ onConsentChange }: TrackingConsentBanner
 
     return (
         <UITarget targetId="sfcc.global.cookies.banner">
+            {/* pointer-events-none on the outer wrapper lets clicks pass through the transparent
+                area beside the card on mobile. The Card inside restores pointer-events-auto so
+                the card itself remains fully interactive. */}
             <div
                 ref={dialogRef}
                 tabIndex={-1}
                 className={cn(
-                    'fixed z-50 w-full md:max-w-md animate-in slide-in-from-bottom-5 duration-300 outline-none',
+                    'fixed z-50 w-full md:max-w-md animate-in slide-in-from-bottom-5 duration-300 outline-none pointer-events-none',
                     positionClasses[position] || positionClasses['bottom-center']
                 )}
                 role="dialog"
                 aria-labelledby="tracking-consent-banner-title"
                 aria-describedby="tracking-consent-banner-description">
-                <Card className="relative shadow-lg">
+                <Card className="relative shadow-lg pointer-events-auto">
                     <Button
                         variant="ghost"
                         size="icon"

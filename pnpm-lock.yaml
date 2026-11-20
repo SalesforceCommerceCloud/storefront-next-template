@@ -286,7 +286,7 @@ importers:
         version: 4.1.11(vitest@4.1.11)
       chromatic:
         specifier: ^18.0.1
-        version: 18.14.6
+        version: 18.15.0
       compression:
         specifier: 1.8.2
         version: 1.8.2
@@ -5267,8 +5267,8 @@ packages:
       '@chromatic-com/playwright':
         optional: true
 
-  chromatic@18.14.6:
-    resolution: {integrity: sha512-3+0vGlCwvdDTlXmn1fG4k7SmW9oXoRuXaltEYPFlIyCoYHLMXkpaCHG2Eo2jO+AqlLzNPTdULwMqazMkIBB/ZA==}
+  chromatic@18.15.0:
+    resolution: {integrity: sha512-MxxIOHXayuwGWlYbbf6JB96uSzpybxtIA6oAmjMZavH1YrsIn9bZGaztQA128SJR4oOQBQ5p+5rpT98VX8UzDQ==}
     engines: {node: '>=22.0.0'}
     hasBin: true
     peerDependencies:
@@ -6230,8 +6230,8 @@ packages:
   fast-copy@3.1.0:
     resolution: {integrity: sha512-IuCOCDFM1F/s4LtG7Bjr3yUUwPHybyhqN74xk2cMYoP51vVeErMy8+6HGFchi/+45lW8uzhs6lBeEqks2GWt6A==}
 
-  fast-copy@4.3.1:
-    resolution: {integrity: sha512-CRzQaTFOFUs6PuhsAq7lk9Zqr995soJBcFNZlfJS/5keTSl1awREV9dZW4xS2nX4pWbhIIR0xp4h+J8PQxCkvg==}
+  fast-copy@4.3.2:
+    resolution: {integrity: sha512-Ctcuv1tplX+8bX/VBu6DD8gZyDEtbP+jo+jnNCR9LVNSWR6DWauNol44WGQC2+uMCnFG7oRw/67ldmTIADdtgA==}
 
   fast-deep-equal@2.0.1:
     resolution: {integrity: sha512-bCK/2Z4zLidyB4ReuIsvALH6w31YfAQDmXMqMx6FyfHqvBxtjC0eRumeSu4Bs3XtXwpyIywtSTrVT99BxY1f9w==}
@@ -15386,7 +15386,7 @@ snapshots:
 
   chromatic@12.2.0: {}
 
-  chromatic@18.14.6:
+  chromatic@18.15.0:
     dependencies:
       semver: 7.8.6
 
@@ -16492,7 +16492,7 @@ snapshots:
 
   fast-copy@3.1.0: {}
 
-  fast-copy@4.3.1: {}
+  fast-copy@4.3.2: {}
 
   fast-deep-equal@2.0.1: {}
 
@@ -19428,7 +19428,7 @@ snapshots:
     dependencies:
       colorette: 2.0.20
       dateformat: 4.6.3
-      fast-copy: 4.3.1
+      fast-copy: 4.3.2
       fast-safe-stringify: 2.1.1
       help-me: 5.0.0
       joycon: 3.1.1
