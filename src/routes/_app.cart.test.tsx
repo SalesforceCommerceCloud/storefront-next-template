@@ -61,8 +61,16 @@ vi.mock('@/components/product-recommendations', async () => {
 });
 
 vi.mock('@/components/cart/cart-skeleton', () => ({
-    default: ({ recommendationsSlot }: { recommendationsSlot?: ReactNode }) => (
-        <div data-testid="cart-skeleton">{recommendationsSlot}</div>
+    default: ({
+        productItemCount,
+        recommendationsSlot,
+    }: {
+        productItemCount: number;
+        recommendationsSlot?: ReactNode;
+    }) => (
+        <div data-testid="cart-skeleton" data-item-count={productItemCount}>
+            {recommendationsSlot}
+        </div>
     ),
 }));
 
@@ -97,6 +105,8 @@ const mockBasketData = {
 const renderCartRoute = async (loaderData: {
     cartMayAlsoLikePromise: Promise<any>;
     cartRecentlyViewedPromise: Promise<any>;
+    basketDataPromise?: Promise<typeof mockBasketData>;
+    basketSnapshot?: { uniqueProductCount: number } | null;
 }) => {
     const Cart = (await import('./_app.cart')).default;
     const router = createMemoryRouter(
@@ -105,13 +115,13 @@ const renderCartRoute = async (loaderData: {
                 path: '/cart',
                 element: <Cart />,
                 loader: () => ({
-                    basketDataPromise: Promise.resolve(mockBasketData),
+                    basketDataPromise: loaderData.basketDataPromise ?? Promise.resolve(mockBasketData),
                     wishlistProductIdsPromise: Promise.resolve([]),
 
                     cartMayAlsoLikePromise: loaderData.cartMayAlsoLikePromise,
                     cartRecentlyViewedPromise: loaderData.cartRecentlyViewedPromise,
                     ruleBasedBonusProductsPromise: Promise.resolve({}),
-                    basketSnapshot: null,
+                    basketSnapshot: loaderData.basketSnapshot ?? null,
                     pageUrl: 'http://localhost/cart',
                 }),
             },
@@ -210,6 +220,44 @@ describe('Cart route component', () => {
             expect(titles[0]).toBe('You might also like');
         });
 
+        test.each([
+            { uniqueProductCount: 1, expectedRows: 1 },
+            { uniqueProductCount: 3, expectedRows: 3 },
+            { uniqueProductCount: 10, expectedRows: 3 },
+        ])('caps the loading skeleton at the first-viewport row count ($uniqueProductCount items -> $expectedRows rows)', async ({
+            uniqueProductCount,
+            expectedRows,
+        }) => {
+            const Cart = (await import('./_app.cart')).default;
+            const router = createMemoryRouter(
+                [
+                    {
+                        path: '/cart',
+                        element: <Cart />,
+                        loader: () => ({
+                            basketDataPromise: new Promise<typeof mockBasketData>(() => {}),
+                            wishlistProductIdsPromise: Promise.resolve([]),
+                            cartMayAlsoLikePromise: new Promise<any>(() => {}),
+                            cartRecentlyViewedPromise: new Promise<any>(() => {}),
+                            ruleBasedBonusProductsPromise: Promise.resolve({}),
+                            basketSnapshot: { uniqueProductCount },
+                            pageUrl: 'http://localhost/cart',
+                        }),
+                    },
+                ],
+                { initialEntries: ['/cart'] }
+            );
+
+            render(
+                <AllProvidersWrapper>
+                    <RouterProvider router={router} />
+                </AllProvidersWrapper>
+            );
+
+            const skeleton = await screen.findByTestId('cart-skeleton');
+            expect(skeleton).toHaveAttribute('data-item-count', String(expectedRows));
+        });
+
         test('does not render ProductRecommendationSkeleton once recommendation promises resolve', async () => {
             await renderCartRoute({
                 cartMayAlsoLikePromise: Promise.resolve({ recs: [] }),
@@ -226,6 +274,47 @@ describe('Cart route component', () => {
                 expect(screen.getAllByTestId('product-recommendations-resolved')).toHaveLength(2);
             });
             expect(screen.queryByTestId('product-recommendation-skeleton')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('Basket loading fallback', () => {
+        test('renders the real empty cart, not a skeleton, with an empty basket snapshot while the basket loads', async () => {
+            await renderCartRoute({
+                basketDataPromise: new Promise<typeof mockBasketData>(() => {}),
+                basketSnapshot: { uniqueProductCount: 0 },
+                cartMayAlsoLikePromise: new Promise<any>(() => {}),
+                cartRecentlyViewedPromise: new Promise<any>(() => {}),
+            });
+
+            expect(await screen.findByTestId('sf-cart-empty')).toBeInTheDocument();
+            expect(screen.queryByTestId('cart-skeleton')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('cart-content-stub')).not.toBeInTheDocument();
+        });
+
+        test('keeps the skeleton with no basket snapshot while the basket loads', async () => {
+            // Without the cookie the shopper may still have a server basket (for example one recovered
+            // after a quota error), so claiming "empty" before it loads would be wrong.
+            await renderCartRoute({
+                basketDataPromise: new Promise<typeof mockBasketData>(() => {}),
+                basketSnapshot: null,
+                cartMayAlsoLikePromise: new Promise<any>(() => {}),
+                cartRecentlyViewedPromise: new Promise<any>(() => {}),
+            });
+
+            expect(await screen.findByTestId('cart-skeleton')).toBeInTheDocument();
+            expect(screen.queryByTestId('sf-cart-empty')).not.toBeInTheDocument();
+        });
+
+        test('renders the skeleton when the basket snapshot has items while the basket loads', async () => {
+            await renderCartRoute({
+                basketDataPromise: new Promise<typeof mockBasketData>(() => {}),
+                basketSnapshot: { uniqueProductCount: 2 },
+                cartMayAlsoLikePromise: new Promise<any>(() => {}),
+                cartRecentlyViewedPromise: new Promise<any>(() => {}),
+            });
+
+            expect(await screen.findByTestId('cart-skeleton')).toBeInTheDocument();
+            expect(screen.queryByTestId('sf-cart-empty')).not.toBeInTheDocument();
         });
     });
 

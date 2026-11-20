@@ -35,9 +35,8 @@ Skeleton loading state for the CartContent component. Mirrors the cart page layo
 mobile fixed-bottom checkout bar and the desktop OrderSummary card — so the skeleton occupies the
 same space as the resolved page on every breakpoint.
 
-\`productItemCount\` is the only prop and drives every render variant — \`0\` renders the empty-cart
-skeleton, \`1\`+ renders the line-item skeleton with that many rows. A single \`Default\` story covers
-all three; flip the control to switch between empty, single, and multi-item skeletons.
+\`productItemCount\` sets how many line-item rows render. An empty cart has no skeleton: the cart route
+renders the real empty state while the basket loads.
 
 ## Layout
 
@@ -46,8 +45,6 @@ all three; flip the control to switch between empty, single, and multi-item skel
 - **md+**: Same item card on the right (lg ordering), with the desktop OrderSummary card on the
   left at lg breakpoint. The desktop card mirrors the real OrderSummary layout: heading, totals,
   promo code accordion trigger, checkout button and four payment-method icons.
-- **Empty state**: Full-width \`bg-background\` panel inside \`section-container\`, single icon,
-  title, single message, and a single CTA button — matches \`cart-empty.tsx\` exactly.
                 `,
             },
         },
@@ -55,7 +52,7 @@ all three; flip the control to switch between empty, single, and multi-item skel
     argTypes: {
         productItemCount: {
             control: 'number',
-            description: 'Number of item skeletons to render. `0` renders the empty-cart skeleton.',
+            description: 'Number of item skeletons to render (at least 1).',
             table: {
                 type: { summary: 'number' },
                 defaultValue: { summary: '1' },
@@ -68,10 +65,9 @@ export default meta;
 type Story = StoryObj<typeof CartSkeleton>;
 
 export const Default: Story = {
-    play: async ({ canvasElement, args }) => {
+    play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
-        const testId = (args.productItemCount ?? 1) === 0 ? 'sf-cart-empty-skeleton' : 'sf-cart-skeleton';
-        const container = canvasElement.querySelector(`[data-testid="${testId}"]`);
+        const container = canvasElement.querySelector('[data-testid="sf-cart-skeleton"]');
         await expect(container).toBeInTheDocument();
     },
 };

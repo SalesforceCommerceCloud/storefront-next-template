@@ -5958,8 +5958,8 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.488:
-    resolution: {integrity: sha512-Uox8y5IeRGB/uXNMNSPfWaiI5/8d/2XG125oc+f2C5JniHcoMxsbCXcVFRZnIsdrgPwZQ6/k5SbSxhBirqQPuA==}
+  electron-to-chromium@1.5.490:
+    resolution: {integrity: sha512-I0dPyEsiaYAlbGJlr0SdRRGSWk9BpOz8AIo/4f93A6bAGuN3YafmT71rpss72SA05isaAkcAOYcW0F0H48om4Q==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -8106,8 +8106,8 @@ packages:
     resolution: {integrity: sha512-9qny7Z9DsQU8Ou39ERsPU4OZQlSTP47ShQzuKZ6PRXpYLtIFgl/DEBYEXKlvcEa+9tHVcK8CF81Y2V72qaZhWA==}
     engines: {node: '>=18'}
 
-  npm@10.9.10:
-    resolution: {integrity: sha512-tRlhxytnr1HVV3QQ2sQ7fu6g7FnI/CI3HSv82O6aNKY/chHc1DmM0B5gzpDCbj0LQFt52mmb9MOnfgkFwH0qLQ==}
+  npm@10.9.11:
+    resolution: {integrity: sha512-PakPh1DVnNuaxWehZ9dDQcvBAmpJq7knHiDWKGSxT58V11cDVCZzLh2N+pjMUaT2aKbjzfpbgtc8MXMegN7IjA==}
     engines: {node: ^18.17.0 || >=20.5.0}
     hasBin: true
     bundledDependencies:
@@ -8180,8 +8180,8 @@ packages:
       - which
       - write-file-atomic
 
-  npm@11.21.2:
-    resolution: {integrity: sha512-7HPApk+AflMUavSseL1Pm6CnYqMIHk53x+KmuhqmTDqPkjPMgxIpTPcTqsE91EKNw4gFBJV9fnXiSdGm1DXq9A==}
+  npm@11.21.3:
+    resolution: {integrity: sha512-5Cf+jE+XctbhH/zjOOqXC+ity7eec/Tkk4Ql38tf6w+1htp2wYPHmE4c1R1Es3DY227Ac14+SLrlYJwkBicbTg==}
     engines: {node: ^20.17.0 || >=22.9.0}
     hasBin: true
     bundledDependencies:
@@ -12366,7 +12366,7 @@ snapshots:
       '@oclif/core': 4.8.0
       ansis: 3.17.0
       debug: 4.4.3(supports-color@10.2.2)
-      npm: 10.9.10
+      npm: 10.9.11
       npm-package-arg: 11.0.3
       npm-run-path: 5.3.0
       object-treeify: 4.0.1
@@ -12382,7 +12382,7 @@ snapshots:
       '@oclif/core': 4.14.0
       ansis: 3.17.0
       debug: 4.4.3(supports-color@10.2.2)
-      npm: 11.21.2
+      npm: 11.21.3
       npm-package-arg: 11.0.3
       npm-run-path: 5.3.0
       object-treeify: 4.0.1
@@ -15163,7 +15163,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.38
       caniuse-lite: 1.0.30001826
-      electron-to-chromium: 1.5.488
+      electron-to-chromium: 1.5.490
       node-releases: 2.0.65
       update-browserslist-db: 1.4.0(browserslist@4.29.6)
 
@@ -16163,7 +16163,7 @@ snapshots:
 
   ejs@6.0.1: {}
 
-  electron-to-chromium@1.5.488: {}
+  electron-to-chromium@1.5.490: {}
 
   embla-carousel-react@8.6.0(react@19.2.3):
     dependencies:
@@ -19032,9 +19032,9 @@ snapshots:
       path-key: 4.0.0
       unicorn-magic: 0.3.0
 
-  npm@10.9.10: {}
+  npm@10.9.11: {}
 
-  npm@11.21.2: {}
+  npm@11.21.3: {}
 
   nth-check@2.1.1:
     dependencies:

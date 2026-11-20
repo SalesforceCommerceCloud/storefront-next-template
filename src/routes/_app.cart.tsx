@@ -49,6 +49,7 @@ import type { Recommendation } from '@/hooks/recommenders/use-recommenders';
 
 // Components
 import CartSkeleton from '@/components/cart/cart-skeleton';
+import CartEmpty from '@/components/cart/cart-empty';
 import CartContent from '@/components/cart/cart-content';
 import { CartLoadError } from '@/components/cart/cart-load-error';
 import { SeoMeta } from '@/components/seo-meta';
@@ -60,6 +61,10 @@ import { useTranslation } from 'react-i18next';
 import { fetchStoresForBasket } from '@/extensions/bopis/lib/api/stores.server';
 import PickupProvider from '@/extensions/bopis/context/pickup-context';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
+// Three skeleton rows already fill the first viewport on mobile and desktop; rows beyond that sit below the
+// fold, so a larger cart would only add placeholder height that the resolved content then replaces.
+const MAX_SKELETON_ITEM_ROWS = 3;
 
 /**
  * Page-level UI config read from the route handle. `hasTopPadding` adds extra
@@ -280,6 +285,21 @@ export default function Cart(): ReactElement {
         </div>
     ) : undefined;
 
+    // The basket cookie is the only signal available before the basket loads. When it says the cart is
+    // empty, the empty state is the page's largest content and needs no basket data, so paint it with the
+    // first HTML instead of a skeleton. Without the cookie, the shopper (guest or registered) may still have
+    // a server basket, so they keep the skeleton rather than a false "cart is empty" message.
+    const { basketSnapshot } = pageData;
+    const likelyEmpty = basketSnapshot?.uniqueProductCount === 0;
+    const basketLoadingFallback = likelyEmpty ? (
+        <CartEmpty />
+    ) : (
+        <CartSkeleton
+            productItemCount={Math.min(basketSnapshot?.uniqueProductCount ?? 1, MAX_SKELETON_ITEM_ROWS)}
+            recommendationsSlot={recommendationsSkeleton}
+        />
+    );
+
     return (
         <>
             <SeoMeta
@@ -289,13 +309,7 @@ export default function Cart(): ReactElement {
                 })}
                 openGraph={{ type: 'website', url: pageData.pageUrl }}
             />
-            <Suspense
-                fallback={
-                    <CartSkeleton
-                        productItemCount={pageData.basketSnapshot?.uniqueProductCount ?? 0}
-                        recommendationsSlot={recommendationsSkeleton}
-                    />
-                }>
+            <Suspense fallback={basketLoadingFallback}>
                 <Await resolve={pageData.basketDataPromise} errorElement={<CartLoadError />}>
                     {(basketData) => (
                         <Suspense

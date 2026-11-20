@@ -19,58 +19,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 /**
- * Empty-cart skeleton mirrors `cart-empty.tsx`:
- *   - Full-width `bg-background` panel inside `section-container py-8 lg:py-14`
- *   - Padding `p-8 md:p-16`, centered content
- *   - Single 24×24 icon, h2 title, single paragraph, single CTA button
+ * Loading placeholder for a cart that has items, mirroring the resolved CartContent layout.
+ * An empty cart has no loading placeholder: the route renders the real empty state instead.
+ * @param productItemCount - Number of line-item rows to render (at least 1).
+ * @param recommendationsSlot - Reserved-space placeholder for the recommendation carousels.
  */
-function CartEmptySkeleton(): ReactElement {
-    return (
-        <div className="bg-muted flex-1 min-w-full w-full" data-testid="sf-cart-empty-skeleton" aria-busy="true">
-            <div className="section-container py-8 lg:py-14">
-                <div className="bg-background p-8 md:p-16 text-center">
-                    {/* Empty Cart Icon (real svg is w-24 h-24 with mb-6) */}
-                    <Skeleton className="w-24 h-24 mx-auto mb-6 rounded-full" />
-
-                    {/* Empty Cart Title (Typography h2 — text-2xl) */}
-                    <Skeleton className="h-8 w-40 mx-auto mb-2" />
-
-                    {/* Empty Cart Message (single text-sm paragraph) */}
-                    <Skeleton className="h-4 w-72 max-w-full mx-auto mb-8" />
-
-                    {/* Action Button — real EmptyCart only ever renders one button */}
-                    <Skeleton className="h-9 w-36 mx-auto rounded-ui" />
-                </div>
-            </div>
-        </div>
-    );
-}
-
 export default function CartSkeleton({
     productItemCount,
     recommendationsSlot,
 }: {
-    productItemCount?: number;
+    productItemCount: number;
     recommendationsSlot?: ReactNode;
 }): ReactElement {
     const { t } = useTranslation('cart');
-
-    // Announce the loading state to screen readers. role="status" (aria-live="polite")
-    // reads the label out when the skeleton mounts, without interrupting the shopper.
-    const loadingStatus = (
-        <span role="status" className="sr-only">
-            {t('loadingLabel', { defaultValue: 'Loading your cart' })}
-        </span>
-    );
-
-    if (!productItemCount) {
-        return (
-            <>
-                {loadingStatus}
-                <CartEmptySkeleton />
-            </>
-        );
-    }
 
     const productItemSkeletonIds = Array.from(
         { length: productItemCount },
@@ -82,7 +43,10 @@ export default function CartSkeleton({
             className="flex-1 min-h-screen bg-background mb-10 md:mb-10 pb-32 md:pb-0"
             data-testid="sf-cart-skeleton"
             aria-busy="true">
-            {loadingStatus}
+            {/* role="status" (aria-live="polite") announces the loading state without interrupting the shopper. */}
+            <span role="status" className="sr-only">
+                {t('loadingLabel', { defaultValue: 'Loading your cart' })}
+            </span>
             <div className="section-container">
                 {/* Page heading — Typography h1 (text-4xl font-bold) with mb-6 */}
                 <Skeleton className="h-10 w-48 mb-6" />
