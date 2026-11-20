@@ -444,7 +444,7 @@ describe('MyCart', () => {
         expect(screen.queryByText(/each/)).not.toBeInTheDocument();
     });
 
-    it('calls getPriceData with actual item quantity', () => {
+    it('passes the active currency to native amount comparison', () => {
         render(
             <MyCart
                 basket={{
@@ -455,6 +455,32 @@ describe('MyCart', () => {
             />
         );
 
-        expect(getPriceData).toHaveBeenCalledWith(expect.anything(), { quantity: 5, currency: 'GBP' });
+        expect(getPriceData).toHaveBeenCalledWith(expect.anything(), { currency: 'GBP' });
     });
+});
+
+it('does not replace a missing calculated line price with a catalog unit price', () => {
+    vi.mocked(getPriceData).mockReturnValue({
+        currentPrice: 0,
+        listPrice: undefined,
+        isOnSale: false,
+        isASet: false,
+        isMaster: false,
+        isRange: false,
+        pricePerUnit: undefined,
+        tieredPrice: undefined,
+        maxPrice: undefined,
+        hasPrice: false,
+    });
+    render(
+        <MyCart
+            basket={{ basketId: 'basket', productItems: [{ itemId: 'line', productId: 'sku', quantity: 2 }] }}
+            productMap={{ line: { id: 'sku', price: 12 } }}
+        />
+    );
+    expect(vi.mocked(getPriceData)).toHaveBeenLastCalledWith(
+        expect.objectContaining({ itemId: 'line', price: undefined }),
+        expect.anything()
+    );
+    expect(screen.queryByText(/0[.,]00 each/)).not.toBeInTheDocument();
 });

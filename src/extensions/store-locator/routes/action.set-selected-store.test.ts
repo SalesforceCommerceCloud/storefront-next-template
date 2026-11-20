@@ -30,6 +30,7 @@ import {
 vi.mock('@/extensions/store-locator/lib/store-selection.server', async (importOriginal) => ({
     ...(await importOriginal<typeof import('@/extensions/store-locator/lib/store-selection.server')>()),
     selectStore: vi.fn(),
+    getReconciledStoreSelectionEffects: () => ({ storeSelection: 'reconciled', nativeContext: 'reconciled' }),
 }));
 vi.mock('@/extensions/store-locator/lib/resolve-selected-store.server', () => ({
     resolveSelectedStore: vi.fn(),
@@ -124,7 +125,12 @@ describe('set-selected-store action', () => {
         expect(selectStore).toHaveBeenCalledWith(context, { id: 'Store-1' });
         expect(invalidateSelectedStoreResolution).toHaveBeenCalledWith(context);
         expect(result.init?.status).toBe(200);
-        expect(result.data).toEqual({ success: true, selectedStoreInfo: { id: 'Store-1' } });
+        expect(result.data).toEqual({
+            success: true,
+            selectedStoreInfo: { id: 'Store-1' },
+            shoppingContext: null,
+            effects: { storeSelection: 'unchanged', nativeContext: 'unchanged' },
+        });
     });
 
     test('clear passes null to the shared service', async () => {
@@ -136,7 +142,11 @@ describe('set-selected-store action', () => {
         const result = await action(args(form({ intent: 'reconcile' })));
         expect(selectStore).not.toHaveBeenCalled();
         expect(invalidateSelectedStoreResolution).toHaveBeenCalledWith(context);
-        expect(result.data).toEqual({ success: true, selectedStoreInfo: { id: 'Store-1' } });
+        expect(result.data).toEqual({
+            success: true,
+            selectedStoreInfo: { id: 'Store-1' },
+            effects: { storeSelection: 'reconciled', nativeContext: 'reconciled' },
+        });
     });
 
     test.each([{ error: 'x' }, { authError: true }])('reconcile maps a failed resolution %j to 503', async (failed) => {
@@ -151,7 +161,10 @@ describe('set-selected-store action', () => {
         vi.mocked(selectStore).mockResolvedValue(refused as never);
         const result = await action(args(form({ intent: 'set', storeId: 'Store-2' })));
         expect(result.init?.status).toBe(409);
-        expect(result.data).toEqual(refused);
+        expect(result.data).toEqual({
+            ...refused,
+            effects: { storeSelection: 'unchanged', nativeContext: 'unchanged' },
+        });
     });
 
     test.each([
@@ -238,5 +251,46 @@ describe('set-selected-store action', () => {
         await expect(action(args(form({ intent: 'set', storeId: 'Store-1' })))).rejects.toBeInstanceOf(
             AuthTokenInvalidError
         );
+    });
+});
+
+test('does not expose private context or write the profile after registered selection', async () => {
+    const context = new RouterContextProvider();
+    vi.mocked(getAuth).mockReturnValue({ userType: 'registered' } as never);
+    vi.mocked(selectStore).mockResolvedValue({
+        success: true,
+        selectedStoreInfo: { id: 'B', inventoryId: 'IB' },
+        shoppingContext: {
+            siteId: 'site',
+            preparingStoreId: 'B',
+            contextRevision: 'revision',
+            selectionOrigin: 'explicit',
+            committedAt: 'now',
+            explicitChoiceSessionId: 'private-session',
+            identityEpoch: 'private-identity',
+        },
+    });
+    vi.mocked(updatePreferredStoreId).mockRejectedValue(new Error('Selection must not write the profile'));
+    const body = new FormData();
+    body.set('intent', 'set');
+    body.set('storeId', 'B');
+    const result = await action(
+        createActionArgs<Route.ActionArgs>(
+            new Request('https://example.com/action/set-selected-store', {
+                method: 'POST',
+                headers: { Origin: 'https://example.com' },
+                body,
+            }),
+            context,
+            { pattern: '' }
+        )
+    );
+    expect(result.init?.status).toBe(200);
+    expect(updatePreferredStoreId).not.toHaveBeenCalled();
+    expect(JSON.stringify(result.data)).not.toContain('private-');
+    expect(result.data).toMatchObject({
+        selectedStoreInfo: { id: 'B' },
+        shoppingContext: { contextRevision: 'revision' },
+        effects: { storeSelection: 'unchanged', nativeContext: 'unchanged' },
     });
 });

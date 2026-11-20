@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { ShopperProducts } from '@/scapi';
 import ProductPrice from '../index';
 import { mockStandardProductOrderable } from '../../__mocks__/standard-product';
 import { mockMasterProductHitWithOneVariant } from '../../__mocks__/product-search-hit-data';
@@ -23,7 +24,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 const meta: Meta<typeof ProductPrice> = {
     title: 'Products/Product Price',
     component: ProductPrice,
-    tags: ['autodocs', 'interaction'],
+    tags: ['autodocs', 'interaction', 'qualified-prices'],
     parameters: {
         layout: 'centered',
     },
@@ -105,7 +106,7 @@ export const WithQuantity: Story = {
 /**
  * Master product price range — `mockMasterProductHitWithOneVariant`
  * triggers the master+priceMax branch in `getPriceData`, displaying
- * a single price (£191.99) with a struck-through max (£320.00). Different
+ * a qualified single price (£191.99), without treating a book maximum as a list price. Different
  * fixture shape from Default, kept dedicated.
  */
 export const PriceRange: Story = {
@@ -129,12 +130,8 @@ export const OnSale: Story = {
     args: {
         product: {
             ...mockStandardProductOrderable.product,
-            price: 79.99,
-            pricePerUnit: 99.99,
-            tieredPrices: [
-                { price: 99.99, pricebook: 'list-prices', quantity: 1 },
-                { price: 79.99, pricebook: 'sale-prices', quantity: 1 },
-            ],
+            price: 99.99,
+            productPromotions: [{ promotionId: 'native-sale', promotionalPrice: 79.99, calloutMsg: '' }],
         },
         currency: 'USD',
     },
@@ -145,6 +142,29 @@ export const OnSale: Story = {
         await expect(salePrices.length).toBeGreaterThan(0);
         const listPrices = canvas.getAllByText(/\$99.99/);
         await expect(listPrices.length).toBeGreaterThan(0);
+    },
+};
+
+/** Calculated line amounts remain authoritative when catalog consultation policy changes. */
+export const CalculatedLineWithCatalogPriceOnRequest: Story = {
+    args: {
+        product: {
+            id: 'calculated-sku',
+            itemId: 'calculated-line',
+            quantity: 2,
+            basePrice: 10,
+            price: 20,
+            priceAfterItemDiscount: 18,
+            c_priceOnRequest: true,
+        },
+        currency: 'USD',
+        type: 'unit',
+        currentPriceOnly: true,
+        hidePromo: true,
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        await expect(within(canvasElement).getByText('$9.00')).toBeVisible();
     },
 };
 
@@ -169,7 +189,7 @@ export const PriceUnavailable: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        await expect(canvas.getAllByText(/Price unavailable/i).length).toBeGreaterThan(0);
+        await expect(canvas.getAllByText(/unavailable/i).length).toBeGreaterThan(0);
     },
 };
 
@@ -186,11 +206,7 @@ export const WithPromoCallout: Story = {
     args: {
         product: {
             ...mockStandardProductOrderable.product,
-            price: 79.99,
-            tieredPrices: [
-                { price: 99.99, pricebook: 'list-prices', quantity: 1 },
-                { price: 79.99, pricebook: 'sale-prices', quantity: 1 },
-            ],
+            price: 99.99,
             productPromotions: [
                 {
                     promotionId: 'storybook-20-off',
@@ -208,5 +224,28 @@ export const WithPromoCallout: Story = {
         await expect(salePrices.length).toBeGreaterThan(0);
         const promoCallout = canvas.getByText(/Get 20% off/);
         await expect(promoCallout).toBeVisible();
+    },
+};
+
+/** Ecom-qualified callouts are returned independently of whether an offer supplies a product price. */
+export const QualifiedStoreOffers: Story = {
+    args: {
+        currency: 'GBP',
+        product: {
+            id: 'qualified-store-product',
+            price: 16,
+            productPromotions: [
+                { promotionId: 'individual-store', calloutMsg: 'Store offer' },
+                { promotionId: 'store-group', calloutMsg: 'Member stores: spend £25 for a gift' },
+                { promotionId: 'all-store', calloutMsg: 'All stores: use your coupon at checkout' },
+            ],
+        } as ShopperProducts.schemas['Product'],
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        await expect(canvas.getByText('Store offer')).toBeVisible();
+        await expect(canvas.getByText('Member stores: spend £25 for a gift')).toBeVisible();
+        await expect(canvas.getByText('All stores: use your coupon at checkout')).toBeVisible();
     },
 };

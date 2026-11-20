@@ -16,21 +16,21 @@
 
 type ResourceRequestKind = 'loader' | 'action';
 
-const RESOURCE_OPERATIONS: Record<ResourceRequestKind, Readonly<Record<string, readonly string[]>>> = {
-    loader: {
-        shopperBasketsV2: ['getBasket'],
-        shopperProducts: ['getProduct', 'getProducts'],
-        shopperSearch: ['getSearchSuggestions'],
-    },
-    action: {
-        shopperCustomers: [
-            'createCustomerAddress',
-            'updateCustomerAddress',
-            'updateCustomer',
-            'updateCustomerPassword',
-            'removeCustomerAddress',
-        ],
-    },
+type ResourceOperations = Readonly<Record<string, readonly string[]>>;
+
+const LOADER_OPERATIONS: ResourceOperations = {
+    shopperBasketsV2: ['getBasket'],
+    shopperProducts: ['getProduct', 'getProducts'],
+    shopperSearch: ['getSearchSuggestions'],
+};
+const ACTION_OPERATIONS: ResourceOperations = {
+    shopperCustomers: [
+        'createCustomerAddress',
+        'updateCustomerAddress',
+        'updateCustomer',
+        'updateCustomerPassword',
+        'removeCustomerAddress',
+    ],
 };
 
 const SERVER_OWNED_PATH_PARAMETERS = new Set(['organizationId']);
@@ -59,12 +59,24 @@ function copyOperationParameters(value: unknown, serverOwnedKeys: ReadonlySet<st
  * Returns whether a browser-facing resource request may invoke the selected SCAPI operation.
  * Loaders are intentionally read-only; mutations are intentionally action-only.
  */
-export function isResourceOperationAllowed(kind: ResourceRequestKind, client: unknown, method: unknown): boolean {
+function isOperationAllowed(operations: ResourceOperations, client: unknown, method: unknown): boolean {
     if (typeof client !== 'string' || typeof method !== 'string') {
         return false;
     }
 
-    return RESOURCE_OPERATIONS[kind][client]?.includes(method) ?? false;
+    return operations[client]?.includes(method) ?? false;
+}
+
+/** Shared read policy; browser consumers do not need the action allowlist. */
+export function isResourceLoaderAllowed(client: unknown, method: unknown): boolean {
+    return isOperationAllowed(LOADER_OPERATIONS, client, method);
+}
+
+/** Returns whether the resource route may invoke the operation for this request kind. */
+export function isResourceOperationAllowed(kind: ResourceRequestKind, client: unknown, method: unknown): boolean {
+    return kind === 'loader'
+        ? isResourceLoaderAllowed(client, method)
+        : isOperationAllowed(ACTION_OPERATIONS, client, method);
 }
 
 /**

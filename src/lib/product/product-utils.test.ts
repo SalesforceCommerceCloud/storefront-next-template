@@ -1122,6 +1122,24 @@ describe('product-utils', () => {
             expect(firstItem.variationAttributes).toEqual(mockProductMap['product-1'].variationAttributes);
         });
 
+        it('preserves awarded native line adjustments alongside exact-SKU catalog callouts', () => {
+            const adjustment = { promotionId: 'registered-benefit', price: -5 };
+            const result = getEnrichedProducts(
+                {
+                    ...mockProductMap,
+                    'product-1': {
+                        ...mockProductMap['product-1'],
+                        price: 999,
+                        productPromotions: [
+                            { promotionId: 'catalog-callout', calloutMsg: 'Offer', promotionalPrice: 999 },
+                        ],
+                    },
+                },
+                [{ ...mockProductItems[0], priceAdjustments: [adjustment] }]
+            );
+            expect(result[0]).toMatchObject({ price: 50, priceAfterItemDiscount: 45, priceAdjustments: [adjustment] });
+        });
+
         it('should preserve basket-specific data when merging', () => {
             const result = getEnrichedProducts(mockProductMap, mockProductItems);
 

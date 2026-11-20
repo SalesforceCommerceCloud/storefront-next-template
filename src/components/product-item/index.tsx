@@ -367,6 +367,8 @@ function ProductItem({
         return <div data-testid="product-item-error">Product data not available</div>;
     }
 
+    const priceData = getPriceData(productItem, { currency });
+
     // Summary variant - compact display for product summary.
     // NOTE: the showLineItem* UI-config flags (variant attributes, list price, promo badge, bonus badge)
     // are intentionally scoped to the DEFAULT variant below — they are NOT applied here. The summary tile
@@ -468,8 +470,7 @@ function ProductItem({
                                     <div className="flex w-full max-w-full shrink-0 flex-col items-end gap-2 md:gap-3">
                                         <div className="text-right" data-testid="desktop-product-price">
                                             <div className="inline-flex flex-col items-end font-semibold text-base">
-                                                {(productItem.priceAfterItemDiscount ?? productItem.price ?? 0) ===
-                                                0 ? (
+                                                {priceData.hasPrice && priceData.currentPrice === 0 ? (
                                                     <span className="text-xl font-semibold text-status-positive">
                                                         {t('miniCart:free')}
                                                     </span>
@@ -497,14 +498,9 @@ function ProductItem({
                                                     />
                                                 )}
                                             </div>
-                                            {(productItem.quantity ?? 1) > 1 && (
+                                            {priceData.hasPrice && (productItem.quantity ?? 1) > 1 && (
                                                 <div className="text-right text-muted-foreground text-sm">
-                                                    {formatCurrency(
-                                                        (productItem.priceAfterItemDiscount ?? productItem.price ?? 0) /
-                                                            (productItem.quantity ?? 1),
-                                                        i18n.language,
-                                                        currency
-                                                    )}{' '}
+                                                    {formatCurrency(priceData.currentPrice, i18n.language, currency)}{' '}
                                                     each
                                                 </div>
                                             )}

@@ -1,5 +1,28 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`ProductPrice stories snapshot > CalculatedLineWithCatalogPriceOnRequest story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="items-center gap-2"
+  >
+    <span
+      aria-hidden="true"
+      class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
+    >
+      $9.00
+    </span>
+    <span
+      aria-atomic="true"
+      aria-live="polite"
+      class="sr-only"
+    >
+       
+      Current price: $9.00
+    </span>
+  </div>
+</div>
+`;
+
 exports[`ProductPrice stories snapshot > Default story renders and matches snapshot 1`] = `
 <div>
   <div
@@ -82,20 +105,6 @@ exports[`ProductPrice stories snapshot > PriceRange story renders and matches sn
       Current price: £191.99
     </span>
      
-    <span
-      aria-hidden="true"
-      class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
-    >
-      £320.00
-    </span>
-    <span
-      aria-atomic="true"
-      aria-live="polite"
-      class="sr-only"
-    >
-       
-      List price: £320.00
-    </span>
   </div>
 </div>
 `;
@@ -115,6 +124,49 @@ exports[`ProductPrice stories snapshot > PriceUnavailable story renders and matc
       class="sr-only"
     >
       Price unavailable
+    </span>
+  </div>
+</div>
+`;
+
+exports[`ProductPrice stories snapshot > QualifiedStoreOffers story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="items-center gap-2"
+  >
+    <span
+      aria-hidden="true"
+      class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
+    >
+      £16.00
+    </span>
+    <span
+      aria-atomic="true"
+      aria-live="polite"
+      class="sr-only"
+    >
+       
+      Current price: £16.00
+    </span>
+     
+  </div>
+  <div
+    class="items-center gap-2"
+  >
+    <span
+      class="line-clamp-2 text-[inherit] font-medium block"
+    >
+      Store offer
+    </span>
+    <span
+      class="line-clamp-2 text-[inherit] font-medium block"
+    >
+      Member stores: spend £25 for a gift
+    </span>
+    <span
+      class="line-clamp-2 text-[inherit] font-medium block"
+    >
+      All stores: use your coupon at checkout
     </span>
   </div>
 </div>

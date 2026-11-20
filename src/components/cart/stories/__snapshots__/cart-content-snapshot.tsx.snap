@@ -389,33 +389,8 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                                       Current price: $42.00
                                     </span>
                                      
-                                    <span
-                                      aria-hidden="true"
-                                      class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                    >
-                                      $99.99
-                                    </span>
-                                    <span
-                                      aria-atomic="true"
-                                      aria-live="polite"
-                                      class="sr-only"
-                                    >
-                                      Men's Classic Deer Gloves
-                                       
-                                      List price: $99.99
-                                    </span>
                                   </div>
                                 </div>
-                              </div>
-                              <div
-                                class="flex w-full justify-end"
-                              >
-                                <span
-                                  class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                  data-slot="badge"
-                                >
-                                  Saved $57.99
-                                </span>
                               </div>
                             </div>
                             <div
@@ -1287,33 +1262,8 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                       Current price: $35.00
                                     </span>
                                      
-                                    <span
-                                      aria-hidden="true"
-                                      class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                    >
-                                      $99.99
-                                    </span>
-                                    <span
-                                      aria-atomic="true"
-                                      aria-live="polite"
-                                      class="sr-only"
-                                    >
-                                      Men's Classic Deer Gloves
-                                       
-                                      List price: $99.99
-                                    </span>
                                   </div>
                                 </div>
-                              </div>
-                              <div
-                                class="flex w-full justify-end"
-                              >
-                                <span
-                                  class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                  data-slot="badge"
-                                >
-                                  Saved $64.99
-                                </span>
                               </div>
                             </div>
                             <div
@@ -1723,33 +1673,8 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                       Current price: $45.00
                                     </span>
                                      
-                                    <span
-                                      aria-hidden="true"
-                                      class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                    >
-                                      $99.99
-                                    </span>
-                                    <span
-                                      aria-atomic="true"
-                                      aria-live="polite"
-                                      class="sr-only"
-                                    >
-                                      Men's Classic Deer Gloves
-                                       
-                                      List price: $99.99
-                                    </span>
                                   </div>
                                 </div>
-                              </div>
-                              <div
-                                class="flex w-full justify-end"
-                              >
-                                <span
-                                  class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                  data-slot="badge"
-                                >
-                                  Saved $54.99
-                                </span>
                               </div>
                             </div>
                             <div
@@ -2104,21 +2029,6 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                       Current price: $60.00
                                     </span>
                                      
-                                    <span
-                                      aria-hidden="true"
-                                      class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                    >
-                                      $199.98
-                                    </span>
-                                    <span
-                                      aria-atomic="true"
-                                      aria-live="polite"
-                                      class="sr-only"
-                                    >
-                                      Men's Classic Deer Gloves
-                                       
-                                      List price: $199.98
-                                    </span>
                                   </div>
                                 </div>
                                 <div
@@ -2128,16 +2038,6 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                    
                                   each
                                 </div>
-                              </div>
-                              <div
-                                class="flex w-full justify-end"
-                              >
-                                <span
-                                  class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                  data-slot="badge"
-                                >
-                                  Saved $139.98
-                                </span>
                               </div>
                             </div>
                             <div
@@ -3015,33 +2915,8 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                       Current price: $40.00
                                     </span>
                                      
-                                    <span
-                                      aria-hidden="true"
-                                      class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                    >
-                                      $99.99
-                                    </span>
-                                    <span
-                                      aria-atomic="true"
-                                      aria-live="polite"
-                                      class="sr-only"
-                                    >
-                                      Men's Classic Deer Gloves
-                                       
-                                      List price: $99.99
-                                    </span>
                                   </div>
                                 </div>
-                              </div>
-                              <div
-                                class="flex w-full justify-end"
-                              >
-                                <span
-                                  class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                  data-slot="badge"
-                                >
-                                  Saved $59.99
-                                </span>
                               </div>
                             </div>
                             <div
@@ -3396,33 +3271,8 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                       Current price: $27.00
                                     </span>
                                      
-                                    <span
-                                      aria-hidden="true"
-                                      class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                    >
-                                      $99.99
-                                    </span>
-                                    <span
-                                      aria-atomic="true"
-                                      aria-live="polite"
-                                      class="sr-only"
-                                    >
-                                      Men's Classic Deer Gloves
-                                       
-                                      List price: $99.99
-                                    </span>
                                   </div>
                                 </div>
-                              </div>
-                              <div
-                                class="flex w-full justify-end"
-                              >
-                                <span
-                                  class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                  data-slot="badge"
-                                >
-                                  Saved $72.99
-                                </span>
                               </div>
                             </div>
                             <div
@@ -4699,33 +4549,8 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                                     Current price: $30.00
                                   </span>
                                    
-                                  <span
-                                    aria-hidden="true"
-                                    class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                  >
-                                    $99.99
-                                  </span>
-                                  <span
-                                    aria-atomic="true"
-                                    aria-live="polite"
-                                    class="sr-only"
-                                  >
-                                    Men's Classic Deer Gloves
-                                     
-                                    List price: $99.99
-                                  </span>
                                 </div>
                               </div>
-                            </div>
-                            <div
-                              class="flex w-full justify-end"
-                            >
-                              <span
-                                class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                data-slot="badge"
-                              >
-                                Saved $69.99
-                              </span>
                             </div>
                           </div>
                           <div
@@ -5135,33 +4960,8 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                                     Current price: $42.00
                                   </span>
                                    
-                                  <span
-                                    aria-hidden="true"
-                                    class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                  >
-                                    $99.99
-                                  </span>
-                                  <span
-                                    aria-atomic="true"
-                                    aria-live="polite"
-                                    class="sr-only"
-                                  >
-                                    Men's Classic Deer Gloves
-                                     
-                                    List price: $99.99
-                                  </span>
                                 </div>
                               </div>
-                            </div>
-                            <div
-                              class="flex w-full justify-end"
-                            >
-                              <span
-                                class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                data-slot="badge"
-                              >
-                                Saved $57.99
-                              </span>
                             </div>
                           </div>
                           <div
@@ -5516,21 +5316,6 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                                     Current price: $76.00
                                   </span>
                                    
-                                  <span
-                                    aria-hidden="true"
-                                    class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                  >
-                                    $199.98
-                                  </span>
-                                  <span
-                                    aria-atomic="true"
-                                    aria-live="polite"
-                                    class="sr-only"
-                                  >
-                                    Men's Classic Deer Gloves
-                                     
-                                    List price: $199.98
-                                  </span>
                                 </div>
                               </div>
                               <div
@@ -5540,16 +5325,6 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                                  
                                 each
                               </div>
-                            </div>
-                            <div
-                              class="flex w-full justify-end"
-                            >
-                              <span
-                                class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                data-slot="badge"
-                              >
-                                Saved $123.98
-                              </span>
                             </div>
                           </div>
                           <div
@@ -6320,33 +6095,8 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                       Current price: $20.00
                                     </span>
                                      
-                                    <span
-                                      aria-hidden="true"
-                                      class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                    >
-                                      $99.99
-                                    </span>
-                                    <span
-                                      aria-atomic="true"
-                                      aria-live="polite"
-                                      class="sr-only"
-                                    >
-                                      Classic Fit Shirt
-                                       
-                                      List price: $99.99
-                                    </span>
                                   </div>
                                 </div>
-                              </div>
-                              <div
-                                class="flex w-full justify-end"
-                              >
-                                <span
-                                  class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                  data-slot="badge"
-                                >
-                                  Saved $79.99
-                                </span>
                               </div>
                             </div>
                             <div
@@ -7808,21 +7558,6 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                                       Current price: $38.38
                                     </span>
                                      
-                                    <span
-                                      aria-hidden="true"
-                                      class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                    >
-                                      $199.98
-                                    </span>
-                                    <span
-                                      aria-atomic="true"
-                                      aria-live="polite"
-                                      class="sr-only"
-                                    >
-                                      Solid Silk Tie
-                                       
-                                      List price: $199.98
-                                    </span>
                                   </div>
                                 </div>
                                 <div
@@ -7832,16 +7567,6 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                                    
                                   each
                                 </div>
-                              </div>
-                              <div
-                                class="flex w-full justify-end"
-                              >
-                                <span
-                                  class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                  data-slot="badge"
-                                >
-                                  Saved $161.60
-                                </span>
                               </div>
                             </div>
                             <div
@@ -8801,21 +8526,6 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                                       Current price: $38.38
                                     </span>
                                      
-                                    <span
-                                      aria-hidden="true"
-                                      class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
-                                    >
-                                      $199.98
-                                    </span>
-                                    <span
-                                      aria-atomic="true"
-                                      aria-live="polite"
-                                      class="sr-only"
-                                    >
-                                      Solid Silk Tie
-                                       
-                                      List price: $199.98
-                                    </span>
                                   </div>
                                 </div>
                                 <div
@@ -8825,16 +8535,6 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                                    
                                   each
                                 </div>
-                              </div>
-                              <div
-                                class="flex w-full justify-end"
-                              >
-                                <span
-                                  class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                                  data-slot="badge"
-                                >
-                                  Saved $161.60
-                                </span>
                               </div>
                             </div>
                             <div

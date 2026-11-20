@@ -26,7 +26,7 @@ import type { ShopperProducts } from '@/scapi';
  * @param price - The raw price value from SCAPI.
  * @returns true if the price is a finite number (including 0), false otherwise.
  */
-export function isAvailablePrice(price: number | null | undefined): boolean {
+export function isAvailablePrice(price: number | null | undefined): price is number {
     return typeof price === 'number' && Number.isFinite(price);
 }
 

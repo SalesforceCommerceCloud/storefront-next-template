@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+import { useStoreQualificationPending } from '@/extensions/store-locator/providers/context';
+import { readsQualifiedCommerce } from '@/lib/scapi/qualified-reads';
+import { isResourceLoaderAllowed } from '@/lib/scapi/resource-policy';
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { type FetcherSubmitOptions, type FetcherWithComponents, type SubmitTarget, useFetcher } from 'react-router';
 import { createFetcherRegistration } from '@/lib/scapi/fetcher-registry';
@@ -51,12 +56,14 @@ export type ScapiFetcher<TData = unknown, TSubmitPayload = unknown> = Omit<
      * Payload is the method body shape (JSON-serializable); it will be wrapped in FormData.
      */
     submit: (payload?: TSubmitPayload, opts?: Omit<FetcherSubmitOptions, 'action' | 'method'>) => Promise<void>;
-    /** Convenience property to access the actual data when success is true */
+    /** Response payload; qualified read data is withheld while qualificationPending. */
     data: UnwrapApiResponse<TData> | undefined;
     /** Convenience property to access error messages when success is false */
     errors: string[] | undefined;
-    /** Convenience property to check if the operation was successful */
+    /** Native transport outcome; independent of whether a qualified quote may be displayed. */
     success: boolean;
+    /** Present with Store Locator: qualified read data is withheld until selection/reload settles. */
+    qualificationPending?: boolean;
 };
 
 /**
@@ -207,6 +214,16 @@ export function useScapiFetcher(
         : encodeResource(clientOrHelpers, methodOrNamespace, methodParams);
 
     const fetcher = useFetcher<ApiResponse<unknown>>({ key: resource });
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    // Reuse the server's loader allowlist: display qualification must never hide mutation outcomes.
+    const qualified =
+        isResourceLoaderAllowed(clientOrHelpers, methodOrNamespace) &&
+        readsQualifiedCommerce({ client: clientOrHelpers, method: methodOrNamespace, options: methodParams });
+    const selectionPending = useStoreQualificationPending(qualified);
+    // Registry reloads run independently of the selection action's route revalidation. React
+    // Router retains the preceding data while loading; never publish that quote under a new store.
+    const qualificationPending = qualified && (selectionPending || fetcher.state === 'loading');
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
     // Fetcher registration
     const registration = useMemo(() => createFetcherRegistration(resource), [resource]);
@@ -275,8 +292,12 @@ export function useScapiFetcher(
         ...fetcher,
         load,
         submit,
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        qualificationPending,
         // Convenience properties for easier access to structured response
         get data() {
+            // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+            if (qualificationPending) return undefined;
             return fetcher.data?.data;
         },
         get errors() {

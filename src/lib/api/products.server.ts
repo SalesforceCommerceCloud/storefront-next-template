@@ -15,6 +15,7 @@
  */
 import type { LoaderFunctionArgs } from 'react-router';
 import type { ShopperProducts } from '@/scapi';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getLogger } from '@/lib/logger.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
@@ -102,6 +103,7 @@ export async function fetchProductsByIds(
                         query: {
                             ids: chunk,
                             ...options,
+                            currency: options.currency ?? context.get(siteContext)?.currency,
                         },
                     },
                 })
@@ -154,7 +156,7 @@ export async function fetchProductById(
         const { data } = await clients.shopperProducts.getProduct({
             params: {
                 path: { id: trimmedId },
-                query: { ...options },
+                query: { ...options, currency: options.currency ?? context.get(siteContext)?.currency },
             },
         });
         return data ?? null;

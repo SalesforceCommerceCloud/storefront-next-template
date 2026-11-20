@@ -190,3 +190,91 @@ describe('getPriceData hasPrice', () => {
         expect(result.listPrice).toBe(100);
     });
 });
+
+describe('native qualified price presentation', () => {
+    test.each([4, 16])('displays the native price %s without using individual book or tier amounts', (price) => {
+        const result = getPriceData({
+            id: 'qualified',
+            price,
+            tieredPrices: [
+                { quantity: 1, price: 99 },
+                { quantity: 4, price: 1 },
+            ],
+        } as Product);
+        expect(result.currentPrice).toBe(price);
+        expect(result.listPrice).toBeUndefined();
+        expect(result.maxPrice).toBeUndefined();
+        expect(result.tieredPrice).toBeUndefined();
+        expect(result.isOnSale).toBe(false);
+    });
+
+    test('does not derive a basket discount from unrelated catalog book amounts', () => {
+        const result = getPriceData({
+            itemId: 'line',
+            basePrice: 10,
+            price: 20,
+            quantity: 2,
+            tieredPrices: [{ quantity: 1, price: 99 }],
+        } as unknown as Product);
+        expect(result.currentPrice).toBe(10);
+        expect(result.isOnSale).toBe(false);
+        expect(result.listPrice).toBeUndefined();
+    });
+
+    test('does not divide a native unit base price twice', () => {
+        expect(getPriceData({ itemId: 'line', basePrice: 10, quantity: 2 } as unknown as Product).currentPrice).toBe(
+            10
+        );
+    });
+
+    test('keeps a wholly unpriced basket line unavailable', () => {
+        expect(getPriceData({ itemId: 'line', quantity: 2 } as unknown as Product).hasPrice).toBe(false);
+    });
+
+    test('an unpriced variant with promotional metadata cannot replace a priced sibling with zero', () => {
+        const result = getPriceData({
+            id: 'master',
+            type: { master: true },
+            variants: [
+                { productId: 'unpriced', productPromotions: [{ promotionalPrice: 4 }] },
+                { productId: 'priced', price: 10 },
+            ],
+        } as unknown as Product);
+        expect(result.currentPrice).toBe(10);
+    });
+
+    test('uses native qualified promotional prices and the native base for a discount display', () => {
+        const result = getPriceData({
+            id: 'promo',
+            price: 10,
+            productPromotions: [{ promotionId: 'native-qualified', promotionalPrice: 8 }],
+        } as Product);
+        expect(result.currentPrice).toBe(8);
+        expect(result.listPrice).toBe(10);
+    });
+});
+
+test('does not inflate the variant maximum from promotion-only unpriced variants', () => {
+    const result = getPriceData({
+        id: 'master',
+        type: { master: true },
+        variants: [
+            { productId: 'priced', price: 10 },
+            { productId: 'unpriced', productPromotions: [{ promotionalPrice: 100 }] },
+        ],
+    } as unknown as Product);
+    expect(result.currentPrice).toBe(10);
+    expect(result.maxPrice).toBe(10);
+});
+
+test('does not turn a single native promotional price into an artificial price range', () => {
+    const result = getPriceData({
+        id: 'single',
+        price: 10,
+        priceMax: 10,
+        productPromotions: [{ promotionId: 'native-sale', promotionalPrice: 8 }],
+    } as Product);
+    expect(result.currentPrice).toBe(8);
+    expect(result.listPrice).toBe(10);
+    expect(result.isRange).toBe(false);
+});

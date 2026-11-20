@@ -30,28 +30,46 @@ type Product =
  * @param className - custom className
  * @returns {JSX.Element}
  */
-export default function PromoCallout({ product, className }: { product: Product; className?: string }) {
+export default function PromoCallout({
+    product,
+    parentProduct,
+    className,
+}: {
+    product: Product;
+    /** Native parent offers retained when displaying a selected SKU's financial amounts. */
+    parentProduct?: Product;
+    className?: string;
+}) {
     const lowestPriceResult = useMemo(() => findLowestPrice(product), [product]);
 
-    // NOTE: API inconsistency - with getProduct call, a variant does not have productPromotions
-    const promos = lowestPriceResult?.data?.productPromotions ?? product?.productPromotions ?? [];
-    const promo = lowestPriceResult?.promotion ?? promos[0];
-
-    if (!promo?.calloutMsg) {
-        return null;
-    }
-
-    // Safely get the callout message as a string
-    const calloutMsg = String(promo.calloutMsg || '');
+    // Expanded SKU details and an optional distinct parent can both supply native callouts.
+    const promos = [
+        ...(lowestPriceResult?.data?.productPromotions ?? []),
+        ...(product?.productPromotions ?? []),
+        ...(parentProduct?.productPromotions ?? []),
+    ];
+    // Ecom determines qualification. Preserve returned callouts, including conditional and
+    // gift offers without a promotionalPrice; do not infer eligibility here.
+    const seen = new Set<string>();
+    const callouts = promos.filter((promo) => {
+        const key = promo.promotionId || String(promo.calloutMsg || '');
+        if (!promo.calloutMsg || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+    if (!callouts.length) return null;
 
     return (
         <div className={cn('items-center gap-2', className)}>
-            {/* BM content is trusted, safe to render HTML. Works for both plain text and HTML strings */}
-            <span
-                className="line-clamp-2 text-[inherit] font-medium"
-                // oxlint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: calloutMsg }}
-            />
+            {callouts.map((promo) => (
+                <span
+                    key={promo.promotionId || String(promo.calloutMsg)}
+                    className={cn('line-clamp-2 text-[inherit] font-medium', callouts.length > 1 && 'block')}
+                    // BM-authored callouts follow the existing trusted-content policy.
+                    // oxlint-disable-next-line react/no-danger
+                    dangerouslySetInnerHTML={{ __html: String(promo.calloutMsg) }}
+                />
+            ))}
         </div>
     );
 }

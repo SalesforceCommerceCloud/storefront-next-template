@@ -18,6 +18,8 @@
  * Called by the mini cart to populate basket data, product images/variations, and promotion callouts.
  */
 
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import { getActionPath, getStoreSelectionRevalidation } from '@/lib/revalidation/routes/shared';
 import type { ShouldRevalidateFunction } from 'react-router';
 import type { Route } from './+types/resource.basket-products';
 import type { ShopperBasketsV2 } from '@/scapi';
@@ -38,7 +40,13 @@ export type BasketProductsLoaderData = {
     productsById: ProductsWithPromotionsMap;
 };
 
-export const shouldRevalidate: ShouldRevalidateFunction = ({ formAction, actionResult, defaultShouldRevalidate }) => {
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    currentUrl,
+    formAction,
+    actionResult,
+    defaultShouldRevalidate,
+}) => {
     // Action submissions: opt in only when the action returned a basket payload AND the mini-cart panel is open.
     // Basket-mutating actions follow the BasketActionResponse shape ({ success, basket, ... }); non-basket actions
     // (wishlist, locale, OTP, ...) return responses without `basket`, so they are skipped regardless.
@@ -50,6 +58,11 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({ formAction, actionR
     // `useMiniCartData` reloads on the next open only if the snapshot moved (see its mount-load gate). Keeping the
     // resource live while the panel is open is still required so in-panel removals refresh the footer totals.
     if (formAction) {
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        const path = getActionPath(formAction, currentUrl.origin);
+        const storeDecision = path && getStoreSelectionRevalidation(path, actionResult);
+        if (typeof storeDecision === 'boolean') return storeDecision && isMiniCartPanelMounted();
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
         const basketId = (actionResult as { basket?: { basketId?: string } } | undefined)?.basket?.basketId;
         return Boolean(basketId) && isMiniCartPanelMounted();
     }

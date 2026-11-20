@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { StoreSelectionEffects } from '@/extensions/store-locator/lib/selection-effects';
 import { createContext, matchPath, type MiddlewareFunction, type RouterContextProvider } from 'react-router';
 import { createHash, randomUUID } from 'node:crypto';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
@@ -88,6 +89,37 @@ const MAX_PREFERENCE_COOKIE_LENGTH = 4096;
 // old cookie cannot resurrect selection after a lost clear response.
 export const STORE_SELECTION_QUALIFIER = 'sfnextStoreSelection';
 export const shoppingContext = createContext<ShoppingContext | null>(null);
+// Request-scoped: middleware repairs and action writes contribute to the same outcome.
+const storeSelectionEffectsContext = createContext<StoreSelectionEffects>({
+    storeSelection: 'unchanged',
+    nativeContext: 'unchanged',
+});
+export function getStoreSelectionEffects(context: Context): StoreSelectionEffects {
+    return context.get(storeSelectionEffectsContext);
+}
+function setSelectionEffects(context: Context, effects: StoreSelectionEffects) {
+    context.set(storeSelectionEffectsContext, effects);
+}
+/** Called only after the existing middleware and resolver have established authoritative selection. */
+export function getReconciledStoreSelectionEffects(
+    context: Context,
+    resolved: SelectedStoreInfo | null = context.get(selectedStoreContext)
+): StoreSelectionEffects {
+    const state = context.get(selectionState);
+    if (!state || state.requiresRecovery) throw new StoreSelectionError('STORE_CONTEXT_NOT_READY', 503);
+    const selected = context.get(selectedStoreContext);
+    if (resolved?.id !== selected?.id || resolved?.inventoryId !== selected?.inventoryId) {
+        throw new StoreSelectionError('NATIVE_STORE_CONTEXT_CONFLICT', 409);
+    }
+    const feature = getConfig(context).features.shopperContext;
+    return {
+        storeSelection: 'reconciled',
+        nativeContext:
+            isNativeStoreSelectionEnabled(feature) || feature.storeSelection?.cleanup
+                ? 'reconciled'
+                : getStoreSelectionEffects(context).nativeContext,
+    };
+}
 const selectionState = createContext<{
     native: NativeShopperContext;
     record: SelectionRecord | null;
@@ -340,6 +372,7 @@ async function commit(context: Context, store: SelectedStoreInfo | null, explici
     };
     const { usid } = getAuth(context);
     if (!usid) throw new StoreSelectionError('STORE_CONTEXT_AUTH_REQUIRED', 401);
+    setSelectionEffects(context, { storeSelection: 'unknown', nativeContext: 'unknown' });
     const native = await getShopperContextHelpers(context, usid).update(body);
     if (
         native.customQualifiers?.[STORE_SELECTION_QUALIFIER] !== JSON.stringify(record) ||
@@ -347,9 +380,11 @@ async function commit(context: Context, store: SelectedStoreInfo | null, explici
     ) {
         throw new StoreSelectionError('NATIVE_STORE_CONTEXT_CONFLICT', 409);
     }
+    setSelectionEffects(context, { storeSelection: 'unknown', nativeContext: 'committed' });
     // Native success precedes both the compatible cookie and the active UI state.
     context.set(selectionState, { ...state, native, record, requiresRecovery: false });
     publish(context, store, record, state.sessionId);
+    setSelectionEffects(context, { storeSelection: 'committed', nativeContext: 'committed' });
 }
 
 /**
@@ -533,6 +568,7 @@ async function restoreStoreSelection(request: Request, context: Context): Promis
             ) {
                 throw new StoreSelectionError('STORE_CHANGE_CONFIRMATION_REQUIRED', 409);
             }
+            setSelectionEffects(context, { storeSelection: 'unknown', nativeContext: 'unknown' });
             const cleared = await helpers.update({
                 assignmentQualifiers: qualifierPatch(context, null),
                 customQualifiers: { [STORE_SELECTION_QUALIFIER]: null },
@@ -544,6 +580,7 @@ async function restoreStoreSelection(request: Request, context: Context): Promis
                 throw new StoreSelectionError('NATIVE_STORE_CONTEXT_CONFLICT', 409);
             }
             native = cleared;
+            setSelectionEffects(context, { storeSelection: 'committed', nativeContext: 'committed' });
         }
     }
     if (priorRecord?.identityKey && priorRecord.identityKey !== identityKey(context)) {
@@ -588,12 +625,15 @@ async function restoreStoreSelection(request: Request, context: Context): Promis
             : null;
         if (store) getMapping(context, store);
         if (!matches) {
+            setSelectionEffects(context, { storeSelection: 'unknown', nativeContext: 'unknown' });
             const repaired = await helpers.update({ assignmentQualifiers: expected });
             if (!matchesStoreQualifiers(repaired, expected)) {
                 throw new StoreSelectionError('NATIVE_STORE_CONTEXT_CONFLICT', 409);
             }
+            setSelectionEffects(context, { storeSelection: 'unknown', nativeContext: 'committed' });
         }
         publish(context, store, record, sessionId);
+        if (!matches) setSelectionEffects(context, { storeSelection: 'committed', nativeContext: 'committed' });
     } else if (remembered) {
         // Resolve remembered identity against current trusted store data. Cookie
         // inventory/display values can be stale and never authorize qualification.
@@ -776,7 +816,9 @@ async function applyStoreSelection(
         const sessionId = context.get(selectionState)?.sessionId;
         if (!sessionId) throw new StoreSelectionError('STORE_CONTEXT_NOT_READY', 503);
         const record = selectionRecord(context, store, explicit);
+        setSelectionEffects(context, { ...getStoreSelectionEffects(context), storeSelection: 'unknown' });
         publish(context, store, record, sessionId);
+        setSelectionEffects(context, { ...getStoreSelectionEffects(context), storeSelection: 'committed' });
         if (state) context.set(selectionState, { ...state, record });
     }
     // A successful explicit choice refreshes replica expiry; passive reads do not.

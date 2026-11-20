@@ -192,8 +192,7 @@ exports[`MyCart stories snapshot > Default story renders and matches snapshot 1`
                 class="text-xs"
               >
                 £124.80
-                 
-                each
+                 each
               </div>
             </div>
             <div

@@ -15,7 +15,12 @@
  */
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
 import { getSearchWithoutClientOnlyParams } from '@/hooks/use-filters-panel-state';
-import { getActionPath, isAmbientMutation } from './shared';
+import {
+    getActionPath,
+    isAmbientMutation,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    isStoreQualificationMutation,
+} from './shared';
 
 /**
  * Shared `shouldRevalidate` policy for the product listing pages (category + search). Both routes derive their data
@@ -35,9 +40,8 @@ import { getActionPath, isAmbientMutation } from './shared';
  *    cannot be confirmed as an ambient dimension, so it is skipped too. (Wishlist eviction is handled by the
  *    `_app` shell from client auth, not this loader.)
  *
- * `setSelectedStore` / `cartPickupStoreUpdate` are intentionally NOT admitted: the listing's `productSearch` read
- * passes no `query.inventoryIds`, so a store change cannot stale its results. If a tile ever surfaces store-scoped
- * availability, this policy must enumerate those mutations itself.
+ * Store selection has a separate effects contract: refresh prices only when native qualification has settled,
+ * including a committed selection followed by a failed account-default write. Preference-only changes skip pricing.
  *
  * Everything else falls through to `defaultShouldRevalidate`, so genuine navigations (new query, refinement, sort,
  * page) and explicit `useRevalidator()` calls (no `formMethod`) behave normally.
@@ -47,6 +51,8 @@ export function shouldRevalidate({
     nextUrl,
     formMethod,
     formAction,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    actionResult,
     defaultShouldRevalidate,
 }: ShouldRevalidateFunctionArgs): boolean {
     // Client-only param toggles (filters panel, pending action)
@@ -63,6 +69,8 @@ export function shouldRevalidate({
     // `formAction`) cannot be confirmed as an ambient dimension, so it is skipped too.
     if (formMethod && formMethod !== 'GET') {
         const actionPath = getActionPath(formAction, currentUrl.origin);
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        if (actionPath && isStoreQualificationMutation(actionPath, actionResult)) return true;
         if (!actionPath || !isAmbientMutation(actionPath)) {
             return false;
         }

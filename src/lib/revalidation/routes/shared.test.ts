@@ -63,7 +63,7 @@ describe('isContextMutation', () => {
         expect(isContextMutation(resourceRoutes.cartItemAdd)).toBe(false);
     });
 
-    test('does NOT match a selected-store change', () => {
+    test('leaves selected-store effects to the outcome-aware rule', () => {
         expect(isContextMutation(resourceRoutes.setSelectedStore)).toBe(false);
     });
 });
@@ -160,9 +160,8 @@ describe('isAmbientMutation', () => {
             expect(isAmbientMutation(resourceRoutes.wishlistAdd)).toBe(false);
         });
 
-        // setSelectedStore / cartPickupStoreUpdate are deliberately excluded — a store change only stales reads that
-        // pass query.inventoryIds, which the suppress-by-default page loaders don't. Pin that decision here.
-        test('does NOT match a selected-store change', () => {
+        // Active selection changes native pricing/promotions regardless of inventoryIds.
+        test('leaves selected-store effects to the outcome-aware rule', () => {
             expect(isAmbientMutation(resourceRoutes.setSelectedStore)).toBe(false);
         });
     });

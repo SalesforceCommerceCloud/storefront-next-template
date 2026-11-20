@@ -43,11 +43,10 @@ import {
     startLateAuthRecovery,
     subscribeLateAuthRecovery,
 } from '@/extensions/store-locator/lib/late-auth-recovery';
+import { StoreLocatorContext } from '@/extensions/store-locator/providers/context';
 import StoreSelectionCoordinator from '@/extensions/store-locator/providers/selection';
 
 export type StoreLocatorStoreApi = StoreApi<StoreLocatorStore>;
-
-const StoreLocatorContext = createContext<StoreLocatorStoreApi | undefined>(undefined);
 
 export type SelectedStoreResolution = {
     selectedStoreInfo: SelectedStoreInfo | null;

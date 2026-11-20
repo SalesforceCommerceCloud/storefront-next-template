@@ -88,13 +88,22 @@ describe('home shouldRevalidate', () => {
     // (set-site-context, update-shopper-context), which genuinely change the loader's SCAPI output and are
     // asserted separately below.
     const FORM_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
-    const LOADER_RELEVANT: string[] = [resourceRoutes.setSiteContext, resourceRoutes.updateShopperContext];
+    const LOADER_RELEVANT: string[] = [
+        resourceRoutes.setSiteContext,
+        resourceRoutes.updateShopperContext,
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        resourceRoutes.setSelectedStore,
+    ];
     const AUTH_COMPLETION: string[] = [
         resourceRoutes.verifyPasswordlessOtp,
         resourceRoutes.passkeyFinishAuthentication,
         resourceRoutes.postOrderRegister,
     ];
-    test.each(AUTH_COMPLETION)('refreshes identity-dependent data after %s', (formAction) => {
+    test.each([
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        resourceRoutes.setSelectedStore,
+        ...AUTH_COMPLETION,
+    ])('refreshes identity-dependent data after %s', (formAction) => {
         expect(shouldRevalidate(buildArgs({ formMethod: 'POST', formAction }))).toBe(true);
     });
     const resourceRouteMethodCombos = Object.entries(resourceRoutes)

@@ -15,7 +15,11 @@
  */
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
 import { resourceRoutes } from '@/route-paths';
-import { getActionPath } from './shared';
+import {
+    getActionPath,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    getStoreSelectionRevalidation,
+} from './shared';
 
 /**
  * The cart-line wishlist toggle. The only mutation this revalidate-by-default route denies: the route tracks wishlist
@@ -45,7 +49,8 @@ const WISHLIST_MUTATIONS: readonly string[] = [resourceRoutes.wishlistAdd, resou
  * matching the `checkout.ts` model rather than the `home.ts` / `product.ts` allowlist model. The shared ambient
  * dimensions (currency / shopper-context) and identity transitions (login / signup / logout) need no explicit
  * admission here — they fall through to `defaultShouldRevalidate`, which is `true` for a post-action pass, so this
- * module does not import `shared.ts`'s ambient predicate.
+ * module does not import `shared.ts`'s ambient predicate. Store effects are checked explicitly because an account-default
+ * save can fail after selection commits; React Router otherwise skips revalidation on error statuses.
  *
  * The one denied class is the wishlist toggle from a cart line (`wishlist-add` / `wishlist-remove`). Two reasons, both
  * decisive:
@@ -67,10 +72,16 @@ export function shouldRevalidate({
     currentUrl,
     formMethod,
     formAction,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    actionResult,
     defaultShouldRevalidate,
 }: ShouldRevalidateFunctionArgs): boolean {
     if (formMethod && formMethod !== 'GET') {
         const actionPath = getActionPath(formAction, currentUrl.origin);
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        const storeDecision = actionPath && getStoreSelectionRevalidation(actionPath, actionResult);
+        if (typeof storeDecision === 'boolean') return storeDecision;
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
         if (actionPath && WISHLIST_MUTATIONS.includes(actionPath)) {
             return false;
         }

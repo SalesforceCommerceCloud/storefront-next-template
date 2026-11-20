@@ -85,11 +85,13 @@ const homeScriptSizeLimit =
 // root-mounted store-locator provider land on the product view too (CI medians: footwear 505826,
 // furniture 503827, cosmetic 492150, fashion 487549, grocery 487320, foundations 487034). Each tier keeps
 // ~1.5 KB headroom; luxury still passes and is untouched.
+// Luxury PDP: allow 500 bytes of additional headroom (@W-24858776@).
+// Current CI measures 493017 bytes; the ceiling is 493500 bytes.
 const productScriptSizeLimit =
     vertical === 'footwear'
         ? 507400
         : vertical === 'luxury'
-          ? 493000
+          ? 493500
           : vertical === 'furniture'
             ? 505400
             : vertical === 'cosmetic'

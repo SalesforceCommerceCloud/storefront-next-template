@@ -24,6 +24,7 @@ import { useVariationAttributes } from '@/hooks/product/use-variation-attributes
 import { useProductImages } from '@/hooks/product/use-product-images';
 import { useProductActions } from '@/hooks/product/use-product-actions';
 import ProductPrice from '@/components/product-price';
+import { hasPurchasablePrice } from '@/lib/product/price-utils';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import type { ShopperProducts } from '@/scapi';
 import { lazy, Suspense, type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
@@ -267,21 +268,19 @@ export default function ChildProductCard({
         <Card className="h-full" data-testid="child-product">
             <CardHeader className="pb-4">
                 <CardTitle className="text-xl font-bold text-card-foreground tracking-tight">{product?.name}</CardTitle>
-                <ProductPrice
-                    type="unit"
-                    product={currentVariant || product}
-                    currency={currency}
-                    labelForA11y={product?.name}
-                    quantity={quantity}
-                    // Match the purchasability gate above so display and gate apply the same rule:
-                    // bundle children are charged at the parent price, and set children in edit
-                    // mode (an in-basket line) shouldn't be flagged as "Price unavailable" if the
-                    // catalog price has since gone missing for the active currency.
-                    allowMissingPrice={!isParentProductASet || isEditMode}
-                    currentPriceProps={{
-                        className: 'text-lg font-bold text-card-foreground tracking-tight',
-                    }}
-                />
+                {(isParentProductASet || hasPurchasablePrice(product, currentVariant)) && (
+                    <ProductPrice
+                        type="unit"
+                        product={currentVariant || product}
+                        currency={currency}
+                        labelForA11y={product?.name}
+                        quantity={quantity}
+                        allowMissingPrice={false}
+                        currentPriceProps={{
+                            className: 'text-lg font-bold text-card-foreground tracking-tight',
+                        }}
+                    />
+                )}
             </CardHeader>
 
             <CardContent className="space-y-4">

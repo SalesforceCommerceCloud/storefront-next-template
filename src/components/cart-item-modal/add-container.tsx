@@ -85,13 +85,20 @@ export function CartItemModalAddContainer({
         if (
             open &&
             initialProductFetcher.state === 'idle' &&
+            !initialProductFetcher.qualificationPending &&
             !initialProductFetcher.success &&
             !initialProductFetcher.errors
         ) {
             void initialProductFetcher.load();
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, initialProductFetcher.state, initialProductFetcher.success, initialProductFetcher.errors]);
+    }, [
+        open,
+        initialProductFetcher.state,
+        initialProductFetcher.success,
+        initialProductFetcher.errors,
+        initialProductFetcher.qualificationPending,
+    ]);
 
     const baseProduct: Product | null = (initialProductFetcher.success && initialProductFetcher.data) || null;
 
@@ -161,6 +168,7 @@ export function CartItemModalAddContainer({
         if (
             shouldFetchVariantInventory &&
             variantFetcher.state === 'idle' &&
+            !variantFetcher.qualificationPending &&
             !variantFetcher.errors &&
             variantCacheKey &&
             !loadedVariantCacheKeysRef.current.has(variantCacheKey)
@@ -169,7 +177,13 @@ export function CartItemModalAddContainer({
             void variantFetcher.load();
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldFetchVariantInventory, variantFetcher.state, variantFetcher.errors, variantCacheKey]);
+    }, [
+        shouldFetchVariantInventory,
+        variantFetcher.state,
+        variantFetcher.errors,
+        variantCacheKey,
+        variantFetcher.qualificationPending,
+    ]);
 
     // Cache variant inventory data when it arrives.
     useEffect(() => {
@@ -233,9 +247,12 @@ export function CartItemModalAddContainer({
     const isProductASet = currentProduct ? isProductSet(currentProduct) : false;
     const isProductABundle = currentProduct ? isProductBundle(currentProduct) : false;
 
-    const isLoading = !currentProduct && initialProductFetcher.state !== 'idle';
+    const isLoading =
+        !currentProduct &&
+        (initialProductFetcher.state !== 'idle' || initialProductFetcher.qualificationPending === true);
     const hasError =
         !currentProduct &&
+        !initialProductFetcher.qualificationPending &&
         initialProductFetcher.state === 'idle' &&
         !initialProductFetcher.success &&
         initialProductFetcher.errors != null;
@@ -244,7 +261,7 @@ export function CartItemModalAddContainer({
         onOpenChange?.(false);
     }, [onOpenChange]);
     const handleRetry = useCallback(() => {
-        void initialProductFetcher.load();
+        if (!initialProductFetcher.qualificationPending) void initialProductFetcher.load();
     }, [initialProductFetcher]);
     const viewDetailsHref = useMemo(() => {
         const baseProductId = currentProduct?.id ?? productId;

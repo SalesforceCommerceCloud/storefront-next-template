@@ -956,29 +956,24 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
             Current price: £18.55
           </span>
            
-          <span
-            aria-hidden="true"
-            class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
-          >
-            £31.36
-          </span>
-          <span
-            aria-atomic="true"
-            aria-live="polite"
-            class="sr-only"
-          >
-            Long Sleeve Embellished Boat Neck Top
-             
-            List price from £31.36
-          </span>
         </div>
         <div
           class="items-center gap-2 text-xs text-active-foreground mt-1"
         >
           <span
-            class="line-clamp-2 text-[inherit] font-medium"
+            class="line-clamp-2 text-[inherit] font-medium block"
           >
             Buy one Long Center Seam Skirt and get 2 tops
+          </span>
+          <span
+            class="line-clamp-2 text-[inherit] font-medium block"
+          >
+            $50 Fixed Products Amount Above 100
+          </span>
+          <span
+            class="line-clamp-2 text-[inherit] font-medium block"
+          >
+            Bonus Product for Order Amounts Above 250
           </span>
         </div>
       </div>

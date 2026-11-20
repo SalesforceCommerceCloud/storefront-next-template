@@ -72,10 +72,8 @@ describe('ProductViewProvider', () => {
         );
     });
 
-    test('mirrors the hook gate bypass when itemId is set (edit mode), so display tracks gate', () => {
-        // The hook bypasses the price gate when an item is in the basket. The provider must
-        // mirror that into the display path so a no-price in-basket line doesn't show
-        // "Price unavailable" next to an enabled Update button.
+    test('keeps an edit price-gate bypass separate from a missing-price display override', () => {
+        // Editing remains owned by the actions hook; it must not imply a native free amount.
         const { result } = renderHook(() => useProductView(), {
             wrapper: ({ children }) => (
                 <ProductViewProvider product={product} mode="edit" itemId="cart-line-1">
@@ -83,7 +81,10 @@ describe('ProductViewProvider', () => {
                 </ProductViewProvider>
             ),
         });
-        expect(result.current.allowMissingPrice).toBe(true);
+        expect(result.current.allowMissingPrice).toBe(false);
+        expect(mockUseProductActions).toHaveBeenCalledWith(
+            expect.objectContaining({ itemId: 'cart-line-1', allowMissingPrice: false })
+        );
     });
 
     test('forwards an initial fulfillment selection to the product actions state', () => {

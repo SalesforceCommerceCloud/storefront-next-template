@@ -15,16 +15,84 @@
  */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
 import { useLayoutEffect, useRef, useState } from 'react';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import { createMemoryRouter, data, RouterProvider, useLoaderData } from 'react-router';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import StoreLocatorProvider, { useStoreLocator, useStoreLocatorApi, type StoreLocatorStoreApi } from './store-locator';
 import { useStoreSelection } from './selection';
 import { resourceRoutes } from '@/route-paths';
 import ChangeStoreButton from '@/components/store-preferences/preferred-store/change-store-button';
+import ProductPrice from '@/components/product-price';
+import { shouldRevalidate } from '@/lib/revalidation/routes/category';
 
 const site = vi.hoisted(() => ({ id: 'site' }));
 vi.mock('@salesforce/storefront-next-runtime/site-context', () => ({ useSite: () => ({ site }) }));
+
+describe('qualified page prices and selected-store publication', () => {
+    it.each([200, 502])('settles selection before ancestor layout measurements after status %s', async (status) => {
+        const old = { id: 'A', name: 'Store A', inventoryId: 'inventory-a' };
+        const canonical = { id: 'B', name: 'Store B', inventoryId: 'inventory-b' };
+        let nativePrice = 10;
+        let api: StoreLocatorStoreApi | undefined;
+        const layoutStates: { price: number; selected?: string; pending: boolean }[] = [];
+        function Controls({ price }: { price: number }) {
+            api = useStoreLocatorApi();
+            const selected = useStoreLocator((state) => state.selectedStoreInfo);
+            const { select } = useStoreSelection();
+            return (
+                <>
+                    <button onClick={() => select({ id: 'B' })}>Save</button>
+                    <output data-testid="selected">{selected?.id}</output>
+                    <ProductPrice product={{ id: 'sku', price }} currency="USD" />
+                </>
+            );
+        }
+        function Page() {
+            const { price } = useLoaderData() as { price: number };
+            // Ancestor layout effects run after the coordinator's layout effect, before paint.
+            useLayoutEffect(() => {
+                if (!api) return;
+                const state = api.getState();
+                layoutStates.push({ price, selected: state.selectedStoreInfo?.id, pending: state.selectionPending });
+            }, [price]);
+            return (
+                <StoreLocatorProvider selectedStoreInfo={old} identity="shopper">
+                    <Controls price={price} />
+                </StoreLocatorProvider>
+            );
+        }
+        const router = createMemoryRouter([
+            { id: 'page', path: '/', loader: () => ({ price: nativePrice }), shouldRevalidate, Component: Page },
+            {
+                path: resourceRoutes.setSelectedStore,
+                action: () => {
+                    nativePrice = 20;
+                    return data(
+                        {
+                            success: status === 200,
+                            selectedStoreInfo: canonical,
+                            effects: { storeSelection: 'committed', nativeContext: 'committed' },
+                            ...(status === 502 ? { error: 'PREFERRED_STORE_PERSISTENCE_FAILED' } : {}),
+                        },
+                        { status }
+                    );
+                },
+            },
+        ]);
+        try {
+            render(<RouterProvider router={router} />);
+            await screen.findByText('Save');
+            fireEvent.click(screen.getByText('Save'));
+            await waitFor(() => expect(screen.getByTestId('selected')).toHaveTextContent('B'));
+            expect(screen.getByText('$20.00')).toBeInTheDocument();
+            expect(layoutStates.filter((state) => state.price === 20)).toEqual([
+                { price: 20, selected: 'B', pending: false },
+            ]);
+        } finally {
+            router.dispose();
+        }
+    });
+});
 
 function deferred<T>() {
     let resolve!: (value: T) => void;
@@ -103,6 +171,54 @@ describe('native router composed selection ownership', () => {
         render(<RouterProvider router={router} />);
         return { api: () => api, router, pickupAction };
     }
+
+    it('adopts a committed selection after a 502 profile-default failure without confirming pickup', async () => {
+        const action = vi.fn(() =>
+            data(
+                {
+                    success: false,
+                    error: 'PREFERRED_STORE_PERSISTENCE_FAILED',
+                    selectedStoreInfo: { id: 'new', inventoryId: 'new-inventory' },
+                    effects: { storeSelection: 'committed', nativeContext: 'committed' },
+                },
+                { status: 502 }
+            )
+        );
+        const { api } = setup(action);
+        fireEvent.click(screen.getByText('Pickup'));
+        fireEvent.click(screen.getByText('Save'));
+        await waitFor(() => expect(api().getState().selectionPending).toBe(false));
+        expect(action).toHaveBeenCalledTimes(1);
+        expect(screen.getByTestId('selected')).toHaveTextContent('new');
+        expect(api().getState()).toMatchObject({
+            selectionError: 'PREFERRED_STORE_PERSISTENCE_FAILED',
+            confirmedSelection: null,
+            isOpen: true,
+        });
+    });
+
+    it('announces an applied store choice separately from a failed account-default save', async () => {
+        const action = vi.fn(() =>
+            data(
+                {
+                    success: false,
+                    error: 'PREFERRED_STORE_PERSISTENCE_FAILED',
+                    selectedStoreInfo: { id: 'new', inventoryId: 'new-inventory' },
+                    effects: { storeSelection: 'committed', nativeContext: 'committed' },
+                },
+                { status: 502 }
+            )
+        );
+        const { api } = setup(action);
+        fireEvent.click(screen.getByText('Save'));
+        await waitFor(() => expect(api().getState().selectionPending).toBe(false));
+        expect(screen.getByTestId('selected')).toHaveTextContent('new');
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'Your store choice was applied, but could not be saved to your account. Try again.'
+        );
+        expect(screen.queryByText(/Your previous store is unchanged/)).not.toBeInTheDocument();
+        expect(api().getState().confirmedSelection).toBeNull();
+    });
 
     it.each([
         'identity',

@@ -31,8 +31,7 @@ import {
     convertProductsByItemIdToProductId,
 } from '@/lib/product/product-utils';
 import { ProductItemVariantImage } from '@/components/product-item';
-import CurrentPrice from '@/components/product-price/current-price';
-import { getPriceData } from '@/components/product-price/utils';
+import ProductPrice from '@/components/product-price';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import type { ShopperBasketsV2, ShopperProducts } from '@/scapi';
 
@@ -187,14 +186,6 @@ export default function CheckoutPickup({
                                                 | undefined,
                                             productItem?.variationValues as Record<string, string> | undefined
                                         );
-                                        const priceData = getPriceData(
-                                            productItem as ShopperProducts.schemas['Product'],
-                                            {
-                                                quantity,
-                                                currency,
-                                            }
-                                        );
-                                        const currentPrice = priceData.currentPrice;
                                         return (
                                             <div key={productItem?.itemId || `item-${idx}`}>
                                                 <div className="flex items-start gap-6 pb-6">
@@ -226,10 +217,15 @@ export default function CheckoutPickup({
                                                         variant="h5"
                                                         as="div"
                                                         className="font-semibold text-sm ml-4 whitespace-nowrap">
-                                                        <CurrentPrice
-                                                            price={currentPrice}
+                                                        <ProductPrice
+                                                            product={productItem as ShopperProducts.schemas['Product']}
+                                                            type="unit"
                                                             currency={currency}
-                                                            className="text-foreground text-sm font-semibold"
+                                                            currentPriceOnly
+                                                            hidePromo
+                                                            currentPriceProps={{
+                                                                className: 'text-foreground text-sm font-semibold',
+                                                            }}
                                                         />
                                                     </Typography>
                                                 </div>

@@ -134,6 +134,23 @@ describe('ProductItemsList', () => {
         vi.clearAllMocks();
     });
 
+    test.each([
+        { basePrice: undefined, price: undefined, priceAfterItemDiscount: undefined, expected: undefined },
+        { basePrice: 10, price: undefined, priceAfterItemDiscount: undefined, expected: undefined },
+        { basePrice: 10, price: 20, priceAfterItemDiscount: 15, expected: 20 },
+        { basePrice: 10, price: 0, priceAfterItemDiscount: 0, expected: 0 },
+    ])('preserves native line amounts without inheriting the catalog price: %j', ({ expected, ...amounts }) => {
+        const extra = vi.fn(() => undefined);
+        renderWithRouter(
+            <ProductItemsList
+                productItems={[{ ...mockProductItem, ...amounts }]}
+                productsByItemId={{ 'item-1': { ...mockProduct, price: 99 } }}
+                lineItemExtra={extra}
+            />
+        );
+        expect(extra).toHaveBeenCalledWith(expect.objectContaining({ ...amounts, price: expected }));
+    });
+
     describe('Basic Rendering', () => {
         test('should render list of product items', () => {
             const productItems = [mockProductItem];

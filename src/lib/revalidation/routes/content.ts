@@ -14,18 +14,27 @@
  * limitations under the License.
  */
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
-import { getActionPath, isAmbientMutation } from './shared';
+import {
+    getActionPath,
+    isAmbientMutation,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    isStoreQualificationMutation,
+} from './shared';
 
-/** Avoid refetching standalone content after unrelated actions while preserving content navigation. */
+/** CMS pages can contain priced product components; refresh after settled native qualification as well as navigation. */
 export function shouldRevalidate({
     currentUrl,
     nextUrl,
     formMethod,
     formAction,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    actionResult,
     defaultShouldRevalidate,
 }: ShouldRevalidateFunctionArgs): boolean {
     if (formMethod && formMethod !== 'GET') {
         const actionPath = getActionPath(formAction, currentUrl.origin);
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        if (actionPath && isStoreQualificationMutation(actionPath, actionResult)) return true;
         return Boolean(actionPath && isAmbientMutation(actionPath));
     }
 

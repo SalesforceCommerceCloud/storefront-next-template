@@ -16,7 +16,11 @@
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
 import { resourceRoutes, routes } from '@/route-paths';
 import { CHECKOUT_ACTION_INTENTS } from '@/components/checkout/utils/checkout-context-types';
-import { getActionPath } from './shared';
+import {
+    getActionPath,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    getStoreSelectionRevalidation,
+} from './shared';
 
 /**
  * Mutations that change none of the fields the root loader returns. Skipping them avoids
@@ -77,6 +81,8 @@ const CHECKOUT_STEP_INTENTS: ReadonlySet<string> = new Set(Object.values(CHECKOU
  * `shouldRevalidate` policy for the root route. Suppresses the root loader's post-action revalidation only for
  * mutations proven not to affect any root field ({@link ROOT_IRRELEVANT_MUTATIONS}).
  *
+ * Store effects override the status-based default: committed/reconciled changes refresh root even
+ * after a partial account-save failure; unknown and explicit no-op outcomes do not.
  * Everything else defers to `defaultShouldRevalidate`:
  *
  * - **Navigations and explicit `useRevalidator().revalidate()` calls** carry no `formMethod`, so they always fall
@@ -91,11 +97,17 @@ export function shouldRevalidate({
     currentUrl,
     formMethod,
     formAction,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    actionResult,
     formData,
     defaultShouldRevalidate,
 }: ShouldRevalidateFunctionArgs): boolean {
     if (formMethod && formMethod !== 'GET') {
         const actionPath = getActionPath(formAction, currentUrl.origin);
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        const storeDecision = actionPath && getStoreSelectionRevalidation(actionPath, actionResult);
+        if (typeof storeDecision === 'boolean') return storeDecision;
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
         if (!actionPath) {
             return defaultShouldRevalidate;
         }

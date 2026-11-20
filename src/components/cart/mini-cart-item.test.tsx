@@ -19,6 +19,7 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import MiniCartItem from './mini-cart-item';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
+import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { mockLocale, mockSiteObject } from '@/test-utils/config';
 
 const mockSite = mockSiteObject;
@@ -180,6 +181,40 @@ describe('MiniCartItem', () => {
     it('does not render the each-row when quantity is 1', () => {
         renderWithRouter(<MiniCartItem product={mockProduct} />);
         expect(screen.queryByText(/each/)).not.toBeInTheDocument();
+    });
+
+    it('keeps missing native amounts unavailable without a fabricated each price', () => {
+        renderWithRouter(
+            <MiniCartItem
+                product={{
+                    ...mockProduct,
+                    quantity: 2,
+                    basePrice: undefined,
+                    price: undefined,
+                    priceAfterItemDiscount: undefined,
+                }}
+            />
+        );
+        expect(screen.queryByText('Free')).not.toBeInTheDocument();
+        expect(screen.getByText(getTranslation().t('product:price.unavailable'))).toBeInTheDocument();
+        expect(screen.queryByText(/each/)).not.toBeInTheDocument();
+    });
+
+    it('uses a native base amount when the calculated line amount is absent', () => {
+        renderWithRouter(
+            <MiniCartItem
+                product={{
+                    ...mockProduct,
+                    quantity: 2,
+                    basePrice: 20,
+                    price: undefined,
+                    priceAfterItemDiscount: undefined,
+                }}
+            />
+        );
+        expect(screen.getByText('£40.00')).toBeInTheDocument();
+        expect(screen.getByText(/£20\.00\s+each/)).toBeInTheDocument();
+        expect(screen.queryByText('Free')).not.toBeInTheDocument();
     });
 
     it('renders Free instead of price when item is a free bonus', () => {

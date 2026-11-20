@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
-import { getActionPath, isAmbientMutation } from './shared';
+import {
+    getActionPath,
+    isAmbientMutation,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    isStoreQualificationMutation,
+} from './shared';
 
 /**
  * `shouldRevalidate` policy for the wishlist pages (`/wishlist` and `/account/wishlist`). Both render from the same
@@ -36,9 +41,17 @@ import { getActionPath, isAmbientMutation } from './shared';
  * the route and runs the loader regardless of this gate.
  * @see https://reactrouter.com/start/framework/route-module#shouldrevalidate
  */
-export function shouldRevalidate({ currentUrl, formMethod, formAction }: ShouldRevalidateFunctionArgs): boolean {
+export function shouldRevalidate({
+    currentUrl,
+    formMethod,
+    formAction,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    actionResult,
+}: ShouldRevalidateFunctionArgs): boolean {
     if (formMethod && formMethod !== 'GET') {
         const actionPath = getActionPath(formAction, currentUrl.origin);
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        if (actionPath && isStoreQualificationMutation(actionPath, actionResult)) return true;
         if (actionPath && isAmbientMutation(actionPath)) {
             return true;
         }

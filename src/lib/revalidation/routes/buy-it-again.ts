@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
-import { getActionPath, isAmbientMutation } from './shared';
+import {
+    getActionPath,
+    isAmbientMutation,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    isStoreQualificationMutation,
+} from './shared';
 
 /**
  * `shouldRevalidate` policy for the Past Purchases page. The loader fetches the shopper's order
@@ -25,15 +30,25 @@ import { getActionPath, isAmbientMutation } from './shared';
  * - **Currency / shopper-context** — prices are currency-scoped; a switch invalidates all
  *   displayed prices. Without revalidation, the first 24 tiles show stale prices while
  *   load-more pages come back in the new currency.
+ * - **Committed/reconciled native store context** — current catalog prices and offers change.
+ *   Preference-only changes, known pre-write refusals and unresolved outcomes do not refresh them.
  * - **Auth identity** (login / logout) — the loader is scoped to the current shopper. A logout
  *   without leaving the page would leave the previous shopper's order history on screen; any
  *   subsequent load-more call would return 401.
  *
  * @see https://reactrouter.com/start/framework/route-module#shouldrevalidate
  */
-export function shouldRevalidate({ currentUrl, formMethod, formAction }: ShouldRevalidateFunctionArgs): boolean {
+export function shouldRevalidate({
+    currentUrl,
+    formMethod,
+    formAction,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    actionResult,
+}: ShouldRevalidateFunctionArgs): boolean {
     if (formMethod && formMethod !== 'GET') {
         const actionPath = getActionPath(formAction, currentUrl.origin);
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        if (actionPath && isStoreQualificationMutation(actionPath, actionResult)) return true;
         if (actionPath && isAmbientMutation(actionPath)) {
             return true;
         }

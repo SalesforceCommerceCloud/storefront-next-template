@@ -264,7 +264,11 @@ export default function CheckoutFormPage({
     const { t, i18n } = useTranslation('checkout');
     const { t: tErrors } = useTranslation('errors');
     const tAny = t as (key: string) => string;
-    const { currency, site } = useSite();
+    const {
+        currency,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        site,
+    } = useSite();
     const config = useConfig();
     const { siteRef, localeRef } = useCurrentSiteAndLocaleRef();
 

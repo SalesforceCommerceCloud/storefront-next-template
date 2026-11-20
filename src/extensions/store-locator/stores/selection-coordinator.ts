@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
+import { hasSettledStoreSelection, type StoreSelectionEffects } from '@/extensions/store-locator/lib/selection-effects';
 import type { StoreApi, StoreLocatorStore, SelectedStoreInfo } from './store-locator-store';
 
 export type SelectionResult = {
     success?: boolean;
     selectedStoreInfo?: SelectedStoreInfo | null;
     error?: string;
+    code?: string;
     outcome?: 'unknown';
+    effects?: StoreSelectionEffects;
 };
 type Operation = {
     id: number;
@@ -42,13 +45,16 @@ export function createSelectionCoordinator(store: StoreApi<StoreLocatorStore>) {
         if (pending?.generation !== generation) pending = null;
         if (failed?.generation !== generation) failed = null;
     };
-    const begin = (storeId: string | null, generation: number, retry?: Operation): Operation | null => {
-        invalidate();
-        const state = store.getState();
-        if (failed && failed.session !== state.session) {
+    const clearStaleFailure = () => {
+        if (failed && failed.session !== store.getState().session) {
             if (failed.unknown) failed.owner = null;
             else failed = null;
         }
+    };
+    const begin = (storeId: string | null, generation: number, retry?: Operation): Operation | null => {
+        invalidate();
+        const state = store.getState();
+        clearStaleFailure();
         if (retry && retry.generation !== state.generation) return null;
         if (pending || state.generation !== generation) return null;
         if (failed?.unknown && !retry) return null;
@@ -79,9 +85,10 @@ export function createSelectionCoordinator(store: StoreApi<StoreLocatorStore>) {
         begin,
         invalidate,
         retry: (generation: number) => {
-            if (failed && failed.session !== store.getState().session && !failed.unknown) failed = null;
-            if (failed && failed.generation !== generation) failed = null;
-            if (failed?.session !== store.getState().session && failed) failed.owner = null;
+            if (store.getState().selectionError === 'STORE_CHANGE_CONFIRMATION_REQUIRED') return null;
+            invalidate();
+            clearStaleFailure();
+            if (failed && failed.generation !== generation) return null;
             return failed ? begin(failed.storeId, generation, failed) : null;
         },
         complete: (id: number, result?: SelectionResult) => {
@@ -95,6 +102,20 @@ export function createSelectionCoordinator(store: StoreApi<StoreLocatorStore>) {
             store.setState({ selectionPending: false, selectionRevision: state.selectionRevision + 1 });
             const canonical = result?.selectedStoreInfo;
             let published = false;
+            // A profile-default failure must not leave the displayed selection behind the native
+            // context whose prices have revalidated. Keep the persistence error and retry semantics.
+            if (
+                result?.success !== true &&
+                result?.outcome !== 'unknown' &&
+                hasSettledStoreSelection(result?.effects) &&
+                canonical !== undefined
+            ) {
+                state.setSelectedStoreInfo(canonical);
+                published = true;
+                store.setState({
+                    selectionSettlement: { from: state.selectionRevision, to: state.selectionRevision + 1 },
+                });
+            }
             if (operation.unknown && result?.success === true && canonical !== undefined) {
                 state.setSelectedStoreInfo(canonical);
                 published = true;
@@ -116,10 +137,17 @@ export function createSelectionCoordinator(store: StoreApi<StoreLocatorStore>) {
                 if (operation.session !== state.session && result && result.outcome !== 'unknown' && !operation.unknown)
                     return null;
                 failed = operation;
-                failed.unknown = operation.unknown || !result || result.outcome === 'unknown';
+                failed.unknown =
+                    operation.unknown ||
+                    !result ||
+                    result.outcome === 'unknown' ||
+                    result.effects?.storeSelection === 'unknown' ||
+                    result.effects?.nativeContext === 'unknown';
                 if (operation.session !== state.session) failed.owner = null;
                 store.setState({
-                    selectionError: failed.unknown ? 'outcome_unknown' : (result?.error ?? 'persistence_failed'),
+                    selectionError: failed.unknown
+                        ? 'outcome_unknown'
+                        : (result?.code ?? result?.error ?? 'persistence_failed'),
                 });
                 return null;
             }

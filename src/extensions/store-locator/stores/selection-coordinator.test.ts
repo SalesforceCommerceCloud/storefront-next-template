@@ -18,7 +18,7 @@ import { describe, expect, it } from 'vitest';
 import { createStoreLocatorStore } from './store-locator-store';
 import { createSelectionCoordinator } from './selection-coordinator';
 
-const confirmed = { id: 'old', inventoryId: 'old-inventory' };
+const confirmed = { id: 'old', name: 'old', inventoryId: 'old-inventory' };
 const canonical = { id: 'new', name: 'Canonical', inventoryId: 'canonical-inventory' };
 const chooser = { owner: 'caller' };
 
@@ -347,4 +347,86 @@ describe('durable store selection', () => {
         else store.setState({ generation: 1 });
         expect(store.getState().claimConfirmedSelection('caller')).toBeNull();
     });
+});
+
+describe('selection effects after partial failure', () => {
+    it('publishes committed canonical selection while preserving the account-default error and avoiding pickup confirmation', () => {
+        const store = createStoreLocatorStore();
+        store.getState().setSelectedStoreInfo(confirmed);
+        store.getState().openChooser(chooser);
+        const coordinator = createSelectionCoordinator(store);
+        const operation = coordinator.begin('new', 0);
+        if (!operation) throw new Error('Expected operation');
+        const revision = store.getState().selectionRevision;
+        coordinator.complete(operation.id, {
+            success: false,
+            error: 'PREFERRED_STORE_PERSISTENCE_FAILED',
+            selectedStoreInfo: canonical,
+            effects: { storeSelection: 'committed', nativeContext: 'committed' },
+        });
+        expect(store.getState()).toMatchObject({
+            selectedStoreInfo: canonical,
+            selectionError: 'PREFERRED_STORE_PERSISTENCE_FAILED',
+            selectionPending: false,
+            confirmedSelection: null,
+            isOpen: true,
+            selectionSettlement: { from: revision, to: revision + 1 },
+        });
+        const retry = coordinator.retry(0);
+        expect(retry?.formData.get('intent')).toBe('set');
+    });
+
+    it('uses the existing read-only recovery for an unknown native outcome', () => {
+        const store = createStoreLocatorStore();
+        store.getState().setSelectedStoreInfo(confirmed);
+        const coordinator = createSelectionCoordinator(store);
+        const operation = coordinator.begin('new', 0);
+        if (!operation) throw new Error('Expected operation');
+        coordinator.complete(operation.id, {
+            success: false,
+            effects: { storeSelection: 'unknown', nativeContext: 'unknown' },
+        });
+        expect(store.getState().selectedStoreInfo).toEqual(confirmed);
+        expect(store.getState().selectionError).toBe('outcome_unknown');
+        expect(coordinator.begin('new', 0)).toBeNull();
+        expect(coordinator.retry(0)?.formData.get('intent')).toBe('reconcile');
+    });
+});
+
+it('keeps a basket-consent refusal specific and does not replay the rejected write', () => {
+    const store = createStoreLocatorStore();
+    const coordinator = createSelectionCoordinator(store);
+    const operation = coordinator.begin('B', store.getState().generation);
+    if (!operation) throw new Error('Expected operation');
+    coordinator.complete(operation.id, {
+        success: false,
+        code: 'STORE_CHANGE_CONFIRMATION_REQUIRED',
+        effects: { storeSelection: 'unchanged', nativeContext: 'unchanged' },
+    });
+    expect(store.getState().selectionError).toBe('STORE_CHANGE_CONFIRMATION_REQUIRED');
+    expect(coordinator.retry(store.getState().generation)).toBeNull();
+    expect(store.getState().selectedStoreInfo).toBeNull();
+});
+
+it.each([
+    'chooser',
+    'generation',
+])('does not let a late account-default failure confirm or close a newer %s', (scope) => {
+    const store = createStoreLocatorStore();
+    store.getState().setSelectedStoreInfo(confirmed);
+    store.getState().openChooser(chooser);
+    const coordinator = createSelectionCoordinator(store);
+    const operation = coordinator.begin('new', 0);
+    if (!operation) throw new Error('Expected operation');
+    if (scope === 'chooser') store.getState().openChooser({ owner: 'new-caller' });
+    else store.setState({ generation: 1, selectionPending: false });
+    coordinator.complete(operation.id, {
+        success: false,
+        error: 'PREFERRED_STORE_PERSISTENCE_FAILED',
+        selectedStoreInfo: canonical,
+        effects: { storeSelection: 'committed', nativeContext: 'committed' },
+    });
+    expect(store.getState().selectedStoreInfo).toEqual(scope === 'chooser' ? canonical : confirmed);
+    expect(store.getState().confirmedSelection).toBeNull();
+    expect(store.getState().isOpen).toBe(true);
 });

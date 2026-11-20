@@ -76,7 +76,7 @@ export function useSearchSuggestions({
 
     return {
         data: fetcher.data,
-        isLoading: fetcher.state === 'loading',
+        isLoading: fetcher.state === 'loading' || fetcher.qualificationPending === true,
         refetch,
     };
 }

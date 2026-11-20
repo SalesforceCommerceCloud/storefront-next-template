@@ -50,6 +50,7 @@ export function useStoreLocatorList() {
     const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
     const { select: setSelectedStoreInfo, retry: retrySelection } = useStoreSelection();
     const selectionPending = useStoreLocator((s) => s.selectionPending);
+    const selectionBlocked = useStoreLocator((s) => s.selectionPending || s.selectionError === 'outcome_unknown');
     const selectionError = useStoreLocator((s) => s.selectionError);
     const chooserStoreInfo = useStoreLocator((s) => (s.isOpen ? s.chooserStoreInfo : s.selectedStoreInfo));
     const geoError = useStoreLocator((s) => s.geoError);
@@ -180,6 +181,7 @@ export function useStoreLocatorList() {
         selectedStoreInfo,
         chooserStoreInfo,
         selectionPending,
+        selectionBlocked,
         selectionError,
         retrySelection,
         setSelectedStoreInfo,

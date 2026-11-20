@@ -260,8 +260,8 @@ export default function BonusProductSelection({
                                     {t('cart:bonusProducts.freeBadge')}
                                 </Badge>
                                 {(() => {
-                                    const { currentPrice } = getPriceData(item.product);
-                                    return currentPrice > 0 ? (
+                                    const { currentPrice, hasPrice } = getPriceData(item.product);
+                                    return hasPrice && currentPrice > 0 ? (
                                         <span className="text-sm text-muted-foreground line-through">
                                             {formatCurrency(currentPrice, i18n.language, currency)}
                                         </span>

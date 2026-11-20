@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { createTestContext } from '@/lib/test-utils';
 import { ApiError } from '@/scapi';
 import { NormalizedApiError } from './normalized-api-error';
 import {
@@ -72,7 +73,7 @@ describe('getDefaultProductExpansions', () => {
 });
 
 describe('fetchProductById', () => {
-    const mockContext = {} as any;
+    const mockContext = createTestContext({ currency: 'GBP' });
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -99,7 +100,7 @@ describe('fetchProductById', () => {
         expect(mockGetProduct).toHaveBeenCalledWith({
             params: {
                 path: { id: 'sku-123' },
-                query: { allImages: true },
+                query: { currency: 'GBP', allImages: true },
             },
         });
     });
@@ -182,7 +183,7 @@ describe('fetchProductById', () => {
 });
 
 describe('fetchProductsByIds', () => {
-    const mockContext = {} as any;
+    const mockContext = createTestContext({ currency: 'GBP' });
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -209,6 +210,7 @@ describe('fetchProductsByIds', () => {
         expect(mockGetProducts).toHaveBeenCalledWith({
             params: {
                 query: {
+                    currency: 'GBP',
                     ids: ['sku-1', 'sku-2'],
                 },
             },

@@ -76,6 +76,7 @@ const mockUseScapiFetcher = vi.fn(
         errors?: string[];
         state: string;
         success: boolean;
+        qualificationPending?: boolean;
     } => ({
         load: mockLoad,
         data: variantProduct,
@@ -230,6 +231,20 @@ describe('CartItemModal — add mode', () => {
             success: true,
         });
     });
+
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    test('does not start or replay a product read while selection qualification is unsettled', () => {
+        mockUseScapiFetcher.mockReturnValue({
+            load: mockLoad,
+            data: undefined,
+            state: 'idle',
+            success: false,
+            qualificationPending: true,
+        });
+        renderCartItemModal({ open: true, onOpenChange: vi.fn(), productId: 'test-product' });
+        expect(mockLoad).not.toHaveBeenCalled();
+    });
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
     test('renders quickAddTitle when no itemId is provided', () => {
         renderCartItemModal({ open: true, onOpenChange: vi.fn(), productId: 'test-product' });

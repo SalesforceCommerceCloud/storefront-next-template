@@ -116,6 +116,25 @@ describe('resource.basket-products', () => {
                 markMiniCartPanelMounted();
             });
 
+            // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+            it.each([
+                [{ storeSelection: 'committed', nativeContext: 'committed' }, true],
+                [{ storeSelection: 'committed', nativeContext: 'unchanged' }, true],
+                [{ storeSelection: 'unchanged', nativeContext: 'unchanged' }, false],
+                [{ storeSelection: 'unknown', nativeContext: 'unknown' }, false],
+            ])('uses authoritative store effects after an error status: %j', (effects, expected) => {
+                expect(
+                    shouldRevalidate({
+                        ...baseArgs,
+                        defaultShouldRevalidate: false,
+                        actionStatus: 502,
+                        formAction: resourceRoutes.setSelectedStore,
+                        actionResult: { success: false, effects },
+                    })
+                ).toBe(expected);
+            });
+            // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
             it('revalidates when an action returns a basket payload', () => {
                 // Basket-mutating actions (cart-item-add/update/remove, cart-bundle-update,
                 // bonus-product-add, place-order) follow the BasketActionResponse shape

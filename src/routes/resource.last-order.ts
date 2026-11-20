@@ -22,7 +22,7 @@ import { getLogger } from '@/lib/logger.server';
 import { getAuth } from '@/middlewares/auth.server';
 import { fetchLastOrder } from '@/lib/api/order.server';
 
-export { shouldRevalidate } from '@/lib/revalidation/routes/buy-it-again';
+export { shouldRevalidate } from '@/lib/revalidation/routes/last-order';
 
 export type LastOrderResponse = { order: Order | null };
 

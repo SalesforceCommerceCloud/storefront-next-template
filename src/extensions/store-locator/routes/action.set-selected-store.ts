@@ -19,6 +19,8 @@ import { containMutationTransport } from '@/lib/mutation-transport';
 import { getLogger } from '@/lib/logger.server';
 import type { Route } from './+types/action.set-selected-store';
 import {
+    getStoreSelectionEffects,
+    getReconciledStoreSelectionEffects,
     parseSelectedStore,
     getStoreSelectionFailure,
     selectStore,
@@ -28,6 +30,7 @@ import {
     invalidateSelectedStoreResolution,
     resolveSelectedStore,
 } from '@/extensions/store-locator/lib/resolve-selected-store.server';
+import { toPublicStoreChangeResult } from '@/extensions/store-locator/lib/public-selection';
 import { isTrustedSameOrigin, isValidStoreId } from '@/extensions/store-locator/lib/trusted-same-origin.server';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
 
@@ -43,8 +46,21 @@ export const clientAction = ({ serverAction }: Route.ClientActionArgs) => contai
  * that is the separate explicit `action.save-default-store` route.
  */
 export const action = async ({ request, context }: Route.ActionArgs) => {
-    const failure = (code: string, status: number, headers?: HeadersInit) =>
-        data({ success: false as const, code, error: code }, { status, headers });
+    const failure = (code: string, status: number, headers?: HeadersInit) => {
+        const effects = getStoreSelectionEffects(context);
+        return data(
+            {
+                success: false as const,
+                code,
+                error: code,
+                effects,
+                ...(effects.storeSelection === 'unknown' || effects.nativeContext === 'unknown'
+                    ? { outcome: 'unknown' as const }
+                    : {}),
+            },
+            { status, headers }
+        );
+    };
     if (request.method !== 'POST') {
         return failure('METHOD_NOT_ALLOWED', 405, { Allow: 'POST' });
     }
@@ -84,16 +100,20 @@ export const action = async ({ request, context }: Route.ActionArgs) => {
                 invalidateSelectedStoreResolution(context);
                 const result = await resolveSelectedStore(context);
                 if (result.error || result.authError) return failure('RESOLUTION_FAILED', 503);
-                return data({ success: true as const, selectedStoreInfo: result.selectedStoreInfo });
+                return data({
+                    success: true as const,
+                    selectedStoreInfo: result.selectedStoreInfo,
+                    effects: getReconciledStoreSelectionEffects(context, result.selectedStoreInfo),
+                });
             }
             if (intent === 'set' && (ids.length !== 1 || !isValidStoreId(ids[0]))) {
                 return failure('INVALID_STORE_ID', 400);
             }
             candidate = intent === 'set' ? { id: ids[0] as string } : null;
         }
-        const result = await selectStore(context, candidate);
+        const result = toPublicStoreChangeResult(await selectStore(context, candidate));
         invalidateSelectedStoreResolution(context);
-        return data(result, { status: result.success ? 200 : 409 });
+        return data({ ...result, effects: getStoreSelectionEffects(context) }, { status: result.success ? 200 : 409 });
     } catch (error) {
         // The SDK also records a request-local auth error. Keep both recovery signals intact.
         if (error instanceof Error && error.name === 'AuthTokenInvalidError') throw error;

@@ -19,6 +19,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import ChildProductCard from './child-product-card';
+import { useCurrentVariant } from '@/hooks/product/use-current-variant';
 import type { ShopperProducts } from '@/scapi';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
@@ -34,7 +35,7 @@ vi.mock('./child-product-card-gallery', () => ({
 }));
 
 // Prop-capture mock for <ProductPrice> so we can assert that the card threads `allowMissingPrice`
-// down to the price display (in lockstep with the gate's allowMissingPrice).
+// down to the price display independently from the edit-mode action permission.
 const capturedProductPriceProps: { last: any } = { last: null };
 vi.mock('@/components/product-price', () => ({
     default: (props: any) => {
@@ -44,7 +45,7 @@ vi.mock('@/components/product-price', () => ({
 }));
 
 vi.mock('@/hooks/product/use-current-variant', () => ({
-    useCurrentVariant: () => null,
+    useCurrentVariant: vi.fn(() => undefined),
 }));
 
 vi.mock('@/hooks/product/use-selected-variations', () => ({
@@ -135,6 +136,7 @@ describe('ChildProductCard', () => {
     };
 
     beforeEach(() => {
+        vi.mocked(useCurrentVariant).mockReturnValue(undefined);
         vi.clearAllMocks();
         capturedImageGalleryProps.last = null;
         capturedProductPriceProps.last = null;
@@ -854,9 +856,8 @@ describe('ChildProductCard', () => {
             expect(spy).toHaveBeenCalledWith(expect.objectContaining({ allowMissingPrice: true }));
         });
 
-        // Display must apply the same rule as the gate (display/gate invariant). Each gate case
-        // above has a matching display assertion below — if these ever drift the row will show
-        // "Price unavailable" next to an enabled control, or vice versa.
+        // Editing does not supply a free amount. Keep native-price display independent from
+        // the action permission while retaining the bundle's parent-priced presentation.
 
         test('ProductPrice gets allowMissingPrice=false for set children by default (matches gate)', () => {
             renderChildProductCard({
@@ -867,26 +868,34 @@ describe('ChildProductCard', () => {
             expect(capturedProductPriceProps.last?.allowMissingPrice).toBe(false);
         });
 
-        test('ProductPrice gets allowMissingPrice=true for set children in edit mode (matches gate)', () => {
-            // Regression: prior to the fix, the gate took `!isParentProductASet || isEditMode`
-            // but the display only took `!isParentProductASet`, so a set child in cart-edit
-            // rendered "Price unavailable" right next to an enabled parent Update.
+        test('keeps missing set-child prices unavailable while edit actions remain permitted', () => {
+            // A separately priced set child needs a native amount even in edit mode.
             renderChildProductCard({
                 childProduct: createStandardProduct(),
                 parentProduct: createSetProduct(),
                 onSelectionChange: mockOnSelectionChange,
                 isEditMode: true,
             });
-            expect(capturedProductPriceProps.last?.allowMissingPrice).toBe(true);
+            expect(capturedProductPriceProps.last?.allowMissingPrice).toBe(false);
         });
 
-        test('ProductPrice gets allowMissingPrice=true for bundle children regardless of mode (matches gate)', () => {
+        test.each([0, 12])('preserves a native bundle-child amount of %s without a missing-price override', (price) => {
             renderChildProductCard({
-                childProduct: createStandardProduct(),
+                childProduct: { ...createStandardProduct(), price },
+                parentProduct: { id: 'b1', type: { bundle: true } } as never,
+                onSelectionChange: mockOnSelectionChange,
+            });
+            expect(screen.getByTestId('product-price')).toBeInTheDocument();
+            expect(capturedProductPriceProps.last).toMatchObject({ product: { price }, allowMissingPrice: false });
+        });
+
+        test('does not invent a free amount for an unpriced parent-priced bundle child', () => {
+            renderChildProductCard({
+                childProduct: { ...createStandardProduct(), price: undefined },
                 parentProduct: { id: 'b1', name: 'Bundle', type: { bundle: true } } as never,
                 onSelectionChange: mockOnSelectionChange,
             });
-            expect(capturedProductPriceProps.last?.allowMissingPrice).toBe(true);
+            expect(screen.queryByTestId('product-price')).not.toBeInTheDocument();
         });
     });
 });

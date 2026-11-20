@@ -49,9 +49,9 @@ interface ProductPriceProps {
     /**
      * Render the price normally even when the product has no price for the active currency (a
      * missing price renders as the coalesced `0`). Use for intentionally-free items priced
-     * elsewhere — e.g. promotional bonus products — so the display matches the purchasability gate
-     * (see {@link useProductActions}'s `allowMissingPrice`). Defaults to false, so catalog surfaces
-     * show "Price unavailable".
+     * elsewhere — e.g. promotional bonus products. Permission to edit an existing basket line
+     * does not supply a free amount and must not enable this display override. Defaults to false,
+     * so missing prices show "Price unavailable".
      */
     allowMissingPrice?: boolean;
 }
@@ -90,51 +90,30 @@ export default function ProductPrice({
     allowMissingPrice = false,
 }: ProductPriceProps) {
     const { t, i18n } = useTranslation('product');
-    const priceData = useMemo(() => getPriceData(product, { quantity, currency }), [product, quantity, currency]);
+    const priceData = useMemo(() => getPriceData(product, { currency }), [product, currency]);
     const { listPrice, currentPrice, isASet, isMaster, isOnSale, isRange, maxPrice, hasPrice } = priceData;
 
-    // Price on request: for high-value or bespoke items where pricing is determined by consultation
-    if ((product as { c_priceOnRequest?: boolean }).c_priceOnRequest) {
+    // Catalog consultation policy does not replace calculated basket/order amounts, including zero.
+    const isLineItem = typeof (product as { itemId?: unknown }).itemId === 'string';
+    const priceOnRequest = !isLineItem && (product as { c_priceOnRequest?: boolean }).c_priceOnRequest;
+    // Missing native amounts stay unavailable unless an explicitly free display was requested.
+    if (priceOnRequest || (!hasPrice && !allowMissingPrice)) {
+        const message = t(priceOnRequest ? 'price.onRequest' : 'price.unavailable');
         return (
             <div className={cn('items-center gap-2', className)}>
-                <span data-slot="price-on-request" aria-hidden="true">
-                    {t('price.onRequest')}
+                <span
+                    data-slot={priceOnRequest ? 'price-on-request' : undefined}
+                    className={priceOnRequest ? undefined : 'font-semibold text-muted-foreground'}
+                    aria-hidden="true">
+                    {message}
                 </span>
                 <span className="sr-only">
                     {labelForA11y ? `${labelForA11y} ` : ''}
-                    {t('price.onRequest')}
+                    {message}
                 </span>
             </div>
         );
     }
-
-    // No price-book entry for the active currency: SCAPI omits the price, so show "Price unavailable"
-    // rather than a misleading 0/free. Basket and order line items always report hasPrice, so this
-    // only affects catalog surfaces (PLP, PDP, tiles). `allowMissingPrice` opts out (e.g. bonus
-    // products), rendering the coalesced 0 so the display matches the purchasability gate.
-    if (!hasPrice && !allowMissingPrice) {
-        return (
-            <div className={cn('items-center gap-2', className)}>
-                <span className="font-semibold text-muted-foreground" aria-hidden="true">
-                    {t('price.unavailable')}
-                </span>
-                <span className="sr-only">
-                    {labelForA11y ? `${labelForA11y} ` : ''}
-                    {t('price.unavailable')}
-                </span>
-            </div>
-        );
-    }
-
-    // Show strikethrough (list price) only for single price, not when displaying price range (min – max)
-    const showPriceRange = isRange && maxPrice != null && maxPrice > currentPrice;
-    // A line-total discount may not survive division into a displayable unit price. Avoid rendering
-    // identical current and list prices when both round to the same currency value.
-    const hasDistinctUnitPrices =
-        type !== 'unit' ||
-        formatCurrency(currentPrice, i18n.language, currency) !==
-            formatCurrency(listPrice ?? 0, i18n.language, currency);
-    const showListPrice = isOnSale && listPrice && !showPriceRange && hasDistinctUnitPrices;
 
     if (currentPriceOnly) {
         return (
@@ -150,6 +129,16 @@ export default function ProductPrice({
             </div>
         );
     }
+
+    const showPriceRange = isRange && maxPrice != null && maxPrice > currentPrice;
+    // Compare the displayed amounts only when a list price would otherwise be displayed.
+    // Calculated discounts can round to the same amount; ranges never show strikethrough prices.
+    const showListPrice =
+        isOnSale &&
+        listPrice &&
+        !showPriceRange &&
+        formatCurrency(type === 'unit' ? currentPrice : currentPrice * quantity, i18n.language, currency) !==
+            formatCurrency(type === 'unit' ? listPrice : listPrice * quantity, i18n.language, currency);
 
     const renderCurrentPrice = (flag: boolean) => (
         <CurrentPrice

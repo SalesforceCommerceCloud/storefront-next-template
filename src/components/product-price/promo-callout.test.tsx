@@ -82,7 +82,7 @@ describe('PromoCallout', () => {
         expect(screen.getByText('sleeve')).toBeInTheDocument();
     });
 
-    test('renders first promotion when multiple promotions exist', () => {
+    test('renders every native qualified offer without inferring precedence', () => {
         const productWithMultiplePromos: ShopperProducts.schemas['Product'] = {
             ...baseMockProduct,
             productPromotions: [
@@ -101,7 +101,40 @@ describe('PromoCallout', () => {
 
         render(<PromoCallout product={productWithMultiplePromos} />);
         expect(screen.getByText('First promotion message')).toBeInTheDocument();
-        expect(screen.queryByText('Second promotion message')).not.toBeInTheDocument();
+        expect(screen.getByText('Second promotion message')).toBeInTheDocument();
+    });
+
+    test('retains the first message per offer and native display order across SKU and parent', () => {
+        const { container } = render(
+            <PromoCallout
+                product={
+                    {
+                        ...baseMockProduct,
+                        productPromotions: [
+                            { promotionId: 'local', calloutMsg: '<b>SKU offer</b>' },
+                            { calloutMsg: 'Offer without ID' },
+                            { promotionId: 'empty', calloutMsg: '' },
+                        ],
+                    } as unknown as ShopperProducts.schemas['Product']
+                }
+                parentProduct={
+                    {
+                        id: 'parent',
+                        productPromotions: [
+                            { promotionId: 'local', calloutMsg: 'Duplicate parent message' },
+                            { calloutMsg: 'Offer without ID' },
+                            { promotionId: 'group', calloutMsg: 'Group gift' },
+                        ],
+                    } as unknown as ShopperProducts.schemas['Product']
+                }
+            />
+        );
+        expect(Array.from(container.querySelectorAll('span'), (span) => span.innerHTML)).toEqual([
+            '<b>SKU offer</b>',
+            'Offer without ID',
+            'Group gift',
+        ]);
+        expect(container.querySelectorAll('span.block')).toHaveLength(3);
     });
 
     test('handles script tags safely (scripts do not execute via innerHTML)', () => {
@@ -148,4 +181,30 @@ describe('PromoCallout', () => {
         render(<PromoCallout product={masterProductWithVariants} />);
         expect(screen.getByText('Variant promotion message')).toBeInTheDocument();
     });
+});
+
+test('preserves parent and variant qualified callouts, including conditional gift offers, without duplicates', () => {
+    const allStore = { promotionId: 'all-store', calloutMsg: 'All stores coupon' };
+    render(
+        <PromoCallout
+            product={
+                {
+                    id: 'master',
+                    type: { master: true },
+                    price: 16,
+                    productPromotions: [allStore, { promotionId: 'group', calloutMsg: 'Group threshold gift' }],
+                    variants: [
+                        {
+                            productId: 'variant',
+                            price: 16,
+                            productPromotions: [allStore, { promotionId: 'individual', calloutMsg: 'Local offer' }],
+                        },
+                    ],
+                } as unknown as ShopperProducts.schemas['Product']
+            }
+        />
+    );
+    expect(screen.getAllByText('All stores coupon')).toHaveLength(1);
+    expect(screen.getByText('Group threshold gift')).toBeVisible();
+    expect(screen.getByText('Local offer')).toBeVisible();
 });

@@ -17,6 +17,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useScapiFetcher } from './use-scapi-fetcher';
 
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+import { createElement, type PropsWithChildren } from 'react';
+import { StoreLocatorContext } from '@/extensions/store-locator/providers/context';
+import { createStoreLocatorStore } from '@/extensions/store-locator/stores/store-locator-store';
+import { useScapiFetcherEffect } from './use-scapi-fetcher-effect';
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
 // Mock React Router's useFetcher
 const mockFetcher = {
     state: 'idle' as 'idle' | 'loading' | 'submitting',
@@ -539,3 +546,70 @@ describe('useScapiFetcher', () => {
         });
     });
 });
+
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+describe('store-qualified retained data', () => {
+    it('hides retained priced results while reloading and publishes the next successful result', () => {
+        mockFetcher.state = 'loading';
+        mockFetcher.data = { success: true, data: { price: 10 } };
+        const { result, rerender } = renderHook(() =>
+            useScapiFetcher('shopperProducts', 'getProduct', {
+                params: { path: { id: 'sku' }, query: { expand: ['prices'] } },
+            })
+        );
+        expect(result.current.data).toBeUndefined();
+        expect(result.current.success).toBe(true);
+        expect(result.current.qualificationPending).toBe(true);
+        mockFetcher.state = 'idle';
+        mockFetcher.data = { success: true, data: { price: 20 } };
+        rerender();
+        expect(result.current.data).toEqual({ price: 20 });
+        expect(result.current.success).toBe(true);
+    });
+    it('retains metadata-only data while it reloads', () => {
+        mockFetcher.state = 'loading';
+        mockFetcher.data = { success: true, data: { id: 'sku' } };
+        const { result } = renderHook(() =>
+            useScapiFetcher('shopperProducts', 'getProduct', {
+                params: { path: { id: 'sku' }, query: { expand: ['images'] } },
+            })
+        );
+        expect(result.current.data).toEqual({ id: 'sku' });
+    });
+});
+
+describe('mutation completion while store qualification is unsettled', () => {
+    it.each([
+        'pending',
+        'unknown',
+    ])('delivers a customer update and its success callback during %s selection', (phase) => {
+        const store = createStoreLocatorStore();
+        store.setState({
+            selectionPending: phase === 'pending',
+            selectionError: phase === 'unknown' ? 'outcome_unknown' : null,
+        });
+        const wrapper = ({ children }: PropsWithChildren) =>
+            createElement(StoreLocatorContext.Provider, { value: store }, children);
+        const onSuccess = vi.fn();
+        mockFetcher.state = 'submitting';
+        mockFetcher.data = undefined;
+        const { result, rerender } = renderHook(
+            () => {
+                const fetcher = useScapiFetcher('shopperCustomers', 'updateCustomer', {
+                    params: { path: { customerId: 'customer' } },
+                    body: {},
+                });
+                useScapiFetcherEffect(fetcher, { onSuccess });
+                return fetcher;
+            },
+            { wrapper }
+        );
+        mockFetcher.state = 'idle';
+        mockFetcher.data = { success: true, data: { customerId: 'customer', email: 'updated@example.test' } };
+        rerender();
+        expect(result.current.success).toBe(true);
+        expect(result.current.data).toEqual(mockFetcher.data.data);
+        expect(onSuccess).toHaveBeenCalledExactlyOnceWith(mockFetcher.data.data);
+    });
+});
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR

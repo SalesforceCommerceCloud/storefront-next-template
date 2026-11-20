@@ -40,6 +40,7 @@ export default function StoreLocatorList(): ReactElement | null {
         chooserStoreInfo,
         selectedStoreInfo,
         selectionPending,
+        selectionBlocked,
         setSelectedStoreInfo,
         geoError,
         hasSearched,
@@ -111,9 +112,9 @@ export default function StoreLocatorList(): ReactElement | null {
                 className="store-locator-square-radio-group"
                 name={`selectedStore-${instanceId}`}
                 value={(chooserStoreInfo === undefined ? selectedStoreInfo : chooserStoreInfo)?.id ?? ''}
-                aria-disabled={selectionPending || undefined}
+                aria-disabled={selectionBlocked || undefined}
                 onValueChange={(value: string) => {
-                    if (selectionPending) return;
+                    if (selectionBlocked) return;
                     const selectedStore = storesPaginated.find((store) => store.id === value);
                     if (selectedStore) {
                         setSelectedStoreInfo(selectedStore);
@@ -128,9 +129,9 @@ export default function StoreLocatorList(): ReactElement | null {
                                     <RadioGroupItem
                                         id={radioId}
                                         value={s.id}
-                                        aria-disabled={selectionPending || undefined}
+                                        aria-disabled={selectionBlocked || undefined}
                                         onClick={() => {
-                                            if (!selectionPending && chooserStoreInfo?.id === s.id)
+                                            if (!selectionBlocked && chooserStoreInfo?.id === s.id)
                                                 setSelectedStoreInfo(s);
                                         }}
                                         className="store-locator-square-radio mt-1"

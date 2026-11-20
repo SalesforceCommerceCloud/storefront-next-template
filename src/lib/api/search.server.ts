@@ -15,6 +15,7 @@
  */
 import type { LoaderFunctionArgs } from 'react-router';
 import type { ShopperSearch } from '@/scapi';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getLogger } from '@/lib/logger.server';
@@ -71,6 +72,7 @@ export const fetchSearchProducts = async (
         perPricebook: true,
         ...(imgTypes && { imgTypes }),
         ...(parameters || {}),
+        currency: parameters?.currency ?? context.get(siteContext)?.currency,
     };
 
     /**

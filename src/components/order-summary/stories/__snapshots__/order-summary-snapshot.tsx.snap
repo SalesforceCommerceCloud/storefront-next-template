@@ -1411,12 +1411,6 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                                 L
                               </li>
                             </ul>
-                            <span
-                              class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                              data-slot="badge"
-                            >
-                              Saved £79.99
-                            </span>
                           </div>
                           <div
                             class="items-center gap-2 text-sm"
@@ -1437,21 +1431,6 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                               Current price: £20.00
                             </span>
                              
-                            <span
-                              aria-hidden="true"
-                              class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
-                            >
-                              £99.99
-                            </span>
-                            <span
-                              aria-atomic="true"
-                              aria-live="polite"
-                              class="sr-only"
-                            >
-                              Classic Fit Shirt
-                               
-                              List price: £99.99
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -1541,21 +1520,6 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                               Current price: £0.00
                             </span>
                              
-                            <span
-                              aria-hidden="true"
-                              class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
-                            >
-                              £99.99
-                            </span>
-                            <span
-                              aria-atomic="true"
-                              aria-live="polite"
-                              class="sr-only"
-                            >
-                              Red Tie
-                               
-                              List price: £99.99
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -1645,21 +1609,6 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                               Current price: £0.00
                             </span>
                              
-                            <span
-                              aria-hidden="true"
-                              class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
-                            >
-                              £99.99
-                            </span>
-                            <span
-                              aria-atomic="true"
-                              aria-live="polite"
-                              class="sr-only"
-                            >
-                              Blue Tie
-                               
-                              List price: £99.99
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -2193,12 +2142,6 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                                 L
                               </li>
                             </ul>
-                            <span
-                              class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
-                              data-slot="badge"
-                            >
-                              Saved £161.60
-                            </span>
                           </div>
                           <div
                             class="items-center gap-2 text-sm"
@@ -2219,21 +2162,6 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                               Current price: £19.19
                             </span>
                              
-                            <span
-                              aria-hidden="true"
-                              class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
-                            >
-                              £99.99
-                            </span>
-                            <span
-                              aria-atomic="true"
-                              aria-live="polite"
-                              class="sr-only"
-                            >
-                              Solid Silk Tie
-                               
-                              List price: £99.99
-                            </span>
                           </div>
                         </div>
                       </div>

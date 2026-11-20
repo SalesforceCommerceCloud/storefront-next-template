@@ -84,6 +84,31 @@ describe('', () => {
             expect(result).toEqual(mockResult);
         });
 
+        it('retains native tier and price-book metadata for downstream consumers', async () => {
+            const mockContext = createTestContext({ currency: 'GBP' });
+            const nativeHit = {
+                productId: 'native-variant',
+                price: 10,
+                tieredPrices: [
+                    { quantity: 1, price: 10, pricebook: 'qualified-gbp' },
+                    { quantity: 5, price: 8, pricebook: 'qualified-gbp' },
+                ],
+                priceRanges: [{ minPrice: 8, maxPrice: 10, pricebook: 'qualified-gbp' }],
+                productPromotions: [{ promotionId: 'native-offer', promotionalPrice: 9 }],
+            };
+            mockProductSearch.mockResolvedValue({ data: { hits: [nativeHit], total: 1, currency: 'GBP' } });
+
+            const result = await fetchSearchProducts(mockContext, { q: 'native' });
+
+            expect(mockProductSearch).toHaveBeenCalledWith({
+                params: { query: expect.objectContaining({ perPricebook: true, currency: 'GBP' }) },
+            });
+            expect(result.hits?.[0]).toBe(nativeHit);
+            expect(result.hits?.[0].tieredPrices).toBe(nativeHit.tieredPrices);
+            expect(result.hits?.[0].priceRanges).toBe(nativeHit.priceRanges);
+            expect(result.hits?.[0].productPromotions).toBe(nativeHit.productPromotions);
+        });
+
         it('should build refine without duplicates', async () => {
             const mockContext = createTestContext({
                 appConfig: {

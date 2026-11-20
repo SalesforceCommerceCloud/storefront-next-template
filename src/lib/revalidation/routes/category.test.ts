@@ -62,6 +62,8 @@ describe.each(LISTINGS)('$name shouldRevalidate', ({ listing, otherListing }) =>
         buildArgs({ currentUrl: new URL(listing), nextUrl: new URL(listing), ...overrides });
 
     test.each([
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        resourceRoutes.setSelectedStore,
         resourceRoutes.verifyPasswordlessOtp,
         resourceRoutes.passkeyFinishAuthentication,
     ])('refreshes listing qualification after %s without changing store or URL', (formAction) => {

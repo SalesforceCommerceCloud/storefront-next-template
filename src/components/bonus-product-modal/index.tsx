@@ -90,11 +90,11 @@ export function BonusProductModal({
     // auto-retry on reopen (user must click the Retry button). Per-open-session retry is
     // tracked as a follow-up.
     useEffect(() => {
-        if (open && fetcher.state === 'idle' && !fetcher.success && !fetcher.errors) {
+        if (open && fetcher.state === 'idle' && !fetcher.qualificationPending && !fetcher.success && !fetcher.errors) {
             void fetcher.load();
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, fetcher.state, fetcher.success, fetcher.errors]);
+    }, [open, fetcher.state, fetcher.success, fetcher.errors, fetcher.qualificationPending]);
 
     // Derive the current product from fetcher.data. useScapiFetcher keys the fetcher on the
     // encoded productId, so when productId changes mid-session the fetcher resets and this
@@ -239,8 +239,13 @@ export function BonusProductModal({
             </Button>
         );
     };
-    const isLoading = !currentProduct && fetcher.state !== 'idle';
-    const fetcherErrored = !currentProduct && fetcher.state === 'idle' && !fetcher.success && fetcher.errors != null;
+    const isLoading = !currentProduct && (fetcher.state !== 'idle' || fetcher.qualificationPending === true);
+    const fetcherErrored =
+        !currentProduct &&
+        !fetcher.qualificationPending &&
+        fetcher.state === 'idle' &&
+        !fetcher.success &&
+        fetcher.errors != null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

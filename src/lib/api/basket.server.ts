@@ -30,7 +30,7 @@ import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 
 /**
  * Get the appropriate currency for basket calculations
- * Priority: basket.currency > site default > USD fallback
+ * Priority: basket currency, active context currency, site default
  */
 export function getBasketCurrency(
     context: Readonly<RouterContextProvider>,
@@ -40,7 +40,8 @@ export function getBasketCurrency(
     if (basket?.currency) {
         return basket.currency;
     }
-    return (context.get(siteContext) as SiteContext).site.defaultCurrency;
+    const active = context.get(siteContext) as SiteContext;
+    return active.currency || active.site.defaultCurrency;
 }
 
 /**
@@ -137,7 +138,7 @@ export async function updateBillingAddressForBasket(
  *
  * @param context - Router context for authentication
  * @param basketId - The basket ID to calculate
- * @param currency - Currency code (should come from basket.currency, defaults to USD for backward compatibility)
+ * @param currency - Currency code from the basket; omission retains Ecom's existing basket currency
  */
 export async function calculateBasket(
     context: Readonly<RouterContextProvider>,

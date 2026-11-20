@@ -182,10 +182,20 @@ export default function ProductInfo({
     const currentVariant = currentVariantOverride || controlledCurrentVariant || urlCurrentVariant;
     const productForPrice = useMemo(() => {
         if (!currentVariant) return product;
+        // A full SKU response can also contain a lightweight entry for that same SKU in variants.
+        // Its qualified offers belong to this SKU; only a different parent's financial data is excluded.
+        const skuProduct = product.id === currentVariant.productId ? product : undefined;
+        const variantDetails = currentVariant as Partial<ShopperProducts.schemas['Product']>;
         // Build a variant-like product shape so ProductPrice does not treat it as master range pricing.
         return {
             ...product,
             ...currentVariant,
+            // A selected SKU must not inherit the master's financial range or promotional amount.
+            // Missing native variant amounts stay missing; parent offers remain callouts below.
+            price: currentVariant.price,
+            priceMax: undefined,
+            pricePerUnit: variantDetails.pricePerUnit ?? skuProduct?.pricePerUnit,
+            productPromotions: variantDetails.productPromotions ?? skuProduct?.productPromotions,
             type: { ...(product.type ?? {}), master: false, variant: true },
             variants: undefined,
         } as ShopperProducts.schemas['Product'];
@@ -388,14 +398,15 @@ export default function ProductInfo({
                     product={productForPrice}
                     quantity={quantity}
                     currency={currency}
-                    // Match the purchasability gate: bonus/promo products (allowMissingPrice) render
-                    // their price instead of "Price unavailable".
+                    // Only explicit bonus/parent-priced overrides imply a free display amount.
+                    // Permission to edit an existing basket line does not supply a price.
                     allowMissingPrice={productView?.allowMissingPrice}
                     labelForA11y={product?.name}
                     currentPriceProps={{
                         className: 'text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]',
                     }}
                     promoCalloutProps={{
+                        parentProduct: currentVariant && product.id !== currentVariant.productId ? product : undefined,
                         className: 'text-sm [&_span]:mx-0 [&_span]:text-status-positive',
                     }}
                     hidePromo={isCompactStyle}

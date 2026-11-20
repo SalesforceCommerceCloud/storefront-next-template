@@ -167,7 +167,9 @@ export default function StoreSelectionCoordinator({ children }: PropsWithChildre
     );
     const retry = useCallback(() => submit(coordinator.current?.retry(generation)), [generation, submit]);
 
-    useEffect(() => {
+    // Route prices and this fetcher's result commit together. Settle the existing selection
+    // before paint. Independently reloaded resource consumers must hide their retained data while loading.
+    useLayoutEffect(() => {
         const active = operation.current;
         if (
             !active ||
@@ -202,7 +204,7 @@ export function useStoreSelectionFeedbackHost() {
 }
 
 export function SelectionFeedback({ retry }: { retry: () => void }) {
-    const { t } = useTranslation('extStoreLocator');
+    const { t } = useTranslation(['extStoreLocator', 'account', 'routeError']);
     const selectionPending = useStoreLocator((state) => state.selectionPending);
     const selectionIntent = useStoreLocator((state) => state.selectionIntent);
     const selectionError = useStoreLocator((state) => state.selectionError);
@@ -213,7 +215,8 @@ export function SelectionFeedback({ retry }: { retry: () => void }) {
         if (selectionError) setRetryRetained(true);
         else if (!selectionPending) setRetryRetained(false);
     }, [selectionError, selectionPending]);
-    const showRetry = !!selectionError || (selectionPending && retryRetained);
+    const confirmationRequired = selectionError === 'STORE_CHANGE_CONFIRMATION_REQUIRED';
+    const showRetry = !confirmationRequired && (!!selectionError || (selectionPending && retryRetained));
     return (
         <div aria-live="polite" className="text-center">
             {selectionPending && (
@@ -232,9 +235,13 @@ export function SelectionFeedback({ retry }: { retry: () => void }) {
             {selectionError && (
                 <p role="alert">
                     {t(
-                        selectionError === 'outcome_unknown'
-                            ? 'storeLocator.selection.unknown'
-                            : 'storeLocator.selection.error'
+                        confirmationRequired
+                            ? 'routeError:commerceContext.confirmationMessage'
+                            : selectionError === 'outcome_unknown'
+                              ? 'storeLocator.selection.unknown'
+                              : selectionError === 'PREFERRED_STORE_PERSISTENCE_FAILED'
+                                ? 'account:storePreferences.preferredStore.accountDefaultError'
+                                : 'storeLocator.selection.error'
                     )}
                 </p>
             )}

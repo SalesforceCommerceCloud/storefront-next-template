@@ -105,20 +105,6 @@ exports[`WishlistListItem stories snapshot > Default renders and matches snapsho
             Current price: £299.99
           </span>
            
-          <span
-            aria-hidden="true"
-            class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
-          >
-            £500.00
-          </span>
-          <span
-            aria-atomic="true"
-            aria-live="polite"
-            class="sr-only"
-          >
-             
-            List price from £500.00
-          </span>
         </div>
         <div
           class="items-center gap-2"
@@ -254,20 +240,6 @@ exports[`WishlistListItem stories snapshot > MasterProduct renders and matches s
             Current price: £299.99
           </span>
            
-          <span
-            aria-hidden="true"
-            class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
-          >
-            £500.00
-          </span>
-          <span
-            aria-atomic="true"
-            aria-live="polite"
-            class="sr-only"
-          >
-             
-            List price from £500.00
-          </span>
         </div>
         <div
           class="items-center gap-2"
@@ -478,20 +450,6 @@ exports[`WishlistListItem stories snapshot > OnSale renders and matches snapshot
             Current price: £49.99
           </span>
            
-          <span
-            aria-hidden="true"
-            class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
-          >
-            £99.99
-          </span>
-          <span
-            aria-atomic="true"
-            aria-live="polite"
-            class="sr-only"
-          >
-             
-            List price: £99.99
-          </span>
         </div>
         <div
           class="items-center gap-2"
@@ -745,20 +703,6 @@ exports[`WishlistListItem stories snapshot > OutOfStockVariant renders and match
             Current price: £299.99
           </span>
            
-          <span
-            aria-hidden="true"
-            class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
-          >
-            £500.00
-          </span>
-          <span
-            aria-atomic="true"
-            aria-live="polite"
-            class="sr-only"
-          >
-             
-            List price from £500.00
-          </span>
         </div>
         <div
           class="items-center gap-2"

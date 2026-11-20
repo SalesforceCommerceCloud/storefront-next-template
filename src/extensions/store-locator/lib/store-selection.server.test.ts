@@ -36,6 +36,8 @@ import {
     createSelectedStoreCookie,
 } from '@/extensions/store-locator/middlewares/selected-store.server';
 import {
+    getStoreSelectionEffects,
+    getReconciledStoreSelectionEffects,
     assertStoreSelectionLoginSession,
     prepareStoreSelectionForLogin,
     reconcileStoreAfterAuthentication,
@@ -54,6 +56,10 @@ import storeSelectionFixture from '@/extensions/store-locator/tests/fixtures/sto
 import { processMetadata } from '@/lib/logger';
 
 vi.mock('@/lib/api-clients.server', () => ({ createApiClients: vi.fn() }));
+vi.mock('@salesforce/storefront-next-runtime/i18n', async (original) => ({
+    ...(await original<typeof import('@salesforce/storefront-next-runtime/i18n')>()),
+    getTranslation: () => ({ i18next: { language: 'en-US' } }),
+}));
 vi.mock('@/middlewares/auth.server', () => ({ getAuth: vi.fn(), updateAuth: vi.fn() }));
 vi.mock('@salesforce/storefront-next-runtime/config', async (original) => ({
     ...(await original<typeof import('@salesforce/storefront-next-runtime/config')>()),
@@ -1971,5 +1977,161 @@ describe('logout store intent', () => {
         expect(result.response.status).toBe(200);
         expect(handler).toHaveBeenCalledTimes(1);
         expect(result.ctx.get(shoppingContext)).toBeNull();
+    });
+});
+
+describe('authoritative store-selection effects', () => {
+    it.each([
+        true,
+        false,
+    ])('separates native qualification from preference-only selection (enabled=%s)', async (nativeEnabled) => {
+        enabled = nativeEnabled;
+        await run(async (ctx) => {
+            expect(getStoreSelectionEffects(ctx)).toEqual({ storeSelection: 'unchanged', nativeContext: 'unchanged' });
+            await selectStore(ctx, { id: 'A' });
+            expect(getStoreSelectionEffects(ctx)).toEqual({
+                storeSelection: 'committed',
+                nativeContext: nativeEnabled ? 'committed' : 'unchanged',
+            });
+            expect(getReconciledStoreSelectionEffects(ctx)).toEqual({
+                storeSelection: 'reconciled',
+                nativeContext: nativeEnabled ? 'reconciled' : 'unchanged',
+            });
+        });
+    });
+
+    it('records no effects for validation and basket-consent refusals before a write', async () => {
+        await run(async (ctx) => {
+            await expect(selectStore(ctx, { id: 'unknown' })).rejects.toBeInstanceOf(StoreSelectionError);
+            items = [{ productId: 'sku' }];
+            expect(await selectStore(ctx, { id: 'B' })).toMatchObject({
+                success: false,
+                code: 'STORE_CHANGE_CONFIRMATION_REQUIRED',
+            });
+            expect(getStoreSelectionEffects(ctx)).toEqual({ storeSelection: 'unchanged', nativeContext: 'unchanged' });
+        });
+    });
+
+    it('retains middleware repair effects even if the subsequent action is rejected', async () => {
+        await run(async (ctx) => {
+            await selectStore(ctx, { id: 'A' });
+        });
+        delete native.assignmentQualifiers?.store;
+        await run(async (ctx) => {
+            expect(getStoreSelectionEffects(ctx).nativeContext).toBe('committed');
+            await expect(selectStore(ctx, { id: 'unknown' })).rejects.toBeInstanceOf(StoreSelectionError);
+            expect(getStoreSelectionEffects(ctx).nativeContext).toBe('committed');
+        });
+    });
+
+    it('does not call an unacknowledged native write committed, including readback conflict', async () => {
+        await run(async (ctx) => {
+            patch.mockResolvedValueOnce({ data: {} });
+            await expect(selectStore(ctx, { id: 'B' })).rejects.toMatchObject({
+                code: 'NATIVE_STORE_CONTEXT_CONFLICT',
+            });
+            expect(getStoreSelectionEffects(ctx)).toEqual({ storeSelection: 'unknown', nativeContext: 'unknown' });
+        });
+    });
+
+    it('exposes an uncertain write and recovers its committed native selection without replaying it', async () => {
+        await run(async (ctx) => {
+            const update = patch.getMockImplementation();
+            if (!update) throw new Error('Expected native update');
+            patch.mockImplementationOnce(async (args) => {
+                await update(args);
+                throw new Error('response lost after remote commit');
+            });
+            const form = new FormData();
+            form.set('intent', 'set');
+            form.set('storeId', 'B');
+            const result = await action({
+                context: ctx,
+                request: new Request('https://example.com/action/set-selected-store', {
+                    method: 'POST',
+                    headers: { Origin: 'https://example.com' },
+                    body: form,
+                }),
+            } as unknown as Parameters<typeof action>[0]);
+            expect(result.data).toMatchObject({
+                success: false,
+                outcome: 'unknown',
+                effects: { storeSelection: 'unknown', nativeContext: 'unknown' },
+            });
+            expect(ctx.get(selectedStoreContext)).toBeNull();
+        });
+        // The resolver needs the backend tuple; keep it scoped to this integration case so
+        // the existing validation-cache tests retain their own fixture policy.
+        vi.mocked(getConfig).mockReturnValue({
+            ...getConfig(context()),
+            commerce: { api: { shortCode: 'test', organizationId: 'test', clientId: 'test' } },
+        } as ReturnType<typeof getConfig>);
+        patch.mockClear();
+        const form = new FormData();
+        form.set('intent', 'reconcile');
+        const request = new Request('https://example.com/action/set-selected-store', {
+            method: 'POST',
+            headers: { Origin: 'https://example.com' },
+            body: form,
+        });
+        await run(
+            async (ctx) => {
+                const result = await action({ context: ctx, request } as unknown as Parameters<typeof action>[0]);
+                expect(result.data).toMatchObject({
+                    success: true,
+                    selectedStoreInfo: { id: 'B' },
+                    effects: { storeSelection: 'reconciled', nativeContext: 'reconciled' },
+                });
+                expect(ctx.get(selectedStoreContext)?.id).toBe('B');
+            },
+            '',
+            request
+        );
+        // Existing middleware reads native truth with an empty PATCH. Recovery does not replay set/clear.
+        expect(patch.mock.calls.map(([args]) => args.body)).toEqual([{}]);
+    });
+
+    it('does not report resolved qualification when canonical store metadata disagrees', async () => {
+        await run(async (ctx) => {
+            await selectStore(ctx, { id: 'B' });
+            expect(() => getReconciledStoreSelectionEffects(ctx, null)).toThrow('NATIVE_STORE_CONTEXT_CONFLICT');
+            expect(() =>
+                getReconciledStoreSelectionEffects(ctx, { id: 'B', inventoryId: 'changed-inventory' })
+            ).toThrow('NATIVE_STORE_CONTEXT_CONFLICT');
+        });
+    });
+
+    it('does not treat an invalid native selection awaiting explicit recovery as reconciled', async () => {
+        await run(async (ctx) => {
+            await selectStore(ctx, { id: 'A' });
+        });
+        storeRead.mockResolvedValue({ data: { data: [stores[1]] } });
+        const request = new Request('https://example.com/action/set-selected-store', { method: 'POST' });
+        await run(
+            (ctx) => {
+                expect(() => getReconciledStoreSelectionEffects(ctx, null)).toThrow('STORE_CONTEXT_NOT_READY');
+            },
+            '',
+            request
+        );
+    });
+
+    it('commits registered native selection without writing an account default', async () => {
+        vi.mocked(getAuth).mockReturnValue({
+            usid: 'registered-usid',
+            customerId: 'registered-customer',
+            userType: 'registered',
+            accessToken: 'registered-token',
+        } as ReturnType<typeof getAuth>);
+        defaultWrite.mockRejectedValueOnce(new Error('Selection must not write an account default'));
+        const { response } = await runSelectionAction('B');
+        expect(response.status).toBe(200);
+        expect(defaultWrite).not.toHaveBeenCalled();
+        expect(await response.json()).toMatchObject({
+            success: true,
+            selectedStoreInfo: { id: 'B', inventoryId: 'inventory-b' },
+            shoppingContext: { preparingStoreId: 'B' },
+            effects: { storeSelection: 'committed', nativeContext: 'committed' },
+        });
     });
 });

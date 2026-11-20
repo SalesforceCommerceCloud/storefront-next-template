@@ -134,6 +134,30 @@ describe('CheckoutPickup', () => {
         mockSetSelectedStoreInfoRaw.mockClear();
         mockChangeStore.mockClear();
     });
+    test.each([
+        { priceAfterItemDiscount: 18, expected: '$9.00' },
+        { priceAfterItemDiscount: 0, expected: '$0.00' },
+    ])('keeps the native $expected unit amount after catalog enrichment', ({ priceAfterItemDiscount, expected }) => {
+        const catalogProduct = { ...defaultProduct, id: 'PID1', c_priceOnRequest: true };
+        const cart = {
+            ...baseCart,
+            productItems: [{ ...baseCart.productItems[0], basePrice: 10, price: 20, priceAfterItemDiscount }],
+        };
+        const { container } = render(
+            <CheckoutPickup
+                cart={cart as ShopperBasketsV2.schemas['Basket']}
+                productsByItemId={{ 'item-1': catalogProduct }}
+                isEditing={true}
+                onEdit={() => {}}
+                onContinue={() => {}}
+                continueButtonLabel="Continue"
+            />,
+            { wrapper }
+        );
+        expect(screen.getByText(expected)).toBeInTheDocument();
+        expect(container.querySelector('[data-slot="price-on-request"]')).toBeNull();
+    });
+
     test('renders store and address in summary mode', () => {
         render(
             <CheckoutPickup

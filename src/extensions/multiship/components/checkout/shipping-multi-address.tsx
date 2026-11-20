@@ -46,8 +46,7 @@ import { useBasket } from '@/providers/basket';
 import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/typography';
 import { NativeSelect } from '@/components/ui/native-select';
-import CurrentPrice from '@/components/product-price/current-price';
-import { getPriceData } from '@/components/product-price/utils';
+import ProductPrice from '@/components/product-price';
 import { ProductItemVariantImage } from '@/components/product-item';
 import { useTranslation } from 'react-i18next';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
@@ -394,11 +393,6 @@ export default function ShippingMultiAddress({
                                 productItem?.variationAttributes,
                                 productItem?.variationValues
                             );
-                            const priceData = getPriceData(productItem as ShopperProducts.schemas['Product'], {
-                                quantity,
-                                currency,
-                            });
-                            const currentPrice = priceData.currentPrice;
 
                             return (
                                 <div
@@ -427,11 +421,14 @@ export default function ShippingMultiAddress({
                                             </div>
                                         </div>
 
-                                        <Typography variant="h3" className="font-bold text-sm">
-                                            <CurrentPrice
-                                                price={currentPrice}
+                                        <Typography variant="h3" as="div" className="font-bold text-sm">
+                                            <ProductPrice
+                                                product={productItem as ShopperProducts.schemas['Product']}
+                                                type="unit"
                                                 currency={currency}
-                                                className="text-foreground text-sm font-bold"
+                                                currentPriceOnly
+                                                hidePromo
+                                                currentPriceProps={{ className: 'text-foreground text-sm font-bold' }}
                                             />
                                         </Typography>
                                     </div>

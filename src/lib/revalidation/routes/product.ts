@@ -15,7 +15,12 @@
  */
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
 import { resourceRoutes } from '@/route-paths';
-import { getActionPath, isAmbientMutation } from './shared';
+import {
+    getActionPath,
+    isAmbientMutation,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    getStoreSelectionRevalidation,
+} from './shared';
 
 /**
  * Mutations whose result changes a field the PDP loader reads, so they MUST trigger its re-run. The PDP loader is
@@ -78,6 +83,8 @@ export function shouldRevalidate({
     nextUrl,
     formMethod,
     formAction,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    actionResult,
     defaultShouldRevalidate,
 }: ShouldRevalidateFunctionArgs): boolean {
     // Action axis: skip the loader re-run unless the mutation feeds the loader. A relevant mutation forces `true`
@@ -86,6 +93,10 @@ export function shouldRevalidate({
     // params), so this axis is a standalone yes/no with no navigation nuance left to defer to.
     if (formMethod && formMethod !== 'GET') {
         const actionPath = getActionPath(formAction, currentUrl.origin);
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        const storeDecision = actionPath && getStoreSelectionRevalidation(actionPath, actionResult);
+        if (typeof storeDecision === 'boolean') return storeDecision;
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
         return Boolean(actionPath && isProductRelevantMutation(actionPath));
     }
 

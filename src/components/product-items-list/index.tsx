@@ -226,7 +226,7 @@ export default function ProductItemsList({
                 ...(productData || {}),
                 ...productItem,
                 isProductUnavailable: !productData,
-                price: productItem.price ?? 0,
+                price: productItem.price,
                 quantity: productItem.quantity ?? 1,
                 // Explicitly preserve basket-specific properties that might be overwritten
                 bonusProductLineItem: productItem.bonusProductLineItem,

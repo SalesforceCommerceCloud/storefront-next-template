@@ -142,13 +142,13 @@ describe('store-selection policy (BOPIS: reload store-scoped inventory fetchers)
         }
     });
 
-    it('does not reload a product fetcher that is not scoped to a store inventory', async () => {
+    it('reloads default product reads but skips explicit site availability without inventoryIds', async () => {
         const matches = await policyPredicate({ formAction: resourceRoutes.setSelectedStore });
-        // Site-default availability (no inventoryIds) is unchanged by a store switch.
+        // Native prices/promotions depend on active store qualification, even without inventoryIds.
         expect(matches(inv('shopperProducts', 'getProduct', { params: { query: { expand: ['availability'] } } }))).toBe(
             false
         );
-        expect(matches(inv('shopperProducts', 'getProduct'))).toBe(false);
+        expect(matches(inv('shopperProducts', 'getProduct'))).toBe(true);
     });
 
     it('does not reload for a GET request on a store-selection route', async () => {

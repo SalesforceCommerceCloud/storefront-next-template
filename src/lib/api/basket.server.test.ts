@@ -18,11 +18,11 @@ import { getBasketCurrency } from './basket.server';
 import type { ShopperBasketsV2 } from '@/scapi';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 
-const createMockContext = (defaultCurrency = 'USD') =>
+const createMockContext = (defaultCurrency = 'USD', currency?: string) =>
     ({
         get: (key: unknown) => {
             if (key === siteContext) {
-                return { site: { defaultCurrency } };
+                return { site: { defaultCurrency }, currency };
             }
             return undefined;
         },
@@ -102,4 +102,11 @@ describe('getBasketCurrency', () => {
             expect(result).toBe(currency);
         });
     });
+});
+
+test('prefers the basket currency, then active currency, then site default', () => {
+    const context = createMockContext('USD', 'GBP');
+    expect(getBasketCurrency(context, { currency: 'EUR' })).toBe('EUR');
+    expect(getBasketCurrency(context, {})).toBe('GBP');
+    expect(getBasketCurrency(createMockContext('USD'), {})).toBe('USD');
 });

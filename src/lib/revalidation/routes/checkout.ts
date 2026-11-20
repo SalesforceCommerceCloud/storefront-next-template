@@ -16,6 +16,8 @@
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
 import { CHECKOUT_ACTION_INTENTS } from '@/components/checkout/utils/checkout-context-types';
 import { shouldRevalidateForTags, normalizeTags } from '../tags';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import { getActionPath, getStoreSelectionRevalidation } from './shared';
 
 /**
  * Broad subscription: any mutation that touches checkout state emits this tag.
@@ -39,13 +41,15 @@ const revalidateByTags = shouldRevalidateForTags([...CHECKOUT_REVALIDATE_TAGS]);
  *      action destroys the basket then redirects to order confirmation; revalidating
  *      into the now-empty basket would unmount payment-extension UI mid-flow. A redirect
  *      carries no JSON body, so it reports no tags anyway.
- *   2. Published tag: authoritative for a non-redirect action. When an action reports
+ *   2. Store effects: a committed selection refreshes even after a partial account-save failure.
+ *      Unknown and explicit no-op results stay held.
+ *   3. Published tag: authoritative for a non-redirect action. When an action reports
  *      `revalidateTags`, the tag intersection alone decides, so an action that explicitly
  *      publishes `checkout.update` revalidates and is never muted by the step-intent guard.
- *   3. Step intent: the checkout step actions (contact info, shipping, payment) return the
+ *   4. Step intent: the checkout step actions (contact info, shipping, payment) return the
  *      updated basket in their response and the form applies it directly, so a loader
  *      re-run is a redundant round-trip. They report no tags today, so this guard supplies
- *      the skip; a step that later publishes a tag is decided by the intersection in (2).
+ *      the skip; a step that later publishes a tag is decided by the intersection in (3).
  *
  * @see https://reactrouter.com/start/framework/route-module#shouldrevalidate
  */
@@ -55,6 +59,14 @@ export function shouldRevalidate(args: ShouldRevalidateFunctionArgs): boolean {
     if (actionStatus !== undefined && actionStatus >= 300 && actionStatus < 400) {
         return false;
     }
+
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    if (args.formMethod && args.formMethod !== 'GET') {
+        const path = getActionPath(args.formAction, args.currentUrl.origin);
+        const storeDecision = path && getStoreSelectionRevalidation(path, actionResult);
+        if (typeof storeDecision === 'boolean') return storeDecision;
+    }
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
     // A published tag is authoritative; let the intersection decide and never mute it.
     const reportedTags = normalizeTags(

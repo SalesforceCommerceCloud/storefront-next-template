@@ -363,8 +363,8 @@ describe('ProductItem', () => {
 
             expect(screen.getByTestId('sf-product-item-undefined')).toBeInTheDocument();
             expect(screen.getByText('Product Name')).toBeInTheDocument(); // Default name
-            // Zero price shows "Free" text
-            expect(screen.getByText('Free')).toBeInTheDocument();
+            // Missing price is unavailable, not free.
+            expect(screen.getByTestId('desktop-product-price')).toHaveTextContent(/unavailable/i);
         });
 
         test('handles product with only productId', () => {
@@ -452,7 +452,7 @@ describe('ProductItem', () => {
             expect(screen.getByText('Free')).toBeInTheDocument();
         });
 
-        test('handles missing price (defaults to 0)', () => {
+        test('handles missing price as unavailable', () => {
             const productWithoutPrice = {
                 ...mockProduct,
                 basePrice: undefined,
@@ -462,8 +462,8 @@ describe('ProductItem', () => {
 
             renderWithRouter(<ProductItem productItem={productWithoutPrice} />);
 
-            // Zero price shows "Free" text
-            expect(screen.getByText('Free')).toBeInTheDocument();
+            // Missing price is unavailable, not free.
+            expect(screen.getByTestId('desktop-product-price')).toHaveTextContent(/unavailable/i);
         });
     });
 
@@ -1181,4 +1181,15 @@ describe('ProductItem', () => {
             expect(screen.getByText(/Qty: 3/)).toBeInTheDocument();
         });
     });
+});
+
+test('does not label an unpriced basket line as Free or show invented zero each', () => {
+    renderWithRouter(
+        <ProductItem
+            productItem={{ itemId: 'unpriced', productId: 'unpriced', quantity: 2, productName: 'Unpriced apples' }}
+        />
+    );
+    expect(screen.queryByText('Free')).not.toBeInTheDocument();
+    expect(screen.queryByText(/0[.,]00 each/)).not.toBeInTheDocument();
+    expect(screen.getByTestId('desktop-product-price')).toHaveTextContent(/unavailable/i);
 });

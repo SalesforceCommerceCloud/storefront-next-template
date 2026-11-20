@@ -95,7 +95,12 @@ vi.mock('@/extensions/store-locator/hooks/use-store-locator-list', () => ({
 
 describe('StoreLocatorList', () => {
     test('retains focus while saving, guards click/space/arrow selection, then restores Radix keyboard selection', async () => {
-        const state = { ...baseState, selectionPending: false, chooserStoreInfo: baseState.storesPaginated[0] };
+        const state = {
+            ...baseState,
+            selectionPending: false,
+            selectionBlocked: false,
+            chooserStoreInfo: baseState.storesPaginated[0],
+        };
         vi.mocked(useStoreLocatorList).mockImplementation(
             () => state as unknown as ReturnType<typeof useStoreLocatorList>
         );
@@ -103,6 +108,7 @@ describe('StoreLocatorList', () => {
         const radios = screen.getAllByRole('radio');
         act(() => radios[0].focus());
         state.selectionPending = true;
+        state.selectionBlocked = true;
         rerender(<StoreLocatorList />);
         expect(radios[0]).toHaveFocus();
         expect(radios[0]).not.toBeDisabled();
@@ -111,10 +117,19 @@ describe('StoreLocatorList', () => {
         await userEvent.keyboard(' {ArrowDown}');
         expect(baseState.setSelectedStoreInfo).not.toHaveBeenCalled();
         state.selectionPending = false;
+        state.selectionBlocked = false;
         rerender(<StoreLocatorList />);
         act(() => radios[1].focus());
         await userEvent.keyboard(' ');
         await waitFor(() => expect(baseState.setSelectedStoreInfo).toHaveBeenCalledWith(baseState.storesPaginated[1]));
+    });
+    test('keeps new choices disabled when read-only recovery has an unknown outcome', async () => {
+        const state = { ...baseState, selectionPending: false, selectionBlocked: true };
+        vi.mocked(useStoreLocatorList).mockReturnValue(state as unknown as ReturnType<typeof useStoreLocatorList>);
+        render(<StoreLocatorList />);
+        expect(screen.getByRole('radiogroup')).toHaveAttribute('aria-disabled', 'true');
+        await userEvent.click(screen.getAllByRole('radio')[0]);
+        expect(state.setSelectedStoreInfo).not.toHaveBeenCalled();
     });
     beforeEach(() => {
         vi.mocked(useStoreLocatorList).mockImplementation(

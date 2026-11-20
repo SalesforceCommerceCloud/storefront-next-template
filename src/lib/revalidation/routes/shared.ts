@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import type { ShouldRevalidateFunctionArgs } from 'react-router';
 import { resourceRoutes, routes } from '@/route-paths';
 
 /**
@@ -21,7 +23,7 @@ import { resourceRoutes, routes } from '@/route-paths';
  * The request-wide dimensions a suppress-by-default policy MUST let through. A policy that opts a route out of React
  * Router's blanket post-action revalidation (an allowlist gate, as on home and the product listing pages) takes on the
  * burden of re-admitting every mutation that changes data the loader reads through an ambient input rather than the
- * URL. Revalidate-by-default policies (root, checkout, account) get these for free and need not import this module.
+ * URL. Revalidate-by-default policies normally inherit these; committed store effects must also override error-status defaults.
  *
  * Two ambient dimensions are modeled here, exposed both separately and as a combined predicate so each consumer admits
  * exactly the dimensions its loader is sensitive to:
@@ -42,7 +44,7 @@ import { resourceRoutes, routes } from '@/route-paths';
  * navigate away and the basket it governs is re-seeded server-side on that redirect, so a fetcher reload is redundant.
  *
  * Not modeled here, by design — a suppress-by-default policy must justify each omission against the route's loader:
- * `setSelectedStore` / `cartPickupStoreUpdate` (only stale a read that passes `query.inventoryIds`) and
+ * `cartPickupStoreUpdate` (shipment-only changes) and
  * `updateTrackingConsent` (consent → personalization; coupling unsettled). A policy whose loader reads store-scoped or
  * consent-gated data must enumerate those itself.
  */
@@ -94,3 +96,42 @@ export function isIdentityMutation(actionPath: string): boolean {
 export function isAmbientMutation(actionPath: string): boolean {
     return isContextMutation(actionPath) || isIdentityMutation(actionPath);
 }
+
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+/** An uncertain native write must settle through the existing read-only recovery before publishing dependent reads. */
+export function isUnsettledStoreSelection(
+    actionPath: string,
+    actionResult: ShouldRevalidateFunctionArgs['actionResult']
+): boolean {
+    return (
+        actionPath === resourceRoutes.setSelectedStore &&
+        (actionResult?.outcome === 'unknown' ||
+            actionResult?.effects?.storeSelection === 'unknown' ||
+            actionResult?.effects?.nativeContext === 'unknown')
+    );
+}
+
+/** Root/PDP/basket consumers also depend on the selected store's inventory, even without native qualification. */
+export function getStoreSelectionRevalidation(
+    actionPath: string,
+    actionResult: ShouldRevalidateFunctionArgs['actionResult']
+): boolean | undefined {
+    if (actionPath !== resourceRoutes.setSelectedStore) return undefined;
+    if (isUnsettledStoreSelection(actionPath, actionResult)) return false;
+    return (
+        actionResult?.effects?.storeSelection !== 'unchanged' || actionResult?.effects?.nativeContext !== 'unchanged'
+    );
+}
+
+/** Store pricing changes only after the existing owner commits or reconciles native qualification. */
+export function isStoreQualificationMutation(
+    actionPath: string,
+    actionResult: ShouldRevalidateFunctionArgs['actionResult']
+): boolean {
+    if (actionPath !== resourceRoutes.setSelectedStore) return false;
+    if (isUnsettledStoreSelection(actionPath, actionResult)) return false;
+    // Uncertain writes were held above. Refresh committed/reconciled writes and custom contracts
+    // conservatively; only an explicit unchanged native context proves no refresh is needed.
+    return actionResult?.effects?.nativeContext !== 'unchanged';
+}
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR

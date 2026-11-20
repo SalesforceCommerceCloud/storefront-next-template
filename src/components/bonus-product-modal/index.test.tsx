@@ -32,6 +32,7 @@ const mockAddToast = vi.fn();
 let mockFetcherData: any = null;
 let mockFetcherState: 'idle' | 'loading' | 'submitting' = 'idle';
 let mockFetcherSuccess = false;
+let mockQualificationPending = false;
 
 vi.mock('@/hooks/use-scapi-fetcher', () => ({
     useScapiFetcher: () => ({
@@ -39,6 +40,7 @@ vi.mock('@/hooks/use-scapi-fetcher', () => ({
         data: mockFetcherData,
         state: mockFetcherState,
         success: mockFetcherSuccess,
+        qualificationPending: mockQualificationPending,
     }),
 }));
 
@@ -130,6 +132,7 @@ describe('BonusProductModal', () => {
         mockFetcherData = null;
         mockFetcherState = 'idle';
         mockFetcherSuccess = false;
+        mockQualificationPending = false;
         mockFetcherLoad.mockClear();
         mockFetcherSubmit.mockClear();
         mockAddToast.mockClear();
@@ -142,6 +145,14 @@ describe('BonusProductModal', () => {
             state: 'idle',
         } as any);
     });
+
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    it('does not start or replay a bonus-product read while selection qualification is unsettled', () => {
+        mockQualificationPending = true;
+        renderWithRouter(<BonusProductModal {...mockProps} />);
+        expect(mockFetcherLoad).not.toHaveBeenCalled();
+    });
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
     afterEach(() => {
         vi.restoreAllMocks();

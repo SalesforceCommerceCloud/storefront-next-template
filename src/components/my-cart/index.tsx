@@ -82,6 +82,8 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
             const enrichedProduct = {
                 ...productData,
                 ...item,
+                // A catalog price is per unit and cannot stand in for a missing calculated line amount.
+                price: item.price,
             } as ShopperProducts.schemas['Product'] & ShopperBasketsV2.schemas['ProductItem'];
 
             // Get product image
@@ -101,7 +103,7 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
             const quantity = item.quantity ?? 1;
 
             // Calculate savings using getPriceData (same logic as ProductPrice component)
-            const priceData = getPriceData(enrichedProduct, { quantity, currency });
+            const priceData = getPriceData(enrichedProduct, { currency });
             const savings =
                 priceData.isOnSale && priceData.listPrice
                     ? (priceData.listPrice - priceData.currentPrice) * quantity
@@ -160,14 +162,9 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
                                     }}
                                     hidePromo
                                 />
-                                {quantity > 1 && (
+                                {priceData.hasPrice && quantity > 1 && (
                                     <div className="text-xs">
-                                        {formatCurrency(
-                                            (item.priceAfterItemDiscount ?? item.price ?? 0) / quantity,
-                                            i18n.language,
-                                            currency
-                                        )}{' '}
-                                        each
+                                        {formatCurrency(priceData.currentPrice, i18n.language, currency)} each
                                     </div>
                                 )}
                             </div>

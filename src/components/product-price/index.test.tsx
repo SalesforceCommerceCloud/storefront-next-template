@@ -14,11 +14,91 @@
  * limitations under the License.
  */
 
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ProductPrice from './index';
+import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 describe('ProductPrice', () => {
+    test.each([
+        { name: 'no comparison price', currentPriceOnly: false, promotionalPrice: undefined, expected: 19.99 },
+        { name: 'current price only', currentPriceOnly: true, promotionalPrice: 9.99, expected: 9.99 },
+    ])('formats only the displayed unit amount with $name', async ({
+        currentPriceOnly,
+        promotionalPrice,
+        expected,
+    }) => {
+        const format = vi.spyOn(await import('@/lib/currency'), 'formatCurrency');
+        try {
+            render(
+                <ProductPrice
+                    product={{
+                        id: 'sku',
+                        price: 19.99,
+                        productPromotions:
+                            promotionalPrice === undefined
+                                ? []
+                                : [{ promotionId: 'offer', calloutMsg: '', promotionalPrice }],
+                    }}
+                    currency="USD"
+                    type="unit"
+                    currentPriceOnly={currentPriceOnly}
+                />
+            );
+            expect(format.mock.calls.map(([amount]) => amount)).toEqual([expected]);
+        } finally {
+            format.mockRestore();
+        }
+    });
+
+    test.each([
+        { name: 'discounted', priceAfterItemDiscount: 18, expected: '$9.00' },
+        { name: 'free', priceAfterItemDiscount: 0, expected: '$0.00' },
+    ])('preserves the $name calculated line amount despite catalog price-on-request', ({
+        priceAfterItemDiscount,
+        expected,
+    }) => {
+        const { container } = render(
+            <ProductPrice
+                product={{
+                    id: 'sku',
+                    itemId: 'line',
+                    quantity: 2,
+                    basePrice: 10,
+                    price: 20,
+                    priceAfterItemDiscount,
+                    c_priceOnRequest: true,
+                }}
+                currency="USD"
+                type="unit"
+                currentPriceOnly
+                hidePromo
+            />
+        );
+        expect(screen.getByText(expected)).toBeInTheDocument();
+        expect(container.querySelector('[data-slot="price-on-request"]')).toBeNull();
+    });
+
+    test('keeps an unpriced line unavailable despite catalog price-on-request', () => {
+        const { container } = render(
+            <ProductPrice product={{ id: 'sku', itemId: 'line', quantity: 1, c_priceOnRequest: true }} currency="USD" />
+        );
+        expect(screen.getAllByText(getTranslation().t('product:price.unavailable')).length).toBeGreaterThan(0);
+        expect(container.querySelector('[data-slot="price-on-request"]')).toBeNull();
+        expect(screen.queryByText('$0.00')).not.toBeInTheDocument();
+    });
+
+    test('preserves consultation pricing on a catalog product with an undefined itemId', () => {
+        const { container } = render(
+            <ProductPrice
+                product={{ id: 'sku', itemId: undefined, price: 10, c_priceOnRequest: true }}
+                currency="USD"
+            />
+        );
+        expect(container.querySelector('[data-slot="price-on-request"]')).toBeInTheDocument();
+        expect(screen.queryByText('$10.00')).not.toBeInTheDocument();
+    });
+
     const mockProduct = {
         id: 'test-product',
         name: 'Test Product',
@@ -75,10 +155,15 @@ describe('ProductPrice', () => {
     });
 
     test('handles quantity multiplication', () => {
-        render(<ProductPrice product={mockProduct} currency="USD" quantity={2} labelForA11y="Test Product" />);
+        const { rerender } = render(
+            <ProductPrice product={mockProduct} currency="USD" quantity={2} labelForA11y="Test Product" />
+        );
 
         // Quantity multiplies range: 29.99*2 – 39.99*2
         expect(screen.getByText('$59.98 – $79.98')).toBeInTheDocument();
+
+        rerender(<ProductPrice product={mockProduct} currency="USD" quantity={3} labelForA11y="Test Product" />);
+        expect(screen.getByText('$89.97 – $119.97')).toBeInTheDocument();
     });
 
     test('does not apply quantity multiplication when type is unit', () => {
@@ -144,7 +229,7 @@ describe('ProductPrice', () => {
 
         render(<ProductPrice product={noPriceProduct} currency="DKK" labelForA11y="Test Product" />);
 
-        expect(screen.getAllByText('Price unavailable').length).toBeGreaterThan(0);
+        expect(screen.getAllByText(getTranslation().t('product:price.unavailable')).length).toBeGreaterThan(0);
         // Must not present the missing price as free / 0.
         expect(screen.queryByText(/0[.,]00/)).not.toBeInTheDocument();
     });
@@ -160,7 +245,7 @@ describe('ProductPrice', () => {
         render(<ProductPrice product={noPriceProduct} currency="USD" labelForA11y="Bonus Product" allowMissingPrice />);
 
         // Bonus/promo products opt out of the "unavailable" treatment and render the coalesced 0.
-        expect(screen.queryByText('Price unavailable')).not.toBeInTheDocument();
+        expect(screen.queryByText(getTranslation().t('product:price.unavailable'))).not.toBeInTheDocument();
         expect(screen.getByText('$0.00')).toBeInTheDocument();
     });
 
@@ -176,6 +261,23 @@ describe('ProductPrice', () => {
         render(<ProductPrice product={freeProduct} currency="USD" labelForA11y="Free Product" />);
 
         expect(screen.getByText('$0.00')).toBeInTheDocument();
-        expect(screen.queryByText('Price unavailable')).not.toBeInTheDocument();
+        expect(screen.queryByText(getTranslation().t('product:price.unavailable'))).not.toBeInTheDocument();
     });
+});
+
+test.each(['USD', 'GBP', 'JPY'])('does not strike through an identical formatted %s fractional total', (currency) => {
+    const { container } = render(
+        <ProductPrice
+            product={{
+                id: 'sku',
+                price: 20,
+                productPromotions: [{ promotionId: 'sale', promotionalPrice: 19.99, calloutMsg: '' }],
+            }}
+            currency={currency}
+            type="total"
+            quantity={0.01}
+        />
+    );
+    expect(container.querySelector('.line-through')).not.toBeInTheDocument();
+    expect(screen.queryByText(/List price:/)).not.toBeInTheDocument();
 });

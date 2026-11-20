@@ -38,6 +38,7 @@ import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { toImageUrl } from '@/lib/images/dynamic-image';
 import { formatCurrency } from '@/lib/currency';
 import ProductPrice from '@/components/product-price';
+import { getPriceData } from '@/components/product-price/utils';
 import { Typography } from '@/components/typography';
 import QuantityPicker from '@/components/quantity-picker/quantity-picker';
 import { Label } from '@/components/ui/label';
@@ -115,6 +116,7 @@ export default function MiniCartItem({
     const { t: tMiniCart, i18n } = useTranslation('miniCart');
     const { t: tRemoveItem } = useTranslation('removeItem');
     const { currency } = useSite();
+    const { hasPrice, currentPrice } = getPriceData(product, { currency });
     const seoUrlContext = useSeoUrlContext();
     const productAltFallback = tMiniCart('productAltFallback') || 'Product';
 
@@ -226,7 +228,7 @@ export default function MiniCartItem({
                     </div>
 
                     <div className="flex w-full max-w-[11rem] justify-self-end flex-col items-end text-right">
-                        {(product.priceAfterItemDiscount ?? product.price ?? 0) === 0 ? (
+                        {hasPrice && currentPrice === 0 ? (
                             <span className="text-xl font-semibold text-status-positive">{tMiniCart('free')}</span>
                         ) : (
                             <ProductPrice
@@ -249,14 +251,9 @@ export default function MiniCartItem({
                                 }}
                             />
                         )}
-                        {(product.quantity ?? 1) > 1 && (
+                        {hasPrice && (product.quantity ?? 1) > 1 && (
                             <div className="text-right text-muted-foreground text-sm">
-                                {formatCurrency(
-                                    (product.priceAfterItemDiscount ?? product.price ?? 0) / (product.quantity || 1),
-                                    i18n.language,
-                                    currency
-                                )}{' '}
-                                {tMiniCart('each')}
+                                {formatCurrency(currentPrice, i18n.language, currency)} {tMiniCart('each')}
                             </div>
                         )}
                         <UITarget targetId="sfcc.miniCart.shipping.deliveryEstimate" />

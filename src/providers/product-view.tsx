@@ -33,11 +33,9 @@ interface ProductViewContextValue extends ReturnType<typeof useProductActions> {
      */
     isVariantInventoryLoading: boolean;
     /**
-     * Mirrors the same conditions the hook uses to bypass the price gate, so price display
-     * (ProductInfo → ProductPrice) matches the add/update gate. True when either the explicit
-     * `allowMissingPrice` prop is set OR the surface is editing an in-basket line (`itemId`),
-     * which the hook already treats as price-gate-bypassed (an in-basket line must remain
-     * editable even if its catalog price is currently missing for the active currency).
+     * Explicit missing-price override for bonus/parent-priced presentation. The action hook also
+     * permits editing existing basket lines without a catalog price; that permission does not
+     * imply a native free amount and must not enable this display override.
      */
     allowMissingPrice: boolean;
     /**
@@ -182,8 +180,7 @@ const ProductViewProvider = ({
                 product,
                 mode,
                 isVariantInventoryLoading,
-                // Mirror the hook's price-gate bypass conditions so display tracks gate.
-                allowMissingPrice: allowMissingPrice || Boolean(itemId),
+                allowMissingPrice,
                 selectionsOverride,
                 setSelectionsOverride: setLocalSelectionsOverride,
             }}>

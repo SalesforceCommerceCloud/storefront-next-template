@@ -17,11 +17,16 @@ import { Suspense } from 'react';
 import { Await } from 'react-router';
 import BuyNowPayLater from '@/extensions/bnpl/components/buy-now-pay-later';
 import { useBnpl } from '@/extensions/bnpl/context/bnpl-context';
+import { useOptionalProductView } from '@/providers/product-view';
+import { hasPurchasablePrice } from '@/lib/product/price-utils';
 
 export default function BnplTarget() {
     const bnpl = useBnpl();
+    const view = useOptionalProductView();
 
-    if (!bnpl) return null;
+    // Provider messaging cannot supply a purchase amount when Ecom returned no qualified price.
+    if (!bnpl || !view || view.product.c_priceOnRequest || !hasPurchasablePrice(view.product, view.currentVariant))
+        return null;
 
     const { messagePromise, learnMorePromise } = bnpl;
 

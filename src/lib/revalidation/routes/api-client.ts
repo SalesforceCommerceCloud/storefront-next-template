@@ -13,12 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import { readsQualifiedCommerce } from '@/lib/scapi/qualified-reads';
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import { resourceRoutes } from '@/route-paths';
 import { invokeMatchingFetchers } from '@/lib/scapi/fetcher-registry';
 import type { DecodedResource } from '@/lib/scapi/resource-encoding';
-import { getActionPath, isContextMutation } from './shared';
+import {
+    getActionPath,
+    isContextMutation,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    isStoreQualificationMutation,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    isUnsettledStoreSelection,
+} from './shared';
 
 /**
  * A single revalidation rule: when a mutation matching `when` completes, reload every registered fetcher whose
@@ -98,15 +107,27 @@ function requestsInventoryIds(resource: DecodedResource): boolean {
 const REVALIDATION_RULES: readonly ScapiRevalidationRule[] = [
     // A context switch (site/currency/locale or shopper context) re-scopes pricing and localization, and every read
     // this route governs is priced/localized — so it invalidates every registered fetcher unconditionally.
+    // A basket GET hydrates stored amounts; it does not calculate them. Retain hydration until
+    // the shared apply contract guarantees publication of the calculated basket for that context.
     {
         when: matchesMutation(isContextMutation),
         affects: () => true,
     },
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    {
+        when: (args) => matchesMutation((path) => isStoreQualificationMutation(path, args.actionResult))(args),
+        affects: readsQualifiedCommerce,
+    },
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     // Switching the selected/pickup store changes which store's inventory a product call reads, so reload anything
-    // scoped to a store's inventory.
+    // scoped to a store's inventory. An uncertain native write waits for the existing recovery read.
     {
-        when: matchesMutation((actionPath) => STORE_SELECTION_MUTATIONS.has(actionPath)),
+        when: (args) => {
+            // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+            if (isUnsettledStoreSelection(args.formAction ?? '', args.actionResult)) return false;
+            return matchesMutation((actionPath) => STORE_SELECTION_MUTATIONS.has(actionPath))(args);
+        },
         affects: requestsInventoryIds,
     },
     // @sfdc-extension-block-end SFDC_EXT_BOPIS

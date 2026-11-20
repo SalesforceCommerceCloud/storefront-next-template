@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
-import { getActionPath, isAmbientMutation } from './shared';
+import {
+    getActionPath,
+    isAmbientMutation,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    isStoreQualificationMutation,
+} from './shared';
 
 /**
  * `shouldRevalidate` policy for the home page. The loader fetches only catalog and content data, so it opts out of
@@ -35,9 +40,17 @@ import { getActionPath, isAmbientMutation } from './shared';
  * follows an identity transition, independent of this gate.
  * @see https://reactrouter.com/start/framework/route-module#shouldrevalidate
  */
-export function shouldRevalidate({ currentUrl, formMethod, formAction }: ShouldRevalidateFunctionArgs): boolean {
+export function shouldRevalidate({
+    currentUrl,
+    formMethod,
+    formAction,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    actionResult,
+}: ShouldRevalidateFunctionArgs): boolean {
     if (formMethod && formMethod !== 'GET') {
         const actionPath = getActionPath(formAction, currentUrl.origin);
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        if (actionPath && isStoreQualificationMutation(actionPath, actionResult)) return true;
         if (actionPath && isAmbientMutation(actionPath)) {
             return true;
         }

@@ -52,7 +52,13 @@ import {
 
 // Middlewares
 import authMiddlewareServer, { getAuth as getAuthServer } from '@/middlewares/auth.server';
-import { COOKIE_AUTH_RECOVERY_GUARD, getAuthRecoveryStage, getPublicSessionData } from '@/middlewares/auth.utils';
+import {
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    COOKIE_AUTH_RECOVERY_GUARD,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    getAuthRecoveryStage,
+    getPublicSessionData,
+} from '@/middlewares/auth.utils';
 import createBasketMiddleware, { basketResourceContext, type BasketSnapshot } from '@/middlewares/basket.server';
 import shopperContextMiddlewareServer from '@/middlewares/shopper-context.server';
 import { userTypeHintMiddleware } from '@/middlewares/user-type-hint.server';
@@ -130,11 +136,8 @@ import appStylesHref from '@/theme/index.css?url';
 // Extensions
 import { UITargetProviders } from '@/targets/ui-target-providers';
 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
-import {
-    storeSelectionMiddleware,
-    shoppingContext,
-    type ShoppingContext,
-} from '@/extensions/store-locator/lib/store-selection.server';
+import { storeSelectionMiddleware, shoppingContext } from '@/extensions/store-locator/lib/store-selection.server';
+import { toPublicShoppingContext, type PublicShoppingContext } from '@/extensions/store-locator/lib/public-selection';
 import StoreLocatorProvider, { type SelectedStoreResolution } from '@/extensions/store-locator/providers/store-locator';
 import { resolveSelectedStore } from '@/extensions/store-locator/lib/resolve-selected-store.server';
 import { STORE_RECOVER_COOKIE } from '@/extensions/store-locator/lib/late-auth-recovery';
@@ -187,7 +190,8 @@ export const middleware: MiddlewareFunction<Response>[] = [
     maintenanceMiddleware,
     authMiddlewareServer,
     shopperContextMiddlewareServer,
-    storeSelectionMiddleware /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    storeSelectionMiddleware,
     createBasketMiddleware(),
     // Must run after authMiddlewareServer (reads the final session userType). Writes the JS-readable
     // `__sfdc_usertype` hint in its response phase so AuthProvider can restore the header auth state
@@ -229,9 +233,12 @@ export const loader = async ({
     locale: Locale;
     site: Site;
     currency: string;
-    shoppingContext: ShoppingContext | null /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
-    selectedStoreResolution: Promise<SelectedStoreResolution> /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
-    homeStorePromptDismissed: boolean /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    shoppingContext: PublicShoppingContext | null;
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    selectedStoreResolution: Promise<SelectedStoreResolution>;
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    homeStorePromptDismissed: boolean;
     correlationId: string;
     pageDesignerPageUpdateMode: PageUpdateMode;
     pageDesignerMode: 'EDIT' | 'PREVIEW' | undefined;
@@ -304,6 +311,9 @@ export const loader = async ({
     // CSP nonce produced by securityHeadersMiddleware; null when middleware is disabled.
     const nonce = getSecurityNonce(context);
 
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    const publicShoppingContext = toPublicShoppingContext(context.get(shoppingContext));
+
     return {
         // Read the precomputed client view from the context — `appConfigMiddlewareServer`
         // strips server-only namespaces once at module init and stashes the result, so this
@@ -316,9 +326,12 @@ export const loader = async ({
         locale,
         site,
         currency,
-        shoppingContext: context.get(shoppingContext) /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
-        selectedStoreResolution /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
-        homeStorePromptDismissed /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        shoppingContext: publicShoppingContext,
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        selectedStoreResolution,
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        homeStorePromptDismissed,
         correlationId,
         maintenance,
         clientAuth,
