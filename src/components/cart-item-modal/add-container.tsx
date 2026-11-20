@@ -39,6 +39,7 @@ type Product = ShopperProducts.schemas['Product'];
 export function CartItemModalAddContainer({
     productId,
     onOpenChange,
+    onCloseAutoFocus,
     initialQuantity = 1,
     initialVariantSelections,
     onBuyNow,
@@ -288,6 +289,7 @@ export function CartItemModalAddContainer({
         <CartItemModalView
             open={open}
             onOpenChange={onOpenChange}
+            onCloseAutoFocus={onCloseAutoFocus}
             dialogTitle={t('quickAddTitle')}
             isLoading={isLoading}
             hasError={hasError}

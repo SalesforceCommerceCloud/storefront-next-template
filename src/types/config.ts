@@ -501,6 +501,8 @@ export type AppConfig = {
             featuredProductsCount: number;
             /** Number of products shown in the Buy It Again carousel on the home page. Default: 12. */
             buyItAgainCarouselLimit?: number;
+            /** Promotion-backed homepage section IDs keyed by the shopper's selected currency. */
+            promotionIdsByCurrency?: Record<string, string>;
         };
         cart: {
             quantityUpdateDebounce: number;

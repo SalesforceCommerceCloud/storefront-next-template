@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { ShopperProducts } from '@/scapi';
-import type { Dialog } from '@/components/ui/dialog';
+import type { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export interface CartItemModalProps extends Omit<React.ComponentProps<typeof Dialog>, 'onOpenChange'> {
     /**
@@ -44,6 +44,8 @@ export interface CartItemModalProps extends Omit<React.ComponentProps<typeof Dia
      * Typically navigates to the PDP with the currently selected variant pre-seeded.
      */
     onBuyNow?: () => void;
+    /** Restore focus to the invoking control after the close animation. */
+    onCloseAutoFocus?: React.ComponentProps<typeof DialogContent>['onCloseAutoFocus'];
     /** Callback when dialog open state changes */
     onOpenChange?: (open: boolean) => void;
 }

@@ -57,3 +57,31 @@ exports[`Grid stories snapshot > Featured story renders and matches snapshot 1`]
   </div>
 </div>
 `;
+
+exports[`Grid stories snapshot > ResponsiveColumns story renders and matches snapshot 1`] = `
+<div
+  class="grid grid-cols-2 lg:grid-cols-4 grid-flow-row max-w-full mx-0 gap-3 items-stretch"
+  data-slot="grid"
+>
+  <div
+    class="rounded-ui bg-muted p-6"
+  >
+    Campaign 1
+  </div>
+  <div
+    class="rounded-ui bg-muted p-6"
+  >
+    Campaign 2
+  </div>
+  <div
+    class="rounded-ui bg-muted p-6"
+  >
+    Campaign 3
+  </div>
+  <div
+    class="rounded-ui bg-muted p-6"
+  >
+    Campaign 4
+  </div>
+</div>
+`;

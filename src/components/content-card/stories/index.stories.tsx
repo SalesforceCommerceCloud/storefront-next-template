@@ -395,3 +395,36 @@ export const CustomClassNames: Story = {
         await expect(button).toHaveClass('button-override-sentinel');
     },
 };
+
+export const PortraitImage: Story = {
+    args: { layout: 'image', imageAspectRatio: '3:4', imageAlt: 'Seasonal collection', badge: 'Sponsored' },
+};
+export const PortraitOverlay: Story = {
+    args: { imageAspectRatio: '3:4', contentPosition: 'top', overlay: 'dark' },
+};
+
+export const ImageBanner: Story = {
+    args: {
+        layout: 'image',
+        imageAspectRatio: 'auto',
+        imageUrl: { url: '/images/content-placeholder.svg', metaData: { width: 1600, height: 240 } },
+        imageAlt: 'Seasonal campaign',
+        buttonLink: '/c/seasonal',
+        badge: 'Sponsored',
+        title: undefined,
+        description: undefined,
+        showBorder: false,
+        className: 'w-full',
+    },
+    decorators: [
+        (Story) => (
+            <div className="w-[80vw]">
+                <Story />
+            </div>
+        ),
+    ],
+};
+
+export const Campaign: Story = {
+    args: { variant: 'campaign', contentPosition: 'top', imageAspectRatio: '3:4', overlay: 'light' },
+};

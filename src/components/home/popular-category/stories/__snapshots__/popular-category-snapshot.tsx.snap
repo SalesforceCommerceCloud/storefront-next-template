@@ -8,29 +8,80 @@ exports[`PopularCategory stories snapshot > Default story renders and matches sn
     <div
       class="max-w-md mx-auto"
     >
-      <div
-        data-testid="content-card"
+      <a
+        class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        data-discover="true"
+        href="/global/en-GB/c/mens"
       >
-        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.jpg","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/c/mens","showBackground":true,"showBorder":true,"loading":"eager"}
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`PopularCategory stories snapshot > DesktopLayout story renders and matches snapshot 1`] = `
-<div>
-  <div
-    class="bg-background min-h-screen p-8"
-  >
-    <div
-      class="max-w-md mx-auto"
-    >
-      <div
-        data-testid="content-card"
-      >
-        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.jpg","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/c/mens","showBackground":true,"showBorder":true,"loading":"eager"}
-      </div>
+        <div
+          class="group relative overflow-hidden bg-muted h-full rounded-ui"
+        >
+          <div
+            class="overflow-hidden aspect-square"
+            data-slot="category-media"
+          >
+            <div
+              class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
+            >
+              <div
+                class="w-full h-full"
+              >
+                <picture>
+                  <source
+                    media="(min-width: 1024px)"
+                    sizes="288px"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=288 288w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=576 576w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 640px)"
+                    sizes="256px"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=256 256w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=512 512w"
+                    type="image/webp"
+                  />
+                  <source
+                    sizes="348px"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=348 348w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=696 696w"
+                    type="image/webp"
+                  />
+                  <img
+                    alt=""
+                    class="w-full h-full object-cover"
+                    fetchpriority="auto"
+                    loading="lazy"
+                    src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70"
+                  />
+                </picture>
+              </div>
+            </div>
+          </div>
+          <div
+            class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+            data-slot="category-overlay"
+          >
+            <div
+              class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
+            >
+              <div>
+                <h3
+                  class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
+                >
+                  Mens
+                </h3>
+              </div>
+              <div
+                class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
+              >
+                <span
+                  class="inline-block text-sm font-medium text-category-card-overlay-foreground"
+                >
+                  Shop Now
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
     </div>
   </div>
 </div>
@@ -43,18 +94,12 @@ exports[`PopularCategory stories snapshot > Fallback story renders and matches s
   >
     <div
       class="max-w-md mx-auto"
-    >
-      <div
-        data-testid="content-card"
-      >
-        {"title":"","description":"","imageUrl":"/images/hero-cube.webp","imageAlt":"","buttonText":"Shop Now","buttonLink":"/c/root","showBackground":true,"showBorder":true,"loading":"eager"}
-      </div>
-    </div>
+    />
   </div>
 </div>
 `;
 
-exports[`PopularCategory stories snapshot > MobileLayout story renders and matches snapshot 1`] = `
+exports[`PopularCategory stories snapshot > InteractionTest story renders and matches snapshot 1`] = `
 <div>
   <div
     class="bg-background min-h-screen p-8"
@@ -62,11 +107,181 @@ exports[`PopularCategory stories snapshot > MobileLayout story renders and match
     <div
       class="max-w-md mx-auto"
     >
-      <div
-        data-testid="content-card"
+      <a
+        class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        data-discover="true"
+        href="/global/en-GB/c/mens"
       >
-        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.jpg","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/c/mens","showBackground":true,"showBorder":true,"loading":"eager"}
-      </div>
+        <div
+          class="group relative overflow-hidden bg-muted h-full rounded-ui"
+        >
+          <div
+            class="overflow-hidden aspect-square"
+            data-slot="category-media"
+          >
+            <div
+              class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
+            >
+              <div
+                class="w-full h-full"
+              >
+                <picture>
+                  <source
+                    media="(min-width: 1024px)"
+                    sizes="288px"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=288 288w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=576 576w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 640px)"
+                    sizes="256px"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=256 256w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=512 512w"
+                    type="image/webp"
+                  />
+                  <source
+                    sizes="348px"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=348 348w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=696 696w"
+                    type="image/webp"
+                  />
+                  <img
+                    alt=""
+                    class="w-full h-full object-cover"
+                    fetchpriority="auto"
+                    loading="lazy"
+                    src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70"
+                  />
+                </picture>
+              </div>
+            </div>
+          </div>
+          <div
+            class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+            data-slot="category-overlay"
+          >
+            <div
+              class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
+            >
+              <div>
+                <h3
+                  class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
+                >
+                  Mens
+                </h3>
+              </div>
+              <div
+                class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
+              >
+                <span
+                  class="inline-block text-sm font-medium text-category-card-overlay-foreground"
+                >
+                  Shop Now
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PopularCategory stories snapshot > LabelAbove story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen p-8"
+  >
+    <div
+      class="max-w-md mx-auto"
+    >
+      <a
+        class="group flex flex-col items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui"
+        data-discover="true"
+        href="/global/en-GB/c/mens"
+      >
+        <span
+          class="text-foreground group-hover:underline text-sm font-medium"
+          data-slot="category-label"
+        >
+          Mens
+        </span>
+        <div
+          class="relative w-full overflow-hidden bg-muted aspect-square rounded-ui"
+          data-slot="category-media"
+        >
+          <div
+            class="h-full w-full"
+          >
+            <img
+              alt=""
+              class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              fetchpriority="auto"
+              loading="lazy"
+              src="/images/hero-01.webp"
+            />
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PopularCategory stories snapshot > LabelBelow story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen p-8"
+  >
+    <div
+      class="max-w-md mx-auto"
+    >
+      <a
+        class="group flex flex-col items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui"
+        data-discover="true"
+        href="/global/en-GB/c/mens"
+      >
+        <div
+          class="relative w-full overflow-hidden bg-muted aspect-square rounded-ui"
+          data-slot="category-media"
+        >
+          <div
+            class="h-full w-full"
+          >
+            <picture>
+              <source
+                media="(min-width: 1024px)"
+                sizes="288px"
+                srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=288 288w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=576 576w"
+                type="image/webp"
+              />
+              <source
+                media="(min-width: 640px)"
+                sizes="256px"
+                srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=256 256w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=512 512w"
+                type="image/webp"
+              />
+              <source
+                sizes="348px"
+                srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=348 348w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70&sw=696 696w"
+                type="image/webp"
+              />
+              <img
+                alt=""
+                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                fetchpriority="auto"
+                loading="lazy"
+                src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-suits.webp?sfrm=jpg&q=70"
+              />
+            </picture>
+          </div>
+        </div>
+        <span
+          class="text-foreground group-hover:underline text-sm font-medium"
+          data-slot="category-label"
+        >
+          Mens
+        </span>
+      </a>
     </div>
   </div>
 </div>
@@ -80,11 +295,80 @@ exports[`PopularCategory stories snapshot > WithCategoryProp story renders and m
     <div
       class="max-w-md mx-auto"
     >
-      <div
-        data-testid="content-card"
+      <a
+        class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        data-discover="true"
+        href="/global/en-GB/c/mens-accessories-ties"
       >
-        {"title":"Ties","description":"Shop Mens's Ties for all occasions including business or casual at Commerce Cloud","imageUrl":"https://zzrf-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dwd2ff3ec8/images/slot/sub_banners/cat-banner-mens-ties.jpg","imageAlt":"Ties","buttonText":"Shop Now","buttonLink":"/c/mens-accessories-ties","showBackground":true,"showBorder":true,"loading":"eager"}
-      </div>
+        <div
+          class="group relative overflow-hidden bg-muted h-full rounded-ui"
+        >
+          <div
+            class="overflow-hidden aspect-square"
+            data-slot="category-media"
+          >
+            <div
+              class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
+            >
+              <div
+                class="w-full h-full"
+              >
+                <picture>
+                  <source
+                    media="(min-width: 1024px)"
+                    sizes="288px"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dwd2ff3ec8/images/slot/sub_banners/cat-banner-mens-ties.webp?sfrm=jpg&q=70&sw=288 288w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dwd2ff3ec8/images/slot/sub_banners/cat-banner-mens-ties.webp?sfrm=jpg&q=70&sw=576 576w"
+                    type="image/webp"
+                  />
+                  <source
+                    media="(min-width: 640px)"
+                    sizes="256px"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dwd2ff3ec8/images/slot/sub_banners/cat-banner-mens-ties.webp?sfrm=jpg&q=70&sw=256 256w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dwd2ff3ec8/images/slot/sub_banners/cat-banner-mens-ties.webp?sfrm=jpg&q=70&sw=512 512w"
+                    type="image/webp"
+                  />
+                  <source
+                    sizes="348px"
+                    srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dwd2ff3ec8/images/slot/sub_banners/cat-banner-mens-ties.webp?sfrm=jpg&q=70&sw=348 348w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dwd2ff3ec8/images/slot/sub_banners/cat-banner-mens-ties.webp?sfrm=jpg&q=70&sw=696 696w"
+                    type="image/webp"
+                  />
+                  <img
+                    alt=""
+                    class="w-full h-full object-cover"
+                    fetchpriority="auto"
+                    loading="lazy"
+                    src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dwd2ff3ec8/images/slot/sub_banners/cat-banner-mens-ties.webp?sfrm=jpg&q=70"
+                  />
+                </picture>
+              </div>
+            </div>
+          </div>
+          <div
+            class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+            data-slot="category-overlay"
+          >
+            <div
+              class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
+            >
+              <div>
+                <h3
+                  class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
+                >
+                  Ties
+                </h3>
+              </div>
+              <div
+                class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
+              >
+                <span
+                  class="inline-block text-sm font-medium text-category-card-overlay-foreground"
+                >
+                  Shop Now
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
     </div>
   </div>
 </div>
@@ -98,11 +382,61 @@ exports[`PopularCategory stories snapshot > WithoutImage story renders and match
     <div
       class="max-w-md mx-auto"
     >
-      <div
-        data-testid="content-card"
+      <a
+        class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        data-discover="true"
+        href="/global/en-GB/c/mens"
       >
-        {"title":"Mens","description":"Men's range. Hard-wearing boots, jackets and clothing for unbeatable comfort day in, day out. Practical, easy-to-wear styles wherever you're headed.","imageUrl":"/images/hero-cube.webp","imageAlt":"Mens","buttonText":"Shop Now","buttonLink":"/c/mens","showBackground":true,"showBorder":true,"loading":"eager"}
-      </div>
+        <div
+          class="group relative overflow-hidden bg-muted h-full rounded-ui"
+        >
+          <div
+            class="overflow-hidden aspect-square"
+            data-slot="category-media"
+          >
+            <div
+              class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
+            >
+              <div
+                class="w-full h-full"
+              >
+                <img
+                  alt=""
+                  class="w-full h-full object-cover"
+                  fetchpriority="auto"
+                  loading="lazy"
+                  src="__ASSET_MOCK__"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+            data-slot="category-overlay"
+          >
+            <div
+              class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
+            >
+              <div>
+                <h3
+                  class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
+                >
+                  Mens
+                </h3>
+              </div>
+              <div
+                class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
+              >
+                <span
+                  class="inline-block text-sm font-medium text-category-card-overlay-foreground"
+                >
+                  Shop Now
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
     </div>
   </div>
 </div>

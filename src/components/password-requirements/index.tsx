@@ -141,10 +141,10 @@ export function PasswordRequirement({ password, className, id, headingLevel = 4 
                             key={requirement.id}
                             className={cn(
                                 'flex items-center gap-2 text-sm transition-colors',
-                                isValid ? 'text-primary' : 'text-muted-foreground'
+                                isValid ? 'text-success' : 'text-muted-foreground'
                             )}>
                             {isValid ? (
-                                <Check className="h-4 w-4 text-primary" data-testid="check-icon" />
+                                <Check className="h-4 w-4 text-success" data-testid="check-icon" />
                             ) : (
                                 <X className="h-4 w-4 text-muted-foreground" data-testid="x-icon" />
                             )}

@@ -31,10 +31,19 @@ import { type ComponentType } from '@/components/region';
 import { cn } from '@/lib/utils';
 import { Component as RegionComponent } from '@/components/region/component';
 import { CarouselSection } from '@/components/carousel-section';
+import { compactCategoryItemClassName } from '@/components/home/popular-category/constants';
 
 interface PopularCategoriesProps {
     categoriesPromise?: Promise<ShopperProducts.schemas['Category'][]>;
     parentId?: string;
+    /** Compact rows use native horizontal scrolling; carousel remains the default. */
+    layout?: 'carousel' | 'row';
+    /** Whether the compact row displays its heading; it stays available to screen readers. */
+    showHeading?: boolean;
+    /** Number of leading category images loaded eagerly. Remaining images use native lazy loading. */
+    eagerImageCount?: number;
+    imageShape?: 'default' | 'circle';
+    imageFit?: 'cover' | 'contain';
     title?: string;
     subtitle?: string;
     /**
@@ -61,10 +70,10 @@ interface PopularCategoriesProps {
     centerWhenPartial?: boolean;
     /**
      * Where each card's name sits relative to its image, forwarded to `PopularCategory`.
-     * `'overlay'` (default) keeps the name on the image; `'below'` renders it beneath.
+     * `'overlay'` (default) keeps the name on the image; `'above'` / `'below'` place it outside.
      * @default 'overlay'
      */
-    labelPosition?: 'overlay' | 'below';
+    labelPosition?: 'overlay' | 'above' | 'below';
     /** Image forwarded to category cards that have neither an image nor a banner. */
     fallbackImageUrl?: string;
     // Data prop provided by the Page Designer component loader
@@ -109,6 +118,15 @@ export class PopularCategoriesMetadata {
         description: 'Optional subtitle text for the category section',
     })
     subtitle?: string;
+
+    @AttributeDefinition({ type: 'enum', values: ['overlay', 'above', 'below'], defaultValue: 'overlay' })
+    labelPosition?: string;
+
+    @AttributeDefinition({ type: 'enum', values: ['default', 'circle'], defaultValue: 'default' })
+    imageShape?: string;
+
+    @AttributeDefinition({ type: 'enum', values: ['cover', 'contain'], defaultValue: 'cover' })
+    imageFit?: string;
 }
 /* v8 ignore stop */
 
@@ -141,7 +159,18 @@ function CategoriesError() {
 /**
  * Skeleton shown while categoriesPromise is resolving
  */
-function CategoryCardsSkeleton() {
+function CategoryCardsSkeleton({ layout }: { layout?: 'carousel' | 'row' }) {
+    if (layout === 'row')
+        return (
+            <div className="section-container flex gap-3.5 overflow-hidden py-3" aria-hidden="true">
+                {Array.from({ length: 8 }, (_, i) => (
+                    <div key={i} className={compactCategoryItemClassName}>
+                        <Skeleton className="aspect-square rounded-full" />
+                        <Skeleton className="mt-3 h-4 w-full" />
+                    </div>
+                ))}
+            </div>
+        );
     return (
         <div className="section-container py-6">
             <div className="flex -ml-4 overflow-hidden py-6">
@@ -162,22 +191,57 @@ function CategoryItem({
     category,
     labelPosition,
     fallbackImageUrl,
+    imageShape,
+    imageFit,
+    layout,
+    imageLoading,
 }: {
     category: ShopperProducts.schemas['Category'];
-    labelPosition?: 'overlay' | 'below';
+    labelPosition?: 'overlay' | 'above' | 'below';
     fallbackImageUrl?: string;
+    imageShape?: 'default' | 'circle';
+    imageFit?: 'cover' | 'contain';
+    layout?: 'carousel' | 'row';
+    imageLoading: 'eager' | 'lazy';
 }) {
+    const card = (
+        <div className="w-full max-w-full min-w-0 flex">
+            <PopularCategory
+                category={category}
+                size={layout === 'row' ? 'compact' : 'default'}
+                imageLoading={imageLoading}
+                labelPosition={labelPosition}
+                fallbackImageUrl={fallbackImageUrl}
+                imageShape={imageShape}
+                imageFit={imageFit}
+                className={cn('h-full w-full', layout === 'row' && 'text-center')}
+            />
+        </div>
+    );
+    return layout === 'row' ? (
+        <li className={compactCategoryItemClassName}>{card}</li>
+    ) : (
+        <CarouselItem className={itemClassName}>{card}</CarouselItem>
+    );
+}
+
+function CategoryCollection({
+    layout,
+    showHeading,
+    children,
+    ...sectionProps
+}: React.ComponentProps<typeof CarouselSection> & {
+    layout?: 'carousel' | 'row';
+    showHeading?: boolean;
+}) {
+    if (layout !== 'row') return <CarouselSection {...sectionProps}>{children}</CarouselSection>;
     return (
-        <CarouselItem className={itemClassName}>
-            <div className="w-full max-w-full min-w-0 flex">
-                <PopularCategory
-                    category={category}
-                    labelPosition={labelPosition}
-                    fallbackImageUrl={fallbackImageUrl}
-                    className="h-full w-full"
-                />
-            </div>
-        </CarouselItem>
+        <nav data-slot="categories-row" className="section-container py-3" aria-label={sectionProps.ariaLabel}>
+            <h2 className={showHeading ? 'mb-4 text-xl font-bold' : 'sr-only'}>{sectionProps.title}</h2>
+            <ul className="-mx-4 flex gap-3.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:justify-between">
+                {children}
+            </ul>
+        </nav>
     );
 }
 
@@ -197,6 +261,11 @@ function CategoryGridContent({
     centerWhenPartial,
     labelPosition,
     fallbackImageUrl,
+    layout,
+    showHeading,
+    imageShape,
+    imageFit,
+    eagerImageCount,
 }: {
     data?: ShopperProducts.schemas['Category'][];
     categoriesPromise?: Promise<ShopperProducts.schemas['Category'][]>;
@@ -207,8 +276,13 @@ function CategoryGridContent({
     shopAllUrl?: string;
     shopAllText?: string;
     centerWhenPartial?: boolean;
-    labelPosition?: 'overlay' | 'below';
+    labelPosition?: 'overlay' | 'above' | 'below';
     fallbackImageUrl?: string;
+    layout?: 'carousel' | 'row';
+    showHeading?: boolean;
+    imageShape?: 'default' | 'circle';
+    imageFit?: 'cover' | 'contain';
+    eagerImageCount: number;
 }) {
     const { t } = useTranslation('home');
     const { isDesignMode } = usePageDesignerMode();
@@ -225,6 +299,8 @@ function CategoryGridContent({
         shopAllText,
         centerWhenPartial,
         ariaLabel,
+        layout,
+        showHeading,
     };
 
     // Empty-state heading: a neutral authoring placeholder, never the brand copy. The live carousel
@@ -243,6 +319,8 @@ function CategoryGridContent({
         // rather than its purpose (WCAG 2.4.6). Use the merchant's title when set, otherwise a
         // descriptive "Categories carousel" — the heading stays the neutral placeholder either way.
         ariaLabel: title || t('categoryGrid.emptyRegionLabel'),
+        layout,
+        showHeading,
     };
 
     // Determine if we should use Page Designer components or fallback categories
@@ -253,56 +331,83 @@ function CategoryGridContent({
 
     if (!shouldUseFallback && categoriesRegion && categoriesRegion.components) {
         return (
-            <CarouselSection {...sectionProps}>
-                {categoriesRegion.components.map((comp) => {
+            <CategoryCollection {...sectionProps}>
+                {categoriesRegion.components.map((comp, index) => {
                     const typedComp = comp as ComponentType;
                     const key = typedComp.contentLinkUuid ?? typedComp.id;
-                    return (
+                    const card = (
+                        <div className="w-full max-w-full min-w-0 flex">
+                            <RegionComponent
+                                component={
+                                    {
+                                        ...typedComp,
+                                        data: {
+                                            ...typedComp.data,
+                                            imageLoading: index < eagerImageCount ? 'eager' : 'lazy',
+                                            ...(layout === 'row' ? { size: 'compact' } : {}),
+                                            ...(labelPosition ? { labelPosition } : {}),
+                                            ...(imageShape ? { imageShape } : {}),
+                                            ...(imageFit ? { imageFit } : {}),
+                                        },
+                                    } as unknown as ComponentType
+                                }
+                                regionId="categories"
+                                className="h-full w-full"
+                            />
+                        </div>
+                    );
+                    return layout === 'row' ? (
+                        <li key={key} className={compactCategoryItemClassName}>
+                            {card}
+                        </li>
+                    ) : (
                         <CarouselItem key={key} className={itemClassName}>
-                            <div className="w-full max-w-full min-w-0 flex">
-                                <RegionComponent
-                                    component={typedComp}
-                                    regionId="categories"
-                                    className="h-full w-full"
-                                />
-                            </div>
+                            {card}
                         </CarouselItem>
                     );
                 })}
-            </CarouselSection>
+            </CategoryCollection>
         );
     }
 
     if (data && Array.isArray(data) && data.length > 0) {
         return (
-            <CarouselSection {...sectionProps}>
-                {data.map((category) => (
+            <CategoryCollection {...sectionProps}>
+                {data.map((category, index) => (
                     <CategoryItem
                         key={category.id}
                         category={category}
+                        imageLoading={index < eagerImageCount ? 'eager' : 'lazy'}
                         labelPosition={labelPosition}
                         fallbackImageUrl={fallbackImageUrl}
+                        layout={layout}
+                        imageShape={imageShape}
+                        imageFit={imageFit}
                     />
                 ))}
-            </CarouselSection>
+            </CategoryCollection>
         );
     }
 
     if (categoriesPromise) {
         return (
-            <Suspense fallback={<CategoryCardsSkeleton />}>
+            <Suspense fallback={<CategoryCardsSkeleton layout={layout} />}>
                 <Await resolve={categoriesPromise} errorElement={<CategoriesError />}>
                     {(categories) => (
-                        <CarouselSection {...sectionProps}>
-                            {categories.map((category: ShopperProducts.schemas['Category']) => (
+                        <CategoryCollection {...sectionProps}>
+                            {categories.map((category: ShopperProducts.schemas['Category'], index: number) => (
                                 <CategoryItem
                                     key={category.id}
                                     category={category}
+                                    imageLoading={index < eagerImageCount ? 'eager' : 'lazy'}
                                     labelPosition={labelPosition}
                                     fallbackImageUrl={fallbackImageUrl}
+                                    layout={layout}
+                                    imageShape={imageShape}
+                                    imageFit={imageFit}
                                 />
                             ))}
-                        </CarouselSection>
+                        </CategoryCollection>
                     )}
                 </Await>
             </Suspense>
@@ -317,15 +422,32 @@ function CategoryGridContent({
     // live storefront an unconfigured carousel still renders nothing, exactly as before.
     if (isDesignMode) {
         return (
-            <CarouselSection {...emptyStateSectionProps}>
-                {Array.from({ length: EMPTY_STATE_PLACEHOLDER_COUNT }, (_, i) => (
-                    <CarouselItem key={i} className={itemClassName}>
-                        <div className="w-full max-w-full min-w-0 flex">
-                            <PopularCategory labelPosition={labelPosition} className="h-full w-full" />
-                        </div>
-                    </CarouselItem>
-                ))}
-            </CarouselSection>
+            <CategoryCollection {...emptyStateSectionProps}>
+                {Array.from({ length: EMPTY_STATE_PLACEHOLDER_COUNT }, (_, i) =>
+                    layout === 'row' ? (
+                        <li key={i} className={compactCategoryItemClassName}>
+                            <PopularCategory
+                                size="compact"
+                                labelPosition={labelPosition}
+                                imageShape={imageShape}
+                                imageFit={imageFit}
+                                className="h-full w-full"
+                            />
+                        </li>
+                    ) : (
+                        <CarouselItem key={i} className={itemClassName}>
+                            <div className="w-full max-w-full min-w-0 flex">
+                                <PopularCategory
+                                    labelPosition={labelPosition}
+                                    imageShape={imageShape}
+                                    imageFit={imageFit}
+                                    className="h-full w-full"
+                                />
+                            </div>
+                        </CarouselItem>
+                    )
+                )}
+            </CategoryCollection>
         );
     }
 
@@ -352,9 +474,14 @@ export default function PopularCategories({
     centerWhenPartial,
     labelPosition,
     fallbackImageUrl,
+    layout = 'carousel',
+    showHeading = true,
+    eagerImageCount = 4,
+    imageShape,
+    imageFit,
 }: PopularCategoriesProps) {
     return (
-        <section className="bg-muted/50">
+        <section className={layout === 'row' ? undefined : 'bg-muted/50'}>
             <CategoryGridContent
                 data={data}
                 categoriesPromise={categoriesPromise}
@@ -367,6 +494,11 @@ export default function PopularCategories({
                 centerWhenPartial={centerWhenPartial}
                 labelPosition={labelPosition}
                 fallbackImageUrl={fallbackImageUrl}
+                layout={layout}
+                showHeading={showHeading}
+                eagerImageCount={eagerImageCount}
+                imageShape={imageShape}
+                imageFit={imageFit}
             />
         </section>
     );

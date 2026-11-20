@@ -162,3 +162,96 @@ describe('PopularCategories empty state (Page Designer authoring)', () => {
         expect(container.querySelector('[data-testid="carousel"]')).toBeNull();
     });
 });
+
+describe('PopularCategories compact API row', () => {
+    const apiCategory = {
+        id: 'server-category',
+        name: 'API category name',
+        image: 'https://images.example.com/current-category.webp',
+    };
+    beforeEach(() => {
+        mockIsDesignMode = false;
+    });
+    test.each([
+        'data',
+        'promise',
+    ])('uses compact DIS widths and collection loading priorities for %s', async (source) => {
+        const image =
+            'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/DEMO_001/on/demandware.static/-/Sites-grocery/default/produce.jpg';
+        const categories = Array.from({ length: 6 }, (_, index) => ({
+            id: `aisle-${index}`,
+            name: `Aisle ${index}`,
+            image,
+        }));
+        renderComponent(
+            <PopularCategories
+                {...(source === 'data' ? { data: categories } : { categoriesPromise: Promise.resolve(categories) })}
+                title="Shop aisles"
+                layout="row"
+                labelPosition="below"
+                eagerImageCount={2}
+            />
+        );
+        for (let index = 0; index < categories.length; index++) {
+            const link = await screen.findByRole('link', { name: `Aisle ${index}` });
+            expect(link.querySelector('img')).toHaveAttribute('loading', index < 2 ? 'eager' : 'lazy');
+            const srcsets = Array.from(link.querySelectorAll('source'))
+                .map((pictureSource) => pictureSource.getAttribute('srcset'))
+                .join(' ');
+            expect(srcsets).toContain('sw=72');
+            expect(srcsets).toContain('sw=112');
+            expect(srcsets).not.toMatch(/sw=(256|288|348)\b/);
+        }
+    });
+    test('streams categories and image URLs into shared category cards without an Embla wrapper', async () => {
+        const { container } = renderComponent(
+            <PopularCategories
+                categoriesPromise={Promise.resolve([apiCategory])}
+                title="Shop aisles"
+                layout="row"
+                showHeading={false}
+                labelPosition="below"
+                imageShape="circle"
+                imageFit="contain"
+            />
+        );
+        const link = await screen.findByRole('link', { name: apiCategory.name });
+        expect(link).toHaveAttribute('href', `/${mockSiteObject.id}/${mockSiteObject.defaultLocale}/c/server-category`);
+        expect(container.querySelector('img')).toHaveAttribute('src', apiCategory.image);
+        expect(screen.getByRole('navigation', { name: 'Shop aisles' })).toBeInTheDocument();
+        expect(screen.queryByTestId('carousel')).not.toBeInTheDocument();
+        expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    });
+    test('an API failure renders an error rather than fabricated categories', async () => {
+        renderComponent(
+            <PopularCategories
+                categoriesPromise={Promise.reject(new Error('API unavailable'))}
+                title="Shop aisles"
+                layout="row"
+                imageShape="circle"
+            />
+        );
+        expect(await screen.findByRole('alert')).toBeInTheDocument();
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    });
+    test('forwards above placement to cards loaded through the category API promise', async () => {
+        mockIsDesignMode = false;
+        const { container } = renderComponent(
+            <PopularCategories
+                categoriesPromise={Promise.resolve([
+                    { id: 'above-aisle', name: 'Above aisle', image: 'https://images.example.com/above.webp' },
+                ])}
+                title="Shop aisles"
+                layout="row"
+                labelPosition="above"
+                imageShape="circle"
+            />
+        );
+        const link = await screen.findByRole('link', { name: 'Above aisle' });
+        const label = link.querySelector<HTMLSpanElement>('[data-slot="category-label"]');
+        const media = link.querySelector<HTMLDivElement>('[data-slot="category-media"]');
+        if (!label || !media) throw new Error('Expected category label and media');
+        expect(Boolean(label.compareDocumentPosition(media) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+        expect(container.querySelector('img')).toHaveAttribute('src', 'https://images.example.com/above.webp');
+    });
+});

@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { lazy, Suspense, useState, useCallback, type MouseEvent } from 'react';
+import { lazy, Suspense, useState, useCallback, useRef, useEffect, type MouseEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { createProductUrlFromAttributes } from '@/lib/product/product-utils';
 import { useDeferredUnmount } from '@/hooks/use-deferred-unmount';
 import { useProductTileContext } from './context';
 
 interface QuickAddButtonProps {
+    variant?: 'default' | 'corner';
+    /** Preload on tile intent so keyboard focus never swaps an active placeholder. */
+    preload?: boolean;
     productId: string;
     productName: string;
     /** Authoritative product slug returned by SCAPI, when available. */
@@ -34,6 +37,8 @@ interface QuickAddButtonProps {
     /** Custom button label. Defaults to the `product.quickAdd` locale key */
     label?: string;
 }
+
+const CornerQuickAdd = lazy(() => import('./corner-quick-add').then((module) => ({ default: module.CornerQuickAdd })));
 
 const CartItemModal = lazy(() =>
     import('@/components/cart-item-modal').then((module) => ({ default: module.CartItemModal }))
@@ -53,8 +58,33 @@ export function QuickAddButton({
     selectedColorValue,
     initialVariantSelections,
     label,
+    variant = 'default',
+    preload = false,
 }: QuickAddButtonProps) {
     const [open, setOpen] = useState(false);
+    const [cornerReady, setCornerReady] = useState(variant !== 'corner');
+    const placeholderRef = useRef<HTMLButtonElement>(null);
+    useEffect(() => {
+        if (variant !== 'corner' || cornerReady) return;
+        if (preload || typeof IntersectionObserver === 'undefined') {
+            setCornerReady(true);
+            return;
+        }
+        const element = placeholderRef.current;
+        if (!element) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setCornerReady(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '200px' }
+        );
+        observer.observe(element);
+        return () => observer.disconnect();
+    }, [variant, cornerReady, preload]);
+    const triggerRef = useRef<HTMLElement | null>(null);
     // Keep the modal subtree mounted while open, then unmount shortly after close so its
     // Radix exit animation plays and its SCAPI fetchers deregister from the registry.
     const mounted = useDeferredUnmount(open);
@@ -73,19 +103,45 @@ export function QuickAddButton({
     }, [navigate, productId, productSlug, selectedColorValue, seoUrlContext]);
     const handleOpenModal = useCallback((e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+        triggerRef.current = e.currentTarget;
         setOpen(true);
     }, []);
 
+    const handleSelect = useCallback((trigger: HTMLElement | null) => {
+        triggerRef.current = trigger;
+        setOpen(true);
+    }, []);
+
+    const cornerPlaceholder = (
+        <Button
+            ref={placeholderRef}
+            disabled
+            size="icon"
+            className="size-11 rounded-ui bg-background text-primary shadow-ui"
+            aria-label={`${resolvedLabel} ${productName}`}
+        />
+    );
+
     return (
         <>
-            <Button
-                variant="outline"
-                size="default"
-                className="w-full shadow-sm cursor-pointer"
-                aria-label={`${resolvedLabel} ${productName}`}
-                onClick={handleOpenModal}>
-                {resolvedLabel}
-            </Button>
+            {variant === 'corner' ? (
+                cornerReady ? (
+                    <Suspense fallback={cornerPlaceholder}>
+                        <CornerQuickAdd productId={productId} productName={productName} onSelect={handleSelect} />
+                    </Suspense>
+                ) : (
+                    cornerPlaceholder
+                )
+            ) : (
+                <Button
+                    variant="outline"
+                    size="default"
+                    className="w-full shadow-sm cursor-pointer"
+                    aria-label={`${resolvedLabel} ${productName}`}
+                    onClick={handleOpenModal}>
+                    {resolvedLabel}
+                </Button>
+            )}
 
             {mounted && (
                 <Suspense fallback={null}>
@@ -93,6 +149,12 @@ export function QuickAddButton({
                         productId={productId}
                         open={open}
                         onOpenChange={setOpen}
+                        onCloseAutoFocus={(event) => {
+                            if (triggerRef.current?.isConnected) {
+                                event.preventDefault();
+                                triggerRef.current.focus();
+                            }
+                        }}
                         onBuyNow={handleBuyItNow}
                         initialVariantSelections={initialVariantSelections}
                     />

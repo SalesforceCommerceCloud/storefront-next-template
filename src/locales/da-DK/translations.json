@@ -50,6 +50,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "Produktanbefalinger"
+        },
+        "contentCarousel": {
+            "label": "Indholdskarrusel",
+            "emptyLabel": "Indholdskarrusel",
+            "play": "Afspil diasshow",
+            "pause": "Sæt diasshow på pause",
+            "position": "Element {{current}} af {{count}}"
         }
     },
     "search": {

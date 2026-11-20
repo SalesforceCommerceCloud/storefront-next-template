@@ -39,6 +39,7 @@ const GALLERY_WIDTHS = { main: { base: '100vw', md: 420 } } as const;
 interface CartItemModalViewProps {
     open: boolean;
     onOpenChange?: (open: boolean) => void;
+    onCloseAutoFocus?: React.ComponentProps<typeof DialogContent>['onCloseAutoFocus'];
     dialogTitle: string;
     isLoading: boolean;
     hasError: boolean;
@@ -65,6 +66,7 @@ interface CartItemModalViewProps {
 export function CartItemModalView({
     open,
     onOpenChange,
+    onCloseAutoFocus,
     dialogTitle,
     isLoading,
     hasError,
@@ -102,6 +104,7 @@ export function CartItemModalView({
     return (
         <Dialog open={open} onOpenChange={handleDialogOpenChange}>
             <DialogContent
+                onCloseAutoFocus={onCloseAutoFocus}
                 className={
                     hasFixedQuickAddActions
                         ? 'flex max-h-[calc(100dvh-var(--header-height,0px)-1.5rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl'

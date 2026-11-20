@@ -35,10 +35,12 @@ vi.mock('@/components/cart-item-modal', () => ({
         open,
         onBuyNow,
         onOpenChange,
+        onCloseAutoFocus,
     }: {
         open: boolean;
         onBuyNow?: () => void;
         onOpenChange?: (open: boolean) => void;
+        onCloseAutoFocus?: (event: Event) => void;
     }) => {
         useEffect(() => {
             modalLifecycle.mounts += 1;
@@ -53,7 +55,12 @@ vi.mock('@/components/cart-item-modal', () => ({
                         <button type="button" onClick={onBuyNow}>
                             Buy It Now
                         </button>
-                        <button type="button" onClick={() => onOpenChange?.(false)}>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onOpenChange?.(false);
+                                onCloseAutoFocus?.(new Event('close', { cancelable: true }));
+                            }}>
                             Close
                         </button>
                     </div>
@@ -179,5 +186,57 @@ describe('QuickAddButton', () => {
         });
         expect(modalLifecycle.unmounts).toBe(1);
         expect(screen.queryByTestId('modal-mounted')).not.toBeInTheDocument();
+    });
+});
+
+test('returns focus to the invoking quick-add button on dismissal', async () => {
+    const user = userEvent.setup();
+    renderButton();
+    const trigger = screen.getByRole('button', { name: /test product/i });
+    await user.click(trigger);
+    const close = await screen.findByRole('button', { name: 'Close' });
+    await user.click(close);
+    expect(trigger).toHaveFocus();
+});
+
+vi.mock('@/components/product-tile/corner-quick-add', () => ({
+    CornerQuickAdd: ({ productName }: { productName: string }) => <button>Ready cart control {productName}</button>,
+}));
+
+describe('corner controller deferral', () => {
+    afterEach(() => vi.unstubAllGlobals());
+    test('keeps off-screen controls unloaded, then activates on intersection', async () => {
+        let notify!: IntersectionObserverCallback;
+        const observe = vi.fn();
+        const disconnect = vi.fn();
+        vi.stubGlobal(
+            'IntersectionObserver',
+            class {
+                constructor(callback: IntersectionObserverCallback) {
+                    notify = callback;
+                }
+                observe = observe;
+                disconnect = disconnect;
+            }
+        );
+        renderButton({ variant: 'corner' });
+        const placeholder = screen.getByRole('button', { name: /test product/i });
+        expect(placeholder).toBeDisabled();
+        expect(observe).toHaveBeenCalledWith(placeholder);
+        expect(screen.queryByRole('button', { name: /Ready cart/ })).not.toBeInTheDocument();
+        act(() => notify([{ isIntersecting: false } as IntersectionObserverEntry], {} as IntersectionObserver));
+        expect(placeholder).toBeDisabled();
+        act(() => notify([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver));
+        expect(await screen.findByRole('button', { name: /Ready cart control Test Product/ })).toBeEnabled();
+        expect(disconnect).toHaveBeenCalled();
+    });
+    test('tile intent activates the control before keyboard focus reaches it', async () => {
+        renderButton({ variant: 'corner', preload: true });
+        expect(await screen.findByRole('button', { name: /Ready cart control Test Product/ })).toBeEnabled();
+    });
+    test('activates without IntersectionObserver support', async () => {
+        vi.stubGlobal('IntersectionObserver', undefined);
+        renderButton({ variant: 'corner' });
+        expect(await screen.findByRole('button', { name: /Ready cart control Test Product/ })).toBeEnabled();
     });
 });

@@ -496,3 +496,30 @@ export const InteractionTest: Story = {
         await expect(canvas.queryByText(/stylish and comfortable/i)).not.toBeInTheDocument();
     },
 };
+
+export const CircularRow: Story = {
+    args: {
+        data: mockPopularCategories,
+        title: 'Shop by category',
+        layout: 'row',
+        showHeading: false,
+        labelPosition: 'below',
+        imageShape: 'circle',
+        imageFit: 'contain',
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        await expect(canvas.getByRole('navigation', { name: 'Shop by category' })).toBeInTheDocument();
+        await expect(canvas.getAllByRole('listitem').length).toBe(mockPopularCategories.length);
+    },
+};
+
+export const LabelsAbove: Story = {
+    ...CircularRow,
+    args: {
+        ...CircularRow.args,
+        data: mockPopularCategories.map((category) => ({ ...category, image: '/images/hero-01.webp' })),
+        labelPosition: 'above',
+    },
+};

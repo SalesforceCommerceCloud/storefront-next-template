@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { act, fireEvent, render, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import 'reflect-metadata';
@@ -429,6 +430,50 @@ describe('ResponsiveNavigationMenu Component', () => {
             await waitFor(() => expect(container.querySelector('.section-container')).toBeInTheDocument());
             expect(queryByText('Legacy banner')).not.toBeInTheDocument();
             expect(container.querySelector('.section-container')).not.toHaveClass('grid');
+        });
+    });
+
+    describe('Top-level-only navigation', () => {
+        const flatConfig: AppConfig = {
+            ...mockConfig,
+            pages: {
+                ...mockConfig.pages,
+                navigation: { ...mockConfig.pages.navigation, maxDepth: 1 },
+            },
+        };
+
+        it('renders branches as direct links with no dropdown on hover', async () => {
+            const user = userEvent.setup();
+            const { findByRole, container, router } = renderComponent({}, flatConfig);
+            const link = await findByRole('link', { name: 'Category 1' });
+            expect(container.querySelector('button[data-has-submenu]')).not.toBeInTheDocument();
+            expect(link).not.toHaveAttribute('aria-expanded');
+            await user.hover(link);
+            expect(container.querySelector('[data-slot="navigation-menu-content"]')).not.toBeInTheDocument();
+            if (!(link instanceof HTMLAnchorElement)) throw new Error('Expected a category anchor');
+            const destination = new URL(link.href).pathname;
+            await user.click(link);
+            await waitFor(() => expect(router.state.location.pathname).toBe(destination));
+        });
+
+        it('keeps the mobile menu flat even when deferred data contains subcategories', async () => {
+            const user = userEvent.setup();
+            const { findByRole, getByRole, queryByRole, router } = renderComponent(
+                {
+                    defer: Promise.resolve(mockCategories.categories ?? []),
+                },
+                flatConfig
+            );
+            await user.click(await findByRole('button', { name: /open menu/i }));
+            const menu = getByRole('navigation', { name: /mobile navigation menu/i });
+            expect(within(menu).queryByRole('button')).not.toBeInTheDocument();
+            expect(within(menu).queryByText('Subcategory 1.1')).not.toBeInTheDocument();
+            const link = within(menu).getByRole('link', { name: 'Category 1' });
+            if (!(link instanceof HTMLAnchorElement)) throw new Error('Expected a category anchor');
+            const destination = new URL(link.href).pathname;
+            await user.click(link);
+            await waitFor(() => expect(router.state.location.pathname).toBe(destination));
+            expect(queryByRole('navigation', { name: /mobile navigation menu/i })).not.toBeInTheDocument();
         });
     });
 

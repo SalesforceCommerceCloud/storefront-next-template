@@ -19,6 +19,7 @@ import type { ShopperBasketsV2 } from '@/scapi';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { ErrorCode } from '@/lib/error-codes';
 import { resourceRoutes } from '@/route-paths';
+import { findBasketItemForProduct } from '@/lib/cart/find-basket-item';
 import { ConfigWrapper } from '@/test-utils/config';
 import type { BasketActionResponse } from '@/routes/types/action-responses';
 import { useInlineCartQuantity } from './use-inline-cart-quantity';
@@ -59,9 +60,22 @@ vi.mock('@/providers/basket', () => ({
     useBasketUpdater: () => mockUpdateBasket,
 }));
 
-vi.mock('@/hooks/use-item-fetcher', () => ({
-    useItemFetcher: () => mockFetcher,
-    useItemFetcherLoading: () => hasPendingItemMutation,
+vi.mock('@/hooks/use-basket-item-state', () => ({
+    useBasketItemState: (productId: string | undefined, storeId: string | null | undefined, enabled: boolean) => {
+        mockUseBasket({ autoLoad: enabled });
+        const item = enabled ? findBasketItemForProduct(mockBasket, productId, storeId) : undefined;
+        return {
+            basketId: mockBasketSnapshot?.basketId,
+            itemId: item?.itemId,
+            quantity: item ? (item.quantity ?? 1) : 0,
+            hasBasket: Boolean(mockBasket),
+            hydrated: mockBasketHydrated,
+            error: mockBasketError,
+        };
+    },
+}));
+vi.mock('@/providers/item-mutations', () => ({
+    useItemMutation: () => ({ ...mockFetcher, pending: hasPendingItemMutation }),
 }));
 
 const createBasket = (
@@ -142,6 +156,29 @@ describe('useInlineCartQuantity', () => {
         expect(getSubmittedFormData().get('itemId')).toBe('item-1');
         expect(getSubmittedFormData().get('quantity')).toBe('3');
         expect(getSubmitOptions()).toEqual({ method: 'PATCH', action: resourceRoutes.cartItemUpdate });
+    });
+
+    test('tracks pending quantity through debounce and clears it when the basket settles', () => {
+        vi.useFakeTimers();
+        mockBasket = createBasket([createItem({ quantity: 2 })]);
+        const { result, rerender } = renderHook(() => useInlineCartQuantity({ productId: 'sku-a', enabled: true }), {
+            wrapper: ConfigWrapper,
+        });
+        expect(result.current.isQuantityPending).toBe(false);
+        act(() => result.current.increment());
+        expect(result.current.isUpdating).toBe(false);
+        expect(result.current.isQuantityPending).toBe(true);
+        expect(mockSubmit).not.toHaveBeenCalled();
+        flushDebounce();
+        mockFetcher.state = 'submitting';
+        rerender();
+        expect(result.current.isQuantityPending).toBe(true);
+        mockBasket = createBasket([createItem({ quantity: 3 })]);
+        mockFetcher.state = 'idle';
+        mockFetcher.data = { success: true };
+        rerender();
+        expect(result.current.quantityInCart).toBe(3);
+        expect(result.current.isQuantityPending).toBe(false);
     });
 
     test('updates only the line in the selected pickup store', () => {

@@ -240,8 +240,10 @@ describe('PopularCategory', () => {
     test('can fill a parent grid cell without changing the default square media layout', () => {
         const { container } = renderComponent(<PopularCategory data={mockCategory} mediaAspectRatio="fill" />);
 
-        expect(container.querySelector('[data-slot="category-media"]')).toHaveClass('h-full');
-        expect(container.querySelector('[data-slot="category-media"]')).not.toHaveClass('aspect-square');
+        expect(container.querySelector<HTMLDivElement>('[data-slot="category-media"]')).toHaveClass('h-full');
+        expect(container.querySelector<HTMLDivElement>('[data-slot="category-media"]')).not.toHaveClass(
+            'aspect-square'
+        );
     });
 
     test('can fill a parent grid cell when its label is below the media', () => {
@@ -249,8 +251,13 @@ describe('PopularCategory', () => {
             <PopularCategory data={mockCategory} labelPosition="below" mediaAspectRatio="fill" />
         );
 
-        expect(container.querySelector('[data-slot="category-media"]')).toHaveClass('flex-1', 'min-h-0');
-        expect(container.querySelector('[data-slot="category-media"]')).not.toHaveClass('aspect-square');
+        expect(container.querySelector<HTMLDivElement>('[data-slot="category-media"]')).toHaveClass(
+            'flex-1',
+            'min-h-0'
+        );
+        expect(container.querySelector<HTMLDivElement>('[data-slot="category-media"]')).not.toHaveClass(
+            'aspect-square'
+        );
     });
 
     test('handles category with empty id', () => {
@@ -278,6 +285,41 @@ describe('PopularCategory', () => {
         const image = container.querySelector('img');
         expect(image).toBeInTheDocument();
         expect(image).toHaveAttribute('alt', '');
+    });
+
+    test.each(['above', 'below'] as const)('places an accessible %s label in matching document order', (position) => {
+        const { container } = renderComponent(
+            <PopularCategory category={mockCategory} labelPosition={position} showDescription />
+        );
+        const link = screen.getByRole('link', { name: mockCategory.name });
+        const label = container.querySelector<HTMLSpanElement>('[data-slot="category-label"]');
+        const media = container.querySelector<HTMLDivElement>('[data-slot="category-media"]');
+        if (!label || !media) throw new Error('Expected category label and media');
+        expect(link).toContainElement(label);
+        expect(link).toContainElement(media);
+        expect(container.querySelector('img')).toHaveAttribute('alt', '');
+        expect(Boolean(label.compareDocumentPosition(media) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(
+            position === 'above'
+        );
+        expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+        expect(screen.queryByText('Shop Now')).not.toBeInTheDocument();
+    });
+
+    test('circular cards use the category API image and an accessible label below it', () => {
+        const { container } = renderComponent(
+            <PopularCategory
+                data={{ ...mockCategory, name: 'API category', image: 'https://images.example.com/live-category.webp' }}
+                labelPosition="below"
+                imageShape="circle"
+                imageFit="contain"
+            />
+        );
+        const link = screen.getByRole('link', { name: 'API category' });
+        expect(link).toHaveAttribute('data-category-id', mockCategory.id);
+        expect(container.querySelector('img')).toHaveAttribute('src', 'https://images.example.com/live-category.webp');
+        expect(container.querySelector('img')).toHaveAttribute('alt', '');
+        expect(container.querySelector('img')).toHaveClass('object-contain');
+        expect(container.querySelector<HTMLDivElement>('[data-slot="category-media"]')).toHaveClass('rounded-full');
     });
 
     test('uses the shared fallback image when category has neither image nor banner', () => {

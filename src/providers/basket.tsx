@@ -29,6 +29,7 @@ import type { ShopperBasketsV2 } from '@/scapi';
 import type { BasketSnapshot } from '@/middlewares/basket.server';
 import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
 import { useScapiFetcherEffect } from '@/hooks/use-scapi-fetcher-effect';
+import { BasketItemStateProvider } from '@/providers/basket-item-state';
 import { parseBasketCookie } from '@/lib/basket/cookie';
 
 // Cookie changes are not observable via an event; the store returns a noop unsubscribe and relies on existing
@@ -407,7 +408,9 @@ const BasketProvider = (
 
     return (
         <BasketUpdaterContext.Provider value={updaterValue}>
-            <BasketContext.Provider value={ctxValue}>{children}</BasketContext.Provider>
+            <BasketContext.Provider value={ctxValue}>
+                <BasketItemStateProvider value={ctxValue}>{children}</BasketItemStateProvider>
+            </BasketContext.Provider>
         </BasketUpdaterContext.Provider>
     );
 };

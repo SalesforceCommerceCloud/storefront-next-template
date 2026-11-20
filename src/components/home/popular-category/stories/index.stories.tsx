@@ -349,3 +349,13 @@ export const InteractionTest: Story = {
         await expect(canvasElement.querySelector('img')).toBeInTheDocument();
     },
 };
+
+export const LabelAbove: Story = {
+    args: { data: { ...mockCategory, image: '/images/hero-01.webp' }, labelPosition: 'above' },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const label = canvasElement.querySelector('[data-slot="category-label"]')!;
+        const media = canvasElement.querySelector('[data-slot="category-media"]')!;
+        await expect(Boolean(label.compareDocumentPosition(media) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    },
+};

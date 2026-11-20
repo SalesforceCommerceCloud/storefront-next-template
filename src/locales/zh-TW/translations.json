@@ -51,6 +51,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "產品推薦"
+        },
+        "contentCarousel": {
+            "label": "內容輪播",
+            "emptyLabel": "內容輪播",
+            "play": "播放投影片",
+            "pause": "暫停投影片",
+            "position": "第 {{current}} 項，共 {{count}} 項"
         }
     },
     "search": {

@@ -154,6 +154,10 @@ describe('PasswordRequirement', () => {
 
                 expect(checkIcons.length).toBe(5);
                 expect(xIcons.length).toBe(0);
+                for (const icon of checkIcons) {
+                    expect(icon).toHaveClass('text-success');
+                    expect(icon.closest('li')).toHaveClass('text-success');
+                }
             });
 
             it('should show mixed icons for partially valid password', () => {
@@ -165,6 +169,10 @@ describe('PasswordRequirement', () => {
                 expect(checkIcons.length).toBeGreaterThan(0);
                 expect(xIcons.length).toBeGreaterThan(0);
                 expect(checkIcons.length + xIcons.length).toBe(5);
+                for (const icon of xIcons) {
+                    expect(icon).toHaveClass('text-muted-foreground');
+                    expect(icon.closest('li')).toHaveClass('text-muted-foreground');
+                }
             });
         });
     });

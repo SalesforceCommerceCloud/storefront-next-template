@@ -64,6 +64,8 @@ interface UseProductActionsProps {
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
     /** Current variant (null/undefined if no variant selected) - optional, defaults to undefined */
     currentVariant?: ShopperProducts.schemas['Variant'] | null | undefined;
+    /** Open the mini-cart after a single-item add. Set false for inline controls that show a toast. */
+    openMiniCartOnAdd?: boolean;
     initialQuantity?: number;
     maxQuantity?: number; // Max quantity allowed (for bonus products, etc.)
     itemId?: string; // Cart item ID for update operations
@@ -132,6 +134,7 @@ export function useProductActions({
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
     currentVariant,
     initialQuantity,
+    openMiniCartOnAdd = true,
     maxQuantity,
     itemId,
     skipInventoryValidation = false,
@@ -594,7 +597,11 @@ export function useProductActions({
             setIsAddingToOrUpdatingCart(false);
             // Only open mini cart for add to cart action, not edit cart
             if (!itemId) {
-                setMiniCartOpen(true);
+                if (openMiniCartOnAdd) {
+                    setMiniCartOpen(true);
+                } else {
+                    addToast(t('product:addedToCart', { productName: product.name || t('common:product') }), 'success');
+                }
             }
         } else if (cartFetcher.data?.success === false) {
             // Show error toast for both add and edit mode
@@ -606,7 +613,7 @@ export function useProductActions({
         }
         //As addToast, setIsAddingToOrUpdatingCart are unlikely to change, we don't need to include them in the dependency array
         // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAddingToOrUpdatingCart, cartFetcher.data, product.name, itemId]);
+    }, [isAddingToOrUpdatingCart, cartFetcher.data, product.name, itemId, openMiniCartOnAdd]);
 
     useEffect(() => {
         if (!isAddingToOrUpdatingCart) {

@@ -21,6 +21,10 @@ import { cn } from '@/lib/utils';
 const typographyVariants = cva('', {
     variants: {
         variant: {
+            'section-title': 'text-xl font-extrabold tracking-tight text-foreground md:text-2xl',
+            'action-link': 'text-sm font-bold underline underline-offset-4',
+            eyebrow: 'text-eyebrow font-medium uppercase tracking-eyebrow',
+            'content-card-title': 'text-2xl font-semibold leading-content-card-title tracking-content-card-title',
             h1: 'text-4xl font-bold tracking-tight',
             h2: 'text-3xl font-semibold tracking-tight',
             h3: 'text-2xl font-semibold tracking-tight',
@@ -89,6 +93,10 @@ function getDefaultElement(variant: TypographyProps['variant']): string {
             return 'blockquote';
         case 'inline-code':
             return 'code';
+        case 'section-title':
+            return 'h2';
+        case 'action-link':
+            return 'span';
         case 'product-title':
             return 'h3';
         case 'product-price':

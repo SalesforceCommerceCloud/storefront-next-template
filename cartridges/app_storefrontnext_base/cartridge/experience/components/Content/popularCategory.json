@@ -16,6 +16,33 @@
                     "type": "category",
                     "required": false,
                     "description": "Select a category to display"
+                },
+                {
+                    "id": "labelPosition",
+                    "name": "Label Position",
+                    "type": "enum",
+                    "required": false,
+                    "description": "Field: labelPosition",
+                    "values": ["overlay", "above", "below"],
+                    "default_value": "overlay"
+                },
+                {
+                    "id": "imageShape",
+                    "name": "Image Shape",
+                    "type": "enum",
+                    "required": false,
+                    "description": "Field: imageShape",
+                    "values": ["default", "circle"],
+                    "default_value": "default"
+                },
+                {
+                    "id": "imageFit",
+                    "name": "Image Fit",
+                    "type": "enum",
+                    "required": false,
+                    "description": "Field: imageFit",
+                    "values": ["cover", "contain"],
+                    "default_value": "cover"
                 }
             ]
         }

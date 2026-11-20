@@ -148,6 +148,8 @@ interface GridProps extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
     as?: 'div' | 'span';
     display?: 'none' | 'grid' | 'inline-grid';
     columns?: string;
+    /** Optional columns below 1024px. `columns` still controls the authored region count. */
+    columnsOnMobile?: string;
     flow?: GridFlow;
 
     // Layout props
@@ -179,6 +181,15 @@ const columnsMap: Record<string, string> = {
     '4': 'grid-cols-4',
     '5': 'grid-cols-5',
     '6': 'grid-cols-6',
+};
+
+const desktopColumnsMap: Record<string, string> = {
+    '1': 'lg:grid-cols-1',
+    '2': 'lg:grid-cols-2',
+    '3': 'lg:grid-cols-3',
+    '4': 'lg:grid-cols-4',
+    '5': 'lg:grid-cols-5',
+    '6': 'lg:grid-cols-6',
 };
 
 const flowMap: Record<GridFlow, string> = {
@@ -284,6 +295,7 @@ const Grid = forwardRef<HTMLDivElement, GridProps>(
             className,
             display = 'grid',
             columns = '3',
+            columnsOnMobile,
             flow = 'row',
             p,
             px,
@@ -325,7 +337,9 @@ const Grid = forwardRef<HTMLDivElement, GridProps>(
                 : '',
 
             // Columns
-            columns && columnsMap[columnsNum],
+            columnsOnMobile && columnsMap[columnsOnMobile]
+                ? [columnsMap[columnsOnMobile], desktopColumnsMap[columnsNum]]
+                : columns && columnsMap[columnsNum],
 
             // Flow
             flow && flowMap[flow],

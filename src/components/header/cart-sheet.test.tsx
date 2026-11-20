@@ -20,6 +20,7 @@ import type { PropsWithChildren } from 'react';
 import CartSheet from './cart-sheet';
 import type { BasketActionResponse } from '@/routes/types/action-responses';
 import { setMiniCartOpen } from '@/hooks/mini-cart-store';
+import cartSheetStyles from '@/theme/overrides/cart-sheet.css?raw';
 
 const mockUpdateBasket = vi.fn();
 const mockSubmit = vi.fn();
@@ -131,12 +132,19 @@ vi.mock('@/components/ui/sheet', () => ({
         children,
         onOpenAutoFocus: _onOpenAutoFocus,
         ...props
-    }: PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
+    }: PropsWithChildren<Record<string, unknown>>) => (
+        <div data-slot="sheet-content" {...props}>
+            {children}
+            <button>Close</button>
+        </div>
+    ),
     SheetHeader: ({ children }: PropsWithChildren) => <div>{children}</div>,
     SheetTitle: ({ children }: PropsWithChildren) => <h2>{children}</h2>,
     SheetFooter: ({ children }: PropsWithChildren) => <div>{children}</div>,
     SheetClose: ({ children, ...props }: PropsWithChildren<Record<string, unknown>>) => (
-        <button {...props}>{children}</button>
+        <button data-slot="sheet-close" {...props}>
+            {children}
+        </button>
     ),
 }));
 
@@ -204,6 +212,20 @@ describe('CartSheet remove flow', () => {
     afterEach(() => {
         // Module-scoped store — reset so an open state can't leak into other suites.
         setMiniCartOpen(false);
+    });
+
+    it('uses the theme override to show only the translated close control', () => {
+        const style = document.createElement('style');
+        style.textContent = cartSheetStyles;
+        document.head.append(style);
+        try {
+            renderCartSheet();
+            expect(screen.getAllByRole('button', { name: /close/i })).toHaveLength(1);
+            expect(screen.getByRole('button', { name: 'closeAriaLabel' })).toBeVisible();
+            expect(screen.getByText('Close').closest('button')).not.toBeVisible();
+        } finally {
+            style.remove();
+        }
     });
 
     it('updates basket context from remove action response', async () => {

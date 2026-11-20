@@ -20,12 +20,10 @@
 // hardcoded `<img>`) lets the error page and any other consumer pick up the
 // active brand's logo.
 import logo from '/images/logo.svg';
+import type { ComponentProps } from 'react';
 
-interface LogoProps {
-    className?: string;
-    alt?: string;
-}
+type LogoProps = Pick<ComponentProps<'img'>, 'className' | 'alt' | 'width' | 'height'>;
 
-export default function Logo({ className, alt = 'Logo' }: LogoProps) {
-    return <img src={logo} alt={alt} className={className} />;
+export default function Logo({ className, alt = 'Logo', width, height }: LogoProps) {
+    return <img src={logo} alt={alt} className={className} width={width} height={height} />;
 }

@@ -139,7 +139,7 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
     const headerComponentPromise = fetchEmbeddedComponent('header');
 
     // Fetch mega-menu embedded component data — populates per-category dropdown panel content slots
-    const megaMenuComponentPromise = fetchEmbeddedComponent('mega-menu');
+    const megaMenuComponentPromise = maxDepth >= 2 ? fetchEmbeddedComponent('mega-menu') : Promise.resolve(null);
 
     return {
         root: rootCategoryPromise,

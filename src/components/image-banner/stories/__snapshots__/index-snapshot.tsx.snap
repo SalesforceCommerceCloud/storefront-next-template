@@ -1,0 +1,150 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Image Banner stories > Default renders campaign artwork 1`] = `
+<div
+  class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden [--ui-border-width:0] ring-0 bg-transparent border-0 gap-0 py-0"
+  data-slot="image-banner"
+>
+  <div
+    class="p-0"
+    data-slot="card-content"
+  >
+    <a
+      aria-label="Discover the seasonal collection"
+      class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+      data-discover="true"
+      href="/global/en-GB/c/seasonal"
+    >
+      <div
+        class="relative overflow-hidden bg-secondary/20 aspect-auto"
+      >
+        <div
+          class="relative w-full"
+        >
+          <img
+            alt="Discover the seasonal collection"
+            class="object-cover h-auto w-full"
+            fetchpriority="auto"
+            height="240"
+            loading="lazy"
+            src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%22240%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23dde9df%22%2F%3E%3Ctext%20x%3D%225%25%22%20y%3D%2255%25%22%20font-size%3D%2232%22%20fill%3D%22%23173c2c%22%3EDiscover%20the%20seasonal%20collection%3C%2Ftext%3E%3C%2Fsvg%3E"
+            style="object-position: 50% 50%;"
+            width="1600"
+          />
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+`;
+
+exports[`Image Banner stories > EmptyDesignMode renders campaign artwork 1`] = `
+<div
+  class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden [--ui-border-width:0] ring-0 bg-transparent border-0 gap-0 py-0"
+  data-slot="image-banner"
+>
+  <div
+    class="p-0"
+    data-slot="card-content"
+  >
+    <div
+      class="relative overflow-hidden bg-secondary/20 aspect-[16/9]"
+      data-slot="empty-state"
+    >
+      <div
+        class="absolute inset-0 size-full"
+      >
+        <img
+          alt=""
+          class="size-full object-cover"
+          fetchpriority="auto"
+          loading="lazy"
+          src="/__ASSET_MOCK__"
+          style="object-position: 50% 50%;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Image Banner stories > EmptyLive renders campaign artwork 1`] = `null`;
+
+exports[`Image Banner stories > MissingLinkTextDesignMode renders campaign artwork 1`] = `null`;
+
+exports[`Image Banner stories > MissingLinkTextLive renders campaign artwork 1`] = `null`;
+
+exports[`Image Banner stories > Sponsored renders campaign artwork 1`] = `
+<div
+  class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden [--ui-border-width:0] ring-0 bg-transparent border-0 gap-0 py-0"
+  data-slot="image-banner"
+>
+  <div
+    class="p-0"
+    data-slot="card-content"
+  >
+    <a
+      aria-label="Discover the seasonal collection"
+      class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+      data-discover="true"
+      href="/global/en-GB/c/seasonal"
+    >
+      <div
+        class="relative overflow-hidden bg-secondary/20 aspect-auto"
+      >
+        <div
+          class="relative w-full"
+        >
+          <img
+            alt="Discover the seasonal collection"
+            class="object-cover h-auto w-full"
+            fetchpriority="auto"
+            height="240"
+            loading="lazy"
+            src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%22240%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23dde9df%22%2F%3E%3Ctext%20x%3D%225%25%22%20y%3D%2255%25%22%20font-size%3D%2232%22%20fill%3D%22%23173c2c%22%3EDiscover%20the%20seasonal%20collection%3C%2Ftext%3E%3C%2Fsvg%3E"
+            style="object-position: 50% 50%;"
+            width="1600"
+          />
+        </div>
+      </div>
+    </a>
+  </div>
+  <span
+    class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-secondary/90 absolute right-2 bottom-2 bg-background/90 font-bold text-foreground"
+    data-slot="content-card-badge"
+  >
+    Sponsored
+  </span>
+</div>
+`;
+
+exports[`Image Banner stories > Unlinked renders campaign artwork 1`] = `
+<div
+  class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden [--ui-border-width:0] ring-0 bg-transparent border-0 gap-0 py-0"
+  data-slot="image-banner"
+>
+  <div
+    class="p-0"
+    data-slot="card-content"
+  >
+    <div
+      class="relative overflow-hidden bg-secondary/20 aspect-auto"
+    >
+      <div
+        class="relative w-full"
+      >
+        <img
+          alt="Discover the seasonal collection"
+          class="object-cover h-auto w-full"
+          fetchpriority="auto"
+          height="240"
+          loading="lazy"
+          src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%22240%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23dde9df%22%2F%3E%3Ctext%20x%3D%225%25%22%20y%3D%2255%25%22%20font-size%3D%2232%22%20fill%3D%22%23173c2c%22%3EDiscover%20the%20seasonal%20collection%3C%2Ftext%3E%3C%2Fsvg%3E"
+          style="object-position: 50% 50%;"
+          width="1600"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -48,6 +48,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "Productaanbevelingen"
+        },
+        "contentCarousel": {
+            "label": "Inhoudscarrousel",
+            "emptyLabel": "Inhoudscarrousel",
+            "play": "Diavoorstelling afspelen",
+            "pause": "Diavoorstelling pauzeren",
+            "position": "Item {{current}} van {{count}}"
         }
     },
     "search": {

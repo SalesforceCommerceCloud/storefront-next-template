@@ -5,6 +5,17 @@
  * Cart and product-badge tokens are semantic aliases of core Figma tokens.
  */
 :root {
+    /* Compact product-tile media inherits the theme's muted surface. */
+    --product-media: var(--muted);
+    /* Category Card overlay treatment and its readable foreground. */
+    --category-card-overlay: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 80%, transparent), color-mix(in oklch, var(--brand-black) 50%, transparent), transparent);
+    --category-card-overlay-foreground: var(--brand-white);
+
+    /* Image-backed Content Card scrims, independent of the artwork source. */
+    --content-card-overlay-dark: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 90%, transparent), color-mix(in oklch, var(--brand-black) 75%, transparent), color-mix(in oklch, var(--brand-black) 60%, transparent));
+    --content-card-overlay-light-top: linear-gradient(to bottom, color-mix(in oklch, var(--background) 95%, transparent), color-mix(in oklch, var(--background) 60%, transparent), transparent);
+    --content-card-overlay-light-bottom: linear-gradient(to top, color-mix(in oklch, var(--background) 95%, transparent), color-mix(in oklch, var(--background) 60%, transparent), transparent);
+
     /* payment provider colors (not in Figma JSON; external brand guidelines) */
     --paypal-gold: #FFC439;
     --venmo-blue: #008CFF;
@@ -15,4 +26,8 @@
     /* product badge — promo variant (Sale, Best Seller); values per Figma design system */
     --product-badge-promo-bg: var(--primary);
     --product-badge-promo-foreground: var(--info-foreground);
+}
+
+:root {
+    --product-tile-compact-blend: normal;
 }

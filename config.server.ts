@@ -111,6 +111,7 @@ export default defineConfig<Config>(
                 },
                 home: {
                     featuredProductsCount: 12,
+                    promotionIdsByCurrency: {},
                 },
                 cart: {
                     quantityUpdateDebounce: 750,

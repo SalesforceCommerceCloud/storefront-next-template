@@ -959,6 +959,20 @@ describe('useProductActions', () => {
             expect(mockSetMiniCartOpen).toHaveBeenCalledWith(true);
         });
 
+        test('shows a success toast instead of opening the flyout for inline first-add controls', async () => {
+            const { result, rerender } = renderHook(
+                () => useProductActions({ product: createStandardProduct(), openMiniCartOnAdd: false }),
+                { wrapper: ({ children }) => wrapper({ children, basket: mockBasket }) }
+            );
+            await act(async () => {
+                await result.current.handleAddToCart();
+            });
+            cartItemFetcher.data = settledAddResponse;
+            act(() => rerender());
+            expect(mockSetMiniCartOpen).not.toHaveBeenCalled();
+            expect(mockAddToast).toHaveBeenCalledWith(expect.any(String), 'success');
+        });
+
         test('does not open the flyout in edit mode (itemId present)', async () => {
             // Editing an existing line item must not pop the flyout — only first adds do. The success effect skips the
             // open call when `itemId` is set.

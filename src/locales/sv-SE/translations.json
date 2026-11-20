@@ -49,6 +49,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "Produktrekommendationer"
+        },
+        "contentCarousel": {
+            "label": "Innehållskarusell",
+            "emptyLabel": "Innehållskarusell",
+            "play": "Spela bildspel",
+            "pause": "Pausa bildspel",
+            "position": "Objekt {{current}} av {{count}}"
         }
     },
     "search": {

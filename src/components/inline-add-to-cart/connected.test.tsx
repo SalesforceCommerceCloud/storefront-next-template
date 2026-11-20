@@ -119,6 +119,22 @@ describe('ConnectedInlineAddToCart', () => {
         expect(decrement).toHaveBeenCalledOnce();
     });
 
+    test('tracks a pending debounced quantity change without disabling rapid taps', () => {
+        mockUseInlineCartQuantity.mockReturnValue({
+            quantityInCart: 3,
+            increment: vi.fn(),
+            decrement: vi.fn(),
+            isUpdating: false,
+            isQuantityPending: true,
+            incrementDisabled: false,
+            isResolvingQuantity: false,
+        });
+        render(<ConnectedInlineAddToCart productId="sku-a" onAdd={vi.fn()} disabled={false} />);
+        expect(mockInlineAddToCart).toHaveBeenCalledWith(
+            expect.objectContaining({ pendingQuantity: true, loading: false, disabled: false })
+        );
+    });
+
     test('keeps the control busy for an item mutation and supplies its stock-limit message', () => {
         mockUseInlineCartQuantity.mockReturnValue({
             quantityInCart: 3,

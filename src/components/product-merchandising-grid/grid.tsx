@@ -29,8 +29,11 @@ const EMPTY_STATE_PLACEHOLDER_COUNT = 8;
 export interface ProductMerchandisingGridProps extends Omit<ComponentPropsWithoutRef<'section'>, 'children'> {
     products: ShopperSearch.schemas['ProductSearchHit'][];
     columns?: unknown;
+    tileVariant?: 'default' | 'compact';
+    quickAddPlacement?: 'overlay' | 'inline' | 'corner';
     rows?: unknown;
     title?: string;
+    titleClassName?: string;
     shopAllUrl?: string;
     shopAllText?: string;
     /** A selected category activates automatic SCAPI sourcing and takes precedence over manual tiles. */
@@ -48,9 +51,12 @@ export interface ProductMerchandisingGridProps extends Omit<ComponentPropsWithou
  */
 export default function ProductMerchandisingGrid({
     products,
+    tileVariant,
+    quickAddPlacement,
     columns,
     rows,
     title,
+    titleClassName,
     shopAllUrl,
     shopAllText,
     categoryId,
@@ -78,7 +84,13 @@ export default function ProductMerchandisingGrid({
         <section className={cn('section-container py-12 md:py-16', className)} {...props}>
             {(title || shopAllUrl) && (
                 <div className="mb-6 flex items-end justify-between gap-4 md:mb-8">
-                    {title ? <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">{title}</h2> : <span />}
+                    {title ? (
+                        <h2 className={cn('text-3xl font-semibold tracking-tight md:text-4xl', titleClassName)}>
+                            {title}
+                        </h2>
+                    ) : (
+                        <span />
+                    )}
                     {shopAllUrl && shopAllText && (
                         <Link to={shopAllUrl} className="shrink-0 text-sm font-medium hover:underline">
                             {shopAllText}
@@ -92,12 +104,19 @@ export default function ProductMerchandisingGrid({
                         data-testid="product-merchandising-grid"
                         data-slot="product-merchandising-grid"
                         className={cn(
-                            'grid gap-x-4 gap-y-8 md:gap-x-6 md:gap-y-10',
+                            'grid',
+                            tileVariant === 'compact' ? 'gap-x-3 gap-y-6' : 'gap-x-4 gap-y-8 md:gap-x-6 md:gap-y-10',
                             merchandisingGridClasses[layout.columns]
                         )}>
                         {hasProducts
                             ? visibleProducts.map((product) => (
-                                  <ProductTile key={product.productId} product={product} />
+                                  <ProductTile
+                                      key={product.productId}
+                                      product={product}
+                                      variant={tileVariant}
+                                      quickAddPlacement={quickAddPlacement}
+                                      imgAspectRatio={tileVariant === 'compact' ? 1 : undefined}
+                                  />
                               ))
                             : hasCuratedTiles && !hasCategory
                               ? curatedTiles.map((tile) => {

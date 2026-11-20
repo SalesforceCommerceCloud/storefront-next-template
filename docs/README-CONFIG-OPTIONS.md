@@ -166,7 +166,7 @@ Type: `number` | Default: `2`
 
 The maximum number of category levels to fetch and display in the navigation menu. This controls how deep the category tree goes.
 
-- `1` = Top-level categories only (no subcategories)
+- `1` = Top-level category links only; hover does not open submenus. Subcategories and mega-menu content are not fetched.
 - `2` = Top-level categories with one level of subcategories (default)
 
 **Important**: The current implementation is limited to `maxDepth` of 2. Setting values higher than 2 will not fetch additional levels. The SFCC API returns a maximum of 2 levels per request, and the template implementation fetches up to this limit. If you need deeper navigation (3+ levels), you must customize the loader in `src/routes/_app.tsx` to implement recursive category fetching.
@@ -206,6 +206,20 @@ PUBLIC__app__pages__home__featuredProductsCount=16
 ```
 
 **Troubleshooting:** If you're seeing performance issues on the homepage, consider reducing this number. Ensure your B2C Commerce API can handle the product request size.
+
+---
+
+### pages.home.promotionIdsByCurrency
+
+Type: `Record<string, string>` | Default: `{}`
+
+Maps selected currencies to promotion IDs for a promotion-backed homepage section. The Grocery homepage uses the selected ID for its offer card, product shelf and shop-all link. Currency selection is independent of locale. An unconfigured currency hides the section without substituting another currency's offer.
+
+```bash
+PUBLIC__app__pages__home__promotionIdsByCurrency='{"GBP":"gbp-offer","USD":"usd-offer"}'
+```
+
+Promotion copy, eligible products and basket discounts remain controlled by Commerce.
 
 ---
 

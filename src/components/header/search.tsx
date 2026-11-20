@@ -25,7 +25,7 @@ import { useSearchSuggestions } from '@/hooks/use-search-suggestions';
 import { useTransformSearchSuggestions } from '@/hooks/use-transform-search-suggestions';
 import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { getSessionJSONItem, setSessionJSONItem, clearSessionJSONItem } from '@/lib/utils';
+import { cn, getSessionJSONItem, setSessionJSONItem, clearSessionJSONItem } from '@/lib/utils';
 import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 
 import { UITarget } from '@/targets/ui-target';
@@ -34,7 +34,7 @@ const RECENT_SEARCH_LIMIT = 5;
 const RECENT_SEARCH_KEY = 'recent-search-key';
 const RECENT_SEARCH_MIN_LENGTH = 3;
 
-export default function SearchBar(): ReactElement {
+export default function SearchBar({ variant = 'default' }: { variant?: 'default' | 'filled' } = {}): ReactElement {
     const { t } = useTranslation('header');
     const navigate = useNavigate();
     const config = useConfig();
@@ -206,7 +206,9 @@ export default function SearchBar(): ReactElement {
                 input and the suggestions dialog share one blur boundary. */}
             <div ref={containerRef} className="contents" onBlur={handleContainerBlur}>
                 <Popover open={showSuggestions}>
-                    <form onSubmit={handleSubmit} className="relative z-10">
+                    <form
+                        onSubmit={handleSubmit}
+                        className={cn('relative z-10', variant === 'filled' && 'w-full max-w-none')}>
                         <div className="relative">
                             <label htmlFor={searchInputId} className="sr-only">
                                 {t('searchPlaceholder')}
@@ -218,7 +220,11 @@ export default function SearchBar(): ReactElement {
                                     id={searchInputId}
                                     type="text"
                                     placeholder={t('searchPlaceholder')}
-                                    className="w-full pl-10 focus-visible:border-header-foreground focus-visible:ring-1 focus-visible:ring-header-foreground"
+                                    className={cn(
+                                        'w-full pl-10 focus-visible:border-header-foreground focus-visible:ring-1 focus-visible:ring-header-foreground',
+                                        variant === 'filled' &&
+                                            'h-12 max-w-none border-transparent bg-muted pl-11 text-foreground'
+                                    )}
                                     onChange={handleInputChange}
                                     onFocus={shouldOpenPopover}
                                     aria-autocomplete="list"

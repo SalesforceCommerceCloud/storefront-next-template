@@ -200,6 +200,25 @@ describe('ProductTile — rendering', () => {
         vi.clearAllMocks();
     });
 
+    test('compact presentation keeps product links and quick add while removing framed secondary metadata', () => {
+        const { container } = renderTile({ variant: 'compact', quickAddPlacement: 'inline' });
+        expect(container.querySelector('.product-card')).toHaveClass('[--ui-border-width:0]', 'bg-transparent');
+        expect(screen.getByRole('heading', { name: 'Simple Test Product' })).toHaveClass('text-sm');
+        expect(screen.getByRole('link', { name: 'Simple Test Product' })).toHaveAttribute(
+            'href',
+            '/global/en-GB/p/simple-001'
+        );
+        expect(screen.queryByTestId('product-tile-sku')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: quickAddButtonName(mockSingleVariantProduct) })).toBeInTheDocument();
+    });
+
+    test('associates compact live price announcements with the product name', () => {
+        const { container } = renderTile({ variant: 'compact' });
+        const priceAnnouncement = container.querySelector('[aria-live="polite"][aria-atomic="true"]');
+        expect(priceAnnouncement).toHaveTextContent('Simple Test Product');
+        expect(priceAnnouncement).toHaveTextContent(/Price/i);
+    });
+
     test('renders product name as a heading linking to the PDP', () => {
         renderTile();
         const heading = screen.getByRole('heading', { name: 'Simple Test Product' });

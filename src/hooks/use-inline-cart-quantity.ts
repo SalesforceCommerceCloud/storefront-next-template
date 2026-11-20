@@ -18,16 +18,9 @@ import debounce from 'lodash.debounce';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast';
-import {
-    useBasket,
-    useBasketError,
-    useBasketHydrated,
-    useBasketLoader,
-    useBasketSnapshot,
-    useBasketUpdater,
-} from '@/providers/basket';
-import { useItemFetcher, useItemFetcherLoading } from '@/hooks/use-item-fetcher';
-import { findBasketItemForProduct } from '@/lib/cart/find-basket-item';
+import { useBasketLoader, useBasketUpdater } from '@/providers/basket';
+import { useBasketItemState } from '@/hooks/use-basket-item-state';
+import { useItemMutation } from '@/providers/item-mutations';
 import { ErrorCode } from '@/lib/error-codes';
 import { resourceRoutes } from '@/route-paths';
 import type { BasketActionResponse } from '@/routes/types/action-responses';
@@ -57,36 +50,30 @@ export function useInlineCartQuantity({
     maxQuantity,
     enabled,
 }: UseInlineCartQuantityProps) {
-    const basket = useBasket({ autoLoad: enabled });
-    const basketSnapshot = useBasketSnapshot();
-    const basketHydrated = useBasketHydrated();
-    const basketError = useBasketError();
     const updateBasket = useBasketUpdater();
     const loadBasket = useBasketLoader();
+    const {
+        basketId,
+        itemId,
+        quantity: basketQuantity,
+        hasBasket,
+        hydrated: basketHydrated,
+        error: basketError,
+    } = useBasketItemState(productId, storeId, enabled, loadBasket);
     const { addToast } = useToast();
     const { t } = useTranslation('quantitySelector');
     const config = useConfig();
     const debounceDelay = config.pages.cart.quantityUpdateDebounce;
     const removeAction = config.pages.cart.removeAction;
-    const cartItem = useMemo(
-        () => (enabled ? findBasketItemForProduct(basket, productId, storeId) : undefined),
-        [basket, enabled, productId, storeId]
-    );
-    const itemId = cartItem?.itemId;
-    const basketQuantity = cartItem ? (cartItem.quantity ?? 1) : 0;
     const [optimisticQuantity, setOptimisticQuantity] = useState<number | null>(null);
     // A quantity the shopper tapped to while an update was in flight, held until the line is free so it
     // can flush as one trailing submit instead of being dropped.
     const pendingFlushRef = useRef<number | null>(null);
-    const fetcher = useItemFetcher({ itemId, componentName: 'inline-add-to-cart' });
-    const itemHasPendingMutation = useItemFetcherLoading(itemId);
+    const fetcher = useItemMutation(itemId, basketId);
+    const itemHasPendingMutation = fetcher.pending;
     const isUpdating = fetcher.state !== 'idle' || itemHasPendingMutation;
-    // Always submit through the current fetcher. React Router's useFetcher seeds its key from useId and
-    // only re-syncs to the real `${itemId}-...` key on the render after `itemId` resolves (via a
-    // render-phase setState). The debounced submitter below is created on that same transition render,
-    // so a directly-captured fetcher would post under the stale auto-generated key and its response
-    // would never reach this hook, leaving the mini cart out of sync. Reading the fetcher from a ref at
-    // call time targets the converged key instead.
+    // Follow the selected line across item-id changes. The provider-owned native handle keeps
+    // submission ownership stable while controls subscribe only to that line's state.
     const fetcherRef = useRef(fetcher);
     useEffect(() => {
         fetcherRef.current = fetcher;
@@ -96,7 +83,7 @@ export function useInlineCartQuantity({
     useEffect(() => {
         setOptimisticQuantity(null);
         pendingFlushRef.current = null;
-    }, [itemId]);
+    }, [basketId, itemId]);
 
     // A settled basket change clears the optimistic override, unless a tap made while an update was in
     // flight is still queued to flush. In that case the optimistic value is deliberately ahead of the
@@ -145,32 +132,31 @@ export function useInlineCartQuantity({
     // does, the CTA stays resolving so it can't offer a first-add mid-retry and duplicate a line the
     // retry is about to reveal. We do NOT keep the CTA disabled on a terminal failure: a basket we can
     // never read (e.g. a stale id left in the cookie after logout) must still allow adding to cart.
-    const basketId = basketSnapshot?.basketId;
     const retriedBasketIdRef = useRef<string | null>(null);
     const retryErrorRef = useRef<string[] | null | undefined>(null);
     const [retryExhaustedBasketId, setRetryExhaustedBasketId] = useState<string | null>(null);
     useEffect(() => {
-        const loadFailed = enabled && !basket && !!basketId && basketHydrated && !!basketError?.length;
+        const loadFailed = enabled && !hasBasket && !!basketId && basketHydrated && !!basketError?.length;
         if (loadFailed && retriedBasketIdRef.current !== basketId) {
             retriedBasketIdRef.current = basketId ?? null;
             retryErrorRef.current = basketError;
             loadBasket();
         }
-    }, [enabled, basket, basketId, basketHydrated, basketError, loadBasket]);
+    }, [enabled, hasBasket, basketId, basketHydrated, basketError, loadBasket]);
 
-    // The retry settles when the basket loads (`!basket` turns false below) or a fresh error arrives. A
+    // The retry settles when the basket loads (`hasBasket` becomes true) or a fresh error arrives. A
     // new `basketError` reference after we captured `retryErrorRef` means the retry failed again, so the
     // load is terminally failed for this basket id.
     useEffect(() => {
         if (
             retriedBasketIdRef.current === basketId &&
-            !basket &&
+            !hasBasket &&
             !!basketError?.length &&
             basketError !== retryErrorRef.current
         ) {
             setRetryExhaustedBasketId(basketId ?? null);
         }
-    }, [basketId, basket, basketError]);
+    }, [basketId, hasBasket, basketError]);
 
     const quantityInCart = optimisticQuantity ?? basketQuantity;
     // Exhaustion is scoped to the basket id it was recorded for. On a basket hand-off (e.g. a guest to
@@ -186,7 +172,7 @@ export function useInlineCartQuantity({
     // A shopper with no basket to fetch (no `basketId`) has a genuine quantity of 0. On terminal failure
     // the CTA is released rather than blocked indefinitely.
     const isResolvingQuantity =
-        enabled && !basket && !!basketId && (!basketHydrated || (!!basketError?.length && !retryExhausted));
+        enabled && !hasBasket && !!basketId && (!basketHydrated || (!!basketError?.length && !retryExhausted));
     const effectiveLimit =
         maxQuantity === undefined
             ? stockLevel
@@ -202,7 +188,7 @@ export function useInlineCartQuantity({
     // wins rather than corrupting the count. A trailing quantity of 0 removes the line.
     const submitQuantity = useMemo(() => {
         return debounce((nextQuantity: number) => {
-            if (!itemId) {
+            if (!itemId || !basketId) {
                 return;
             }
 
@@ -215,9 +201,8 @@ export function useInlineCartQuantity({
             formData.append('quantity', nextQuantity.toString());
             void fetcherRef.current.submit(formData, { method: 'PATCH', action: resourceRoutes.cartItemUpdate });
         }, debounceDelay);
-        // Submit via fetcherRef so a burst coalesces into one trailing call and always targets the
-        // current fetcher key; recreate only when the target line, delay, or remove route changes.
-    }, [itemId, debounceDelay, removeAction]);
+        // Coalesce against one basket/line handle; cancel on a basket handoff, even if a line ID is reused.
+    }, [basketId, itemId, debounceDelay, removeAction]);
 
     // Cancel a scheduled update when the target line changes or the control unmounts, so a queued
     // submit never fires against a stale line or after teardown.
@@ -269,5 +254,13 @@ export function useInlineCartQuantity({
         applyQuantity(quantityInCart <= 1 ? 0 : quantityInCart - 1);
     }, [applyQuantity, itemId, quantityInCart]);
 
-    return { quantityInCart, increment, decrement, isUpdating, incrementDisabled, isResolvingQuantity };
+    return {
+        quantityInCart,
+        increment,
+        decrement,
+        isUpdating,
+        isQuantityPending: isUpdating || optimisticQuantity !== null,
+        incrementDisabled,
+        isResolvingQuantity,
+    };
 }

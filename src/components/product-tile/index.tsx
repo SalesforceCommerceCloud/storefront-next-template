@@ -77,6 +77,8 @@ const EMPTY_STATE_PLACEHOLDER_SRC = '/images/content-placeholder.svg';
 export interface ProductTileProps extends ComponentProps<'div'> {
     product?: ShopperSearch.schemas['ProductSearchHit'];
     productId?: string;
+    /** Compact shelf presentation: borderless media, price and name without secondary metadata. */
+    variant?: 'default' | 'compact';
     maxSwatches?: number;
     handleProductClick?: (product: ShopperSearch.schemas['ProductSearchHit']) => void;
     /** For variant products, filter swatches to only show this variant's color value */
@@ -90,9 +92,9 @@ export interface ProductTileProps extends ComponentProps<'div'> {
     /**
      * Where the Quick-Add button renders. `'overlay'` (default) keeps the current absolute,
      * hover/focus-revealed control over the image; `'inline'` renders it in-flow at the bottom of the
-     * tile's info section (always visible, full-width). Backward-safe — omitting it keeps the overlay.
+     * tile's info section (always visible, full-width). 'corner' shows a compact basket quantity control. Backward-safe — omitting it keeps the overlay.
      */
-    quickAddPlacement?: 'overlay' | 'inline';
+    quickAddPlacement?: 'overlay' | 'inline' | 'corner';
     /** Top-level navigation category name shown below swatches (e.g. "Men", "Women") */
     topCategoryName?: string;
     /** Accepted for API compatibility; has no effect */
@@ -121,6 +123,7 @@ const ProductTile = memo(
         (
             {
                 className,
+                variant: tileVariant = 'default',
                 product: productProp,
                 productId: _productId,
                 maxSwatches = PRODUCT_TILE_MAX_SWATCHES,
@@ -151,6 +154,7 @@ const ProductTile = memo(
             },
             ref
         ) => {
+            const compact = tileVariant === 'compact';
             // Prioritize loader data (Page Designer) over prop (programmatic use)
             const product = (data as ShopperSearch.schemas['ProductSearchHit'] | undefined) || productProp;
 
@@ -302,7 +306,11 @@ const ProductTile = memo(
                         data-slot="empty-state"
                         {...props}>
                         {/* Image area — mirrors the configured tile's square image surface. */}
-                        <div className="product-image relative">
+                        <div
+                            className={cn(
+                                'product-image relative',
+                                compact && 'overflow-hidden rounded-ui bg-product-media'
+                            )}>
                             <div className="relative w-full aspect-square overflow-hidden bg-muted">
                                 <DynamicImage
                                     src={resolveAssetUrl(EMPTY_STATE_PLACEHOLDER_SRC)}
@@ -325,7 +333,12 @@ const ProductTile = memo(
                             tiles) at an empty 0/0 rating, and a currency-formatted zero price (never a
                             hardcoded "$0.00") via the same formatter the live price uses. */}
                         <div className="relative p-4">
-                            <h3 className="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2">
+                            <h3
+                                className={
+                                    compact
+                                        ? 'line-clamp-2 text-sm font-medium leading-snug text-card-foreground'
+                                        : 'text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2'
+                                }>
                                 {tCommon('productTile.emptyTitle')}
                             </h3>
                             <div className="mb-2">
@@ -348,6 +361,8 @@ const ProductTile = memo(
                     ref={ref}
                     className={cn(
                         'product-card group w-full min-w-0 max-w-full cursor-pointer overflow-hidden gap-0 py-0',
+                        compact &&
+                            'h-full overflow-visible rounded-none bg-transparent [--ui-border-width:0] shadow-none',
                         pageDesignerStyles,
                         className
                     )}
@@ -356,7 +371,11 @@ const ProductTile = memo(
                     onTouchStart={handleTileIntent}
                     {...props}>
                     {/* Image area */}
-                    <div className="product-image relative">
+                    <div
+                        className={cn(
+                            'product-image relative',
+                            compact && 'overflow-hidden rounded-ui bg-product-media'
+                        )}>
                         <div className="relative w-full overflow-hidden">
                             <ProductImageContainer
                                 product={product}
@@ -364,7 +383,10 @@ const ProductTile = memo(
                                     PRODUCT_TILE_SELECTABLE_ATTRIBUTE_ID === 'color' ? selectedAttributeValue : null
                                 }
                                 imgAspectRatio={effectiveImgAspectRatio}
-                                className="w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
+                                className={cn(
+                                    'w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!',
+                                    compact && 'mix-blend-(--product-tile-compact-blend)'
+                                )}
                                 handleProductClick={handleProductClick}
                                 seoUrlContext={seoUrlContext}
                             />
@@ -457,11 +479,34 @@ const ProductTile = memo(
                                     />
                                 </div>
                             )}
+                            {quickAddPlacement === 'corner' && (
+                                <div className="absolute bottom-2 right-2 z-20">
+                                    <QuickAddButton
+                                        variant="corner"
+                                        preload={tileEngaged}
+                                        productId={product.productId ?? ''}
+                                        productName={productName}
+                                        productSlug={product.slug}
+                                        selectedColorValue={selectedAttributeValue}
+                                        initialVariantSelections={initialVariantSelections}
+                                        label={quickAddLabel ?? t('quickAdd')}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     {/* Info section */}
-                    <div className="relative flex flex-col flex-1 p-4">
+                    <div className={cn('relative flex flex-col flex-1', compact ? 'gap-1 pt-2' : 'p-4')}>
+                        {compact && (
+                            <ProductPrice
+                                type="unit"
+                                product={product}
+                                labelForA11y={(product?.productName ?? product?.productId) || ''}
+                                currency={currency ?? config.commerce.sites?.[0]?.defaultCurrency ?? ''}
+                                currentPriceProps={{ className: 'text-sm font-semibold' }}
+                            />
+                        )}
                         {/* Color swatches */}
                         {colorValues.length > 0 && (
                             <div>
@@ -481,12 +526,14 @@ const ProductTile = memo(
                         )}
 
                         {/* Store name */}
-                        <p className="text-sm font-normal leading-normal text-muted-foreground mb-1">
-                            {config.global.branding.name}
-                        </p>
+                        {!compact && (
+                            <p className="text-sm font-normal leading-normal text-muted-foreground mb-1">
+                                {config.global.branding.name}
+                            </p>
+                        )}
 
                         {/* Top category */}
-                        {topCategoryName && (
+                        {!compact && topCategoryName && (
                             <p className="text-sm font-normal leading-normal text-muted-foreground mb-1">
                                 {topCategoryName}
                             </p>
@@ -498,7 +545,11 @@ const ProductTile = memo(
                             `tabIndex={-1}` to avoid duplicating that link in the accessibility tree. */}
                         <h3
                             aria-label={productName}
-                            className="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2">
+                            className={
+                                compact
+                                    ? 'line-clamp-2 text-sm font-medium leading-snug text-card-foreground'
+                                    : 'text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2'
+                            }>
                             <Link
                                 to={productUrl}
                                 className="hover:underline"
@@ -510,7 +561,7 @@ const ProductTile = memo(
                         </h3>
 
                         {/* SKU */}
-                        {product.productId && (
+                        {!compact && product.productId && (
                             <p
                                 className="text-sm font-normal leading-normal text-muted-foreground mb-1"
                                 data-testid="product-tile-sku">
@@ -519,39 +570,43 @@ const ProductTile = memo(
                         )}
 
                         {/* Star ratings */}
-                        <div className="mb-2">
-                            <StarRating
-                                rating={productData?.rating.rating ?? 0}
-                                reviewCount={productData?.rating.reviewCount ?? 0}
-                                starSize="sm"
-                                starClassName="text-foreground"
-                                showRatingLink
-                                ratingLinkTemplate="({count})"
-                                ratingLinkClassName="text-xs text-muted-foreground"
-                            />
-                        </div>
+                        {!compact && (
+                            <div className="mb-2">
+                                <StarRating
+                                    rating={productData?.rating.rating ?? 0}
+                                    reviewCount={productData?.rating.reviewCount ?? 0}
+                                    starSize="sm"
+                                    starClassName="text-foreground"
+                                    showRatingLink
+                                    ratingLinkTemplate="({count})"
+                                    ratingLinkClassName="text-xs text-muted-foreground"
+                                />
+                            </div>
+                        )}
                         <UITarget targetId="sfcc.productCard.reviews.rating" />
 
                         {/* Price */}
-                        <div>
-                            <ProductPrice
-                                type="unit"
-                                product={product}
-                                currency={currency ?? config.commerce.sites?.[0]?.defaultCurrency ?? ''}
-                                labelForA11y={(product?.productName ?? product?.productId) || ''}
-                                currentPriceProps={{
-                                    className:
-                                        'text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground',
-                                }}
-                                listPriceProps={{
-                                    className: 'text-muted-foreground text-sm leading-none line-through',
-                                }}
-                                promoCalloutProps={{
-                                    className: 'text-xs text-active-foreground mt-1',
-                                }}
-                                className="text-sm"
-                            />
-                        </div>
+                        {!compact && (
+                            <div>
+                                <ProductPrice
+                                    type="unit"
+                                    product={product}
+                                    currency={currency ?? config.commerce.sites?.[0]?.defaultCurrency ?? ''}
+                                    labelForA11y={(product?.productName ?? product?.productId) || ''}
+                                    currentPriceProps={{
+                                        className:
+                                            'text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground',
+                                    }}
+                                    listPriceProps={{
+                                        className: 'text-muted-foreground text-sm leading-none line-through',
+                                    }}
+                                    promoCalloutProps={{
+                                        className: 'text-xs text-active-foreground mt-1',
+                                    }}
+                                    className="text-sm"
+                                />
+                            </div>
+                        )}
                         <UITarget targetId="sfcc.productCard.loyalty.points" />
                         <UITarget targetId="sfcc.productCard.bnpl.message" />
 

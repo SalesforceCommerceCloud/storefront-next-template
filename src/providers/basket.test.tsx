@@ -30,6 +30,7 @@ import BasketProvider, {
     useBasketUpdater,
 } from './basket';
 import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
+import { useBasketItemState } from '@/hooks/use-basket-item-state';
 import { BASKET_COOKIE_NAME } from '@/lib/basket/cookie';
 
 type MockFetcher = {
@@ -1753,5 +1754,20 @@ describe('BasketProvider hooks', () => {
                 expect(result.current).toEqual(reloaded);
             });
         });
+    });
+
+    it('deduplicates hydration requested by multiple item selectors', async () => {
+        function Item() {
+            useBasketItemState('sku-a', undefined, true, useBasketLoader());
+            return null;
+        }
+        render(
+            <BasketProvider
+                snapshot={{ basketId: 'selector-basket', totalItemCount: 1, uniqueProductCount: 1, lastModified: '' }}>
+                <Item />
+                <Item />
+            </BasketProvider>
+        );
+        await waitFor(() => expect(mockFetcher.load).toHaveBeenCalledTimes(1));
     });
 });

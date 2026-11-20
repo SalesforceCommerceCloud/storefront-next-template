@@ -1,5 +1,227 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`PopularCategories stories snapshot > CircularRow story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen"
+  >
+    <section>
+      <nav
+        aria-label="Shop by category"
+        class="section-container py-3"
+        data-slot="categories-row"
+      >
+        <h2
+          class="sr-only"
+        >
+          Shop by category
+        </h2>
+        <ul
+          class="-mx-4 flex gap-3.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:justify-between"
+        >
+          <li
+            class="w-18 shrink-0 md:w-28"
+          >
+            <div
+              class="w-full max-w-full min-w-0 flex"
+            >
+              <a
+                class="group flex flex-col items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full text-center"
+                data-category-id="womens-jewelry"
+                href="/RefArchGlobal/en-GB/c/womens-jewelry"
+              >
+                <div
+                  class="relative w-full overflow-hidden bg-muted aspect-square rounded-full"
+                  data-slot="category-media"
+                >
+                  <div
+                    class="h-full w-full"
+                  >
+                    <picture>
+                      <source
+                        media="(min-width: 768px)"
+                        sizes="112px"
+                        srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw14ce9267/images/slot/sub_banners/cat-banner-womens-jewelry.webp?sfrm=jpg&q=70&sw=112 112w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw14ce9267/images/slot/sub_banners/cat-banner-womens-jewelry.webp?sfrm=jpg&q=70&sw=224 224w"
+                        type="image/webp"
+                      />
+                      <source
+                        sizes="72px"
+                        srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw14ce9267/images/slot/sub_banners/cat-banner-womens-jewelry.webp?sfrm=jpg&q=70&sw=72 72w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw14ce9267/images/slot/sub_banners/cat-banner-womens-jewelry.webp?sfrm=jpg&q=70&sw=144 144w"
+                        type="image/webp"
+                      />
+                      <img
+                        alt=""
+                        class="h-full w-full transition-transform duration-300 group-hover:scale-105 object-contain p-[var(--category-image-padding,0%)] [mix-blend-mode:var(--category-image-blend-mode,normal)]"
+                        fetchpriority="auto"
+                        loading="eager"
+                        src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw14ce9267/images/slot/sub_banners/cat-banner-womens-jewelry.webp?sfrm=jpg&q=70"
+                      />
+                    </picture>
+                  </div>
+                </div>
+                <span
+                  class="text-foreground group-hover:underline text-xs font-bold leading-tight md:text-sm"
+                  data-slot="category-label"
+                >
+                  Jewelry
+                </span>
+              </a>
+            </div>
+          </li>
+          <li
+            class="w-18 shrink-0 md:w-28"
+          >
+            <div
+              class="w-full max-w-full min-w-0 flex"
+            >
+              <a
+                class="group flex flex-col items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full text-center"
+                data-category-id="mens-clothing"
+                href="/RefArchGlobal/en-GB/c/mens-clothing"
+              >
+                <div
+                  class="relative w-full overflow-hidden bg-muted aspect-square rounded-full"
+                  data-slot="category-media"
+                >
+                  <div
+                    class="h-full w-full"
+                  >
+                    <picture>
+                      <source
+                        media="(min-width: 768px)"
+                        sizes="112px"
+                        srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-clothing.webp?sfrm=jpg&q=70&sw=112 112w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-clothing.webp?sfrm=jpg&q=70&sw=224 224w"
+                        type="image/webp"
+                      />
+                      <source
+                        sizes="72px"
+                        srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-clothing.webp?sfrm=jpg&q=70&sw=72 72w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-clothing.webp?sfrm=jpg&q=70&sw=144 144w"
+                        type="image/webp"
+                      />
+                      <img
+                        alt=""
+                        class="h-full w-full transition-transform duration-300 group-hover:scale-105 object-contain p-[var(--category-image-padding,0%)] [mix-blend-mode:var(--category-image-blend-mode,normal)]"
+                        fetchpriority="auto"
+                        loading="eager"
+                        src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw56b28e03/images/slot/sub_banners/cat-banner-mens-clothing.webp?sfrm=jpg&q=70"
+                      />
+                    </picture>
+                  </div>
+                </div>
+                <span
+                  class="text-foreground group-hover:underline text-xs font-bold leading-tight md:text-sm"
+                  data-slot="category-label"
+                >
+                  Clothing
+                </span>
+              </a>
+            </div>
+          </li>
+          <li
+            class="w-18 shrink-0 md:w-28"
+          >
+            <div
+              class="w-full max-w-full min-w-0 flex"
+            >
+              <a
+                class="group flex flex-col items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full text-center"
+                data-category-id="electronics"
+                href="/RefArchGlobal/en-GB/c/electronics"
+              >
+                <div
+                  class="relative w-full overflow-hidden bg-muted aspect-square rounded-full"
+                  data-slot="category-media"
+                >
+                  <div
+                    class="h-full w-full"
+                  >
+                    <picture>
+                      <source
+                        media="(min-width: 768px)"
+                        sizes="112px"
+                        srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw98765432/images/slot/sub_banners/cat-banner-electronics.webp?sfrm=jpg&q=70&sw=112 112w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw98765432/images/slot/sub_banners/cat-banner-electronics.webp?sfrm=jpg&q=70&sw=224 224w"
+                        type="image/webp"
+                      />
+                      <source
+                        sizes="72px"
+                        srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw98765432/images/slot/sub_banners/cat-banner-electronics.webp?sfrm=jpg&q=70&sw=72 72w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw98765432/images/slot/sub_banners/cat-banner-electronics.webp?sfrm=jpg&q=70&sw=144 144w"
+                        type="image/webp"
+                      />
+                      <img
+                        alt=""
+                        class="h-full w-full transition-transform duration-300 group-hover:scale-105 object-contain p-[var(--category-image-padding,0%)] [mix-blend-mode:var(--category-image-blend-mode,normal)]"
+                        fetchpriority="auto"
+                        loading="eager"
+                        src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw98765432/images/slot/sub_banners/cat-banner-electronics.webp?sfrm=jpg&q=70"
+                      />
+                    </picture>
+                  </div>
+                </div>
+                <span
+                  class="text-foreground group-hover:underline text-xs font-bold leading-tight md:text-sm"
+                  data-slot="category-label"
+                >
+                  Electronics
+                </span>
+              </a>
+            </div>
+          </li>
+          <li
+            class="w-18 shrink-0 md:w-28"
+          >
+            <div
+              class="w-full max-w-full min-w-0 flex"
+            >
+              <a
+                class="group flex flex-col items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full text-center"
+                data-category-id="home-living"
+                href="/RefArchGlobal/en-GB/c/home-living"
+              >
+                <div
+                  class="relative w-full overflow-hidden bg-muted aspect-square rounded-full"
+                  data-slot="category-media"
+                >
+                  <div
+                    class="h-full w-full"
+                  >
+                    <picture>
+                      <source
+                        media="(min-width: 768px)"
+                        sizes="112px"
+                        srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw11223344/images/slot/sub_banners/cat-banner-home-living.webp?sfrm=jpg&q=70&sw=112 112w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw11223344/images/slot/sub_banners/cat-banner-home-living.webp?sfrm=jpg&q=70&sw=224 224w"
+                        type="image/webp"
+                      />
+                      <source
+                        sizes="72px"
+                        srcset="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw11223344/images/slot/sub_banners/cat-banner-home-living.webp?sfrm=jpg&q=70&sw=72 72w, https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw11223344/images/slot/sub_banners/cat-banner-home-living.webp?sfrm=jpg&q=70&sw=144 144w"
+                        type="image/webp"
+                      />
+                      <img
+                        alt=""
+                        class="h-full w-full transition-transform duration-300 group-hover:scale-105 object-contain p-[var(--category-image-padding,0%)] [mix-blend-mode:var(--category-image-blend-mode,normal)]"
+                        fetchpriority="auto"
+                        loading="eager"
+                        src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw11223344/images/slot/sub_banners/cat-banner-home-living.webp?sfrm=jpg&q=70"
+                      />
+                    </picture>
+                  </div>
+                </div>
+                <span
+                  class="text-foreground group-hover:underline text-xs font-bold leading-tight md:text-sm"
+                  data-slot="category-label"
+                >
+                  Home & Living
+                </span>
+              </a>
+            </div>
+          </li>
+        </ul>
+      </nav>
+    </section>
+  </div>
+</div>
+`;
+
 exports[`PopularCategories stories snapshot > CustomTitle story renders and matches snapshot 1`] = `
 <div>
   <div
@@ -54,7 +276,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                     href="/RefArchGlobal/en-GB/c/womens-jewelry"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -96,14 +318,15 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Jewelry
                             </h3>
@@ -112,7 +335,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -137,7 +360,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                     href="/RefArchGlobal/en-GB/c/mens-clothing"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -179,14 +402,15 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Clothing
                             </h3>
@@ -195,7 +419,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -220,7 +444,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                     href="/RefArchGlobal/en-GB/c/electronics"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -262,14 +486,15 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Electronics
                             </h3>
@@ -278,7 +503,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -303,7 +528,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                     href="/RefArchGlobal/en-GB/c/home-living"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -345,14 +570,15 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Home & Living
                             </h3>
@@ -361,7 +587,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -573,6 +799,176 @@ exports[`PopularCategories stories snapshot > Empty story renders and matches sn
 </div>
 `;
 
+exports[`PopularCategories stories snapshot > LabelsAbove story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="bg-background min-h-screen"
+  >
+    <section>
+      <nav
+        aria-label="Shop by category"
+        class="section-container py-3"
+        data-slot="categories-row"
+      >
+        <h2
+          class="sr-only"
+        >
+          Shop by category
+        </h2>
+        <ul
+          class="-mx-4 flex gap-3.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:justify-between"
+        >
+          <li
+            class="w-18 shrink-0 md:w-28"
+          >
+            <div
+              class="w-full max-w-full min-w-0 flex"
+            >
+              <a
+                class="group flex flex-col items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full text-center"
+                data-category-id="womens-jewelry"
+                href="/RefArchGlobal/en-GB/c/womens-jewelry"
+              >
+                <span
+                  class="text-foreground group-hover:underline text-xs font-bold leading-tight md:text-sm"
+                  data-slot="category-label"
+                >
+                  Jewelry
+                </span>
+                <div
+                  class="relative w-full overflow-hidden bg-muted aspect-square rounded-full"
+                  data-slot="category-media"
+                >
+                  <div
+                    class="h-full w-full"
+                  >
+                    <img
+                      alt=""
+                      class="h-full w-full transition-transform duration-300 group-hover:scale-105 object-contain p-[var(--category-image-padding,0%)] [mix-blend-mode:var(--category-image-blend-mode,normal)]"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                    />
+                  </div>
+                </div>
+              </a>
+            </div>
+          </li>
+          <li
+            class="w-18 shrink-0 md:w-28"
+          >
+            <div
+              class="w-full max-w-full min-w-0 flex"
+            >
+              <a
+                class="group flex flex-col items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full text-center"
+                data-category-id="mens-clothing"
+                href="/RefArchGlobal/en-GB/c/mens-clothing"
+              >
+                <span
+                  class="text-foreground group-hover:underline text-xs font-bold leading-tight md:text-sm"
+                  data-slot="category-label"
+                >
+                  Clothing
+                </span>
+                <div
+                  class="relative w-full overflow-hidden bg-muted aspect-square rounded-full"
+                  data-slot="category-media"
+                >
+                  <div
+                    class="h-full w-full"
+                  >
+                    <img
+                      alt=""
+                      class="h-full w-full transition-transform duration-300 group-hover:scale-105 object-contain p-[var(--category-image-padding,0%)] [mix-blend-mode:var(--category-image-blend-mode,normal)]"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                    />
+                  </div>
+                </div>
+              </a>
+            </div>
+          </li>
+          <li
+            class="w-18 shrink-0 md:w-28"
+          >
+            <div
+              class="w-full max-w-full min-w-0 flex"
+            >
+              <a
+                class="group flex flex-col items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full text-center"
+                data-category-id="electronics"
+                href="/RefArchGlobal/en-GB/c/electronics"
+              >
+                <span
+                  class="text-foreground group-hover:underline text-xs font-bold leading-tight md:text-sm"
+                  data-slot="category-label"
+                >
+                  Electronics
+                </span>
+                <div
+                  class="relative w-full overflow-hidden bg-muted aspect-square rounded-full"
+                  data-slot="category-media"
+                >
+                  <div
+                    class="h-full w-full"
+                  >
+                    <img
+                      alt=""
+                      class="h-full w-full transition-transform duration-300 group-hover:scale-105 object-contain p-[var(--category-image-padding,0%)] [mix-blend-mode:var(--category-image-blend-mode,normal)]"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                    />
+                  </div>
+                </div>
+              </a>
+            </div>
+          </li>
+          <li
+            class="w-18 shrink-0 md:w-28"
+          >
+            <div
+              class="w-full max-w-full min-w-0 flex"
+            >
+              <a
+                class="group flex flex-col items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full text-center"
+                data-category-id="home-living"
+                href="/RefArchGlobal/en-GB/c/home-living"
+              >
+                <span
+                  class="text-foreground group-hover:underline text-xs font-bold leading-tight md:text-sm"
+                  data-slot="category-label"
+                >
+                  Home & Living
+                </span>
+                <div
+                  class="relative w-full overflow-hidden bg-muted aspect-square rounded-full"
+                  data-slot="category-media"
+                >
+                  <div
+                    class="h-full w-full"
+                  >
+                    <img
+                      alt=""
+                      class="h-full w-full transition-transform duration-300 group-hover:scale-105 object-contain p-[var(--category-image-padding,0%)] [mix-blend-mode:var(--category-image-blend-mode,normal)]"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                    />
+                  </div>
+                </div>
+              </a>
+            </div>
+          </li>
+        </ul>
+      </nav>
+    </section>
+  </div>
+</div>
+`;
+
 exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story renders and matches snapshot 1`] = `
 <div>
   <div
@@ -637,7 +1033,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                     href="/RefArchGlobal/en-GB/c/womens-jewelry"
                   >
                     <div
-                      class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
+                      class="relative w-full overflow-hidden bg-muted aspect-square rounded-ui"
                       data-slot="category-media"
                     >
                       <div
@@ -672,7 +1068,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                       </div>
                     </div>
                     <span
-                      class="text-sm font-medium text-foreground group-hover:underline"
+                      class="text-foreground group-hover:underline text-sm font-medium"
                       data-slot="category-label"
                     >
                       Jewelry
@@ -694,7 +1090,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                     href="/RefArchGlobal/en-GB/c/mens-clothing"
                   >
                     <div
-                      class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
+                      class="relative w-full overflow-hidden bg-muted aspect-square rounded-ui"
                       data-slot="category-media"
                     >
                       <div
@@ -729,7 +1125,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                       </div>
                     </div>
                     <span
-                      class="text-sm font-medium text-foreground group-hover:underline"
+                      class="text-foreground group-hover:underline text-sm font-medium"
                       data-slot="category-label"
                     >
                       Clothing
@@ -751,7 +1147,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                     href="/RefArchGlobal/en-GB/c/electronics"
                   >
                     <div
-                      class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
+                      class="relative w-full overflow-hidden bg-muted aspect-square rounded-ui"
                       data-slot="category-media"
                     >
                       <div
@@ -786,7 +1182,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                       </div>
                     </div>
                     <span
-                      class="text-sm font-medium text-foreground group-hover:underline"
+                      class="text-foreground group-hover:underline text-sm font-medium"
                       data-slot="category-label"
                     >
                       Electronics
@@ -808,7 +1204,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                     href="/RefArchGlobal/en-GB/c/home-living"
                   >
                     <div
-                      class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
+                      class="relative w-full overflow-hidden bg-muted aspect-square rounded-ui"
                       data-slot="category-media"
                     >
                       <div
@@ -843,7 +1239,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                       </div>
                     </div>
                     <span
-                      class="text-sm font-medium text-foreground group-hover:underline"
+                      class="text-foreground group-hover:underline text-sm font-medium"
                       data-slot="category-label"
                     >
                       Home & Living
@@ -1094,7 +1490,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                     href="/RefArchGlobal/en-GB/c/womens-jewelry"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -1136,14 +1532,15 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Jewelry
                             </h3>
@@ -1152,7 +1549,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -1177,7 +1574,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                     href="/RefArchGlobal/en-GB/c/mens-clothing"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -1219,14 +1616,15 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Clothing
                             </h3>
@@ -1235,7 +1633,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -1260,7 +1658,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                     href="/RefArchGlobal/en-GB/c/electronics"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -1302,14 +1700,15 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Electronics
                             </h3>
@@ -1318,7 +1717,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -1343,7 +1742,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                     href="/RefArchGlobal/en-GB/c/home-living"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -1385,14 +1784,15 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Home & Living
                             </h3>
@@ -1401,7 +1801,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -1426,7 +1826,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                     href="/RefArchGlobal/en-GB/c/sports-outdoors"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -1460,7 +1860,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                                 alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
-                                loading="eager"
+                                loading="lazy"
                                 src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw99887766/images/slot/sub_banners/cat-banner-sports.webp?sfrm=jpg&q=70"
                               />
                             </picture>
@@ -1468,14 +1868,15 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Sports & Outdoors
                             </h3>
@@ -1484,7 +1885,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -1509,7 +1910,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                     href="/RefArchGlobal/en-GB/c/beauty-health"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -1543,7 +1944,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                                 alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
-                                loading="eager"
+                                loading="lazy"
                                 src="https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-storefront-catalog-m-non-en/default/dw66554433/images/slot/sub_banners/cat-banner-beauty.webp?sfrm=jpg&q=70"
                               />
                             </picture>
@@ -1551,14 +1952,15 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Beauty & Health
                             </h3>
@@ -1567,7 +1969,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -1707,7 +2109,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                     href="/RefArchGlobal/en-GB/c/womens-jewelry"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -1749,14 +2151,15 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Jewelry
                             </h3>
@@ -1765,7 +2168,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -1790,7 +2193,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                     href="/RefArchGlobal/en-GB/c/mens-clothing"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -1832,14 +2235,15 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Clothing
                             </h3>
@@ -1848,7 +2252,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -1873,7 +2277,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                     href="/RefArchGlobal/en-GB/c/electronics"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -1915,14 +2319,15 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Electronics
                             </h3>
@@ -1931,7 +2336,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -1956,7 +2361,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                     href="/RefArchGlobal/en-GB/c/home-living"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -1998,14 +2403,15 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Home & Living
                             </h3>
@@ -2014,7 +2420,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -2154,7 +2560,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                     href="/RefArchGlobal/en-GB/c/womens-jewelry"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -2196,14 +2602,15 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Jewelry
                             </h3>
@@ -2212,7 +2619,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -2237,7 +2644,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                     href="/RefArchGlobal/en-GB/c/mens-clothing"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -2279,14 +2686,15 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Clothing
                             </h3>
@@ -2295,7 +2703,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -2320,7 +2728,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                     href="/RefArchGlobal/en-GB/c/electronics"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -2362,14 +2770,15 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Electronics
                             </h3>
@@ -2378,7 +2787,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -2403,7 +2812,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                     href="/RefArchGlobal/en-GB/c/home-living"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -2445,14 +2854,15 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Home & Living
                             </h3>
@@ -2461,7 +2871,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -2601,7 +3011,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                     href="/RefArchGlobal/en-GB/c/category-1"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -2624,14 +3034,15 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Category One
                             </h3>
@@ -2640,7 +3051,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -2665,7 +3076,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                     href="/RefArchGlobal/en-GB/c/category-2"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -2688,14 +3099,15 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Category Two
                             </h3>
@@ -2704,7 +3116,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -2729,7 +3141,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                     href="/RefArchGlobal/en-GB/c/category-3"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -2752,14 +3164,15 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Category Three
                             </h3>
@@ -2768,7 +3181,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>
@@ -2793,7 +3206,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                     href="/RefArchGlobal/en-GB/c/category-4"
                   >
                     <div
-                      class="group relative overflow-hidden bg-muted h-full"
+                      class="group relative overflow-hidden bg-muted h-full rounded-ui"
                     >
                       <div
                         class="overflow-hidden aspect-square"
@@ -2816,14 +3229,15 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
+                        class="absolute inset-0 bg-[image:var(--category-card-overlay)]"
+                        data-slot="category-overlay"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
                         >
                           <div>
                             <h3
-                              class="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1"
+                              class="text-2xl leading-content-card-title tracking-content-card-title mb-1 font-bold text-category-card-overlay-foreground"
                             >
                               Category Four
                             </h3>
@@ -2832,7 +3246,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                             class="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1"
                           >
                             <span
-                              class="inline-block text-sm font-medium text-primary-foreground"
+                              class="inline-block text-sm font-medium text-category-card-overlay-foreground"
                             >
                               Shop Now
                             </span>

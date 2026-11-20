@@ -50,6 +50,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "제품 추천"
+        },
+        "contentCarousel": {
+            "label": "콘텐츠 캐러셀",
+            "emptyLabel": "콘텐츠 캐러셀",
+            "play": "슬라이드 쇼 재생",
+            "pause": "슬라이드 쇼 일시 중지",
+            "position": "{{count}}개 중 {{current}}번째"
         }
     },
     "search": {

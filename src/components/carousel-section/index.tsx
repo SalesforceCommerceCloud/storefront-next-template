@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactNode } from 'react';
+import { type ComponentProps, type ReactNode } from 'react';
 import { Link } from '@/components/link';
 import { Carousel, CarouselContent, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
+import { typographyVariants } from '@/components/typography';
 
 export interface CarouselSectionProps {
     /** Optional title displayed above the carousel */
@@ -35,6 +36,8 @@ export interface CarouselSectionProps {
     shopAllText?: string;
     /** Optional className override for the title heading */
     titleClassName?: string;
+    /** Shared heading presentation; default preserves the original carousel typography. */
+    titleVariant?: 'default' | 'section';
     /**
      * Title alignment.
      * - 'left' (default): title left-aligned with optional shop-all link on the right
@@ -54,6 +57,18 @@ export interface CarouselSectionProps {
     className?: string;
     /** Accessible label for the carousel region */
     ariaLabel?: string;
+    /**
+     * Additional controls beside a left-aligned section heading.
+     * @remarks Ignored when `titleAlign` is `'center'`.
+     */
+    headerActions?: ReactNode;
+    /** Optional configuration and interaction handlers for the shared carousel. */
+    carouselProps?: Omit<ComponentProps<typeof Carousel>, 'children' | 'className'>;
+    /** Optional track and navigation styling; existing consumers retain their defaults. */
+    contentClassName?: string;
+    carouselClassName?: string;
+    navigationClassName?: string;
+    showNavigation?: boolean;
     /** Carousel items — should be <CarouselItem> elements */
     children: ReactNode;
 }
@@ -96,13 +111,23 @@ export function CarouselSection({
     subtitle,
     shopAllUrl,
     shopAllText,
-    titleClassName,
+    titleClassName: customTitleClassName,
+    titleVariant = 'default',
     titleAlign = 'left',
     centerWhenPartial = false,
     className,
     ariaLabel,
+    headerActions,
+    carouselProps,
+    contentClassName,
+    carouselClassName,
+    navigationClassName,
+    showNavigation = true,
     children,
 }: CarouselSectionProps) {
+    const titleClassName =
+        customTitleClassName ??
+        (titleVariant === 'section' ? typographyVariants({ variant: 'section-title', align: null }) : undefined);
     const titleSection =
         titleAlign === 'center' ? (
             <div className="text-center">
@@ -136,15 +161,24 @@ export function CarouselSection({
                         )}
                     </div>
                 )}
+                {headerActions && <div className="ml-auto flex items-center gap-3">{headerActions}</div>}
             </div>
         );
 
     return (
         <div className={cn('section-container py-6', className)}>
-            {(title !== undefined || subtitle) && titleSection}
-            <Carousel className="w-full py-6" opts={{ align: 'start' }} aria-label={ariaLabel}>
+            {(title !== undefined || subtitle || headerActions) && titleSection}
+            <Carousel
+                {...carouselProps}
+                className={cn('w-full py-6', carouselClassName)}
+                opts={{ align: 'start', ...carouselProps?.opts }}
+                aria-label={ariaLabel}>
                 <CarouselContent
-                    className={cn('-ml-4 items-stretch flex-nowrap', centerWhenPartial && 'justify-center-safe')}>
+                    className={cn(
+                        '-ml-4 items-stretch flex-nowrap',
+                        centerWhenPartial && 'justify-center-safe',
+                        contentClassName
+                    )}>
                     {children}
                 </CarouselContent>
                 {/*
@@ -155,8 +189,16 @@ export function CarouselSection({
                  * and seat the buttons flush inside the track below it. This also keeps the buttons
                  * on-screen and keyboard-reachable at mobile widths (W-23325488).
                  */}
-                <CarouselPrevious className="flex left-0 lg:-translate-x-1/2 size-9 shadow-md" />
-                <CarouselNext className="flex right-0 lg:translate-x-1/2 size-9 shadow-md" />
+                {showNavigation && (
+                    <>
+                        <CarouselPrevious
+                            className={cn('flex left-0 lg:-translate-x-1/2 size-9 shadow-md', navigationClassName)}
+                        />
+                        <CarouselNext
+                            className={cn('flex right-0 lg:translate-x-1/2 size-9 shadow-md', navigationClassName)}
+                        />
+                    </>
+                )}
             </Carousel>
         </div>
     );

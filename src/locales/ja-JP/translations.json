@@ -50,6 +50,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "おすすめ商品"
+        },
+        "contentCarousel": {
+            "label": "コンテンツカルーセル",
+            "emptyLabel": "コンテンツカルーセル",
+            "play": "スライドショーを再生",
+            "pause": "スライドショーを一時停止",
+            "position": "{{count}}件中{{current}}件目"
         }
     },
     "search": {

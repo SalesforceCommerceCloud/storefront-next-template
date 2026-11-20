@@ -18,10 +18,9 @@ import { typographyVariants } from '@/components/typography';
 /**
  * Page Designer typography presets for the Content Card title and description.
  * Mirrors the Hero component's value set so a merchant sees the same options
- * across both "Content" components. `Default` preserves each field's original
- * hardcoded look; the remaining presets derive from the shared
- * `typographyVariants` scale so there is a single source of truth for those
- * sizes.
+ * across both "Content" components. The default title uses the theme-backed
+ * `content-card-title` variant; heading and paragraph presets use the shared
+ * `typographyVariants` scale.
  *
  * Kept in this sibling module (not the component file) so the component,
  * its metadata test, and its stories can share one definition without tripping
@@ -43,11 +42,11 @@ export type ContentCardTypography = (typeof CONTENT_CARD_TYPOGRAPHY_VALUES)[numb
 /**
  * `align: null` opts out of the cva `align` default — ContentCard never sets
  * text-alignment on the title/description, so these presets must emit
- * size/weight only. `Default` is card-specific (no cva equivalent) and stays
- * local so untouched cards render exactly as before.
+ * size/weight only. The default title's theme tokens preserve existing card
+ * metrics while allowing verticals to customize them.
  */
 export const TITLE_TYPOGRAPHY_CLASS: Record<ContentCardTypography, string> = {
-    Default: 'text-2xl font-semibold leading-[120%] tracking-[-0.6px]',
+    Default: typographyVariants({ variant: 'content-card-title', align: null }),
     Paragraph: typographyVariants({ variant: 'body', align: null }),
     'Heading 1': typographyVariants({ variant: 'h1', align: null }),
     'Heading 2': typographyVariants({ variant: 'h2', align: null }),

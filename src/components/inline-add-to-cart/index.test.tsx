@@ -285,4 +285,118 @@ describe('InlineAddToCart', () => {
         expect(screen.getByTestId('inline-add-to-cart-increment')).toBeDisabled();
         expect(screen.getByTestId('inline-add-to-cart-decrement')).toHaveFocus();
     });
+    test('keeps compact-control focus intent when another basket render cancels the scheduled frame', async () => {
+        const frames = new Map<number, FrameRequestCallback>();
+        let frameId = 0;
+        vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+            frames.set(++frameId, callback);
+            return frameId;
+        });
+        vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((id) => {
+            frames.delete(id);
+        });
+        const props = {
+            variant: 'compact' as const,
+            productName,
+            onAdd: vi.fn(),
+            onIncrement: vi.fn(),
+            onDecrement: vi.fn(),
+        };
+        const { rerender } = render(<InlineAddToCart {...props} quantityInCart={0} />);
+        await userEvent.click(screen.getByTestId('add-to-cart'));
+        rerender(<InlineAddToCart {...props} quantityInCart={1} />);
+        rerender(<InlineAddToCart {...props} quantityInCart={1} loading />);
+        rerender(<InlineAddToCart {...props} quantityInCart={1} />);
+        for (const callback of frames.values()) callback(0);
+        expect(screen.getByTestId('inline-add-to-cart-decrement')).toHaveFocus();
+    });
+    test.each([
+        'default',
+        'compact',
+    ] as const)('does not restore stale %s focus after a quantity change settles without loading', async (variant) => {
+        vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+            callback(0);
+            return 1;
+        });
+        const props = {
+            variant,
+            productName,
+            onAdd: vi.fn(),
+            onIncrement: vi.fn(),
+            onDecrement: vi.fn(),
+        };
+        const { rerender } = render(<InlineAddToCart {...props} quantityInCart={2} />);
+        await userEvent.click(screen.getByTestId('inline-add-to-cart-increment'));
+        rerender(<InlineAddToCart {...props} quantityInCart={3} incrementDisabled />);
+        expect(screen.getByTestId('inline-add-to-cart-decrement')).toHaveFocus();
+        // A later stock refresh enables increment, but the completed action must not move focus again.
+        rerender(<InlineAddToCart {...props} quantityInCart={3} />);
+        expect(screen.getByTestId('inline-add-to-cart-decrement')).toHaveFocus();
+    });
+
+    test('respects focus moved outside the control during the debounce gap', async () => {
+        vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+            callback(0);
+            return 1;
+        });
+        const props = {
+            variant: 'compact' as const,
+            productName,
+            onAdd: vi.fn(),
+            onIncrement: vi.fn(),
+            onDecrement: vi.fn(),
+        };
+        const content = (loading: boolean, pendingQuantity: boolean) => (
+            <>
+                <InlineAddToCart {...props} quantityInCart={2} loading={loading} pendingQuantity={pendingQuantity} />
+                <button type="button">Continue shopping</button>
+            </>
+        );
+        const { rerender } = render(content(false, false));
+        const user = userEvent.setup();
+        await user.click(screen.getByTestId('inline-add-to-cart-increment'));
+        rerender(content(false, true));
+        await user.tab();
+        expect(screen.getByRole('button', { name: 'Continue shopping' })).toHaveFocus();
+        rerender(content(true, true));
+        expect(screen.getByRole('button', { name: 'Continue shopping' })).toHaveFocus();
+        rerender(content(false, false));
+        expect(screen.getByRole('button', { name: 'Continue shopping' })).toHaveFocus();
+    });
+
+    test('restores compact Add focus after an optimistic removal followed by a debounced request', async () => {
+        vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+            callback(0);
+            return 1;
+        });
+        const props = {
+            variant: 'compact' as const,
+            productName,
+            onAdd: vi.fn(),
+            onIncrement: vi.fn(),
+            onDecrement: vi.fn(),
+        };
+        const { rerender } = render(<InlineAddToCart {...props} quantityInCart={1} />);
+        await userEvent.click(screen.getByTestId('inline-add-to-cart-decrement'));
+        rerender(<InlineAddToCart {...props} quantityInCart={0} pendingQuantity />);
+        expect(screen.getByTestId('add-to-cart')).toBeDisabled();
+        expect(screen.getByTestId('add-to-cart').closest('[data-slot="inline-add-to-cart"]')).toHaveFocus();
+        rerender(<InlineAddToCart {...props} quantityInCart={0} loading />);
+        rerender(<InlineAddToCart {...props} quantityInCart={0} />);
+        expect(screen.getByTestId('add-to-cart')).toHaveFocus();
+    });
+});
+
+test('blocks a first add while an optimistic removal is still debounced', async () => {
+    const onAdd = vi.fn();
+    const props = { onAdd, onIncrement: vi.fn(), onDecrement: vi.fn(), quantityInCart: 0 };
+    const { rerender } = render(<InlineAddToCart {...props} pendingQuantity />);
+    const add = screen.getByTestId('add-to-cart');
+    expect(add).toBeDisabled();
+    await userEvent.click(add);
+    expect(onAdd).not.toHaveBeenCalled();
+    rerender(<InlineAddToCart {...props} pendingQuantity={false} />);
+    expect(add).toBeEnabled();
+    await userEvent.click(add);
+    expect(onAdd).toHaveBeenCalledOnce();
 });

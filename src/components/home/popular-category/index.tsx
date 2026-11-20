@@ -24,18 +24,20 @@ import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import { cn, resolveAssetUrl } from '@/lib/utils';
 import { carouselItemImageWidths } from '@/components/carousel-section';
 import { DynamicImage } from '@/components/dynamic-image';
+import { compactCategoryImageWidths } from '@/components/home/popular-category/constants';
 import { toImageUrl } from '@/lib/images/dynamic-image';
 import { useTranslation } from 'react-i18next';
 import heroImage from '/images/hero-03.webp';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 import { createCategoryUrlFromScapiCategory } from '@/lib/seo/scapi-slugs';
+import { typographyVariants } from '@/components/typography';
 
 /**
  * Public-dir path to the shared authoring placeholder. Referenced by URL (not a module import) so
  * the 906-byte SVG is never inlined as a data URI into this home-page component's shopper bundle —
  * a top-level `import … from '/images/…svg'` would inline it and regress the home Lighthouse
- * bundle-size budget. Only ever resolved on the design-mode empty-state path.
+ * bundle-size budget. Used for the design-mode empty state and circular cards without an API image.
  */
 const EMPTY_STATE_PLACEHOLDER_SRC = '/images/content-placeholder.svg';
 
@@ -57,17 +59,27 @@ interface PopularCategoryProps extends Omit<ComponentProps<typeof Link>, 'to'> {
     /**
      * Where the category name sits relative to the image.
      * - `'overlay'` (default): name overlaid on the image with a gradient scrim and hover "Shop Now".
-     * - `'below'`: square image with the name as a plain label beneath it (no scrim, no "Shop Now").
+     * - `'above'` / `'below'`: plain label before / after the image (no scrim, no "Shop Now").
      *   `showDescription` is ignored in this layout.
      * @default 'overlay'
      */
-    labelPosition?: 'overlay' | 'below';
+    labelPosition?: 'overlay' | 'above' | 'below';
     /**
      * `'square'` preserves the default card media frame. `'fill'` lets a parent
      * layout, such as a category mosaic, own the tile's aspect ratio.
      * @default 'square'
      */
     mediaAspectRatio?: 'square' | 'fill';
+    /** Optional circular media frame; the default keeps the theme's standard corners. */
+    imageShape?: 'default' | 'circle';
+    /** Use contain for packshots and cover for editorial photography. */
+    imageFit?: 'cover' | 'contain';
+    /** Compact navigation labels and spacing. */
+    size?: 'default' | 'compact';
+    /** Responsive image hints; defaults match the selected card size. */
+    imageWidths?: ComponentProps<typeof DynamicImage>['widths'];
+    /** Collections eagerly load their leading cards; standalone cards default to lazy loading. */
+    imageLoading?: 'eager' | 'lazy';
     // Page Designer props (passed by Component wrapper, must be extracted to avoid passing to DOM)
     regionId?: string;
     page?: ShopperExperience.schemas['Page'];
@@ -92,6 +104,15 @@ export class PopularCategoryMetadata {
         type: 'category',
     })
     category?: string;
+
+    @AttributeDefinition({ type: 'enum', values: ['overlay', 'above', 'below'], defaultValue: 'overlay' })
+    labelPosition?: string;
+
+    @AttributeDefinition({ type: 'enum', values: ['default', 'circle'], defaultValue: 'default' })
+    imageShape?: string;
+
+    @AttributeDefinition({ type: 'enum', values: ['cover', 'contain'], defaultValue: 'cover' })
+    imageFit?: string;
 }
 /* v8 ignore stop */
 
@@ -112,6 +133,11 @@ export default function PopularCategory({
     showDescription = false,
     labelPosition = 'overlay',
     mediaAspectRatio = 'square',
+    imageShape = 'default',
+    imageFit = 'cover',
+    size = 'default',
+    imageWidths = size === 'compact' ? compactCategoryImageWidths : carouselItemImageWidths,
+    imageLoading = 'lazy',
     // Page Designer props - extracted to avoid passing to DOM
     regionId: _regionId,
     page: _page,
@@ -157,9 +183,13 @@ export default function PopularCategory({
         (typeof categoryData?.c_slotBannerImage === 'string' && categoryData.c_slotBannerImage) ||
         undefined;
     const transformedCategoryImage = toImageUrl({ src: categoryImageUrl, config }) ?? categoryImageUrl;
-    const finalImageUrl: string = showEmptyState
+    const rawImageUrl: string = showEmptyState
         ? resolveAssetUrl(EMPTY_STATE_PLACEHOLDER_SRC)
-        : transformedCategoryImage || fallbackImageUrl || heroImage;
+        : transformedCategoryImage ||
+          fallbackImageUrl ||
+          (imageShape === 'circle' ? resolveAssetUrl(EMPTY_STATE_PLACEHOLDER_SRC) : heroImage);
+    // The imported fallback already carries its build-time bundle URL.
+    const finalImageUrl = rawImageUrl === heroImage ? heroImage : resolveAssetUrl(rawImageUrl);
     const destination =
         categoryData || showEmptyState
             ? createCategoryUrlFromScapiCategory(categoryData ?? { id: '' }, seoUrlContext)
@@ -167,44 +197,61 @@ export default function PopularCategory({
 
     const renderDestination = (content: ReactNode, destinationClassName: string) =>
         destination ? (
-            <Link to={destination} className={destinationClassName} {...rest}>
+            <Link
+                to={destination}
+                className={destinationClassName}
+                {...(imageShape === 'circle' ? { 'data-category-id': categoryData?.id } : {})}
+                {...rest}>
                 {content}
             </Link>
         ) : (
             <div className={destinationClassName}>{content}</div>
         );
 
-    // 'below' layout: square image with the name as a plain label beneath it (no scrim overlay,
-    // no hover "Shop Now"). Used by the footwear activity rail.
-    if (labelPosition === 'below') {
+    // Outside labels share one media presentation and follow their visual position in DOM order.
+    if (labelPosition === 'above' || labelPosition === 'below') {
+        const label = (
+            <span
+                data-slot="category-label"
+                className={cn(
+                    'text-foreground group-hover:underline',
+                    size === 'compact' ? 'text-xs font-bold leading-tight md:text-sm' : 'text-sm font-medium'
+                )}>
+                {finalName}
+            </span>
+        );
         return renderDestination(
             <>
+                {labelPosition === 'above' && label}
                 <div
                     data-slot="category-media"
                     className={cn(
-                        'relative w-full overflow-hidden rounded-ui bg-muted',
-                        mediaAspectRatio === 'square' ? 'aspect-square' : 'flex-1 min-h-0'
+                        'relative w-full overflow-hidden bg-muted',
+                        mediaAspectRatio === 'square' ? 'aspect-square' : 'flex-1 min-h-0',
+                        imageShape === 'circle' ? 'rounded-full' : 'rounded-ui'
                     )}>
-                    {/* Decorative: the adjacent visible label below names the link, so empty alt
+                    {/* Decorative: the adjacent visible label names the link, so empty alt
                         avoids the category name being announced twice by assistive technology. */}
                     <DynamicImage
                         src={finalImageUrl}
                         alt=""
                         className="h-full w-full"
                         imageProps={{
-                            className:
+                            className: cn(
                                 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-105',
+                                imageFit === 'contain' &&
+                                    'object-contain p-[var(--category-image-padding,0%)] [mix-blend-mode:var(--category-image-blend-mode,normal)]'
+                            ),
                         }}
-                        widths={carouselItemImageWidths}
-                        loading="eager"
+                        widths={imageWidths}
+                        loading={imageLoading}
                     />
                 </div>
-                <span data-slot="category-label" className="text-sm font-medium text-foreground group-hover:underline">
-                    {finalName}
-                </span>
+                {labelPosition === 'below' && label}
             </>,
             cn(
-                'group flex flex-col items-center gap-3',
+                'group flex flex-col items-center',
+                size === 'compact' ? 'gap-1.5' : 'gap-3',
                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui',
                 className
             )
@@ -213,7 +260,11 @@ export default function PopularCategory({
 
     return renderDestination(
         <>
-            <div className="group relative overflow-hidden bg-muted h-full">
+            <div
+                className={cn(
+                    'group relative overflow-hidden bg-muted h-full',
+                    imageShape === 'circle' ? 'rounded-full' : 'rounded-ui'
+                )}>
                 <div
                     data-slot="category-media"
                     className={cn('overflow-hidden', mediaAspectRatio === 'square' ? 'aspect-square' : 'h-full')}>
@@ -224,27 +275,36 @@ export default function PopularCategory({
                             src={finalImageUrl}
                             alt=""
                             className="w-full h-full"
-                            imageProps={{ className: 'w-full h-full object-cover' }}
-                            widths={carouselItemImageWidths}
-                            loading="eager"
+                            imageProps={{
+                                className: cn(
+                                    'w-full h-full',
+                                    imageFit === 'contain'
+                                        ? 'object-contain p-[var(--category-image-padding,0%)] [mix-blend-mode:var(--category-image-blend-mode,normal)]'
+                                        : 'object-cover'
+                                ),
+                            }}
+                            widths={imageWidths}
+                            loading={imageLoading}
                         />
                     </div>
                 </div>
-                {/*
-                 * Scrim for WCAG 1.4.3: the title/description are white and pinned to the bottom edge over an
-                 * arbitrary merchant photo. The gradient stays image-visible at the top (to-transparent) but
-                 * raises the floor in the lower half so the composited background behind the text stays at or
-                 * below ~#707070, keeping white text >=4.5:1 over any image. The image is unchanged. */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent">
+                {/* Paired theme tokens control the scrim and foreground over the category artwork. */}
+                <div data-slot="category-overlay" className="absolute inset-0 bg-[image:var(--category-card-overlay)]">
                     <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end">
                         <div>
-                            <h3 className="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1">
+                            <h3
+                                className={cn(
+                                    typographyVariants({ variant: 'content-card-title', align: null }),
+                                    'mb-1 font-bold text-category-card-overlay-foreground'
+                                )}>
                                 {finalName}
                             </h3>
-                            {finalDescription && <p className="text-sm text-white/90">{finalDescription}</p>}
+                            {finalDescription && (
+                                <p className="text-sm text-category-card-overlay-foreground/90">{finalDescription}</p>
+                            )}
                         </div>
                         <div className="overflow-hidden max-h-0 transition-[max-height] duration-300 ease-out group-hover:max-h-8 mt-1">
-                            <span className="inline-block text-sm font-medium text-primary-foreground">
+                            <span className="inline-block text-sm font-medium text-category-card-overlay-foreground">
                                 {t('categoryGrid.shopNowButton')}
                             </span>
                         </div>

@@ -84,6 +84,7 @@ export function resolveMegaMenuRegionId(
 
 interface MobileMenuContextType {
     isOpen: boolean;
+    topLevelOnly: boolean;
     toggle: () => void;
     close: () => void;
     categories: ShopperProducts.schemas['Category'][];
@@ -290,11 +291,13 @@ function hasSubcategories(category: ShopperProducts.schemas['Category']): boolea
 
 function MobileMenuCategory({
     category: rawCategory,
+    topLevelOnly,
     expandedCategories,
     onToggle,
     onNavigate,
 }: {
     category: ShopperProducts.schemas['Category'];
+    topLevelOnly: boolean;
     expandedCategories: Set<string>;
     onToggle: (categoryId: string) => void;
     onNavigate: () => void;
@@ -303,7 +306,7 @@ function MobileMenuCategory({
     const seoUrlContext = useSeoUrlContext();
     const enrichedCategory = useSubCategory(rawCategory.id);
     const category = enrichedCategory ?? rawCategory;
-    const hasChildren = hasSubcategories(category);
+    const hasChildren = !topLevelOnly && hasSubcategories(category);
     const isExpanded = expandedCategories.has(category.id);
 
     const renderCategoryLink = (
@@ -431,6 +434,7 @@ export function MobileMenuDropdown({ portalSlot }: { portalSlot?: string }): Rea
                         <MobileMenuCategory
                             key={category.id}
                             category={category}
+                            topLevelOnly={context.topLevelOnly}
                             expandedCategories={expandedCategories}
                             onToggle={toggleCategory}
                             onNavigate={context.close}
@@ -570,6 +574,8 @@ export default function ResponsiveNavigationMenu({
     utilityContent,
 }: ResponsiveNavigationMenuProps): ReactElement {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const config = useConfig();
+    const topLevelOnly = config.pages.navigation.maxDepth === 1;
     const { t } = useTranslation('header');
 
     const defaultListStyle = {
@@ -610,6 +616,7 @@ export default function ResponsiveNavigationMenu({
             {({ categories }) => {
                 const mobileMenuContext: MobileMenuContextType = {
                     isOpen: mobileMenuOpen,
+                    topLevelOnly,
                     toggle: () => setMobileMenuOpen(!mobileMenuOpen),
                     close: () => setMobileMenuOpen(false),
                     categories,
@@ -631,6 +638,8 @@ export default function ResponsiveNavigationMenu({
                         {...(portalSlots?.catalog ? { 'data-testid': `${portalSlots.catalog}-nav` } : {})}>
                         <CategoryNavigationMenu
                             categories={catalogCategories}
+                            // Root-only menus use real links even when API metadata reports children.
+                            maxDepth={topLevelOnly ? 1 : undefined}
                             delayDuration={0}
                             propsViewport={() => ({
                                 className:

@@ -26,6 +26,14 @@ Colors and theme values are defined as CSS variables (design tokens). Use semant
 
 Avoid raw color utilities (e.g. `bg-[#hex]`) so the app stays consistent with the theme.
 
+### Content Card and Category Card tokens
+
+Content Card uses the shared `eyebrow` and `content-card-title` typography variants. Each vertical defines their size, tracking, and line-height tokens in `theme/tailwind.css`. Image overlays use `--content-card-overlay-dark`, `--content-card-overlay-light-top`, and `--content-card-overlay-light-bottom` from `theme/tokens/components.css`.
+
+Category Card reuses `content-card-title` with bold weight. Its overlay and text use the paired `--category-card-overlay` and `--category-card-overlay-foreground` tokens in `theme/tokens/components.css`.
+
+Disclosures use the shared Badge. Keep placement in Content Card and customize appearance through semantic theme colors.
+
 ### Responsive Design
 
 Use breakpoints consistently:
@@ -193,3 +201,5 @@ Quick reference:
 | Global/theme styles in `src/theme/` | Scattered or duplicate global CSS |
 
 For a short checklist, see the styling section in the Storefront Next development guidelines (e.g. the `storefront_next_development_guidelines` tool).
+
+Compact Product Tile uses `--product-media` (surface) and `--product-tile-compact-blend` (default `normal`; Grocery uses `multiply`). Custom themes adopting these components must provide the Content Card, Category Card and typography tokens listed above. Compact cart controls use the standard `--ui-radius` and `--ui-shadow` shape contract.

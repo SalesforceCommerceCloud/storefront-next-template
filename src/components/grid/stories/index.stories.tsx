@@ -210,3 +210,14 @@ export const UnconfiguredDesignMode: Story = {
         await expect(within(canvasElement).queryByRole('button')).not.toBeInTheDocument();
     },
 };
+
+export const ResponsiveColumns: Story = {
+    args: { columns: '4', columnsOnMobile: '2', columnGap: '3' },
+    render: (args) => (
+        <Grid {...args}>
+            {Array.from({ length: 4 }, (_, index) => (
+                <div key={index} className="rounded-ui bg-muted p-6">{`Campaign ${index + 1}`}</div>
+            ))}
+        </Grid>
+    ),
+};

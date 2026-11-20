@@ -48,6 +48,13 @@
         "productTile": {
             "emptyTitle": "Produkt"
         },
+        "contentCarousel": {
+            "label": "Inhaltskarussell",
+            "emptyLabel": "Inhaltskarussell",
+            "play": "Diashow abspielen",
+            "pause": "Diashow pausieren",
+            "position": "Element {{current}} von {{count}}"
+        },
         "productRecommendations": {
             "emptyTitle": "Produktempfehlungen"
         }

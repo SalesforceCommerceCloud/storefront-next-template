@@ -531,6 +531,30 @@ describe('_app.tsx - Default Layout Route', () => {
             expect(headerComponent).toEqual({ id: 'header-component' });
         });
 
+        it('does not request subcategories or mega-menu content in top-level-only mode', async () => {
+            const { fetchCategory, fetchCategoriesByIds } = await import('@/lib/api/categories.server');
+            const { fetchComponentWithComponentData } = await import('@/lib/page-designer/component-loader.server');
+            vi.mocked(fetchCategory).mockResolvedValue({
+                id: 'root',
+                categories: [{ id: 'produce', c_showInMenu: true, onlineSubCategoriesCount: 3 }],
+            });
+            vi.mocked(fetchComponentWithComponentData).mockResolvedValue(null);
+            const previousDepth = mockNavigationConfig.maxDepth;
+            mockNavigationConfig.maxDepth = 1;
+            try {
+                const result = loader({ context: {}, request: new Request('https://example.test/') } as never);
+                expect(await result.subs).toEqual([]);
+                expect(await result.megaMenuComponent).toBeNull();
+                expect(fetchCategoriesByIds).not.toHaveBeenCalled();
+                expect(fetchComponentWithComponentData).toHaveBeenCalledTimes(1);
+                expect(fetchComponentWithComponentData).toHaveBeenCalledWith(expect.anything(), {
+                    componentId: 'header',
+                });
+            } finally {
+                mockNavigationConfig.maxDepth = previousDepth;
+            }
+        });
+
         it('should fetch mega-menu embedded component data with componentId="mega-menu"', async () => {
             const { fetchCategory } = await import('@/lib/api/categories.server');
             const { fetchComponentWithComponentData } = await import('@/lib/page-designer/component-loader.server');

@@ -52,6 +52,122 @@ describe('ContentCard', () => {
         return render(<RouterProvider router={router} />);
     };
 
+    test('image-only portrait cards link their artwork without duplicating a CTA', () => {
+        const { container } = renderWithRouter(
+            <ContentCard {...defaultProps} layout="image" imageAspectRatio="3:4" badge="Sponsored" />
+        );
+        expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+        expect(screen.queryByText('Test description content')).not.toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Test image' })).toHaveAttribute('href', '/global/en-GB/test-link');
+        expect(screen.getAllByRole('link')).toHaveLength(1);
+        expect(screen.getByText('Sponsored')).toBeInTheDocument();
+        expect(container.querySelector('.aspect-\\[3\\/4\\]')).toBeInTheDocument();
+    });
+
+    test('image banners retain intrinsic dimensions and a single accessible campaign link', () => {
+        const { container } = renderWithRouter(
+            <ContentCard
+                layout="image"
+                imageAspectRatio="auto"
+                imageAlt="Campaign offer"
+                buttonLink="/campaign"
+                imageUrl={{ url: '/images/wide.webp', metaData: { width: 2624, height: 256 } }}
+                badge="Sponsored"
+            />
+        );
+        const image = screen.getByAltText('Campaign offer');
+        expect(image).toHaveAttribute('width', '2624');
+        expect(image).toHaveAttribute('height', '256');
+        expect(image).toHaveClass('h-auto');
+        expect(container.querySelector('picture source')).not.toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Campaign offer' })).toHaveAttribute('href', '/global/en-GB/campaign');
+        expect(screen.getAllByRole('link')).toHaveLength(1);
+        expect(screen.getByText('Sponsored')).toBeInTheDocument();
+    });
+
+    test.each(['', '   '])('omits unnamed image-only links with blank fields (%j)', (blank) => {
+        const { container } = renderWithRouter(
+            <ContentCard
+                layout="image"
+                imageUrl="/offer.webp"
+                buttonLink="/offer"
+                title={blank}
+                imageAlt={blank}
+                buttonAriaLabel={blank}
+            />
+        );
+        expect(container.querySelector('[data-slot="card"]')).not.toBeInTheDocument();
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+
+    test.each([
+        { title: 'Shop seasonal offers' },
+        { imageAlt: 'Shop seasonal offers', buttonAriaLabel: '   ' },
+        { imageAlt: 'Offer artwork', buttonAriaLabel: 'Shop seasonal offers' },
+    ])('names an image-only destination from its authored text: %j', (labelProps) => {
+        renderWithRouter(<ContentCard layout="image" imageUrl="/offer.webp" buttonLink="/offer" {...labelProps} />);
+        expect(screen.getByRole('link', { name: 'Shop seasonal offers' })).toHaveAttribute(
+            'href',
+            '/global/en-GB/offer'
+        );
+    });
+
+    test('omits unnamed image links in authoring mode without an extra validation alert', () => {
+        mockIsDesignMode = true;
+        renderWithRouter(<ContentCard layout="image" imageUrl="/offer.webp" buttonLink="/offer" />);
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    });
+
+    test('single-source image artwork resolves through the production client bundle', () => {
+        const originalDev = import.meta.env.DEV;
+        import.meta.env.DEV = false;
+        try {
+            renderWithRouter(<ContentCard layout="image" imageAlt="Bundled artwork" imageUrl="/images/wide.webp" />);
+            expect(screen.getByAltText('Bundled artwork').getAttribute('src')).toMatch(/client\/images\/wide\.webp$/);
+        } finally {
+            import.meta.env.DEV = originalDev;
+        }
+    });
+
+    test('campaign presentation uses a shared heading preset and a text-link CTA', () => {
+        renderWithRouter(<ContentCard {...defaultProps} variant="campaign" contentPosition="top" overlay="light" />);
+        const heading = screen.getByRole('heading', { name: 'Test Title' });
+        expect(heading).toHaveClass('font-extrabold', 'tracking-tight', 'leading-tight');
+        const link = screen.getByRole('link', { name: 'Click Me' });
+        expect(link).toHaveAttribute('data-variant', 'link');
+        expect(link).toHaveClass('text-inherit', 'underline');
+        expect(link.closest('.relative.z-10')).toHaveClass('text-foreground');
+    });
+
+    test('top-aligned overlays can omit the scrim for prepared artwork', () => {
+        const { container } = renderWithRouter(<ContentCard {...defaultProps} contentPosition="top" overlay="none" />);
+        expect(container.querySelector('.justify-start')).toBeInTheDocument();
+        expect(container.querySelector('[data-slot="content-card-overlay"]')).not.toBeInTheDocument();
+    });
+
+    test('responsive local artwork resolves through the production client bundle', () => {
+        const originalDev = import.meta.env.DEV;
+        import.meta.env.DEV = false;
+        try {
+            renderWithRouter(
+                <ContentCard
+                    layout="image"
+                    imageUrl="/images/campaign.webp"
+                    imageAlt="Bundled campaign"
+                    imageWidths={[320, 640]}
+                />
+            );
+            expect(screen.getByAltText('Bundled campaign').getAttribute('src')).toMatch(
+                /\/mobify\/bundle\/[^/]+\/client\/images\/campaign\.webp$/
+            );
+        } finally {
+            import.meta.env.DEV = originalDev;
+        }
+    });
+
     test('renders all content with correct attributes', () => {
         renderWithRouter(<ContentCard {...defaultProps} />);
 
@@ -106,6 +222,7 @@ describe('ContentCard', () => {
         result = renderWithRouter(<ContentCard {...defaultProps} showBorder={false} />);
         card = result.container.querySelector('[data-slot="card"]');
         expect(card?.className).toContain('border-0');
+        expect(card?.className).toContain('[--ui-border-width:0]');
     });
 
     test('applies custom className and h-full for grid layouts', () => {
@@ -130,6 +247,25 @@ describe('ContentCard', () => {
 
         const link = screen.getByRole('link', { name: 'Click Me' });
         expect(link.className).toContain('button-custom');
+    });
+
+    test('supports contained trailing media in a split card without mobile stacking', () => {
+        const { container } = renderWithRouter(
+            <ContentCard
+                title="Offer"
+                layout="split"
+                imageUrl="/offer.webp"
+                imageAlt="Offer product"
+                imageFit="contain"
+                imagePosition="end"
+                stackOnMobile={false}
+                mediaClassName="rounded-full"
+                showBorder={false}
+            />
+        );
+        expect(container.querySelector('[data-slot="card-content"]')).toHaveClass('grid-cols-2');
+        expect(container.querySelector('.order-last')).toHaveClass('rounded-full');
+        expect(screen.getByAltText('Offer product')).toHaveClass('object-contain');
     });
 
     test('forwards ref to Card component', () => {
@@ -295,11 +431,8 @@ describe('ContentCard', () => {
             expect(screen.getByRole('heading', { name: 'Largest Heading Preset' })).toBeInTheDocument();
             expect(screen.getByText(longDescription)).toBeInTheDocument();
 
-            const scrim = container.querySelector('.bg-gradient-to-t');
-            expect(scrim?.className).toContain('from-black/90');
-            expect(scrim?.className).toContain('via-black/75');
-            expect(scrim?.className).toContain('to-black/60');
-            expect(scrim?.className).not.toContain('to-transparent');
+            const scrim = container.querySelector('[data-slot="content-card-overlay"]');
+            expect(scrim).toHaveClass('bg-[image:var(--content-card-overlay-dark)]');
         });
     });
 });

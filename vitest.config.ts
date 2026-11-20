@@ -69,6 +69,8 @@ export default defineConfig((configEnv) =>
                 ],
                 globals: true,
                 environment: 'jsdom',
+                // Exercise real close-button visibility rather than Vitest's default empty CSS stub.
+                css: { include: [/cart-sheet\.css(?:\?.*)?$/] },
                 // Windows CI has repeatedly segfaulted (exit 139) under the threads pool since
                 // it was enabled (@W-23736599) — forks give each test file process isolation.
                 pool: process.platform === 'win32' ? 'forks' : 'threads',

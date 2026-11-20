@@ -135,14 +135,15 @@ export const WithItems: Story = {
             await documentBody.findByRole('button', { name: /continue shopping/i }, { timeout: 5000 })
         ).toBeInTheDocument();
 
-        // Close via Escape (a safe, real close path — Radix handles it natively).
-        // We use Escape rather than a "Close" button because the panel renders two:
-        // the template's own SheetClose and storefront-ui's built-in one.
-        await userEvent.keyboard('{Escape}');
+        const closeButtons = within(cartSheet).getAllByRole('button', { name: /close/i });
+        await expect(closeButtons).toHaveLength(1);
+        await userEvent.click(closeButtons[0]);
+        await waitFor(() => expect(documentBody.queryByRole('dialog', { hidden: false })).not.toBeInTheDocument());
 
-        // Closing flips miniCartOpen false, which unmounts the panel — assert it's gone.
-        await waitFor(() => expect(documentBody.queryByRole('dialog', { hidden: false })).not.toBeInTheDocument(), {
-            onTimeout: (error) => new Error(`Cart sheet did not close after pressing Escape: ${error.message}`),
-        });
+        // Escape remains available alongside the single visible close button.
+        await userEvent.click(trigger);
+        await documentBody.findByRole('dialog', { hidden: false });
+        await userEvent.keyboard('{Escape}');
+        await waitFor(() => expect(documentBody.queryByRole('dialog', { hidden: false })).not.toBeInTheDocument());
     },
 };

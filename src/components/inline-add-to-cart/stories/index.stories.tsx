@@ -113,3 +113,7 @@ export const KeyboardControls: Story = {
 export const Disabled: Story = {
     args: { disabled: true },
 };
+
+export const CornerAdd: Story = { args: { variant: 'compact' } };
+export const CornerInCart: Story = { args: { variant: 'compact', quantityInCart: 2 } };
+export const CornerRemove: Story = { args: { variant: 'compact', quantityInCart: 1 } };

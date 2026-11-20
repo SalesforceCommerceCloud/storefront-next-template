@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement } from 'react';
+import { memo, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import InlineAddToCart, { type InlineAddToCartProps } from '@/components/inline-add-to-cart';
 import { useInlineCartQuantity } from '@/hooks/use-inline-cart-quantity';
 
 export interface ConnectedInlineAddToCartProps
-    extends Pick<InlineAddToCartProps, 'onAdd' | 'disabled' | 'loading' | 'productName' | 'className'> {
+    extends Pick<InlineAddToCartProps, 'onAdd' | 'disabled' | 'loading' | 'productName' | 'className' | 'variant'> {
     /** Selected SKU (a resolved variant's product id, or the standard product id). */
     productId: string | undefined;
     /** Selected pickup store. Omitted for ship-to-home. */
@@ -35,7 +35,7 @@ export interface ConnectedInlineAddToCartProps
  * hook. It is lazy-loaded after the PDP's initial render so the basket is only
  * hydrated when the inline control is enabled.
  */
-export default function ConnectedInlineAddToCart({
+function ConnectedInlineAddToCart({
     productId,
     storeId,
     stockLevel,
@@ -45,19 +45,28 @@ export default function ConnectedInlineAddToCart({
     loading,
     productName,
     className,
+    variant,
 }: ConnectedInlineAddToCartProps): ReactElement {
     const { t } = useTranslation('quantitySelector');
-    const { quantityInCart, increment, decrement, isUpdating, incrementDisabled, isResolvingQuantity } =
-        useInlineCartQuantity({
-            productId,
-            storeId,
-            stockLevel,
-            maxQuantity,
-            enabled: true,
-        });
+    const {
+        quantityInCart,
+        increment,
+        decrement,
+        isUpdating,
+        isQuantityPending,
+        incrementDisabled,
+        isResolvingQuantity,
+    } = useInlineCartQuantity({
+        productId,
+        storeId,
+        stockLevel,
+        maxQuantity,
+        enabled: true,
+    });
 
     return (
         <InlineAddToCart
+            variant={variant}
             quantityInCart={quantityInCart}
             onAdd={onAdd}
             onIncrement={increment}
@@ -65,6 +74,7 @@ export default function ConnectedInlineAddToCart({
             disabled={disabled}
             incrementDisabled={incrementDisabled}
             loading={loading || isUpdating}
+            pendingQuantity={isQuantityPending}
             resolvingQuantity={isResolvingQuantity}
             productName={productName}
             stockMessage={incrementDisabled ? t('maxStockReached') : null}
@@ -72,3 +82,5 @@ export default function ConnectedInlineAddToCart({
         />
     );
 }
+
+export default memo(ConnectedInlineAddToCart);

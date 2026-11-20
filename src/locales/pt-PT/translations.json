@@ -50,6 +50,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "Recomendações de produtos"
+        },
+        "contentCarousel": {
+            "label": "Carrossel de conteúdo",
+            "emptyLabel": "Carrossel de conteúdo",
+            "play": "Reproduzir apresentação",
+            "pause": "Pausar apresentação",
+            "position": "Item {{current}} de {{count}}"
         }
     },
     "search": {

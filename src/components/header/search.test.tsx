@@ -78,14 +78,14 @@ const mockUseTransformSearchSuggestions = vi.mocked(useTransformSearchSuggestion
 
 // --- Helpers ---
 
-const renderSearchBar = (config: AppConfig = mockConfig) => {
+const renderSearchBar = (config: AppConfig = mockConfig, variant: 'default' | 'filled' = 'default') => {
     const router = createMemoryRouter(
         [
             {
                 path: '*',
                 element: (
                     <AllProvidersWrapper config={config}>
-                        <SearchBar />
+                        <SearchBar variant={variant} />
                     </AllProvidersWrapper>
                 ),
             },
@@ -110,6 +110,14 @@ describe('SearchBar Component', () => {
     afterEach(() => {
         vi.useRealTimers();
         vi.restoreAllMocks();
+    });
+
+    test('filled search keeps the labelled combobox and uses semantic surface utilities', () => {
+        renderSearchBar(mockConfig, 'filled');
+        const search = screen.getByRole('combobox');
+        expect(search).toHaveAccessibleName();
+        expect(search).toHaveClass('bg-muted', 'text-foreground', 'border-transparent', 'h-12');
+        expect(search.closest('form')).toHaveClass('w-full');
     });
 
     describe('Basic Rendering', () => {

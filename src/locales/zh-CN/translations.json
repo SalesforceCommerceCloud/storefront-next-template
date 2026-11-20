@@ -51,6 +51,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "产品推荐"
+        },
+        "contentCarousel": {
+            "label": "内容轮播",
+            "emptyLabel": "内容轮播",
+            "play": "播放幻灯片",
+            "pause": "暂停幻灯片",
+            "position": "第 {{current}} 项，共 {{count}} 项"
         }
     },
     "search": {

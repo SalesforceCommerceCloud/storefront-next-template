@@ -14,18 +14,28 @@
  * limitations under the License.
  */
 import type { ReactElement } from 'react';
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from 'react-i18next';
 import { MAX_VISIBLE_TILES } from './constants';
 
-export function LastOrderCardSkeleton(): ReactElement {
+const SKELETON_TILES = Array.from({ length: MAX_VISIBLE_TILES + 1 }, (_, index) => `last-order-tile-${index}`);
+
+export function LastOrderCardSkeleton({ variant = 'default' }: { variant?: 'default' | 'compact' } = {}): ReactElement {
+    const compact = variant === 'compact';
     const { t } = useTranslation('account');
     return (
         <div
             role="status"
             aria-label={t('lastOrderCard.loadingAriaLabel')}
-            className="overflow-hidden rounded-ui bg-separator">
-            <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8">
+            className={cn('overflow-hidden rounded-ui bg-separator', compact && 'h-full @container/last-order')}>
+            <div
+                className={cn(
+                    'flex flex-col gap-6 p-6 md:p-8',
+                    compact
+                        ? 'grid grid-cols-1 @xl/last-order:grid-cols-2 items-center'
+                        : 'md:flex-row md:items-center md:justify-between'
+                )}>
                 <div className="max-w-md">
                     <Skeleton className="h-4 w-24" />
                     <Skeleton className="mt-2 h-9 w-64" />
@@ -36,10 +46,15 @@ export function LastOrderCardSkeleton(): ReactElement {
                         <Skeleton className="h-10 w-36" />
                     </div>
                 </div>
-                <div className="grid grid-cols-5 gap-2 md:justify-self-end">
-                    {Array.from({ length: MAX_VISIBLE_TILES + 1 }).map((_, i) => (
-                        // oxlint-disable-next-line react/no-array-index-key -- static skeleton tiles
-                        <Skeleton key={i} className="size-16 rounded-ui sm:size-20 md:size-24" />
+                <div className={cn('grid grid-cols-5 gap-2', compact ? 'w-full max-w-sm' : 'md:justify-self-end')}>
+                    {SKELETON_TILES.map((tile) => (
+                        <Skeleton
+                            key={tile}
+                            className={cn(
+                                'rounded-ui',
+                                compact ? 'aspect-square w-full max-w-16' : 'size-16 sm:size-20 md:size-24'
+                            )}
+                        />
                     ))}
                 </div>
             </div>

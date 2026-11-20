@@ -50,6 +50,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "Tuotesuositukset"
+        },
+        "contentCarousel": {
+            "label": "Sisältökaruselli",
+            "emptyLabel": "Sisältökaruselli",
+            "play": "Toista diaesitys",
+            "pause": "Keskeytä diaesitys",
+            "position": "Kohde {{current}}/{{count}}"
         }
     },
     "search": {

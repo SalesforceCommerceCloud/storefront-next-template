@@ -129,6 +129,12 @@ function MyComponent() {
 >
 > **Discouraged:** `<Suspense><LazyComponent /></Suspense>` without a guard — the chunk is separate but still fetched and parsed on mount, adding to TBT during page startup.
 
+### Renderer-only merchandising imports
+
+Direct route compositions can import `content-card/card`, `content-carousel/carousel`, `image-banner/banner`, and `hero/hero` under `@/components/`. These are the same renderers exported by their Page Designer entry points, without eagerly importing decorator metadata. Keep registry/authoring imports at the component's index; customizations to renderer leaves apply to both entry points.
+
+Corner product controls preload near the viewport or on tile intent, while product imagery, price and links remain server-rendered. Account-only homepage modules mount only for registered shoppers. Loader-created data promises remain unchanged.
+
 ### Deferred Rendering with `useDeferredRender`
 
 Mounting a `<Suspense>` boundary at the top of the component tree forces React to retain the entire fallback subtree in memory and process it during initial render — even if the user hasn't scrolled near that content. For large grids or heavy off-screen sections, this unconditional top-level mounting inflates [Total Blocking Time](https://web.dev/articles/tbt) (TBT) and competes for the main thread with [LCP](https://web.dev/articles/lcp) candidates in the initial viewport.

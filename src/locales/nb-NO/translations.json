@@ -51,6 +51,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "Produktanbefalinger"
+        },
+        "contentCarousel": {
+            "label": "Innholdskarusell",
+            "emptyLabel": "Innholdskarusell",
+            "play": "Spill av lysbildefremvisning",
+            "pause": "Sett lysbildefremvisningen på pause",
+            "position": "Element {{current}} av {{count}}"
         }
     },
     "search": {

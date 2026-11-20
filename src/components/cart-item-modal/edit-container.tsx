@@ -38,6 +38,7 @@ export function CartItemModalEditContainer({
     product,
     itemId,
     onOpenChange,
+    onCloseAutoFocus,
     initialQuantity = 1,
     onBuyNow,
     open = false,
@@ -148,6 +149,7 @@ export function CartItemModalEditContainer({
         <CartItemModalView
             open={open}
             onOpenChange={onOpenChange}
+            onCloseAutoFocus={onCloseAutoFocus}
             dialogTitle={t('title')}
             // The cart loader supplies product data synchronously.
             isLoading={false}

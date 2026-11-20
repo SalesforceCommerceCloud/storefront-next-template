@@ -1,0 +1,2143 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Content Carousel stories > Autoplay renders content cards 1`] = `
+<div
+  data-slot="content-carousel"
+  style="--content-carousel-mobile-width: 80%; --content-carousel-tablet-width: 44.44444444444444%; --content-carousel-desktop-width: 23.529411764705884%;"
+>
+  <div
+    class="section-container py-6"
+  >
+    <div
+      class="flex items-center justify-between"
+    >
+      <h2
+        class="text-4xl font-medium leading-none tracking-[-0.9px] text-foreground"
+      >
+        Discover more
+      </h2>
+      <div
+        class="ml-auto flex items-center gap-3"
+      >
+        <button
+          aria-label="Pause the slideshow"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-11"
+          data-size="icon"
+          data-slot="button"
+          data-variant="secondary"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-pause size-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              height="18"
+              rx="1"
+              width="5"
+              x="14"
+              y="3"
+            />
+            <rect
+              height="18"
+              rx="1"
+              width="5"
+              x="5"
+              y="3"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div
+      aria-label="Discover more"
+      aria-roledescription="carousel"
+      class="relative w-full py-0 mt-3"
+      data-slot="carousel"
+      role="region"
+    >
+      <div
+        class="overflow-hidden"
+        data-slot="carousel-content"
+      >
+        <div
+          class="flex items-stretch flex-nowrap -ml-4"
+          role="list"
+          style="transform: translate3d(0px,0px,0px);"
+        >
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 1 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="high"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 1
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 1"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-1"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 2 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 2
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 2"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-2"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 3 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 3
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 3"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-3"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 4 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 4
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 4"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-4"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 5 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 5
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 5"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-5"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 6 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="lazy"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 6
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 6"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-6"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 shadow-md size-11 shadow-ui [--ui-shadow:var(--float-shadow,var(--shadow-md))]"
+        data-size="icon"
+        data-slot="carousel-previous"
+        data-variant="outline"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-left"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m12 19-7-7 7-7"
+          />
+          <path
+            d="M19 12H5"
+          />
+        </svg>
+        <span
+          class="sr-only"
+        >
+          Previous slide
+        </span>
+      </button>
+      <button
+        class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 shadow-md size-11 shadow-ui [--ui-shadow:var(--float-shadow,var(--shadow-md))]"
+        data-size="icon"
+        data-slot="carousel-next"
+        data-variant="outline"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-right"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="m12 5 7 7-7 7"
+          />
+        </svg>
+        <span
+          class="sr-only"
+        >
+          Next slide
+        </span>
+      </button>
+    </div>
+  </div>
+  <span
+    aria-atomic="true"
+    aria-live="off"
+    class="sr-only"
+  >
+    Item 1 of 6
+  </span>
+</div>
+`;
+
+exports[`Content Carousel stories > CampaignPresentation renders content cards 1`] = `
+<div
+  data-slot="content-carousel"
+  style="--content-carousel-mobile-width: 80%; --content-carousel-tablet-width: 44.44444444444444%; --content-carousel-desktop-width: 23.529411764705884%;"
+>
+  <div
+    class="section-container py-6"
+  >
+    <div
+      class="flex items-center justify-between"
+    >
+      <h2
+        class="text-xl font-extrabold tracking-tight text-foreground md:text-2xl"
+      >
+        Discover more
+      </h2>
+    </div>
+    <div
+      aria-label="Discover more"
+      aria-roledescription="carousel"
+      class="relative w-full py-0 mt-3"
+      data-slot="carousel"
+      role="region"
+    >
+      <div
+        class="overflow-hidden"
+        data-slot="carousel-content"
+      >
+        <div
+          class="flex items-stretch flex-nowrap -ml-4"
+          role="list"
+        >
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 gap-0 py-0 w-full"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 1 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="high"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-5"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10 text-card"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl tracking-tight mb-4 font-extrabold leading-tight text-card"
+                        >
+                          Campaign 1
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 1"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:underline has-[>svg]:px-3 w-fit text-sm leading-5 mt-3 h-auto bg-transparent px-0 py-0 font-extrabold text-inherit underline underline-offset-4 hover:bg-transparent hover:text-inherit"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="link"
+                        href="/global/en-GB/search?q=campaign-1"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 gap-0 py-0 w-full"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 2 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-5"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10 text-card"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl tracking-tight mb-4 font-extrabold leading-tight text-card"
+                        >
+                          Campaign 2
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 2"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:underline has-[>svg]:px-3 w-fit text-sm leading-5 mt-3 h-auto bg-transparent px-0 py-0 font-extrabold text-inherit underline underline-offset-4 hover:bg-transparent hover:text-inherit"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="link"
+                        href="/global/en-GB/search?q=campaign-2"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 gap-0 py-0 w-full"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 3 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-5"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10 text-card"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl tracking-tight mb-4 font-extrabold leading-tight text-card"
+                        >
+                          Campaign 3
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 3"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:underline has-[>svg]:px-3 w-fit text-sm leading-5 mt-3 h-auto bg-transparent px-0 py-0 font-extrabold text-inherit underline underline-offset-4 hover:bg-transparent hover:text-inherit"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="link"
+                        href="/global/en-GB/search?q=campaign-3"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 gap-0 py-0 w-full"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 4 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-5"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10 text-card"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl tracking-tight mb-4 font-extrabold leading-tight text-card"
+                        >
+                          Campaign 4
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 4"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:underline has-[>svg]:px-3 w-fit text-sm leading-5 mt-3 h-auto bg-transparent px-0 py-0 font-extrabold text-inherit underline underline-offset-4 hover:bg-transparent hover:text-inherit"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="link"
+                        href="/global/en-GB/search?q=campaign-4"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 gap-0 py-0 w-full"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 5 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-5"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10 text-card"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl tracking-tight mb-4 font-extrabold leading-tight text-card"
+                        >
+                          Campaign 5
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 5"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:underline has-[>svg]:px-3 w-fit text-sm leading-5 mt-3 h-auto bg-transparent px-0 py-0 font-extrabold text-inherit underline underline-offset-4 hover:bg-transparent hover:text-inherit"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="link"
+                        href="/global/en-GB/search?q=campaign-5"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 gap-0 py-0 w-full"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 6 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="lazy"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-5"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10 text-card"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl tracking-tight mb-4 font-extrabold leading-tight text-card"
+                        >
+                          Campaign 6
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 6"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:underline has-[>svg]:px-3 w-fit text-sm leading-5 mt-3 h-auto bg-transparent px-0 py-0 font-extrabold text-inherit underline underline-offset-4 hover:bg-transparent hover:text-inherit"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="link"
+                        href="/global/en-GB/search?q=campaign-6"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 shadow-md size-11 shadow-ui [--ui-shadow:var(--float-shadow,var(--shadow-md))]"
+        data-size="icon"
+        data-slot="carousel-previous"
+        data-variant="outline"
+        disabled=""
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-left"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m12 19-7-7 7-7"
+          />
+          <path
+            d="M19 12H5"
+          />
+        </svg>
+        <span
+          class="sr-only"
+        >
+          Previous slide
+        </span>
+      </button>
+      <button
+        class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 shadow-md size-11 shadow-ui [--ui-shadow:var(--float-shadow,var(--shadow-md))]"
+        data-size="icon"
+        data-slot="carousel-next"
+        data-variant="outline"
+        disabled=""
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-right"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="m12 5 7 7-7 7"
+          />
+        </svg>
+        <span
+          class="sr-only"
+        >
+          Next slide
+        </span>
+      </button>
+    </div>
+  </div>
+  <span
+    aria-atomic="true"
+    aria-live="polite"
+    class="sr-only"
+  >
+    Item 1 of 6
+  </span>
+</div>
+`;
+
+exports[`Content Carousel stories > Default renders content cards 1`] = `
+<div
+  data-slot="content-carousel"
+  style="--content-carousel-mobile-width: 80%; --content-carousel-tablet-width: 44.44444444444444%; --content-carousel-desktop-width: 23.529411764705884%;"
+>
+  <div
+    class="section-container py-6"
+  >
+    <div
+      class="flex items-center justify-between"
+    >
+      <h2
+        class="text-4xl font-medium leading-none tracking-[-0.9px] text-foreground"
+      >
+        Discover more
+      </h2>
+    </div>
+    <div
+      aria-label="Discover more"
+      aria-roledescription="carousel"
+      class="relative w-full py-0 mt-3"
+      data-slot="carousel"
+      role="region"
+    >
+      <div
+        class="overflow-hidden"
+        data-slot="carousel-content"
+      >
+        <div
+          class="flex items-stretch flex-nowrap -ml-4"
+          role="list"
+        >
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 1 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="high"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 1
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 1"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-1"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 2 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 2
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 2"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-2"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 3 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 3
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 3"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-3"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 4 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 4
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 4"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-4"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 5 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 5
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 5"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-5"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 6 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="auto"
+                      loading="lazy"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 6
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 6"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-6"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 shadow-md size-11 shadow-ui [--ui-shadow:var(--float-shadow,var(--shadow-md))]"
+        data-size="icon"
+        data-slot="carousel-previous"
+        data-variant="outline"
+        disabled=""
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-left"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m12 19-7-7 7-7"
+          />
+          <path
+            d="M19 12H5"
+          />
+        </svg>
+        <span
+          class="sr-only"
+        >
+          Previous slide
+        </span>
+      </button>
+      <button
+        class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 shadow-md size-11 shadow-ui [--ui-shadow:var(--float-shadow,var(--shadow-md))]"
+        data-size="icon"
+        data-slot="carousel-next"
+        data-variant="outline"
+        disabled=""
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-right"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="m12 5 7 7-7 7"
+          />
+        </svg>
+        <span
+          class="sr-only"
+        >
+          Next slide
+        </span>
+      </button>
+    </div>
+  </div>
+  <span
+    aria-atomic="true"
+    aria-live="polite"
+    class="sr-only"
+  >
+    Item 1 of 6
+  </span>
+</div>
+`;
+
+exports[`Content Carousel stories > Empty renders content cards 1`] = `null`;
+
+exports[`Content Carousel stories > ImageCards renders content cards 1`] = `
+<div
+  data-slot="content-carousel"
+  style="--content-carousel-mobile-width: 80%; --content-carousel-tablet-width: 44.44444444444444%; --content-carousel-desktop-width: 23.529411764705884%;"
+>
+  <div
+    class="section-container py-6"
+  >
+    <div
+      class="flex items-center justify-between"
+    >
+      <h2
+        class="text-4xl font-medium leading-none tracking-[-0.9px] text-foreground"
+      >
+        Discover more
+      </h2>
+    </div>
+    <div
+      aria-label="Discover more"
+      aria-roledescription="carousel"
+      class="relative w-full py-0 mt-3"
+      data-slot="carousel"
+      role="region"
+    >
+      <div
+        class="overflow-hidden"
+        data-slot="carousel-content"
+      >
+        <div
+          class="flex items-stretch flex-nowrap -ml-4"
+          role="list"
+        >
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <a
+                  aria-label="Collection 1"
+                  class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  data-discover="true"
+                  href="/global/en-GB/search?q=collection-1"
+                >
+                  <div
+                    class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                  >
+                    <div
+                      class="absolute inset-0 size-full"
+                    >
+                      <img
+                        alt="Collection 1"
+                        class="size-full object-cover"
+                        fetchpriority="high"
+                        loading="eager"
+                        src="/images/hero-01.webp"
+                        style="object-position: 50% 50%;"
+                      />
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <span
+                class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-secondary/90 absolute right-2 bottom-2 bg-background/90 font-bold text-foreground"
+                data-slot="content-card-badge"
+              >
+                Sponsored
+              </span>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <a
+                  aria-label="Collection 2"
+                  class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  data-discover="true"
+                  href="/global/en-GB/search?q=collection-2"
+                >
+                  <div
+                    class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                  >
+                    <div
+                      class="absolute inset-0 size-full"
+                    >
+                      <img
+                        alt="Collection 2"
+                        class="size-full object-cover"
+                        fetchpriority="auto"
+                        loading="eager"
+                        src="/images/hero-01.webp"
+                        style="object-position: 50% 50%;"
+                      />
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <span
+                class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-secondary/90 absolute right-2 bottom-2 bg-background/90 font-bold text-foreground"
+                data-slot="content-card-badge"
+              >
+                Sponsored
+              </span>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <a
+                  aria-label="Collection 3"
+                  class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  data-discover="true"
+                  href="/global/en-GB/search?q=collection-3"
+                >
+                  <div
+                    class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                  >
+                    <div
+                      class="absolute inset-0 size-full"
+                    >
+                      <img
+                        alt="Collection 3"
+                        class="size-full object-cover"
+                        fetchpriority="auto"
+                        loading="eager"
+                        src="/images/hero-01.webp"
+                        style="object-position: 50% 50%;"
+                      />
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <span
+                class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-secondary/90 absolute right-2 bottom-2 bg-background/90 font-bold text-foreground"
+                data-slot="content-card-badge"
+              >
+                Sponsored
+              </span>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <a
+                  aria-label="Collection 4"
+                  class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  data-discover="true"
+                  href="/global/en-GB/search?q=collection-4"
+                >
+                  <div
+                    class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                  >
+                    <div
+                      class="absolute inset-0 size-full"
+                    >
+                      <img
+                        alt="Collection 4"
+                        class="size-full object-cover"
+                        fetchpriority="auto"
+                        loading="eager"
+                        src="/images/hero-01.webp"
+                        style="object-position: 50% 50%;"
+                      />
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <span
+                class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-secondary/90 absolute right-2 bottom-2 bg-background/90 font-bold text-foreground"
+                data-slot="content-card-badge"
+              >
+                Sponsored
+              </span>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <a
+                  aria-label="Collection 5"
+                  class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  data-discover="true"
+                  href="/global/en-GB/search?q=collection-5"
+                >
+                  <div
+                    class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                  >
+                    <div
+                      class="absolute inset-0 size-full"
+                    >
+                      <img
+                        alt="Collection 5"
+                        class="size-full object-cover"
+                        fetchpriority="auto"
+                        loading="eager"
+                        src="/images/hero-01.webp"
+                        style="object-position: 50% 50%;"
+                      />
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <span
+                class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-secondary/90 absolute right-2 bottom-2 bg-background/90 font-bold text-foreground"
+                data-slot="content-card-badge"
+              >
+                Sponsored
+              </span>
+            </div>
+          </div>
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <a
+                  aria-label="Collection 6"
+                  class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  data-discover="true"
+                  href="/global/en-GB/search?q=collection-6"
+                >
+                  <div
+                    class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                  >
+                    <div
+                      class="absolute inset-0 size-full"
+                    >
+                      <img
+                        alt="Collection 6"
+                        class="size-full object-cover"
+                        fetchpriority="auto"
+                        loading="lazy"
+                        src="/images/hero-01.webp"
+                        style="object-position: 50% 50%;"
+                      />
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <span
+                class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-secondary/90 absolute right-2 bottom-2 bg-background/90 font-bold text-foreground"
+                data-slot="content-card-badge"
+              >
+                Sponsored
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 shadow-md size-11 shadow-ui [--ui-shadow:var(--float-shadow,var(--shadow-md))]"
+        data-size="icon"
+        data-slot="carousel-previous"
+        data-variant="outline"
+        disabled=""
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-left"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m12 19-7-7 7-7"
+          />
+          <path
+            d="M19 12H5"
+          />
+        </svg>
+        <span
+          class="sr-only"
+        >
+          Previous slide
+        </span>
+      </button>
+      <button
+        class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 shadow-md size-11 shadow-ui [--ui-shadow:var(--float-shadow,var(--shadow-md))]"
+        data-size="icon"
+        data-slot="carousel-next"
+        data-variant="outline"
+        disabled=""
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-right"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="m12 5 7 7-7 7"
+          />
+        </svg>
+        <span
+          class="sr-only"
+        >
+          Next slide
+        </span>
+      </button>
+    </div>
+  </div>
+  <span
+    aria-atomic="true"
+    aria-live="polite"
+    class="sr-only"
+  >
+    Item 1 of 6
+  </span>
+</div>
+`;
+
+exports[`Content Carousel stories > SingleCard renders content cards 1`] = `
+<div
+  data-slot="content-carousel"
+  style="--content-carousel-mobile-width: 80%; --content-carousel-tablet-width: 44.44444444444444%; --content-carousel-desktop-width: 23.529411764705884%;"
+>
+  <div
+    class="section-container py-6"
+  >
+    <div
+      class="flex items-center justify-between"
+    >
+      <h2
+        class="text-4xl font-medium leading-none tracking-[-0.9px] text-foreground"
+      >
+        Discover more
+      </h2>
+    </div>
+    <div
+      aria-label="Discover more"
+      aria-roledescription="carousel"
+      class="relative w-full py-0 mt-3"
+      data-slot="carousel"
+      role="region"
+    >
+      <div
+        class="overflow-hidden"
+        data-slot="carousel-content"
+      >
+        <div
+          class="flex items-stretch flex-nowrap -ml-4"
+          role="list"
+          style="transform: translate3d(0px,0px,0px);"
+        >
+          <div
+            aria-roledescription="slide"
+            class="shrink-0 grow-0 flex min-w-0 basis-(--content-carousel-mobile-width) md:basis-(--content-carousel-tablet-width) lg:basis-(--content-carousel-desktop-width) pl-4"
+            data-slot="carousel-item"
+            role="listitem"
+          >
+            <div
+              class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 w-full gap-0 py-0"
+              data-slot="card"
+            >
+              <div
+                class="p-0"
+                data-slot="card-content"
+              >
+                <div
+                  class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+                >
+                  <div
+                    class="absolute inset-0 size-full"
+                  >
+                    <img
+                      alt="Campaign 1 artwork"
+                      class="size-full object-cover"
+                      fetchpriority="high"
+                      loading="eager"
+                      src="/images/hero-01.webp"
+                      style="object-position: 50% 50%;"
+                    />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
+                  >
+                    <div
+                      class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+                      data-slot="content-card-overlay"
+                    />
+                    <div
+                      class="relative z-10"
+                    >
+                      <div
+                        class="flex-1 flex flex-col justify-end"
+                      >
+                        <h3
+                          class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
+                        >
+                          Campaign 1
+                        </h3>
+                        <p
+                          class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+                        >
+                          Explore seasonal collections and everyday favourites.
+                        </p>
+                      </div>
+                      <a
+                        aria-label="Explore campaign 1"
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+                        data-discover="true"
+                        data-size="default"
+                        data-slot="button"
+                        data-variant="default"
+                        href="/global/en-GB/search?q=campaign-1"
+                      >
+                        Explore
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span
+    aria-atomic="true"
+    aria-live="polite"
+    class="sr-only"
+  >
+    Item 1 of 1
+  </span>
+</div>
+`;

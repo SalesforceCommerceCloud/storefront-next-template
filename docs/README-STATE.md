@@ -617,3 +617,9 @@ const results = useMemo(() => search(deferredQuery), [deferredQuery]);
 
 > [!NOTE]
 > In the React Router framework, `useActionState` has no practical relevance. Route `action` + `Form` and `useFetcher` provide the same pending/error lifecycle and additionally trigger automatic loader revalidation after mutations. `useActionState` bypasses React Router's data lifecycle entirely, loaders aren't revalidated after a `useActionState` action completes. Even for purely client-side logic, a `clientAction` with `useFetcher` is preferable because it keeps the component within React Router's consistent data flow and avoids introducing a parallel mutation pattern.
+
+### Basket quantity controls
+
+`useBasketItemState` selects quantity and hydration state by SKU and fulfillment choice from a per-provider, read-only publication of the basket. Unrelated quantities and snapshot totals preserve the selected value's identity. The existing basket provider still owns loading, cookie reconciliation, and updates.
+
+`useItemMutation` registers one native fetcher runtime with the basket publication provider while controls own active lines. The runtime and SKU selector live in the lazy control graph; the initial shell only publishes committed state. Native fetcher keys include basket identity, and one runtime monitors pending state. `useItemMutation` subscribes to one item's response and pending status. Duplicate controls share a handle; basket-id changes discard old handles and results. This avoids subscribing every quantity control to Router's full fetcher state.

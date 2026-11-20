@@ -70,6 +70,13 @@
         },
         "productRecommendations": {
             "emptyTitle": "Product Recommendations"
+        },
+        "contentCarousel": {
+            "label": "Content carousel",
+            "emptyLabel": "Content Carousel",
+            "play": "Play the slideshow",
+            "pause": "Pause the slideshow",
+            "position": "Item {{current}} of {{count}}"
         }
     },
     "search": {

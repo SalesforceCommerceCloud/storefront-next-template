@@ -41,7 +41,7 @@ vi.mock('@/hooks/use-navigate', () => ({
 // Stub both so the snapshot doesn't require ConfigProvider.
 vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@salesforce/storefront-next-runtime/config')>();
-    return { ...actual, useConfig: () => ({ features: {}, url: {}, hybrid: undefined }) };
+    return { ...actual, useConfig: () => ({ features: {}, url: {}, hybrid: undefined, pages: { navigation: { maxDepth: 2 } } }) };
 });
 
 vi.mock('@/components/link', () => ({

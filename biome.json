@@ -37,6 +37,7 @@
             "!**/cartridges/**/cartridge/scripts/**/*.js",
             "!!**/e2e/**",
             "!!e2e/**",
+            "!tsconfig.fashion.json",
             "!tsconfig.grocery.json",
             "!.storybook/**",
             "!_local/**",

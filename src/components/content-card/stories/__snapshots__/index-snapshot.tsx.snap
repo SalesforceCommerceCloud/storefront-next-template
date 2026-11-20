@@ -1,5 +1,68 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`ContentCard stories snapshot > Campaign story renders and matches snapshot 1`] = `
+<div
+  style="width: 400px;"
+>
+  <div
+    class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 gap-0 py-0"
+    data-slot="card"
+  >
+    <div
+      class="p-0"
+      data-slot="card-content"
+    >
+      <div
+        class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+      >
+        <img
+          alt="Featured Product"
+          class="w-full h-full object-cover"
+          loading="lazy"
+          src="https://via.placeholder.com/400x300"
+          style="object-position: 50% 50%;"
+        />
+        <div
+          class="absolute inset-0 flex flex-col p-5 justify-start"
+        >
+          <div
+            class="absolute inset-0 bg-[image:var(--content-card-overlay-light-top)]"
+            data-slot="content-card-overlay"
+          />
+          <div
+            class="relative z-10 text-foreground"
+          >
+            <div
+              class="flex-1 flex flex-col gap-1.5"
+            >
+              <h3
+                class="text-2xl tracking-tight mb-0 font-extrabold leading-tight text-foreground"
+              >
+                Featured Product
+              </h3>
+              <p
+                class="text-sm font-normal leading-5 mb-0 whitespace-pre-line text-muted-foreground"
+              >
+                Discover our latest collection of premium products designed for modern living.
+              </p>
+            </div>
+            <a
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:underline has-[>svg]:px-3 w-fit text-sm leading-5 mt-3 h-auto bg-transparent px-0 py-0 font-extrabold text-inherit underline underline-offset-4 hover:bg-transparent hover:text-inherit"
+              data-size="default"
+              data-slot="button"
+              data-variant="link"
+              href="/c/featured"
+            >
+              Shop Now
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`ContentCard stories snapshot > CustomClassNames story renders and matches snapshot 1`] = `
 <div
   style="width: 400px;"
@@ -26,7 +89,8 @@ exports[`ContentCard stories snapshot > CustomClassNames story renders and match
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8 footer-override-sentinel"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
+            class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+            data-slot="content-card-overlay"
           />
           <div
             class="relative z-10"
@@ -35,7 +99,7 @@ exports[`ContentCard stories snapshot > CustomClassNames story renders and match
               class="flex-1 flex flex-col justify-end description-override-sentinel"
             >
               <h3
-                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
+                class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
               >
                 Custom Class Names
               </h3>
@@ -88,7 +152,8 @@ exports[`ContentCard stories snapshot > Default story renders and matches snapsh
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
+            class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+            data-slot="content-card-overlay"
           />
           <div
             class="relative z-10"
@@ -97,7 +162,7 @@ exports[`ContentCard stories snapshot > Default story renders and matches snapsh
               class="flex-1 flex flex-col justify-end"
             >
               <h3
-                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
+                class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
               >
                 Featured Product
               </h3>
@@ -119,6 +184,52 @@ exports[`ContentCard stories snapshot > Default story renders and matches snapsh
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ContentCard stories snapshot > ImageBanner story renders and matches snapshot 1`] = `
+<div
+  class="w-[80vw]"
+>
+  <div
+    style="width: 400px;"
+  >
+    <div
+      class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden [--ui-border-width:0] ring-0 ring-secondary/40 bg-muted/50 border-0 gap-0 py-0 w-full"
+      data-slot="card"
+    >
+      <div
+        class="p-0"
+        data-slot="card-content"
+      >
+        <a
+          aria-label="Seasonal campaign"
+          class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+          href="/c/seasonal"
+        >
+          <div
+            class="relative overflow-hidden bg-secondary/20 aspect-auto"
+          >
+            <img
+              alt="Seasonal campaign"
+              class="block h-auto w-full"
+              height="240"
+              loading="lazy"
+              src="/images/content-placeholder.svg"
+              style="object-position: 50% 50%;"
+              width="1600"
+            />
+          </div>
+        </a>
+      </div>
+      <span
+        class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-secondary/90 absolute right-2 bottom-2 bg-background/90 font-bold text-foreground"
+        data-slot="content-card-badge"
+      >
+        Sponsored
+      </span>
     </div>
   </div>
 </div>
@@ -150,7 +261,8 @@ exports[`ContentCard stories snapshot > LongCopy story renders and matches snaps
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
+            class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+            data-slot="content-card-overlay"
           />
           <div
             class="relative z-10"
@@ -159,7 +271,7 @@ exports[`ContentCard stories snapshot > LongCopy story renders and matches snaps
               class="flex-1 flex flex-col justify-end"
             >
               <h3
-                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
+                class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
               >
                 Discover the Most Comprehensive Curated Collection of Sustainable, Ethically Sourced, Premium-Quality Goods Designed for the Modern Conscious Consumer
               </h3>
@@ -191,7 +303,7 @@ exports[`ContentCard stories snapshot > NoBackground story renders and matches s
   style="width: 400px;"
 >
   <div
-    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui relative h-full overflow-hidden bg-transparent border-0"
+    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui relative h-full overflow-hidden [--ui-border-width:0] ring-0 bg-transparent border-0"
     data-slot="card"
   >
     <div
@@ -212,7 +324,8 @@ exports[`ContentCard stories snapshot > NoBackground story renders and matches s
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
+            class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+            data-slot="content-card-overlay"
           />
           <div
             class="relative z-10"
@@ -221,7 +334,7 @@ exports[`ContentCard stories snapshot > NoBackground story renders and matches s
               class="flex-1 flex flex-col justify-end"
             >
               <h3
-                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
+                class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
               >
                 Transparent Card
               </h3>
@@ -274,7 +387,8 @@ exports[`ContentCard stories snapshot > Playground story renders and matches sna
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
+            class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+            data-slot="content-card-overlay"
           />
           <div
             class="relative z-10"
@@ -283,7 +397,7 @@ exports[`ContentCard stories snapshot > Playground story renders and matches sna
               class="flex-1 flex flex-col justify-end"
             >
               <h3
-                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
+                class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
               >
                 Featured Product
               </h3>
@@ -295,6 +409,109 @@ exports[`ContentCard stories snapshot > Playground story renders and matches sna
             </div>
             <a
               class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+              data-size="default"
+              data-slot="button"
+              data-variant="default"
+              href="/c/featured"
+            >
+              Shop Now
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ContentCard stories snapshot > PortraitImage story renders and matches snapshot 1`] = `
+<div
+  style="width: 400px;"
+>
+  <div
+    class="text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50 gap-0 py-0"
+    data-slot="card"
+  >
+    <div
+      class="p-0"
+      data-slot="card-content"
+    >
+      <a
+        aria-label="Seasonal collection"
+        class="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+        href="/c/featured"
+      >
+        <div
+          class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+        >
+          <img
+            alt="Seasonal collection"
+            class="h-full w-full object-cover"
+            loading="lazy"
+            src="https://via.placeholder.com/400x300"
+            style="object-position: 50% 50%;"
+          />
+        </div>
+      </a>
+    </div>
+    <span
+      class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-secondary/90 absolute right-2 bottom-2 bg-background/90 font-bold text-foreground"
+      data-slot="content-card-badge"
+    >
+      Sponsored
+    </span>
+  </div>
+</div>
+`;
+
+exports[`ContentCard stories snapshot > PortraitOverlay story renders and matches snapshot 1`] = `
+<div
+  style="width: 400px;"
+>
+  <div
+    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50"
+    data-slot="card"
+  >
+    <div
+      class="p-0"
+      data-slot="card-content"
+    >
+      <div
+        class="relative overflow-hidden bg-secondary/20 aspect-[3/4]"
+      >
+        <img
+          alt="Featured Product"
+          class="w-full h-full object-cover"
+          loading="lazy"
+          src="https://via.placeholder.com/400x300"
+          style="object-position: 50% 50%;"
+        />
+        <div
+          class="absolute inset-0 flex flex-col p-6 md:p-8 justify-start"
+        >
+          <div
+            class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+            data-slot="content-card-overlay"
+          />
+          <div
+            class="relative z-10"
+          >
+            <div
+              class="flex-1 flex flex-col gap-3"
+            >
+              <h3
+                class="text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-0 text-card"
+              >
+                Featured Product
+              </h3>
+              <p
+                class="text-sm font-normal leading-5 mb-0 whitespace-pre-line text-muted"
+              >
+                Discover our latest collection of premium products designed for modern living.
+              </p>
+            </div>
+            <a
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground mt-4"
               data-size="default"
               data-slot="button"
               data-variant="default"
@@ -386,7 +603,8 @@ exports[`ContentCard stories snapshot > WithoutButton story renders and matches 
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
+            class="absolute inset-0 bg-[image:var(--content-card-overlay-dark)]"
+            data-slot="content-card-overlay"
           />
           <div
             class="relative z-10"
@@ -395,7 +613,7 @@ exports[`ContentCard stories snapshot > WithoutButton story renders and matches 
               class="flex-1 flex flex-col justify-end"
             >
               <h3
-                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
+                class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-card"
               >
                 Text Only Card
               </h3>
@@ -435,7 +653,7 @@ exports[`ContentCard stories snapshot > WithoutImage story renders and matches s
             class="flex-1 flex flex-col justify-end"
           >
             <h3
-              class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-foreground"
+              class="order-2 text-2xl font-semibold leading-content-card-title tracking-content-card-title mb-4 text-foreground"
             >
               Text Only, No Image
             </h3>

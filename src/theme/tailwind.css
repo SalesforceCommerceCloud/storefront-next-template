@@ -1,4 +1,12 @@
 @theme inline {
+    --color-category-card-overlay-foreground: var(--category-card-overlay-foreground);
+
+    /* Content typography defaults; each vertical can override the semantic scale. */
+    --text-eyebrow: 0.6875rem;
+    --tracking-eyebrow: 0.18em;
+    --leading-content-card-title: 1.2;
+    --tracking-content-card-title: -0.6px;
+
     /* Font families */
     --font-sans: 'Sen', -apple-system, 'system-ui', 'Helvetica Neue', Arial, sans-serif;
     --font-serif: 'Sen', Georgia, serif;
@@ -30,6 +38,7 @@
     --color-tertiary: var(--tertiary);
     --color-tertiary-foreground: var(--tertiary-foreground);
     --color-muted: var(--muted);
+    --color-product-media: var(--product-media);
     --color-muted-foreground: var(--muted-foreground);
     --color-muted-hover: var(--muted-hover);
     --color-accent: var(--accent);

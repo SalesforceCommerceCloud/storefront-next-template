@@ -131,3 +131,32 @@ export const Reordering: Story = {
 export const Loading: Story = {
     render: () => <LastOrderCardSkeleton />,
 };
+
+/** Stacked layout for a narrow homepage merchandising slot. */
+export const Compact: Story = {
+    args: { order: twentyOneItemOrder, variant: 'compact' },
+    decorators: [
+        (Story) => (
+            <div className="max-w-xl">
+                <Story />
+            </div>
+        ),
+    ],
+};
+export const CompactFewItems: Story = {
+    args: { order: fewItemOrder, variant: 'compact' },
+    decorators: [
+        (Story) => (
+            <div className="max-w-xl">
+                <Story />
+            </div>
+        ),
+    ],
+};
+export const CompactLoading: Story = {
+    render: () => (
+        <div className="max-w-xl">
+            <LastOrderCardSkeleton variant="compact" />
+        </div>
+    ),
+};

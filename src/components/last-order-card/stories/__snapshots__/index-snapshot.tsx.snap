@@ -1,0 +1,893 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Last Order Card presentations > Compact 1`] = `
+<div
+  class="max-w-xl"
+>
+  <div
+    class="overflow-hidden rounded-ui bg-separator text-foreground h-full @container/last-order"
+    data-slot="last-order-card"
+    data-variant="compact"
+  >
+    <div
+      class="flex-col gap-6 p-6 md:p-8 grid grid-cols-1 @xl/last-order:grid-cols-2 items-center"
+    >
+      <div
+        class="max-w-md"
+      >
+        <p
+          class="text-sm font-medium text-muted-foreground"
+        >
+          Last order
+        </p>
+        <h2
+          class="mt-2 font-semibold tracking-tight text-2xl"
+        >
+          Last order GN0001842
+        </h2>
+        <p
+          class="mt-3 flex flex-wrap items-baseline gap-x-2 text-sm text-muted-foreground"
+        >
+          <time
+            datetime="2026-09-18T10:00:00Z"
+          >
+            18 Sept 2026
+          </time>
+          <span
+            aria-hidden="true"
+          >
+            ·
+          </span>
+          <span>
+            21 items
+          </span>
+          <span
+            aria-hidden="true"
+          >
+            ·
+          </span>
+          <span
+            class="font-semibold text-foreground"
+          >
+            £88.29
+          </span>
+        </p>
+        <p
+          class="mt-2 text-sm text-muted-foreground"
+        >
+          Add everything available from this order, or open it in My Account to add one item at a time.
+        </p>
+        <div
+          class="mt-6 flex flex-wrap gap-3"
+        >
+          <button
+            aria-busy="false"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+            data-size="default"
+            data-slot="button"
+            data-variant="default"
+            type="button"
+          >
+            Add all to cart
+          </button>
+          <a
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+            data-discover="true"
+            data-size="default"
+            data-slot="button"
+            data-variant="outline"
+            href="/RefArchGlobal/en-GB/account/orders/GN0001842"
+          >
+            View in My Account
+          </a>
+        </div>
+      </div>
+      <ul
+        class="grid grid-cols-5 gap-2 w-full max-w-sm"
+      >
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <span
+            class="flex items-center justify-center rounded-ui bg-primary text-sm font-semibold text-primary-foreground aspect-square w-full max-w-16"
+          >
+            +11
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Last Order Card presentations > CompactFewItems 1`] = `
+<div
+  class="max-w-xl"
+>
+  <div
+    class="overflow-hidden rounded-ui bg-separator text-foreground h-full @container/last-order"
+    data-slot="last-order-card"
+    data-variant="compact"
+  >
+    <div
+      class="flex-col gap-6 p-6 md:p-8 grid grid-cols-1 @xl/last-order:grid-cols-2 items-center"
+    >
+      <div
+        class="max-w-md"
+      >
+        <p
+          class="text-sm font-medium text-muted-foreground"
+        >
+          Last order
+        </p>
+        <h2
+          class="mt-2 font-semibold tracking-tight text-2xl"
+        >
+          Last order GN0001500
+        </h2>
+        <p
+          class="mt-3 flex flex-wrap items-baseline gap-x-2 text-sm text-muted-foreground"
+        >
+          <time
+            datetime="2026-08-01T09:00:00Z"
+          >
+            1 Aug 2026
+          </time>
+          <span
+            aria-hidden="true"
+          >
+            ·
+          </span>
+          <span>
+            4 items
+          </span>
+          <span
+            aria-hidden="true"
+          >
+            ·
+          </span>
+          <span
+            class="font-semibold text-foreground"
+          >
+            £14.50
+          </span>
+        </p>
+        <p
+          class="mt-2 text-sm text-muted-foreground"
+        >
+          Add everything available from this order, or open it in My Account to add one item at a time.
+        </p>
+        <div
+          class="mt-6 flex flex-wrap gap-3"
+        >
+          <button
+            aria-busy="false"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+            data-size="default"
+            data-slot="button"
+            data-variant="default"
+            type="button"
+          >
+            Add all to cart
+          </button>
+          <a
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+            data-discover="true"
+            data-size="default"
+            data-slot="button"
+            data-variant="outline"
+            href="/RefArchGlobal/en-GB/account/orders/GN0001500"
+          >
+            View in My Account
+          </a>
+        </div>
+      </div>
+      <ul
+        class="grid grid-cols-5 gap-2 w-full max-w-sm"
+      >
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+        <li>
+          <div
+            class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground aspect-square w-full max-w-16"
+          >
+            ?
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Last Order Card presentations > CompactLoading 1`] = `
+<div
+  class="max-w-xl"
+>
+  <div
+    aria-label="Loading last order"
+    class="overflow-hidden rounded-ui bg-separator h-full @container/last-order"
+    role="status"
+  >
+    <div
+      class="flex-col gap-6 p-6 md:p-8 grid grid-cols-1 @xl/last-order:grid-cols-2 items-center"
+    >
+      <div
+        class="max-w-md"
+      >
+        <div
+          class="bg-skeleton animate-pulse rounded-ui h-4 w-24"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui mt-2 h-9 w-64"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui mt-3 h-4 w-48"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui mt-2 h-4 w-full"
+          data-slot="skeleton"
+        />
+        <div
+          class="mt-6 flex gap-3"
+        >
+          <div
+            class="bg-skeleton animate-pulse rounded-ui h-10 w-32"
+            data-slot="skeleton"
+          />
+          <div
+            class="bg-skeleton animate-pulse rounded-ui h-10 w-36"
+            data-slot="skeleton"
+          />
+        </div>
+      </div>
+      <div
+        class="grid grid-cols-5 gap-2 w-full max-w-sm"
+      >
+        <div
+          class="bg-skeleton animate-pulse rounded-ui rounded-ui aspect-square w-full max-w-16"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui rounded-ui aspect-square w-full max-w-16"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui rounded-ui aspect-square w-full max-w-16"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui rounded-ui aspect-square w-full max-w-16"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui rounded-ui aspect-square w-full max-w-16"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui rounded-ui aspect-square w-full max-w-16"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui rounded-ui aspect-square w-full max-w-16"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui rounded-ui aspect-square w-full max-w-16"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui rounded-ui aspect-square w-full max-w-16"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui rounded-ui aspect-square w-full max-w-16"
+          data-slot="skeleton"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Last Order Card presentations > Default 1`] = `
+<div
+  class="overflow-hidden rounded-ui bg-separator text-foreground"
+  data-slot="last-order-card"
+  data-variant="default"
+>
+  <div
+    class="flex flex-col gap-6 p-6 md:p-8 md:flex-row md:items-center md:justify-between"
+  >
+    <div
+      class="max-w-md"
+    >
+      <p
+        class="text-sm font-medium text-muted-foreground"
+      >
+        Last order
+      </p>
+      <h2
+        class="mt-2 font-semibold tracking-tight text-3xl"
+      >
+        Last order GN0001842
+      </h2>
+      <p
+        class="mt-3 flex flex-wrap items-baseline gap-x-2 text-sm text-muted-foreground"
+      >
+        <time
+          datetime="2026-09-18T10:00:00Z"
+        >
+          18 Sept 2026
+        </time>
+        <span
+          aria-hidden="true"
+        >
+          ·
+        </span>
+        <span>
+          21 items
+        </span>
+        <span
+          aria-hidden="true"
+        >
+          ·
+        </span>
+        <span
+          class="font-semibold text-foreground"
+        >
+          £88.29
+        </span>
+      </p>
+      <p
+        class="mt-2 text-sm text-muted-foreground"
+      >
+        Add everything available from this order, or open it in My Account to add one item at a time.
+      </p>
+      <div
+        class="mt-6 flex flex-wrap gap-3"
+      >
+        <button
+          aria-busy="false"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+          type="button"
+        >
+          Add all to cart
+        </button>
+        <a
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-discover="true"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          href="/RefArchGlobal/en-GB/account/orders/GN0001842"
+        >
+          View in My Account
+        </a>
+      </div>
+    </div>
+    <ul
+      class="grid grid-cols-5 gap-2 md:justify-self-end"
+    >
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <span
+          class="flex items-center justify-center rounded-ui bg-primary text-sm font-semibold text-primary-foreground size-16 sm:size-20 md:size-24"
+        >
+          +11
+        </span>
+      </li>
+    </ul>
+  </div>
+</div>
+`;
+
+exports[`Last Order Card presentations > FewItems 1`] = `
+<div
+  class="overflow-hidden rounded-ui bg-separator text-foreground"
+  data-slot="last-order-card"
+  data-variant="default"
+>
+  <div
+    class="flex flex-col gap-6 p-6 md:p-8 md:flex-row md:items-center md:justify-between"
+  >
+    <div
+      class="max-w-md"
+    >
+      <p
+        class="text-sm font-medium text-muted-foreground"
+      >
+        Last order
+      </p>
+      <h2
+        class="mt-2 font-semibold tracking-tight text-3xl"
+      >
+        Last order GN0001500
+      </h2>
+      <p
+        class="mt-3 flex flex-wrap items-baseline gap-x-2 text-sm text-muted-foreground"
+      >
+        <time
+          datetime="2026-08-01T09:00:00Z"
+        >
+          1 Aug 2026
+        </time>
+        <span
+          aria-hidden="true"
+        >
+          ·
+        </span>
+        <span>
+          4 items
+        </span>
+        <span
+          aria-hidden="true"
+        >
+          ·
+        </span>
+        <span
+          class="font-semibold text-foreground"
+        >
+          £14.50
+        </span>
+      </p>
+      <p
+        class="mt-2 text-sm text-muted-foreground"
+      >
+        Add everything available from this order, or open it in My Account to add one item at a time.
+      </p>
+      <div
+        class="mt-6 flex flex-wrap gap-3"
+      >
+        <button
+          aria-busy="false"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+          type="button"
+        >
+          Add all to cart
+        </button>
+        <a
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-discover="true"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          href="/RefArchGlobal/en-GB/account/orders/GN0001500"
+        >
+          View in My Account
+        </a>
+      </div>
+    </div>
+    <ul
+      class="grid grid-cols-5 gap-2 md:justify-self-end"
+    >
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+`;
+
+exports[`Last Order Card presentations > Loading 1`] = `
+<div
+  aria-label="Loading last order"
+  class="overflow-hidden rounded-ui bg-separator"
+  role="status"
+>
+  <div
+    class="flex flex-col gap-6 p-6 md:p-8 md:flex-row md:items-center md:justify-between"
+  >
+    <div
+      class="max-w-md"
+    >
+      <div
+        class="bg-skeleton animate-pulse rounded-ui h-4 w-24"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui mt-2 h-9 w-64"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui mt-3 h-4 w-48"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui mt-2 h-4 w-full"
+        data-slot="skeleton"
+      />
+      <div
+        class="mt-6 flex gap-3"
+      >
+        <div
+          class="bg-skeleton animate-pulse rounded-ui h-10 w-32"
+          data-slot="skeleton"
+        />
+        <div
+          class="bg-skeleton animate-pulse rounded-ui h-10 w-36"
+          data-slot="skeleton"
+        />
+      </div>
+    </div>
+    <div
+      class="grid grid-cols-5 gap-2 md:justify-self-end"
+    >
+      <div
+        class="bg-skeleton animate-pulse rounded-ui rounded-ui size-16 sm:size-20 md:size-24"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui rounded-ui size-16 sm:size-20 md:size-24"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui rounded-ui size-16 sm:size-20 md:size-24"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui rounded-ui size-16 sm:size-20 md:size-24"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui rounded-ui size-16 sm:size-20 md:size-24"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui rounded-ui size-16 sm:size-20 md:size-24"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui rounded-ui size-16 sm:size-20 md:size-24"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui rounded-ui size-16 sm:size-20 md:size-24"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui rounded-ui size-16 sm:size-20 md:size-24"
+        data-slot="skeleton"
+      />
+      <div
+        class="bg-skeleton animate-pulse rounded-ui rounded-ui size-16 sm:size-20 md:size-24"
+        data-slot="skeleton"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Last Order Card presentations > Reordering 1`] = `
+<div
+  class="overflow-hidden rounded-ui bg-separator text-foreground"
+  data-slot="last-order-card"
+  data-variant="default"
+>
+  <div
+    class="flex flex-col gap-6 p-6 md:p-8 md:flex-row md:items-center md:justify-between"
+  >
+    <div
+      class="max-w-md"
+    >
+      <p
+        class="text-sm font-medium text-muted-foreground"
+      >
+        Last order
+      </p>
+      <h2
+        class="mt-2 font-semibold tracking-tight text-3xl"
+      >
+        Last order GN0001842
+      </h2>
+      <p
+        class="mt-3 flex flex-wrap items-baseline gap-x-2 text-sm text-muted-foreground"
+      >
+        <time
+          datetime="2026-09-18T10:00:00Z"
+        >
+          18 Sept 2026
+        </time>
+        <span
+          aria-hidden="true"
+        >
+          ·
+        </span>
+        <span>
+          21 items
+        </span>
+        <span
+          aria-hidden="true"
+        >
+          ·
+        </span>
+        <span
+          class="font-semibold text-foreground"
+        >
+          £88.29
+        </span>
+      </p>
+      <p
+        class="mt-2 text-sm text-muted-foreground"
+      >
+        Add everything available from this order, or open it in My Account to add one item at a time.
+      </p>
+      <div
+        class="mt-6 flex flex-wrap gap-3"
+      >
+        <button
+          aria-busy="true"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+          disabled=""
+          type="button"
+        >
+          Adding…
+        </button>
+        <a
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-discover="true"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          href="/RefArchGlobal/en-GB/account/orders/GN0001842"
+        >
+          View in My Account
+        </a>
+      </div>
+    </div>
+    <ul
+      class="grid grid-cols-5 gap-2 md:justify-self-end"
+    >
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <div
+          class="flex items-center justify-center rounded-ui bg-background text-xs text-muted-foreground size-16 sm:size-20 md:size-24"
+        >
+          ?
+        </div>
+      </li>
+      <li>
+        <span
+          class="flex items-center justify-center rounded-ui bg-primary text-sm font-semibold text-primary-foreground size-16 sm:size-20 md:size-24"
+        >
+          +11
+        </span>
+      </li>
+    </ul>
+  </div>
+</div>
+`;

@@ -66,10 +66,11 @@ export interface ProductCarouselProps {
      * for square tiles. Forwarded to `ProductTile`'s `imgAspectRatio`. Generic + backward-safe.
      */
     imgAspectRatio?: number;
+    tileVariant?: 'default' | 'compact';
     /** Optional override for the per-item width/spacing classes. Defaults to the shared carousel item class. */
     itemClassName?: string;
-    /** Quick-Add placement forwarded to each tile: `'overlay'` (default) or `'inline'` (bottom of tile). */
-    quickAddPlacement?: 'overlay' | 'inline';
+    /** Quick-Add placement: overlay (default), inline (below details), or corner (basket quantity control). */
+    quickAddPlacement?: 'overlay' | 'inline' | 'corner';
     /** Optional label override for the tile's Quick-Add CTA (e.g. "Add to Cart"). Forwarded to `ProductTile`. */
     quickAddLabel?: string;
 }
@@ -116,6 +117,7 @@ export default function ProductCarousel({
     component,
     handleProductClick,
     imgAspectRatio = productCarouselItemAspectRatio,
+    tileVariant,
     itemClassName = carouselItemClassName,
     quickAddPlacement,
     quickAddLabel,
@@ -141,6 +143,7 @@ export default function ProductCarousel({
         }
         return (
             <CarouselSection
+                contentClassName={tileVariant === 'compact' ? '-ml-3' : undefined}
                 title={resolvedTitle}
                 subtitle={subtitle}
                 shopAllUrl={shopAllUrl}
@@ -165,6 +168,7 @@ export default function ProductCarousel({
 
     return (
         <CarouselSection
+            contentClassName={tileVariant === 'compact' ? '-ml-3' : undefined}
             title={resolvedTitle}
             subtitle={subtitle}
             shopAllUrl={shopAllUrl}
@@ -195,6 +199,7 @@ export default function ProductCarousel({
                             <CarouselItem key={product.productId} className={itemClassName}>
                                 <div className="w-full max-w-full min-w-0 flex">
                                     <ProductTile
+                                        variant={tileVariant}
                                         product={product}
                                         imgAspectRatio={imgAspectRatio}
                                         quickAddPlacement={quickAddPlacement}

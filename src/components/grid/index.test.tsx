@@ -150,6 +150,29 @@ describe('Grid Component', () => {
         });
     });
 
+    describe('Responsive columns', () => {
+        it('uses the mobile count below the desktop breakpoint without leaking props to the DOM', () => {
+            render(
+                <Grid columns="4" columnsOnMobile="2" data-testid="responsive-grid">
+                    Content
+                </Grid>
+            );
+            const grid = screen.getByTestId('responsive-grid');
+            expect(grid).toHaveClass('grid-cols-2', 'lg:grid-cols-4');
+            expect(grid).not.toHaveAttribute('columnsOnMobile');
+        });
+
+        it('ignores an invalid mobile count and preserves the original column layout', () => {
+            render(
+                <Grid columns="4" columnsOnMobile="invalid" data-testid="responsive-grid">
+                    Content
+                </Grid>
+            );
+            expect(screen.getByTestId('responsive-grid')).toHaveClass('grid-cols-4');
+            expect(screen.getByTestId('responsive-grid')).not.toHaveClass('lg:grid-cols-4');
+        });
+    });
+
     describe('Flow Prop', () => {
         // Test all flow values
         const flowValues = [
@@ -561,6 +584,19 @@ describe('Grid Component', () => {
                 expect(grid.className).toContain('backdrop-blur-md');
             });
         });
+    });
+
+    it('keeps every authored column region when responsive columns wrap on mobile', () => {
+        render(
+            <Grid
+                columns="4"
+                columnsOnMobile="2"
+                component={{ id: 'responsive-grid', typeId: 'Layout.grid', regions: [] }}
+            />
+        );
+        expect(screen.getByTestId('region-column_1')).toBeInTheDocument();
+        expect(screen.getByTestId('region-column_4')).toBeInTheDocument();
+        expect(screen.queryByTestId('region-column_5')).not.toBeInTheDocument();
     });
 
     describe('Page Designer Mode - Dynamic Regions', () => {
