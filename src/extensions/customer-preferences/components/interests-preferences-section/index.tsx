@@ -15,7 +15,7 @@
  */
 /** @sfdc-extension-file SFDC_EXT_CUSTOMER_PREFERENCES */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 import { resourceRoutes } from '@/route-paths';
 import { XIcon } from 'lucide-react';

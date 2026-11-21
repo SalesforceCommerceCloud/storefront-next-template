@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { lazy, Suspense, type ReactElement } from 'react';
-import { redirect, Form, useActionData, useFetcher } from 'react-router';
+import { redirect, useActionData } from 'react-router';
+import { Form } from '@/components/form';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import type { Route } from './+types/_empty.signup';
 import { useNavigate } from '@/hooks/use-navigate';
 import { Link } from '@/components/link';

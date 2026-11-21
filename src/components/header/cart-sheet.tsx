@@ -24,7 +24,8 @@ import {
     useState,
     memo,
 } from 'react';
-import { useFetcher, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useNavigate } from '@/hooks/use-navigate';
 import { Link } from '@/components/link';
 import { useBasketUpdater } from '@/providers/basket';

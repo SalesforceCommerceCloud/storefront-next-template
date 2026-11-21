@@ -31,6 +31,7 @@ vi.mock('react-router', async (importOriginal) => {
     return {
         ...actual,
         useFetcher: vi.fn(() => mockFetcher),
+        useFormAction: () => '.',
     };
 });
 

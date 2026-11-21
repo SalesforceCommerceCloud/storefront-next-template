@@ -53,6 +53,10 @@ vi.mock('react-router', async (importOriginal) => ({
     useLocation: () => ({ pathname: state.pathname, search: '', hash: '' }),
     useNavigation: () => ({ state: state.navigation }),
     useFetcher: () => ({ state: 'idle', data: null }),
+    useFormAction: () => '/',
+}));
+vi.mock('@/hooks/use-auth-fetcher', () => ({
+    useAuthFetcher: () => ({ state: 'idle', data: null }),
 }));
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({
     useConfig: () => ({

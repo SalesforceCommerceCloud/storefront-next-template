@@ -15,7 +15,7 @@
  */
 /** @sfdc-extension-file SFDC_EXT_RATINGS_REVIEWS */
 import { type ReactElement, useState, useCallback, useRef, useEffect } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { resourceRoutes } from '@/route-paths';
 import { useTranslation } from 'react-i18next';
 import { StarRating } from '@/components/product-ratings/star-rating';

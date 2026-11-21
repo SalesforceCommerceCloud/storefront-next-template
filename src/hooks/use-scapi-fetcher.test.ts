@@ -37,6 +37,7 @@ const mockFetcher = {
 vi.mock('react-router', () => ({
     href: (path: string) => path,
     useFetcher: vi.fn(() => mockFetcher),
+    useFormAction: () => '.',
 }));
 
 // Mock dependencies

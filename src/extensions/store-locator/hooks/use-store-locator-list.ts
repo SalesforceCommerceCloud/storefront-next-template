@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { resourceRoutes } from '@/route-paths';
 import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';

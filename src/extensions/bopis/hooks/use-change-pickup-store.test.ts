@@ -60,6 +60,7 @@ describe('useChangePickupStore', () => {
         mockSubmit.mockResolvedValue(undefined);
         // Use vi.spyOn to mock useFetcher while keeping real router exports
         vi.spyOn(ReactRouter, 'useFetcher').mockReturnValue(mockFetcher as any);
+        vi.spyOn(ReactRouter, 'useFormAction').mockReturnValue('.');
     });
 
     afterEach(() => {

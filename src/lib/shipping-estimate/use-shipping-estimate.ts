@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { normalizeCountryCode } from './country-code';
 import { getPostalCodeFormat } from './postal-code-formats';
 import type { ShippingDestination } from './types';

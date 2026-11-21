@@ -16,7 +16,10 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { createCookie, RouterContextProvider, type MiddlewareFunction } from 'react-router';
 import { createLoaderArgs, createTestContext } from '@/lib/test-utils';
-import { ApiError, createBasketHelpers } from '@/scapi';
+import { ApiError, AuthTokenInvalidError, createBasketHelpers } from '@/scapi';
+import { trustedAgentContext } from '@/lib/auth/trusted-agent/session.server';
+import { getAuth } from '@/middlewares/auth.server';
+import { selectRegisteredBasket } from '@/lib/auth/trusted-agent/basket.server';
 import { invalidateAuthenticatedCommerce } from '@/lib/auth/commerce-context.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
@@ -29,6 +32,7 @@ import createBasketMiddleware, {
     destroyBasket,
     getBasket,
     getBasketSnapshot,
+    updateBasketResource,
     type BasketSnapshot,
 } from './basket.server';
 
@@ -60,6 +64,7 @@ vi.mock('@/lib/logger.server', () => ({
 vi.mock('@/lib/api-clients.server', () => ({
     createApiClients: vi.fn(),
 }));
+vi.mock('@/middlewares/auth.server', () => ({ getAuth: vi.fn() }));
 
 vi.mock('@/lib/cookie-utils.server', () => ({
     getCookieConfig: vi.fn(() => ({
@@ -86,6 +91,182 @@ describe('basket.server middleware', () => {
         mockNext = vi.fn().mockResolvedValue(new Response('ok')) as unknown as Parameters<
             MiddlewareFunction<Response>
         >[1];
+    });
+
+    function assist() {
+        mockContext.set(trustedAgentContext, { lifecycle: { mode: 'active' }, lifecycleRoute: false } as never);
+        vi.mocked(getAuth).mockReturnValue({
+            authMode: 'trusted-agent',
+            customerId: 'represented',
+            authGeneration: 'context-current',
+        });
+    }
+
+    test('selects the most recently modified eligible registered basket with deterministic ties', () => {
+        const baskets = [
+            { basketId: 'temporary', temporaryBasket: true, lastModified: '2026-10-28T12:00:00Z' },
+            {
+                basketId: 'wrong-owner',
+                customerInfo: { customerId: 'other', email: 'other@example.com' },
+                lastModified: '2026-10-28T12:00:00Z',
+            },
+            { basketId: 'b', lastModified: '2026-10-28T11:00:00Z' },
+            { basketId: 'a', lastModified: '2026-10-28T11:00:00Z' },
+            { basketId: 'older', lastModified: '2026-10-27T11:00:00Z' },
+        ];
+        expect(selectRegisteredBasket(baskets, 'represented')).toBe('a');
+        expect(selectRegisteredBasket(baskets.reverse(), 'represented')).toBe('a');
+        expect(selectRegisteredBasket(baskets.slice(-2), 'represented')).toBeUndefined();
+    });
+
+    test('discards the previous shopper snapshot and resolves the represented basket without merging or creating', async () => {
+        assist();
+        const cookie = createCookie('__sfdc_basket');
+        const previous = { ...defaultCreateSnapshot({ basketId: 'previous' }), authContextVersion: 'old-context' };
+        const req = new Request('https://example.com/cart', { headers: { Cookie: await cookie.serialize(previous) } });
+        const basket = { basketId: 'represented-basket', customerInfo: { customerId: 'represented' }, currency: 'GBP' };
+        const getCustomerBaskets = vi.fn().mockResolvedValue({ data: { baskets: [basket] } });
+        const getBasketApi = vi.fn().mockResolvedValue({ data: basket });
+        const createOrMerge = vi.fn();
+        vi.mocked(createApiClients).mockReturnValue({
+            shopperCustomers: { getCustomerBaskets },
+            shopperBasketsV2: { getBasket: getBasketApi },
+            basket: { getOrCreateBasket: createOrMerge },
+        } as never);
+        const response = (await createBasketMiddleware()(createArgs(req, mockContext), mockNext)) as Response;
+        expect(getCustomerBaskets).toHaveBeenCalledWith({ params: { path: { customerId: 'represented' } } });
+        expect(getBasketApi).toHaveBeenCalledOnce();
+        expect(mockContext.get(basketResourceContext)?.current?.basketId).toBe('represented-basket');
+        expect(await cookie.parse(response.headers.get('Set-Cookie'))).toMatchObject({
+            authContextVersion: 'context-current',
+        });
+        expect(createOrMerge).not.toHaveBeenCalled();
+    });
+
+    test.each(['GET', 'POST'])('keeps absent assisted baskets lazy until a shopping mutation (%s)', async (method) => {
+        assist();
+        const getOrCreateBasket = vi.fn().mockResolvedValue({ basketId: 'created', currency: 'GBP' });
+        vi.mocked(createApiClients).mockReturnValue({
+            shopperCustomers: { getCustomerBaskets: vi.fn().mockResolvedValue({ data: { baskets: [] } }) },
+            basket: { getOrCreateBasket },
+        } as never);
+        const req = new Request('https://example.com/cart', { method });
+        const next = vi.fn(async () => {
+            await getBasket(mockContext);
+            return new Response();
+        });
+        await createBasketMiddleware()(createArgs(req, mockContext), next);
+        expect(getOrCreateBasket).toHaveBeenCalledTimes(method === 'GET' ? 0 : 1);
+    });
+
+    test('remembers that the represented shopper has no basket so later requests skip the lookup', async () => {
+        assist();
+        const getCustomerBaskets = vi.fn().mockResolvedValue({ data: { baskets: [] } });
+        vi.mocked(createApiClients).mockReturnValue({ shopperCustomers: { getCustomerBaskets } } as never);
+        const first = (await createBasketMiddleware()(
+            createArgs(new Request('https://example.com/p/1'), mockContext),
+            mockNext
+        )) as Response;
+        expect(getCustomerBaskets).toHaveBeenCalledOnce();
+        const marker = first.headers.get('Set-Cookie');
+        expect(marker).toContain('HttpOnly');
+        expect(marker).toContain('__sfdc_basket_none=');
+
+        const followUp = new Request('https://example.com/p/1', {
+            headers: { Cookie: marker?.split(';')[0] ?? '' },
+        });
+        await createBasketMiddleware()(createArgs(followUp, mockContext), mockNext);
+        expect(getCustomerBaskets).toHaveBeenCalledOnce();
+    });
+
+    test('looks the basket up on a mutation even when the no-basket marker is current', async () => {
+        assist();
+        const getCustomerBaskets = vi.fn().mockResolvedValue({ data: { baskets: [] } });
+        vi.mocked(createApiClients).mockReturnValue({ shopperCustomers: { getCustomerBaskets } } as never);
+        const first = (await createBasketMiddleware()(
+            createArgs(new Request('https://example.com/p/1'), mockContext),
+            mockNext
+        )) as Response;
+        const marker = first.headers.get('Set-Cookie')?.split(';')[0] ?? '';
+
+        const mutation = new Request('https://example.com/action/cart-item-add', {
+            method: 'POST',
+            headers: { Cookie: marker },
+        });
+        await createBasketMiddleware()(createArgs(mutation, mockContext), mockNext);
+        expect(getCustomerBaskets).toHaveBeenCalledTimes(2);
+    });
+
+    test('looks the basket up again when the no-basket marker belongs to an earlier agent context', async () => {
+        assist();
+        const getCustomerBaskets = vi.fn().mockResolvedValue({ data: { baskets: [] } });
+        vi.mocked(createApiClients).mockReturnValue({ shopperCustomers: { getCustomerBaskets } } as never);
+        const stale = new Request('https://example.com/p/1', {
+            headers: {
+                Cookie: `__sfdc_basket_none=${Buffer.from(JSON.stringify('context-earlier')).toString('base64')}`,
+            },
+        });
+        await createBasketMiddleware()(createArgs(stale, mockContext), mockNext);
+        expect(getCustomerBaskets).toHaveBeenCalledOnce();
+    });
+
+    test('expires a prior shopper snapshot when the represented shopper has no basket', async () => {
+        assist();
+        const cookie = createCookie('__sfdc_basket');
+        const req = new Request('https://example.com/cart', {
+            headers: { Cookie: await cookie.serialize(defaultCreateSnapshot({ basketId: 'previous-shopper' })) },
+        });
+        vi.mocked(createApiClients).mockReturnValue({
+            shopperCustomers: { getCustomerBaskets: vi.fn().mockResolvedValue({ data: { baskets: [] } }) },
+        } as never);
+        const response = (await createBasketMiddleware()(createArgs(req, mockContext), mockNext)) as Response;
+        expect(response.headers.get('Set-Cookie')).toContain('Expires=Thu, 01 Jan 1970');
+        expect(getBasketSnapshot(mockContext)).toBeNull();
+    });
+
+    test.each([
+        new AuthTokenInvalidError(),
+        createApiError(401),
+        createApiError(404),
+    ])('does not create another basket after an assisted read failure ($name)', async (failure) => {
+        mockContext.set(basketResourceContext, {
+            snapshot: defaultCreateSnapshot({ basketId: 'represented-basket' }),
+            current: null,
+            hydrated: false,
+        });
+        mockContext.set(basketMetadataContext, {
+            assisted: true,
+            allowCreation: true,
+            currency: 'GBP',
+            basketMarkedForDeletion: false,
+        });
+        const getOrCreateBasket = vi.fn();
+        vi.mocked(createApiClients).mockReturnValue({
+            shopperBasketsV2: { getBasket: vi.fn().mockRejectedValue(failure) },
+            basket: { getOrCreateBasket },
+        } as never);
+        await expect(getBasket(mockContext)).rejects.toThrow();
+        expect(getOrCreateBasket).not.toHaveBeenCalled();
+        expect(mockContext.get(basketMetadataContext)?.basketMarkedForDeletion).toBe(
+            failure instanceof ApiError && failure.status === 404
+        );
+    });
+
+    test('writes a replacement resource after destroy without retaining the deletion flag', () => {
+        mockContext.set(basketMetadataContext, {
+            assisted: true,
+            allowCreation: false,
+            currency: 'GBP',
+            basketMarkedForDeletion: false,
+        });
+        destroyBasket(mockContext);
+        updateBasketResource(mockContext, { basketId: 'replacement' });
+        expect(getBasketSnapshot(mockContext)?.basketId).toBe('replacement');
+        expect(mockContext.get(basketMetadataContext)).toMatchObject({
+            assisted: true,
+            allowCreation: false,
+            basketMarkedForDeletion: false,
+        });
     });
 
     test('lazy mode does not load basket or set cookie by default', async () => {

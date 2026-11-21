@@ -20,6 +20,7 @@ import { useShippingEstimate, type ShippingEstimateResponse } from './use-shippi
 
 vi.mock('react-router', () => ({
     useFetcher: vi.fn(),
+    useFormAction: () => '.',
 }));
 
 const load = vi.fn();

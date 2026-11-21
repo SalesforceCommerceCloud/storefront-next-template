@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useAuth } from '@/providers/auth';
 import { TrackingConsent } from '@/types/tracking-consent';
@@ -77,7 +77,12 @@ export function useTrackingConsent() {
     // Read tracking consent from auth context (source of truth)
     // Auth data is provided by AuthProvider which receives clientAuth from the root loader
     // This ensures server/client consistency and avoids hydration mismatches
-    const trackingConsent = isTrackingConsentEnabled ? auth?.trackingConsent : undefined;
+    const trackingConsent =
+        auth?.authMode === 'trusted-agent'
+            ? TrackingConsent.Declined
+            : isTrackingConsentEnabled
+              ? auth?.trackingConsent
+              : undefined;
 
     // Reset hasResponded when session shows no tracking consent value (e.g., after logout/login)
     // This allows banner to show again if needed

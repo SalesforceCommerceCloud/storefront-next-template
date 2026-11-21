@@ -22,6 +22,7 @@ import {
     updateShopperContext,
 } from '@/lib/shopper-context/server-utils.server';
 import { getLogger } from '@/lib/logger.server';
+import { trustedAgentContext } from '@/lib/auth/trusted-agent/session.server';
 
 /**
  * Server-side middleware to update shopper context based on URL query parameters and cookies.
@@ -29,6 +30,7 @@ import { getLogger } from '@/lib/logger.server';
  * Reuses updateShopperContext for API update and cookie serialization.
  */
 const shopperContextMiddleware: MiddlewareFunction<Response> = async ({ request, context }, next) => {
+    if (context.get(trustedAgentContext)?.lifecycleRoute) return next();
     const logger = getLogger(context);
     const url = new URL(request.url);
     const config = getConfig(context);
@@ -53,8 +55,9 @@ const shopperContextMiddleware: MiddlewareFunction<Response> = async ({ request,
     }
 
     try {
-        const { qualifiers: newShopperContext, sourceCodeQualifiers: newSourceCodeContext } =
-            extractQualifiersFromUrl(url);
+        const { qualifiers: newShopperContext, sourceCodeQualifiers } = extractQualifiersFromUrl(url);
+        // A source code attributes the order to a campaign, which would misattribute an agent-placed order.
+        const newSourceCodeContext = session.authMode === 'trusted-agent' ? {} : sourceCodeQualifiers;
 
         const { setCookieHeaders } = await updateShopperContext({
             context,

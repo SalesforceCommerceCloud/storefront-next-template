@@ -253,6 +253,52 @@ describe('createClient', () => {
             }).rejects.toThrow(ApiError);
         });
 
+        describe('manual SLAS authorization redirects', () => {
+            const AUTH_BASE = '/shopper/auth/v1/organizations/{organizationId}' as const;
+            const redirectResponse = {
+                status: 303,
+                statusText: 'See Other',
+                headers: new Headers({ location: 'https://callback.example/?code=abc&usid=u1' }),
+                url: 'https://api.example.com/oauth2/authorize',
+                ok: false,
+                clone: () => ({ text: vi.fn().mockResolvedValue('') }),
+            };
+            const authOperations = {
+                authorizeCustomer: { m: 'GET', b: `${AUTH_BASE}/oauth2`, s: '/authorize' },
+                authenticateCustomer: { m: 'POST', b: `${AUTH_BASE}/oauth2`, s: '/login' },
+                trustedAgentAuthorize: { m: 'GET', b: `${AUTH_BASE}/oauth2`, s: '/trusted-agent/authorize' },
+                getTest: { m: 'GET', b: '/api/v1', s: '/test' },
+            } as OperationMap;
+            const resolveRedirect = () => {
+                const result = { data: undefined, error: {}, response: redirectResponse };
+                mockClient.GET = vi.fn().mockResolvedValue(result);
+                mockClient.POST = vi.fn().mockResolvedValue(result);
+                return createClient(mockClient, authOperations) as any;
+            };
+
+            it.each([
+                'authorizeCustomer',
+                'authenticateCustomer',
+                'trustedAgentAuthorize',
+            ])('returns the 303 from %s so callers can read the location header', async (operation) => {
+                const result = await resolveRedirect()[operation]({ redirect: 'manual' });
+                expect(result.response.status).toBe(303);
+                expect(result.response.headers.get('location')).toContain('code=abc');
+            });
+
+            it.each([
+                'authorizeCustomer',
+                'authenticateCustomer',
+                'trustedAgentAuthorize',
+            ])('still throws ApiError for a 303 from %s when redirects are not manual', async (operation) => {
+                await expect(resolveRedirect()[operation]({})).rejects.toThrow(ApiError);
+            });
+
+            it('still throws ApiError for a manual 303 from a non-authorization operation', async () => {
+                await expect(resolveRedirect().getTest({ redirect: 'manual' })).rejects.toThrow(ApiError);
+            });
+        });
+
         it('should throw ApiError with correct status and statusText', async () => {
             const errorBody = { message: 'Not Found' };
             const errorResponse = {

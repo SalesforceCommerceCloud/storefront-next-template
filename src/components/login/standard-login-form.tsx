@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { type ComponentType, type ReactElement, useMemo, useRef } from 'react';
-import { Form as RouterForm, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
+import { Form as RouterForm } from '@/components/form';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { buildUrl } from '@salesforce/storefront-next-runtime/site-context';
 import { useCurrentSiteAndLocaleRef } from '@/hooks/use-current-site-and-locale-ref';

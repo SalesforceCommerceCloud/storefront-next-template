@@ -23,6 +23,7 @@ vi.mock('react-router', async (importOriginal) => {
     const actual = await importOriginal<object>();
     return {
         ...actual,
+        useFormAction: () => '.',
         useFetcher: () => ({
             data: null,
             state: 'idle',

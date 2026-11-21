@@ -47,7 +47,9 @@ vi.mock('react-router', async (importOriginal) => ({
     useLocation: () => state.location,
     useNavigation: () => state.navigation,
     useFetcher: () => ({ submit: vi.fn() }),
+    useFormAction: () => '/',
 }));
+vi.mock('@/hooks/use-auth-fetcher', () => ({ useAuthFetcher: () => ({ submit: vi.fn() }) }));
 vi.mock('@/lib/adapters/engagement/initialize', () => ({ ensureAdaptersInitialized: () => state.initialize() }));
 vi.mock('@/components/link', () => ({ Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a> }));
 vi.mock('@/components/search/suggestions-list', () => ({ default: () => null }));

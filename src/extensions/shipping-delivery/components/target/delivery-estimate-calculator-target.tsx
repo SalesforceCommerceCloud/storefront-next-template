@@ -15,7 +15,7 @@
  */
 /** @sfdc-extension-file SFDC_EXT_SHIPPING_DELIVERY */
 import { Suspense, lazy, type ReactElement, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import {
     useShippingDelivery,
     type ShippingDeliveryPresentation,

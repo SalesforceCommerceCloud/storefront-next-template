@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useCallback } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 import { Typography } from '@/components/typography';
 import ConnectedInlineAddToCart from '@/components/inline-add-to-cart/connected';

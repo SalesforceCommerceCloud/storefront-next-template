@@ -121,6 +121,7 @@ export type CimulateUserType = 'guest' | 'registered';
 
 /** Non-sensitive identity snapshot used only to detect login/logout/account-switch/guest-rotation. */
 export interface CimulateIdentitySnapshot {
+    authContextVersion?: string;
     siteId: string;
     userType: CimulateUserType;
     usid?: string;

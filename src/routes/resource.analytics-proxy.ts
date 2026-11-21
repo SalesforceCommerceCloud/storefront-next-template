@@ -45,6 +45,15 @@ function rewriteCookieDomain(setCookieValue: string, ecomHostname: string, appHo
 }
 
 async function proxyAnalytics({ request, context }: Route.LoaderArgs | Route.ActionArgs) {
+    let cookieHeader: string | undefined;
+    try {
+        const auth = getAuth(context);
+        if (auth.authMode === 'trusted-agent')
+            return new Response(null, { status: 204, headers: { 'Cache-Control': 'private, no-store' } });
+        if (auth.dwsid) cookieHeader = `dwsid=${auth.dwsid}`;
+    } catch {
+        // Auth middleware not initialized — proceed without dwsid.
+    }
     const logger = getLogger(context);
     const url = new URL(request.url);
     const targetUrl = url.searchParams.get('url');
@@ -78,17 +87,6 @@ async function proxyAnalytics({ request, context }: Route.LoaderArgs | Route.Act
             expectedHostname: parsedHost.hostname,
         });
         return new Response('Target URL does not match configured Active Data host', { status: 403 });
-    }
-
-    let cookieHeader: string | undefined;
-
-    try {
-        const auth = getAuth(context);
-        if (auth.dwsid) {
-            cookieHeader = `dwsid=${auth.dwsid}`;
-        }
-    } catch {
-        // Auth middleware not initialized — proceed without dwsid
     }
 
     try {

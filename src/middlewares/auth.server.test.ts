@@ -36,6 +36,7 @@ import { getSitePrefix, mockAltSiteObject, mockConfig, mockSiteObject } from '@/
 import { buildMockAccessToken, buildMockTokenResponse } from '@/test-utils/auth';
 import { TrackingConsent } from '@/types/tracking-consent';
 import { getBasePath } from '@/lib/utils';
+import { advanceAuthGeneration } from '@/lib/auth/auth-generation.server';
 import authMiddleware, {
     refreshAccessToken,
     loginGuestUser,
@@ -164,6 +165,11 @@ vi.mock('@/lib/utils', async (importOriginal) => ({
     isAbsoluteURL: vi.fn((url: string) => url.startsWith('http')),
     stringToBase64: vi.fn((str: string) => Buffer.from(str).toString('base64')),
 }));
+
+vi.mock('@/lib/auth/auth-generation.server', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/auth/auth-generation.server')>();
+    return { ...actual, advanceAuthGeneration: vi.fn(actual.advanceAuthGeneration) };
+});
 
 vi.mock('@/lib/origin', () => ({
     getAppOrigin: vi.fn(() => 'https://example.com'),
@@ -602,6 +608,26 @@ describe('auth middleware (server)', () => {
     });
 
     describe('updateAuth()', () => {
+        test('a login token response advances the auth generation', () => {
+            const { provider } = mockContext(getMockAuthData());
+            vi.mocked(advanceAuthGeneration).mockClear();
+
+            updateAuth(provider, getMockTokenResponse());
+
+            expect(advanceAuthGeneration).toHaveBeenCalledWith(provider, 'shopper');
+        });
+
+        test('a refresh token response keeps the captured auth generation', () => {
+            const { provider, storage } = mockContext(getMockAuthData());
+            vi.mocked(advanceAuthGeneration).mockClear();
+            const tokenResponse = getMockTokenResponse();
+
+            updateAuth(provider, tokenResponse, { isRefresh: true });
+
+            expect(advanceAuthGeneration).not.toHaveBeenCalled();
+            expect(storage.get('accessToken')).toBe(tokenResponse.access_token);
+        });
+
         test('should update storage and mark as updated', () => {
             const data = getMockAuthData();
             const { provider, storage } = mockContext(data);

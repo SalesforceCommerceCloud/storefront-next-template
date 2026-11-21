@@ -15,7 +15,7 @@
  */
 import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { resourceRoutes } from '@/route-paths';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
 import { useToast } from '@/components/toast';

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { createContext, createCookie, type MiddlewareFunction, type RouterContextProvider } from 'react-router';
-import { type ShopperBasketsV2 } from '@/scapi';
+import { AuthTokenInvalidError, type ShopperBasketsV2 } from '@/scapi';
 import { onAuthenticationChange } from '@/lib/auth/commerce-context.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { BASKET_COOKIE_NAME, validateBasketSnapshot } from '@/lib/basket/cookie';
@@ -22,6 +22,9 @@ import { getCookieConfig, createCookie as createSiteCookie } from '@/lib/cookie-
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { getLogger } from '@/lib/logger.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
+import { trustedAgentContext } from '@/lib/auth/trusted-agent/session.server';
+import { getAuth } from '@/middlewares/auth.server';
+import { resolveRegisteredBasket } from '@/lib/auth/trusted-agent/basket.server';
 import { uncertainBasketHandoffContext } from '@/middlewares/auth.utils';
 
 // Types
@@ -58,6 +61,7 @@ export type BasketSnapshot = {
     uniqueProductCount: number;
     /** ISO-8601 timestamp from SCAPI's `basket.lastModified`. Empty string when absent. Must be ASCII. */
     lastModified: string;
+    authContextVersion?: string;
     [key: string]: unknown;
 };
 
@@ -84,6 +88,8 @@ export type BasketMetadata = {
     calculateSnapshot?: BasketSnapshotCalculator;
     currency: string;
     basketMarkedForDeletion: boolean;
+    assisted?: boolean;
+    allowCreation?: boolean;
     /** Opaque lookup hint after auth changes; SCAPI must reauthorize before any basket data is exposed. */
     lookupBasketId?: string;
     /** Guest snapshot retired by an authentication change; restored only when a basket handoff stays unverified. */
@@ -205,6 +211,31 @@ const createBasketResource = (
     };
 };
 
+async function reconcileBasketCurrency(
+    context: Readonly<RouterContextProvider>,
+    basket: Basket,
+    currency: string,
+    assisted = false
+): Promise<Basket> {
+    if (!currency || !basket.basketId || basket.currency === currency) return basket;
+    try {
+        return (
+            await createApiClients(context).shopperBasketsV2.updateBasket({
+                params: { path: { basketId: basket.basketId } },
+                body: { currency },
+            })
+        ).data;
+    } catch (error) {
+        if (assisted && (error instanceof AuthTokenInvalidError || new NormalizedApiError(error).status === 401))
+            throw error;
+        getLogger(context).error('Basket: currency update failed, using original basket', {
+            error,
+            basketId: basket.basketId,
+        });
+        return basket;
+    }
+}
+
 /**
  * Compute the basket cookie expiry date.
  *
@@ -239,6 +270,12 @@ const getBasketExpiryDate = (
 
     return new Date(base + SEVEN_DAYS_MS);
 };
+
+/**
+ * How long an agent session trusts "this shopper has no basket". Long enough to cover one page load's burst of
+ * requests, short enough that a basket created elsewhere is picked up on the next navigation.
+ */
+const NO_BASKET_MARKER_TTL_MS = 60_000;
 
 /**
  * Creates a basket middleware factory with configurable behavior.
@@ -278,6 +315,15 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
 
         // Resolve currency: explicit config override → siteContext (set by site-context middleware)
         const currency = configCurrency ?? context.get(siteContext)?.currency ?? '';
+        if (context.get(trustedAgentContext)?.lifecycleRoute) {
+            context.set(basketResourceContext, createBasketResource(null));
+            context.set(basketMetadataContext, {
+                calculateSnapshot: calculateBasketSnapshot,
+                currency,
+                basketMarkedForDeletion: false,
+            });
+            return next();
+        }
         let basket: Basket | undefined = undefined;
         let snapshot: BasketSnapshot | null = null;
 
@@ -291,12 +337,41 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
         // Create and parse cookie.
         const basketCookie = createCookie(cookieName, cookieConfig);
         const cookieHeader = request.headers.get('Cookie') || '';
+        const assisted = context.get(trustedAgentContext)?.lifecycle.mode === 'active';
+        const auth = assisted ? getAuth(context) : undefined;
 
         // Get the snapshot from the cookie. Run the parsed value through the shape validator so that a tampered or
         // malformed cookie can never reach loaders/SSR.
         const cookiePresent = cookieHeader.includes(`${cookieName}=`);
         const parsedFromCookie = cookieHeader ? await basketCookie.parse(cookieHeader) : null;
         snapshot = validateBasketSnapshot(parsedFromCookie);
+        if (assisted && snapshot?.authContextVersion !== auth?.authGeneration) snapshot = null;
+        // A shopper with no basket never gets a snapshot cookie, so without this marker every request in a page load
+        // (document, data, and resource routes) would repeat the customer-baskets lookup.
+        const noBasketCookie = createCookie(`${cookieName}_none`, {
+            ...cookieConfig,
+            httpOnly: true,
+            maxAge: undefined,
+        });
+        let recordNoBasket = false;
+        if (assisted && !snapshot && auth?.customerId) {
+            // Mutations always look up: the shopper may have created a basket elsewhere since the marker was set, and an
+            // add-to-cart that skipped the lookup would create a second basket.
+            const isRead = request.method === 'GET' || request.method === 'HEAD';
+            const knownEmpty =
+                isRead &&
+                Boolean(auth.authGeneration) &&
+                (await noBasketCookie.parse(cookieHeader)) === auth.authGeneration;
+            if (!knownEmpty) {
+                basket = await resolveRegisteredBasket(context, auth.customerId);
+                if (basket) {
+                    basket = await reconcileBasketCurrency(context, basket, currency, true);
+                    snapshot = createSnapshot(basket, { calculateSnapshot: calculateBasketSnapshot });
+                } else {
+                    recordNoBasket = Boolean(auth.authGeneration);
+                }
+            }
+        }
         logger.debug('Basket: middleware starting', { mode, hasSnapshot: !!snapshot });
         if (cookiePresent && !snapshot) {
             logger.debug('Basket: discarding malformed snapshot cookie', { cookieName });
@@ -323,12 +398,14 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
         context.set(basketMetadataContext, {
             calculateSnapshot: calculateBasketSnapshot,
             currency,
-            basketMarkedForDeletion: false,
+            basketMarkedForDeletion: Boolean(assisted && cookiePresent && !snapshot),
+            ...(assisted && { assisted: true, allowCreation: request.method !== 'GET' && request.method !== 'HEAD' }),
         });
+        if (basket) updateBasketResource(context, basket);
 
         // If the mode is eager we'll load the basket into the context. WARNING: If mode is eager, as long as there is a
         // valid basket id, it will be fetched from the API. This will add a non-trivial amount to total request time.
-        if (mode === 'eager') {
+        if (mode === 'eager' && (!assisted || snapshot)) {
             logger.debug('Basket: eager mode, loading basket');
             await getBasket(context, { ensureBasket: true });
         }
@@ -360,6 +437,15 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
             return response;
         }
 
+        if (!basket && recordNoBasket && auth?.authGeneration) {
+            response.headers.append(
+                'Set-Cookie',
+                await noBasketCookie.serialize(auth.authGeneration, {
+                    expires: new Date(Date.now() + NO_BASKET_MARKER_TTL_MS),
+                })
+            );
+        }
+
         if (basket) {
             // Guest baskets also have customerId, so use customerNo to identify registered shoppers.
             const isRegistered = Boolean(basket.customerInfo?.customerNo);
@@ -370,6 +456,7 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
                 cookieDurationRegistered,
             });
             const basketSnapshotCookieValue = createSnapshot(basket, { calculateSnapshot: calculateBasketSnapshot });
+            if (assisted && auth?.authGeneration) basketSnapshotCookieValue.authContextVersion = auth.authGeneration;
 
             response.headers.append('Set-Cookie', await basketCookie.serialize(basketSnapshotCookieValue, { expires }));
         }
@@ -422,6 +509,7 @@ export const getBasket = async (
         return basketResource;
     }
 
+    if (!basketId && metadata?.assisted && !metadata.allowCreation) return basketResource;
     const currency = metadata?.currency ?? context.get(siteContext)?.currency ?? '';
     const calculateBasketSnapshot = metadata?.calculateSnapshot;
     logger.debug('Basket: hydration starting', { hasExistingBasketId: Boolean(basketId) });
@@ -435,7 +523,11 @@ export const getBasket = async (
         // in providers/basket.tsx) keeps the expanded read from being deduped away; extend it if you add
         // another expand-gated field a surface reads post-mutation.
         const expandApproachingDiscounts: 'approaching_discounts'[] = ['approaching_discounts'];
-        if (ensureBasket === 'read') {
+        if (metadata?.assisted && basketId) {
+            ({ data: basket } = await clients.shopperBasketsV2.getBasket({
+                params: { path: { basketId: basketId as string }, query: { expand: expandApproachingDiscounts } },
+            }));
+        } else if (ensureBasket === 'read') {
             ({ data: basket } = await clients.shopperBasketsV2
                 .getBasket({
                     params: {
@@ -456,27 +548,7 @@ export const getBasket = async (
             });
         }
 
-        // If the basket's currency doesn't match the requested currency,
-        // update the basket to trigger price recalculation
-        if (currency && basket.basketId && basket.currency !== currency) {
-            logger.debug('Basket: currency mismatch, recalculating', {
-                basketCurrency: basket.currency,
-                requestedCurrency: currency,
-            });
-            try {
-                const { data: updatedBasket } = await clients.shopperBasketsV2.updateBasket({
-                    params: { path: { basketId: basket.basketId } },
-                    body: { currency },
-                });
-                basket = updatedBasket;
-            } catch (updateError) {
-                logger.error('Basket: currency update failed, using original basket', {
-                    error: updateError,
-                    basketId: basket.basketId,
-                });
-                // Continue with original basket rather than failing completely
-            }
-        }
+        basket = await reconcileBasketCurrency(context, basket, currency, metadata?.assisted);
 
         const nextSnapshot = createSnapshot(basket, { calculateSnapshot: calculateBasketSnapshot });
         context.set(basketResourceContext, createBasketResource(nextSnapshot, basket, true, null));
@@ -495,6 +567,8 @@ export const getBasket = async (
         logger.debug('Basket: hydration succeeded');
         return context.get(basketResourceContext) as BasketResource;
     } catch (err) {
+        if (metadata?.assisted && (err instanceof AuthTokenInvalidError || new NormalizedApiError(err).status === 401))
+            throw err;
         const normalizedError = new NormalizedApiError(err);
         logger.error('Basket: hydration failed', { error: err });
         // getOrCreateBasket already self-heals 404/400 from the read path, so most errors that bubble
@@ -589,6 +663,9 @@ export const updateBasketResource = (
     const snapshot = createSnapshot(nextValue, { calculateSnapshot: calculateBasketSnapshot });
 
     context.set(basketResourceContext, createBasketResource(snapshot, nextValue, true, null));
+    const metadata = context.get(basketMetadataContext);
+    if (metadata?.basketMarkedForDeletion)
+        context.set(basketMetadataContext, { ...metadata, basketMarkedForDeletion: false });
 };
 
 /**
@@ -607,6 +684,7 @@ export const destroyBasket = (context: Readonly<RouterContextProvider>): void =>
     context.set(basketResourceContext, createBasketResource(null, undefined, false, null));
     const metadata = context.get(basketMetadataContext);
     context.set(basketMetadataContext, {
+        ...metadata,
         calculateSnapshot: metadata?.calculateSnapshot,
         currency: metadata?.currency ?? context.get(siteContext)?.currency ?? '',
         basketMarkedForDeletion: true,

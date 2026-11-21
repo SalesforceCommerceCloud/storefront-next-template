@@ -60,6 +60,11 @@ beforeEach(() => {
 });
 
 describe('resource.analytics-proxy', () => {
+    it('suppresses assisted analytics before sending any request or exporting dwsid', async () => {
+        mockGetAuth.mockReturnValue({ authMode: 'trusted-agent', dwsid: 'assisted-session' });
+        expect((await action(createArgs('POST', ANALYTICS_URL))).status).toBe(204);
+        expect(fetch).not.toHaveBeenCalled();
+    });
     it('should return 400 when url parameter is missing', async () => {
         const response = await loader(createArgs('GET'));
         expect(response.status).toBe(400);

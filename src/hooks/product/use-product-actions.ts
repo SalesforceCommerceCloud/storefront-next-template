@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { useFetcher, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useNavigate } from '@/hooks/use-navigate';
 import { useTranslation } from 'react-i18next';
 import type { ShopperProducts, ShopperBasketsV2 } from '@/scapi';

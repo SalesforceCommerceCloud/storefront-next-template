@@ -77,6 +77,7 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Re
         return error('SHOPPER_SESSION_REQUIRED', 401);
     }
     if (!auth.accessToken) return error('SHOPPER_SESSION_REQUIRED', 401);
+    if (auth.authMode === 'trusted-agent') return error('TOKEN_BRIDGE_AUTHORIZATION', 403);
 
     const result = await bridgeCimulateToken(
         {

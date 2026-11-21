@@ -75,6 +75,7 @@ Opt-in features (e.g., Cimulate messaging widget) contribute their exact configu
 |---|---|---|---|
 | Shopper Agent (Commerce Client / Cimulate) | `cimulate` | `script-src`, `connect-src`, `img-src`, `style-src`, `font-src`, `frame-src` | Resolved shopper-agent config's `enabled` is `true` or `'true'` (`commerce.shopperAgent` preferred, `cimulateAgent` legacy) |
 | OpenStreetMap tiles | `openstreetmap-embed` | `img-src` | `VERTICAL=luxury` (boutique map) |
+| Trusted agent sign-in popup | `trusted-agent` | `form-action` | `features.trustedAgent.enabled` is `true`. Adds the SLAS origin (the `shortCode` host, or `SCAPI_PROXY_HOST`). The Account Manager host differs per environment, so add it to `form-action` yourself. |
 
 Origins are derived from the resolved shopper-agent config (`commerceClientScriptSourceUrl`, `scrt2Url`, `commerceClientLogoUrl`) — no new config to set.
 

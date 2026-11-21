@@ -22,7 +22,11 @@ import AppointmentLocator from './AppointmentLocator';
 
 vi.mock('react-router', async (importOriginal) => {
     const actual = await importOriginal<typeof import('react-router')>();
-    return { ...actual, useFetcher: vi.fn(() => ({ state: 'idle', data: undefined, load: vi.fn(), submit: vi.fn() })) };
+    return {
+        ...actual,
+        useFormAction: () => '/',
+        useFetcher: vi.fn(() => ({ state: 'idle', data: undefined, load: vi.fn(), submit: vi.fn() })),
+    };
 });
 
 vi.mock('react-i18next', () => ({

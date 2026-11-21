@@ -156,6 +156,27 @@
         "searchSuggestions": "Search suggestions"
     },
     "login": {
+        "trustedAgent": {
+            "bannerLabel": "Assisted shopping",
+            "assisting": "Acting on behalf of shopper {{customerId}}",
+            "assistingWithLogin": "Acting on behalf of shopper {{loginId}} ({{customerId}})",
+            "agent": "Agent {{agentId}}",
+            "contextChanged": "Your session changed. Continue before submitting more changes.",
+            "title": "Agent authorization",
+            "loginLabel": "Act on behalf of",
+            "loginPlaceholder": "Shopper Login ID",
+            "description": "Confirm the registered shopper, then sign in with Account Manager.",
+            "recovery": "Your assisted session requires authorization before you can continue.",
+            "renewHint": "This session is for the shopper above. To assist someone else, choose \"Assist a different shopper\" below.",
+            "pending": "Authorization is in progress. Complete the Account Manager sign-in or end this attempt.",
+            "continue": "Continue",
+            "authorizing": "Authorizing…",
+            "end": "End agent mode",
+            "switch": "Assist a different shopper",
+            "failed": "Authorization could not be completed. Please try again.",
+            "invalidLogin": "Enter a registered shopper's login identifier.",
+            "complete": "Authorization is complete. Continue to the storefront."
+        },
         "title": "Sign in to your account",
         "subtitle": "Enter your credentials to access your account",
         "continueWithProvider": "Continue with {{provider}}",
@@ -1869,6 +1890,9 @@
             "message": "We're sorry, but something unexpected happened on our end. Our team has been notified and is working to fix it.",
             "secondaryMessage": "Please try again in a few moments, or browse our shop while we sort things out."
         },
+        "authRecoveryTitle": "Session update required",
+        "authRecoveryMessage": "Your session needs authorization or has changed. Continue to review the current context. Your last action will not be resubmitted.",
+        "authRecoveryContinue": "Continue",
         "commerceContext": {
             "confirmationTitle": "Store confirmation required",
             "confirmationMessage": "Your current store and basket are unchanged. A store change needs confirmation before you can continue.",

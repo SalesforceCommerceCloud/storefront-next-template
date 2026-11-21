@@ -15,6 +15,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { useAuth } from '@/providers/auth';
 import { loadInlineAgentWidget } from './load-inline-agent-widget';
 import {
     DEFAULT_CAPABILITIES_VERSION,
@@ -36,9 +37,10 @@ interface EmbeddedAgentWidgetProps {
 }
 
 export function EmbeddedAgentWidget({ config, pdpQuestions, productName }: EmbeddedAgentWidgetProps) {
+    const assisted = useAuth()?.authMode === 'trusted-agent';
     const [ready, setReady] = useState(false);
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const configured = isEmbeddedAgentConfigured(config);
+    const configured = isEmbeddedAgentConfigured(config) && !assisted;
     const questionsKey = pdpQuestionsKey(pdpQuestions);
     const scriptSrc = resolveWidgetScriptSrc(config);
     // Depend on primitive config values, not the object. Root-loader revalidation

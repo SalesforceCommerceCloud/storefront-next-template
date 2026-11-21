@@ -18,7 +18,8 @@
 import { useMemo } from 'react';
 
 // React Router
-import { useFetcher, useFetchers } from 'react-router';
+import { useFetchers } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 
 interface UseItemFetcherOptions {
     /** The item ID to prefix the fetcher key with */

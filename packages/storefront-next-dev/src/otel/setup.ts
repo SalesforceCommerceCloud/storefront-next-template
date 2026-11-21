@@ -203,7 +203,8 @@ export function initTelemetry(): Tracer | null {
                                 // `server.address`, `http.response.status_code` — so traces
                                 // aggregate by operation and the high-cardinality values
                                 // (paths/queries that can carry ids, tokens, or PII) stay out
-                                // of the span name.
+                                // of the span name. The console exporter also strips query,
+                                // fragment, and userinfo from URL attributes before emission.
                                 span.updateName('sfnext.fetch');
                             } catch {
                                 // Non-fatal — default span name is acceptable

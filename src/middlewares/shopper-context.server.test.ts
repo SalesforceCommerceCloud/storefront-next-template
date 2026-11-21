@@ -258,6 +258,16 @@ describe('shopper-context.server', () => {
             const sourceCodeCookieValue = await sourceCodeCookieHandler.parse(setCookieHeaders[0]);
             expect(sourceCodeCookieValue).toBe('email');
         });
+
+        test('should ignore the URL source code during an assisted session', async () => {
+            vi.mocked(getAuth).mockReturnValue({ usid: 'test-usid', authMode: 'trusted-agent' } as any);
+            mockRequest = new Request('https://example.com?src=email');
+
+            const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
+
+            expect(patchShopperContext).not.toHaveBeenCalled();
+            expect((result as Response).headers.getSetCookie()).toEqual([]);
+        });
     });
 
     describe('cookie handling', () => {

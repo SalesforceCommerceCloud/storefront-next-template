@@ -16,7 +16,7 @@
 'use client';
 
 import { type ReactElement, useState, useEffect, useRef } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useTranslation } from 'react-i18next';
 import StandardLoginForm from '@/components/login/standard-login-form';
@@ -24,6 +24,8 @@ import PasswordlessLoginForm from '@/components/login/passwordless-login-form';
 import OtpModal from '@/components/login/otp-modal';
 import { SocialLoginButtons } from '@/components/buttons/social-login-buttons';
 import type { action as loginAction } from '@/routes/_empty.login';
+import { useAuth } from '@/providers/auth';
+import { bindAuthContext } from '@/lib/auth/context-binding';
 
 interface LoginModalProps {
     /** Controls modal visibility */
@@ -66,6 +68,7 @@ export default function LoginModal({
     initialEmail,
 }: LoginModalProps): ReactElement {
     const { t } = useTranslation('login');
+    const authContextVersion = useAuth()?.authContextVersion;
     const fetcher = useFetcher<typeof loginAction>();
     const wasSubmittingRef = useRef(false);
     const [currentMode, setCurrentMode] = useState<'password' | 'passwordless'>(mode);
@@ -134,7 +137,7 @@ export default function LoginModal({
             formData.append('redirectPath', returnUrl);
         }
 
-        await fetch('/login', {
+        await fetch(bindAuthContext('/login', authContextVersion), {
             method: 'POST',
             body: formData,
         });

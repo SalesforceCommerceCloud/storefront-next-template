@@ -34885,6 +34885,18 @@ type OperationMethodsOnly<T> = T extends ProxyClient<any, any> ? Omit<T, 'use' |
  */
 type MergeClients<TBase, TCustom extends Record<string, unknown>> = Omit<TBase, keyof TCustom> & TCustom;
 //#endregion
+//#region src/scapi-client/auth/utils.d.ts
+/**
+ * Creates a cryptographically secure random code verifier for PKCE.
+ *
+ * Uses native Web Crypto API (crypto.getRandomValues) which provides
+ * cryptographically secure random values. The output is 128 characters
+ * using URL-safe alphabet (A-Za-z0-9-_).
+ *
+ * @returns A 128-character URL-safe random string suitable for PKCE code_verifier
+ */
+declare function createCodeVerifier(): string;
+//#endregion
 //#region src/scapi-client/generated/auth-v1.operations.d.ts
 declare const operations$10: {
   readonly authenticateCustomer: {
@@ -35047,6 +35059,47 @@ type AuthResponse = TokenResponse & {
  * The ShopperLogin client type used internally by auth helpers.
  */
 type ShopperLoginClient = ProxyClient<Client<ShopperLogin.endpoints>, typeof operations$10>;
+/** Dedicated public-client configuration; never inherits ordinary shopper credentials. */
+type TrustedAgentConfig = Pick<AuthConfig, 'shopperLoginClient' | 'clientId' | 'organizationId' | 'siteId' | 'redirectUri'>;
+interface TrustedAgentAuthorizeOptions {
+  /** Exact registered shopper login; not a customer number. */
+  loginId: string;
+  /** Optional server-prepared verifier, already persisted in a protected authorization transaction. */
+  codeVerifier?: string;
+}
+interface TrustedAgentAuthorization {
+  authorizationUrl: string;
+  /** Server-only transaction secret. Persist in protected HttpOnly state. */
+  codeVerifier: string;
+}
+interface TrustedAgentExchangeOptions extends TrustedAgentAuthorizeOptions {
+  code: string;
+  codeVerifier: string;
+  /** Provider callback state, when supplied; not an application-generated authorize parameter. */
+  state?: string;
+  /** Protected current USID for renewal only. Omit when switching shoppers. */
+  usid?: string;
+  /** Protected current actor for renewal. Never accept from browser input. */
+  agentId?: string;
+}
+/** Parsed identity, not proof of JWT signature verification. Times are milliseconds. */
+interface TrustedAgentIdentity {
+  loginId: string;
+  customerId: string;
+  agentId: string;
+  usid: string;
+  tokenExpiresAt: number;
+}
+/** TAOB deliberately has no refresh credential and is not an ordinary AuthResponse. */
+interface TrustedAgentResponse {
+  accessToken: string;
+  identity: TrustedAgentIdentity;
+  dwsid?: string;
+}
+interface TrustedAgentHelpers {
+  authorizeRegistered(options: TrustedAgentAuthorizeOptions): Promise<TrustedAgentAuthorization>;
+  exchangeCode(options: TrustedAgentExchangeOptions): Promise<TrustedAgentResponse>;
+}
 /**
  * Configuration required to create auth helpers.
  *
@@ -35721,6 +35774,49 @@ interface AuthNamespace {
    */
   webAuthn: WebAuthnNamespace;
 }
+//#endregion
+//#region src/scapi-client/auth/trusted-agent.d.ts
+/** Safe to log: contains no callback URL, login, code, token, or upstream response body. */
+declare class TrustedAgentError extends Error {
+  readonly stage: 'configuration' | 'authorize' | 'exchange' | 'claims';
+  readonly status?: number | undefined;
+  constructor(stage: 'configuration' | 'authorize' | 'exchange' | 'claims', status?: number | undefined);
+}
+/** Validate without rewriting the registered login identifier. */
+declare function validateTrustedAgentLogin(loginId: string): void;
+/**
+ * Parse and cross-check SLAS identity segments. This does NOT verify a signature.
+ * Only use with a token from a successful server exchange or authenticated cookie provenance.
+ * Expiry is returned even when elapsed so protected sessions can retain recovery identity.
+ */
+declare function parseTrustedAgentToken(token: string, expected: Pick<TrustedAgentConfig, 'clientId' | 'siteId' | 'organizationId'> & {
+  loginId: string;
+  usid?: string;
+  agentId?: string;
+}): TrustedAgentIdentity;
+/**
+ * Registered TAOB protocol for server-side callers. Uses the configured SDK transport,
+ * including custom clients/proxies; never follows the human's Account Manager navigation.
+ * Keep the verifier, code, and exchange response on the server.
+ */
+declare function createTrustedAgentHelpers(config: TrustedAgentConfig): TrustedAgentHelpers;
+//#endregion
+//#region src/scapi-client/auth/protected-state.d.ts
+interface ProtectedStateKey {
+  id: string;
+  /** 256-bit deployment secret, injected by server-only configuration. */
+  key: Uint8Array;
+}
+interface ProtectedStateBinding {
+  purpose: string;
+  siteId: string;
+  origin: string;
+}
+/** Authenticated encryption with key rotation. Callers validate payload shape and transaction age. */
+declare function createProtectedStateCodec(keys: readonly ProtectedStateKey[]): {
+  seal(value: unknown, binding: ProtectedStateBinding): Promise<string>;
+  open(value: string, binding: ProtectedStateBinding): Promise<unknown>;
+};
 //#endregion
 //#region src/scapi-client/auth/index.d.ts
 /**
@@ -37211,5 +37307,5 @@ type ConfirmedContextChangeRequired<T> = {
   candidate: T | null;
 };
 //#endregion
-export { ApiError, type AuthConfig, type AuthNamespace, type AuthResponse, AuthTokenInvalidError, BUILT_IN_CLIENT_DEFAULTS, BUILT_IN_CLIENT_KEYS, type Basket, type BasketHelpersConfig, type BasketHelpersNamespace, type BuiltInClientDefault, type BuiltInClientKey, Clients, CommerceApiClientConfig, type ConfirmedContextChangeRequired, CreateClientOptions, type ErrorDetail, type GetOrCreateBasketOptions, GlobalRequestParameters, type LoginAsGuestOptions, type LoginWithCredentialsOptions, type LogoutOptions, type MergeClients, type NativeShopperContext, type OperationInfo, type OperationMap, type OperationMethodsOnly, type PasswordRequestResetOptions, type PasswordResetOptions, type PasswordlessAuthorizeOptions, type PasswordlessExchangeTokenOptions, type ProxyClient, type RefreshTokenOptions, SLAS_AUTH_ENDPOINTS, ShopperAvailability, ShopperBasketsV1, ShopperBasketsV2, type ShopperBasketsV2Client, ShopperConfigurations, ShopperConsents, ShopperContext, ShopperCustomers, ShopperDeliveryEstimates, ShopperExperience, ShopperGiftCertificates, ShopperLogin, ShopperOrders, ShopperPayments, ShopperProducts, ShopperPromotions, ShopperSearch, ShopperSeo, ShopperStores, type SocialAuthorizationUrlResult, type SocialExchangeCodeOptions, type SocialGetAuthorizationUrlOptions, type TokenResponse, createAuthHelpers, createBasketHelpers, createClient, createCommerceApiClients, createOpenApiFetchClient, createShopperContextHelpers, defaultQuerySerializer, isBuiltInClientKey };
+export { ApiError, type AuthConfig, type AuthNamespace, type AuthResponse, AuthTokenInvalidError, BUILT_IN_CLIENT_DEFAULTS, BUILT_IN_CLIENT_KEYS, type Basket, type BasketHelpersConfig, type BasketHelpersNamespace, type BuiltInClientDefault, type BuiltInClientKey, Clients, CommerceApiClientConfig, type ConfirmedContextChangeRequired, CreateClientOptions, type ErrorDetail, type GetOrCreateBasketOptions, GlobalRequestParameters, type LoginAsGuestOptions, type LoginWithCredentialsOptions, type LogoutOptions, type MergeClients, type NativeShopperContext, type OperationInfo, type OperationMap, type OperationMethodsOnly, type PasswordRequestResetOptions, type PasswordResetOptions, type PasswordlessAuthorizeOptions, type PasswordlessExchangeTokenOptions, type ProtectedStateBinding, type ProtectedStateKey, type ProxyClient, type RefreshTokenOptions, SLAS_AUTH_ENDPOINTS, ShopperAvailability, ShopperBasketsV1, ShopperBasketsV2, type ShopperBasketsV2Client, ShopperConfigurations, ShopperConsents, ShopperContext, ShopperCustomers, ShopperDeliveryEstimates, ShopperExperience, ShopperGiftCertificates, ShopperLogin, ShopperOrders, ShopperPayments, ShopperProducts, ShopperPromotions, ShopperSearch, ShopperSeo, ShopperStores, type SocialAuthorizationUrlResult, type SocialExchangeCodeOptions, type SocialGetAuthorizationUrlOptions, type TokenResponse, type TrustedAgentAuthorization, type TrustedAgentAuthorizeOptions, type TrustedAgentConfig, TrustedAgentError, type TrustedAgentExchangeOptions, type TrustedAgentHelpers, type TrustedAgentIdentity, type TrustedAgentResponse, createAuthHelpers, createBasketHelpers, createClient, createCodeVerifier, createCommerceApiClients, createOpenApiFetchClient, createProtectedStateCodec, createShopperContextHelpers, createTrustedAgentHelpers, defaultQuerySerializer, isBuiltInClientKey, parseTrustedAgentToken, validateTrustedAgentLogin };
 //# sourceMappingURL=scapi.d.ts.map

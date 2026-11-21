@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type PropsWithChildren, useEffect, useMemo, useRef } from 'react';
+import { type PropsWithChildren, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 
 // React Router
 import {
@@ -59,6 +59,7 @@ import {
     getAuthRecoveryStage,
     getPublicSessionData,
 } from '@/middlewares/auth.utils';
+import { trustedAgentContext } from '@/lib/auth/trusted-agent/session.server';
 import createBasketMiddleware, { basketResourceContext, type BasketSnapshot } from '@/middlewares/basket.server';
 import shopperContextMiddlewareServer from '@/middlewares/shopper-context.server';
 import { userTypeHintMiddleware } from '@/middlewares/user-type-hint.server';
@@ -93,9 +94,12 @@ import { securityHeadersMiddleware } from '@/middlewares/security-headers.server
 import { getSecurityNonce } from '@salesforce/storefront-next-runtime/security';
 import { useSecurityNonceFromContext } from '@salesforce/storefront-next-runtime/security/react';
 import { errorCacheControlMiddleware } from '@/middlewares/error-cache-control.server';
+import { authPrivacyMiddleware } from '@/middlewares/auth-privacy.server';
 
 // Components
 import { CartMutationToastWatcher } from '@/components/cart/cart-mutation-toast-watcher';
+import TrustedAgentBanner, { AuthFailureObserver, AuthRecoveryView } from '@/components/trusted-agent/banner';
+import { getAuthRecovery, getServerAuthRecovery, subscribeAuthRecovery } from '@/lib/auth/recovery';
 import { BasketHandoffWarning } from '@/components/cart/basket-handoff-warning';
 
 // Providers
@@ -163,6 +167,7 @@ export const meta: Route.MetaFunction = ({ loaderData }) => {
 };
 
 export const middleware: MiddlewareFunction<Response>[] = [
+    authPrivacyMiddleware,
     correlationMiddleware,
     errorCacheControlMiddleware,
     requestOriginMiddleware,
@@ -250,6 +255,7 @@ export const loader = async ({
     errorTranslations: Record<string, unknown>;
     // CSP nonce for inline scripts; null when security headers middleware is disabled
     nonce: string | null;
+    agentLifecycle?: boolean;
 }> => {
     const session = getAuthServer(context);
 
@@ -296,17 +302,20 @@ export const loader = async ({
     const clientAuth = getPublicSessionData(session);
 
     const requestUrl = new URL(request.url);
+    const agentLifecycle = context.get(trustedAgentContext)?.lifecycleRoute ?? false;
 
-    const seoMeta = buildSeoMetaDescriptors({
-        site,
-        appConfig,
-        // Use the resolved public origin (custom domain on MRT) rather than
-        // requestUrl.origin (lambda-internal hostname on hybrid deployments)
-        // so canonical/hreflang URLs match what the customer is actually browsing.
-        origin: getAppOrigin(context),
-        locale,
-        location: { pathname: requestUrl.pathname, search: requestUrl.search },
-    });
+    const seoMeta = agentLifecycle
+        ? []
+        : buildSeoMetaDescriptors({
+              site,
+              appConfig,
+              // Use the resolved public origin (custom domain on MRT) rather than
+              // requestUrl.origin (lambda-internal hostname on hybrid deployments)
+              // so canonical/hreflang URLs match what the customer is actually browsing.
+              origin: getAppOrigin(context),
+              locale,
+              location: { pathname: requestUrl.pathname, search: requestUrl.search },
+          });
 
     // CSP nonce produced by securityHeadersMiddleware; null when middleware is disabled.
     const nonce = getSecurityNonce(context);
@@ -341,6 +350,7 @@ export const loader = async ({
         pageDesignerPageUpdateMode: appConfig.features.livePreview ? 'client' : 'server',
         pageDesignerMode: isDesignModeActive(request) ? 'EDIT' : isPreviewModeActive(request) ? 'PREVIEW' : undefined,
         nonce,
+        ...(agentLifecycle && { agentLifecycle: true }),
     };
 };
 
@@ -621,6 +631,7 @@ function TranslatedErrorPageContent({
 export function ErrorBoundary({ error }: { error: unknown }) {
     // All hooks must be called unconditionally before any early returns.
     const rootData = useRouteLoaderData<typeof loader>('root');
+    const authRecovery = useSyncExternalStore(subscribeAuthRecovery, getAuthRecovery, getServerAuthRecovery);
     const deploymentHomepageUrl = useHref('/');
 
     const language =
@@ -673,9 +684,32 @@ export function ErrorBoundary({ error }: { error: unknown }) {
     // the DNT decision is read straight from the cookie inside `applyAttribution`.
     const attributionCookieDomain = rootData?.site?.cookies?.domain || rootData?.appConfig?.cookies?.domain;
     useEffect(() => {
+        if (
+            rootData?.agentLifecycle ||
+            rootData?.clientAuth?.authMode === 'trusted-agent' ||
+            /\/login\/agent(?:\/(authorize|callback|complete))?\/?$/.test(window.location.pathname)
+        )
+            return;
         applyAttribution(attributionCookieDomain);
-    }, [attributionCookieDomain]);
+    }, [attributionCookieDomain, rootData?.agentLifecycle, rootData?.clientAuth?.authMode]);
 
+    if (
+        authRecovery &&
+        (!authRecovery.contextVersion ||
+            !rootData?.clientAuth?.authContextVersion ||
+            authRecovery.contextVersion === rootData.clientAuth.authContextVersion)
+    ) {
+        return i18nextInstance ? (
+            <I18nextProvider i18n={i18nextInstance}>
+                <AuthRecoveryView destination={authRecovery.url} />
+            </I18nextProvider>
+        ) : (
+            <div>
+                <h1>Session update required</h1>
+                <a href={authRecovery.url}>Continue</a>
+            </div>
+        );
+    }
     // Redirect maintenance errors before rendering.
     if (error && error.toString().includes('MAINTENANCE_ERROR')) {
         return <Navigate to={routes.maintenance} replace />;
@@ -793,6 +827,7 @@ export default function App({
         correlationId,
         pageDesignerMode,
         pageDesignerPageUpdateMode,
+        agentLifecycle = false,
         site,
         locale,
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
@@ -882,6 +917,7 @@ export default function App({
 
     const shopperAgent = resolveShopperAgentConfig(appConfig);
     const shopperAgentEnabled = isCimulateEnabled(shopperAgent?.enabled);
+    const assisted = clientAuth?.authMode === 'trusted-agent';
     const { pathname } = useLocation();
     const shopperAgentDisabledByRoute = useMemo(() => {
         const patterns = shopperAgent?.disabledPathPatterns;
@@ -897,11 +933,15 @@ export default function App({
 
     const innerTree = (
         <UITargetProviders>
-            <AuthActionExecutor />
+            <TrustedAgentBanner />
+            {(appConfig.features.trustedAgent?.enabled || clientAuth?.authContextVersion) && (
+                <AuthFailureObserver version={clientAuth?.authContextVersion} />
+            )}
+            {!assisted && <AuthActionExecutor />}
             <BasketCookieReconciler />
             <CartMutationToastWatcher />
             <BasketHandoffWarning />
-            {passkeyEnabled && <PasskeyRegistrationTrigger />}
+            {passkeyEnabled && !assisted && <PasskeyRegistrationTrigger />}
             {hybridEnabled && <BackNavigationRevalidator />}
             <PageDesignerProvider
                 clientId="storefront-next"
@@ -912,19 +952,27 @@ export default function App({
                 <PageDesignerInit />
                 <Outlet />
             </PageDesignerProvider>
-            <TrackingConsentBanner />
-            {typeof window !== 'undefined' && <PageViewTracker />}
-            {typeof window !== 'undefined' && <AttributionCapture />}
+            {!assisted && <TrackingConsentBanner />}
+            {!assisted && typeof window !== 'undefined' && <PageViewTracker />}
+            {!assisted && typeof window !== 'undefined' && <AttributionCapture />}
         </UITargetProviders>
     );
 
     return (
-        <ComposeProviders providers={providers}>
-            {passkeyEnabled ? <PasskeyRegistrationProvider>{innerTree}</PasskeyRegistrationProvider> : innerTree}
-            {shopperAgentEnabled && !shopperAgentDisabledByRoute && (
+        <ComposeProviders
+            key={`${clientAuth?.authMode ?? 'shopper'}:${clientAuth?.customerId ?? 'guest'}:${clientAuth?.actingAgent?.agentId ?? ''}`}
+            providers={providers}>
+            {agentLifecycle ? (
+                <Outlet />
+            ) : passkeyEnabled ? (
+                <PasskeyRegistrationProvider>{innerTree}</PasskeyRegistrationProvider>
+            ) : (
+                innerTree
+            )}
+            {!agentLifecycle && !assisted && shopperAgentEnabled && !shopperAgentDisabledByRoute && (
                 <CimulateAgent cimulateConfiguration={shopperAgent} />
             )}
-            {shopperAgentEnabled && shopperAgentDisabledByRoute && (
+            {!agentLifecycle && shopperAgentEnabled && shopperAgentDisabledByRoute && (
                 <style>{'.commerce-client-shopper-agent{display:none !important;}'}</style>
             )}
         </ComposeProviders>

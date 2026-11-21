@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useFetcherEffect } from '@/hooks/use-fetcher-effect';
 import { createLogger } from '@/lib/logger';
 import { resourceRoutes } from '@/route-paths';

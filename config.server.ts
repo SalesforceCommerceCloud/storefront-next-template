@@ -307,6 +307,11 @@ export default defineConfig<Config>(
             // Feature flags for enabling/disabling functionality
             // See CONFIG-OPTIONS.md#features for detailed documentation
             features: {
+                trustedAgent: {
+                    enabled: false,
+                    clientId: '',
+                    callbackUri: '/login/agent/callback',
+                },
                 passkey: {
                     enabled: false,
                     mode: 'email',

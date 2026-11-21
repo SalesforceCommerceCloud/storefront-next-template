@@ -22,6 +22,7 @@ import { useLoadMoreProducts, type UseLoadMoreProductsOptions } from './use-load
 
 vi.mock('react-router', () => ({
     useFetcher: vi.fn(),
+    useFormAction: () => '.',
 }));
 
 type FetcherShape = { state: 'idle' | 'loading'; data: unknown; load: ReturnType<typeof vi.fn> };

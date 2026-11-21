@@ -56,6 +56,7 @@ describe('useUpdateMarketingConsent', () => {
         mockFetcher = createMockFetcher();
         mockSubmit.mockResolvedValue(undefined);
         vi.spyOn(ReactRouter, 'useFetcher').mockImplementation(() => mockFetcher as any);
+        vi.spyOn(ReactRouter, 'useFormAction').mockReturnValue('.');
     });
 
     afterEach(() => {

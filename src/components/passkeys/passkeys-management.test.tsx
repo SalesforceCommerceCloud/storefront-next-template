@@ -69,6 +69,7 @@ vi.mock('react-router', async () => {
     return {
         ...actual,
         useFetcher: () => ({ state: 'idle', data: null, submit: submitMock }),
+        useFormAction: () => '.',
     };
 });
 

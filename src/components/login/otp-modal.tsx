@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useState, useEffect, useRef, type ReactElement } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import type { ShopperLogin } from '@/scapi';
 import { getPasswordlessErrorMessageKey } from '@/lib/auth/error-handler';
 import type { action as verifyPasswordlessOtpAction } from '@/routes/action.verify-passwordless-otp';

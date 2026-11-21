@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 import type { TrackingConsent } from '@/types/tracking-consent';
+import type { ActingAgent } from '@/lib/auth/trusted-agent/types';
 
 export type SessionData = {
+    authMode?: 'shopper' | 'trusted-agent';
+    actingAgent?: ActingAgent;
+    /** Private provenance for accepting credentials across local authentication transitions. */
+    authGeneration?: string;
     accessToken?: string;
     accessTokenExpiry?: number;
     refreshToken?: string;
@@ -67,7 +72,10 @@ export type SessionData = {
  * - AuthProvider to provide user info context
  * - Components that need user info without access to tokens
  */
-export type PublicSessionData = Pick<SessionData, 'customerId' | 'userType' | 'usid' | 'encUserId' | 'trackingConsent'>;
+export type PublicSessionData = Pick<
+    SessionData,
+    'customerId' | 'userType' | 'usid' | 'encUserId' | 'trackingConsent' | 'authMode' | 'actingAgent'
+> & { authContextVersion?: string };
 
 export type CustomQueryParameters = {
     [key in `c_${string}`]: string | number | boolean | string[] | number[];

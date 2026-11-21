@@ -18,6 +18,7 @@ import type { RouterContextProvider } from 'react-router';
 import { attributionForwardingMiddleware } from './attribution-forwarding.server';
 import { createLoaderArgs, createTestContext } from '@/lib/test-utils';
 import { scapiMiddlewareContext, ScapiMiddlewareRegistry } from '@/lib/scapi-middleware';
+import { trustedAgentContext } from '@/lib/auth/trusted-agent/session.server';
 
 const mockLogger = vi.hoisted(() => ({
     error: vi.fn(),
@@ -129,6 +130,18 @@ describe('middlewares/attribution-forwarding.server.ts', () => {
     });
 
     describe('SCAPI forwarding (registered onRequest)', () => {
+        it('suppresses a prior marketing cookie when assisted mode is established after middleware registration', async () => {
+            await runWithCookie(`dw_attribution=${ATTRIBUTION_VALUE}; dw_dnt=0`);
+            const onRequest = getRegisteredScapiMiddleware();
+            (context as RouterContextProvider).set(trustedAgentContext, { lifecycle: { mode: 'active' } } as never);
+            const outbound = new Request(`${SHOPPER_ORDERS_BASE}/orders`, {
+                method: 'POST',
+                headers: { Authorization: 'Bearer assisted-token' },
+            });
+            await onRequest({ request: outbound } as never);
+            expect(outbound.headers.get('cookie')).toBeNull();
+            expect(outbound.headers.get('Authorization')).toBe('Bearer assisted-token');
+        });
         it('appends dw_attribution to the outbound Cookie header on POST /orders', async () => {
             await runWithCookie(`dw_attribution=${ATTRIBUTION_VALUE}`);
             const onRequest = getRegisteredScapiMiddleware();

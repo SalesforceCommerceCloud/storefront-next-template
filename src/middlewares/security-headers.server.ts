@@ -20,6 +20,8 @@ import { resolveShopperAgentConfig } from '@/components/cimulate';
 import { createCimulateCspContributor } from './csp-contributors/cimulate.js';
 import { createEmbeddedAgentCspContributor } from './csp-contributors/embedded-agent.js';
 import { createData360CspContributor } from './csp-contributors/data360.js';
+import { createTrustedAgentCspContributor } from './csp-contributors/trusted-agent.js';
+import { getScapiBaseUrl } from '@/lib/utils';
 // Imported via the `@/` alias (not a sibling-relative path) so a brand can override this contributor:
 // the default is a no-op, and a brand that renders the boutique map ships its own always-active
 // version permitting the OSM tile origin. A relative import would pin the default and leave those
@@ -44,6 +46,9 @@ export const securityHeadersMiddleware: MiddlewareFunction<Response> = async (ar
             createEmbeddedAgentCspContributor(config.commerce?.embeddedAgent),
             createData360CspContributor(config.engagement?.adapters?.data360),
             createOpenStreetMapCspContributor(),
+            createTrustedAgentCspContributor(config.features?.trustedAgent, () =>
+                getScapiBaseUrl(config.commerce.api.shortCode)
+            ),
         ];
         const headers = mergeExtensionServerCsp(config.security?.headers ?? {}, config.serverExtension);
         middleware = createSecurityHeadersMiddleware(headers, contributors);

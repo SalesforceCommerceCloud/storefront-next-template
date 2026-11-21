@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
-import { useFetcher, useFetchers } from 'react-router';
+import { useFetchers } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { resourceRoutes } from '@/route-paths';
 import type { SaveResult } from './save-status';
 

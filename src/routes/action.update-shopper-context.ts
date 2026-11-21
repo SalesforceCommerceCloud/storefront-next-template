@@ -91,8 +91,9 @@ export async function action({
         const allNewQualifiers =
             qualifiersJson && typeof qualifiersJson === 'string' ? parseJsonToStringRecord(qualifiersJson) : {};
 
-        const { qualifiers: newShopperContext, sourceCodeQualifiers: newSourceCodeContext } =
-            extractQualifiersFromInput(allNewQualifiers);
+        const { qualifiers: newShopperContext, sourceCodeQualifiers } = extractQualifiersFromInput(allNewQualifiers);
+        // A source code attributes the order to a campaign, which would misattribute an agent-placed order.
+        const newSourceCodeContext = session.authMode === 'trusted-agent' ? {} : sourceCodeQualifiers;
 
         logger.debug('UpdateShopperContext: extracted qualifiers', {
             shopperContextCount: Object.keys(newShopperContext).length,

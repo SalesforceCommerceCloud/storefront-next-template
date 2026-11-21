@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Form } from 'react-router';
+import { Form } from '@/components/form';
 import { Link } from '@/components/link';
 import { Typography } from '@/components/typography';
 import { cn } from '@/lib/utils';

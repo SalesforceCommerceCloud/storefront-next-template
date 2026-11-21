@@ -94,7 +94,7 @@ export default function Header({
         return (
             <header
                 ref={headerRef}
-                className="bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static">
+                className="bg-header-background text-header-foreground sticky top-[var(--agent-banner-height,0px)] z-50 [@media(max-height:400px)]:static">
                 <div className="section-container">
                     <div className="flex items-center h-16">
                         <Link to="/" className="flex-shrink-0 flex items-center" data-testid="header-logo">
@@ -118,7 +118,7 @@ export default function Header({
                 ref={headerRef}
                 data-compact={compact}
                 className={cn(
-                    'bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static',
+                    'bg-header-background text-header-foreground sticky top-[var(--agent-banner-height,0px)] z-50 [@media(max-height:400px)]:static',
                     // Shrinks once the page scrolls; the divider separates it from content scrolling underneath.
                     'border-b border-transparent transition-[border-color] duration-200 ease-out',
                     compact && 'border-header-border'

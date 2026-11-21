@@ -21,6 +21,7 @@ import { preinit } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createRoutesStub, RouterContextProvider } from 'react-router';
 import type { PublicSessionData } from '@/lib/api/types';
+import { trustedAgentContext } from '@/lib/auth/trusted-agent/session.server';
 import { PAGE_DESIGNER_STYLESHEET_PRECEDENCE } from '@salesforce/storefront-next-runtime/design/react/preload';
 import type AppComponent from './root';
 import type { ErrorBoundary as RootErrorBoundary, Layout as RootLayout, loader as RootLoader } from './root';
@@ -855,6 +856,33 @@ describe('root.tsx', () => {
     });
 
     describe('App Component', () => {
+        it('renders lifecycle pages without commerce, consent, or Page Designer effects and omits launch SEO', async () => {
+            const context = createLoaderContext();
+            context.set(trustedAgentContext, {
+                lifecycle: { mode: 'none' },
+                lifecycleRoute: true,
+                dirty: false,
+                clearOrdinary: false,
+            });
+            const request = new Request('https://example.com/login/agent?loginId=private-shopper@example.com');
+            const result = await loader({ context, request, params: {}, pattern: '/', url: new URL(request.url) });
+            result.appConfig = mockConfig;
+            expect(result.agentLifecycle).toBe(true);
+            expect(result.seoMeta).toEqual([]);
+            const Stub = createRoutesStub([
+                {
+                    id: 'root',
+                    path: '/',
+                    Component: App,
+                    loader: () => result,
+                    children: [{ index: true, Component: () => <div>Private authorization</div> }],
+                },
+            ]);
+            const view = render(<Stub initialEntries={['/']} />);
+            await waitFor(() => expect(view.getByText('Private authorization')).toBeInTheDocument());
+            expect(view.queryByTestId('page-designer-provider')).not.toBeInTheDocument();
+            expect(view.queryByTestId('tracking-consent-banner')).not.toBeInTheDocument();
+        });
         // Note: Each test creates its own i18next instance because it must be passed to
         // the loader's getI18next function. A shared beforeEach setup wouldn't work here
         // since each test's route stub needs its own instance reference.

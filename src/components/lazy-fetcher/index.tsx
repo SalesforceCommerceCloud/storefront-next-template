@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 
 export interface LazyFetcherProps<T> {
     /** Resource route URL to fetch when the container enters the viewport. */

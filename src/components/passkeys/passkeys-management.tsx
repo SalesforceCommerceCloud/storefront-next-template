@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { type ReactElement, Suspense, useState, useEffect, useRef } from 'react';
-import { Await, useFetcher } from 'react-router';
+import { Await } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

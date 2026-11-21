@@ -123,6 +123,17 @@ export function getPublicSessionData(session: AuthData): PublicSessionData {
         usid: session.usid,
         encUserId: session.encUserId,
         trackingConsent: session.trackingConsent,
+        ...(session.authGeneration && { authContextVersion: session.authGeneration }),
+        ...(session.authMode && { authMode: session.authMode }),
+        ...(session.actingAgent && {
+            actingAgent: {
+                agentId: session.actingAgent.agentId,
+                loginId: session.actingAgent.loginId,
+                contextVersion: session.actingAgent.contextVersion,
+                status: session.actingAgent.status,
+                tokenExpiresAt: session.actingAgent.tokenExpiresAt,
+            },
+        }),
     };
 }
 
@@ -230,6 +241,8 @@ export const updateAuthStorageDataByTokenResponse = (
     appConfig?: AppConfig,
     dwsid?: string
 ): void => {
+    if (storage.get('authMode') === 'trusted-agent')
+        throw new Error('Ordinary token ingestion cannot replace trusted agent authentication');
     const now = Date.now();
 
     // Transform SLAS API response (snake_case) to internal storage (camelCase)
@@ -323,6 +336,8 @@ export const updateAuthStorageData = (
         | ((data: AuthData & StorageErrorData) => AuthData & StorageErrorData),
     appConfig?: AppConfig
 ) => {
+    if (storage.get('authMode') === 'trusted-agent')
+        throw new Error('Ordinary auth updates cannot replace trusted agent authentication');
     // Extract/store current storage data
     const publicData = unpackStorage(storage);
 

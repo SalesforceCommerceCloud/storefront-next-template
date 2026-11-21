@@ -16,6 +16,8 @@
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { resourceRoutes } from '@/route-paths';
 import type { ApiResponse } from '@/lib/scapi/types';
+import { useAuth } from '@/providers/auth';
+import { bindAuthContext } from '@/lib/auth/context-binding';
 
 /**
  * Module-level wishlist store shared by every route in the tab. There is no provider and no
@@ -49,12 +51,13 @@ type WishlistActionResult = {
  */
 async function postWishlistAction(
     route: string,
-    productId: string
+    productId: string,
+    version?: string
 ): Promise<ApiResponse<{ alreadyInWishlist?: boolean }>> {
     try {
         const body = new FormData();
         body.set('productId', productId);
-        const response = await fetch(route, { method: 'POST', body });
+        const response = await fetch(bindAuthContext(route, version), { method: 'POST', body });
         const parsed = (await response.json()) as WishlistActionResult;
 
         if (!response.ok || !parsed.success) {
@@ -206,6 +209,7 @@ export const pendingStore = createPendingStore();
  */
 export const wishlistState: {
     sessionCustomerId: string | null;
+    authContextVersion?: string;
     loadState: { done: boolean; inFlight: Promise<readonly string[]> | null };
     pendingRemovals: Set<string>;
     loadRequested: boolean;
@@ -220,7 +224,9 @@ export const wishlistState: {
 
 /** GET the session's wishlist product IDs from the on-demand load route. */
 async function fetchWishlistState(): Promise<readonly string[]> {
-    const response = await fetch(resourceRoutes.wishlistState, { method: 'GET' });
+    const response = await fetch(bindAuthContext(resourceRoutes.wishlistState, wishlistState.authContextVersion), {
+        method: 'GET',
+    });
     if (!response.ok) {
         throw new Error(`wishlist-state responded ${response.status}`);
     }
@@ -241,12 +247,14 @@ async function runLoad(): Promise<void> {
         wishlistState.loadState.inFlight = fetchWishlistState();
     }
     const ownerAtFetch = wishlistState.sessionCustomerId;
+    const versionAtFetch = wishlistState.authContextVersion;
     try {
         const productIds = await wishlistState.loadState.inFlight;
         // A shopper swap (or logout) during the fetch means this list belongs to the previous
         // session, which has already reset the store and its own pendingRemovals. Discard the
         // result rather than write one shopper's wishlist — or clear another's pending removals.
-        if (wishlistState.sessionCustomerId !== ownerAtFetch) return;
+        if (wishlistState.sessionCustomerId !== ownerAtFetch || wishlistState.authContextVersion !== versionAtFetch)
+            return;
         // Reconcile the server snapshot (as of when the GET fired) against mutations that raced
         // it: union in current store keys (don't drop a mid-fetch add), subtract mid-fetch
         // removals (don't resurrect a removed item).
@@ -261,7 +269,8 @@ async function runLoad(): Promise<void> {
         wishlistState.pendingRemovals = new Set();
         wishlistStore.replaceAll(merged);
     } catch {
-        if (wishlistState.sessionCustomerId !== ownerAtFetch) return;
+        if (wishlistState.sessionCustomerId !== ownerAtFetch || wishlistState.authContextVersion !== versionAtFetch)
+            return;
         wishlistState.loadState = { done: false, inFlight: null };
         wishlistState.pendingRemovals = new Set();
     }
@@ -279,9 +288,10 @@ async function loadWishlist(): Promise<void> {
  * session re-reads from scratch — auth transitions are client-side (no document reload), so the
  * store would otherwise leak one shopper's wishlist into the next in the same tab.
  */
-function setSessionCustomerId(customerId: string | null): void {
-    if (customerId === wishlistState.sessionCustomerId) return;
+function setSessionCustomerId(customerId: string | null, version?: string): void {
+    if (customerId === wishlistState.sessionCustomerId && version === wishlistState.authContextVersion) return;
     wishlistState.sessionCustomerId = customerId;
+    wishlistState.authContextVersion = version;
     wishlistState.loadState = { done: false, inFlight: null };
     wishlistState.pendingRemovals = new Set();
     wishlistStore.replaceAll(new Set());
@@ -306,7 +316,9 @@ function enqueueWrite<T>(task: () => Promise<T>): Promise<T> {
     return run;
 }
 
-async function addToWishlist(productId: string): Promise<ApiResponse<unknown>> {
+async function addToWishlist(productId: string, version?: string): Promise<ApiResponse<unknown>> {
+    if (version !== wishlistState.authContextVersion)
+        return { success: false, errors: ['Authentication context changed'] };
     if (!wishlistState.sessionCustomerId) {
         return { success: false, errors: ['Not signed in'] };
     }
@@ -327,10 +339,14 @@ async function addToWishlist(productId: string): Promise<ApiResponse<unknown>> {
     pendingStore.increment();
     const ownerAtWrite = wishlistState.sessionCustomerId;
     try {
-        const result = await enqueueWrite(() => postWishlistAction(resourceRoutes.wishlistAdd, productId));
+        const result = await enqueueWrite(() =>
+            wishlistState.sessionCustomerId !== ownerAtWrite || wishlistState.authContextVersion !== version
+                ? Promise.resolve({ success: false, errors: ['Authentication context changed'] })
+                : postWishlistAction(resourceRoutes.wishlistAdd, productId, version)
+        );
         // A shopper swap (or logout) during the POST already reset the store for the new session;
         // skip the settle write so this shopper's add can't land in the next shopper's store.
-        if (wishlistState.sessionCustomerId !== ownerAtWrite) {
+        if (wishlistState.sessionCustomerId !== ownerAtWrite || wishlistState.authContextVersion !== version) {
             return result;
         }
         if (!result.success) {
@@ -344,7 +360,9 @@ async function addToWishlist(productId: string): Promise<ApiResponse<unknown>> {
     }
 }
 
-async function removeFromWishlist(productId: string): Promise<ApiResponse<unknown>> {
+async function removeFromWishlist(productId: string, version?: string): Promise<ApiResponse<unknown>> {
+    if (version !== wishlistState.authContextVersion)
+        return { success: false, errors: ['Authentication context changed'] };
     if (!wishlistState.sessionCustomerId) {
         return { success: false, errors: ['Not signed in'] };
     }
@@ -367,10 +385,14 @@ async function removeFromWishlist(productId: string): Promise<ApiResponse<unknow
     pendingStore.increment();
     const ownerAtWrite = wishlistState.sessionCustomerId;
     try {
-        const result = await enqueueWrite(() => postWishlistAction(resourceRoutes.wishlistRemove, productId));
+        const result = await enqueueWrite(() =>
+            wishlistState.sessionCustomerId !== ownerAtWrite || wishlistState.authContextVersion !== version
+                ? Promise.resolve({ success: false, errors: ['Authentication context changed'] })
+                : postWishlistAction(resourceRoutes.wishlistRemove, productId, version)
+        );
         // A shopper swap (or logout) during the POST already reset the store for the new session;
         // skip the rollback so this shopper's item can't be restored into the next shopper's store.
-        if (wishlistState.sessionCustomerId !== ownerAtWrite) {
+        if (wishlistState.sessionCustomerId !== ownerAtWrite || wishlistState.authContextVersion !== version) {
             return result;
         }
         if (!result.success) {
@@ -386,8 +408,8 @@ async function removeFromWishlist(productId: string): Promise<ApiResponse<unknow
     }
 }
 
-function toggleWishlist(productId: string): Promise<ApiResponse<unknown>> {
-    return wishlistStore.has(productId) ? removeFromWishlist(productId) : addToWishlist(productId);
+function toggleWishlist(productId: string, version?: string): Promise<ApiResponse<unknown>> {
+    return wishlistStore.has(productId) ? removeFromWishlist(productId, version) : addToWishlist(productId, version);
 }
 
 // ---------------------------------------------------------------------------
@@ -476,14 +498,20 @@ export function useWishlistIds(): ReadonlySet<string> {
  * granularity and avoid re-rendering on every global pending flip.
  */
 export function useWishlistActions(): WishlistActions {
+    const version = useAuth()?.authContextVersion;
     const isPending = useSyncExternalStore(
         pendingStore.subscribe,
         () => pendingStore.getSnapshot() > 0,
         () => false
     );
     return useMemo<WishlistActions>(
-        () => ({ add: addToWishlist, remove: removeFromWishlist, toggle: toggleWishlist, isPending }),
-        [isPending]
+        () => ({
+            add: (id) => addToWishlist(id, version),
+            remove: (id) => removeFromWishlist(id, version),
+            toggle: (id) => toggleWishlist(id, version),
+            isPending,
+        }),
+        [isPending, version]
     );
 }
 
@@ -508,7 +536,8 @@ export function useWishlistLoader(): () => Promise<void> {
  * never changes the id, so there is nothing to catch per-route.
  */
 export function useWishlistSession(customerId: string | null): void {
+    const version = useAuth()?.authContextVersion;
     useEffect(() => {
-        setSessionCustomerId(customerId);
-    }, [customerId]);
+        setSessionCustomerId(customerId, version);
+    }, [customerId, version]);
 }

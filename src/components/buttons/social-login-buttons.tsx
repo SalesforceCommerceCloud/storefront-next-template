@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { ComponentType, ReactElement, SVGProps } from 'react';
-import { Form } from 'react-router';
+import { Form } from '@/components/form';
 import { Button } from '@/components/ui/button';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useTranslation } from 'react-i18next';

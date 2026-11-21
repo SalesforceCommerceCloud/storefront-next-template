@@ -15,6 +15,7 @@
  */
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
 import { resourceRoutes, routes } from '@/route-paths';
+import { AUTH_CONTEXT_CHANGED } from '@/lib/auth/context-binding';
 import { CHECKOUT_ACTION_INTENTS } from '@/components/checkout/utils/checkout-context-types';
 import {
     getActionPath,
@@ -97,11 +98,18 @@ export function shouldRevalidate({
     currentUrl,
     formMethod,
     formAction,
-    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
     actionResult,
     formData,
+    actionStatus,
     defaultShouldRevalidate,
 }: ShouldRevalidateFunctionArgs): boolean {
+    // Other 409s (e.g. store-selection conflicts) must not refresh identity, so the status alone is not enough.
+    const authErrorCode = (actionResult as { error?: unknown } | undefined)?.error;
+    if (
+        (actionStatus === 401 || actionStatus === 409) &&
+        (authErrorCode === AUTH_CONTEXT_CHANGED || authErrorCode === 'TAOB_REAUTH_REQUIRED')
+    )
+        return true;
     if (formMethod && formMethod !== 'GET') {
         const actionPath = getActionPath(formAction, currentUrl.origin);
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR

@@ -153,6 +153,19 @@ describe('resource.cimulate-token-bridge', () => {
         expect(await json(response)).toEqual({ success: false, error: { code: 'SHOPPER_SESSION_REQUIRED' } });
     });
 
+    it('never exports assisted credentials through the shopper agent bridge', async () => {
+        mockGetAuth.mockReturnValue({
+            authMode: 'trusted-agent',
+            userType: 'registered',
+            accessToken: 'assisted-secret',
+        });
+        const { action } = await import('./resource.cimulate-token-bridge');
+        const response = await action(args('{"auth_link_key":"key"}'));
+        expect(response.status).toBe(403);
+        expect(mockBridge).not.toHaveBeenCalled();
+        expect(await response.text()).not.toContain('assisted-secret');
+    });
+
     it.each([
         [{ success: false, error: { code: 'INVALID_REQUEST', retryable: false } } as const, 400],
         [{ success: false, error: { code: 'TOKEN_BRIDGE_AUTHORIZATION', retryable: false } } as const, 401],

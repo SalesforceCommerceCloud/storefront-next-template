@@ -230,7 +230,14 @@ export function createClient<TClient extends Client<any, any>, TOperations exten
                             : await clientMethod.call(target, path);
 
                     // If there's an error, throw ApiError with the parsed error from openapi-fetch
-                    if (result.error !== undefined) {
+                    // openapi-fetch classifies non-2xx responses as errors, but OAuth authorize
+                    // operations explicitly return 303. Manual navigation must remain observable
+                    // by server auth helpers rather than following Account Manager or throwing.
+                    const manualAuthorizationRedirect =
+                        mergedOptions?.redirect === 'manual' &&
+                        result.response.status === 303 &&
+                        /\/oauth2\/(?:authorize|login|trusted-agent\/authorize)$/.test(path);
+                    if (result.error !== undefined && !manualAuthorizationRedirect) {
                         const response = result.response;
 
                         // OTP and WebAuthn register/authenticate endpoints return 401 for invalid

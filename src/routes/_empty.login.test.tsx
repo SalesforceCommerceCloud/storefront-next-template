@@ -20,6 +20,8 @@ import Login, { loader, action } from './_empty.login';
 import type { Route } from './+types/_empty.login';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { AuthContext } from '@/providers/auth';
+import { AUTH_CONTEXT_QUERY } from '@/lib/auth/context-binding';
 import userEvent from '@testing-library/user-event';
 import { getAuth, authorizePasswordless, getPasswordLessAccessToken, updateAuth } from '@/middlewares/auth.server';
 import { getLoginPreferencesLazy } from '@salesforce/storefront-next-runtime/data-store';
@@ -2055,6 +2057,39 @@ describe('Login Route', () => {
                 );
             });
             expect(await within(form).findByRole('alert')).toBeInTheDocument();
+        });
+
+        it('binds the magic-link confirm form to the rendered auth context', () => {
+            const Stub = createRoutesStub([
+                {
+                    path: '/global/en-GB/login',
+                    Component: () => (
+                        <Login
+                            loaderData={{
+                                mode: 'passwordless',
+                                isPasswordlessLoginEnabled: true,
+                                isSocialLoginEnabled: false,
+                                pageUrl: 'http://localhost/login',
+                                guestWishlistCount: 0,
+                                confirmEmailToken: 'otp-token-123',
+                            }}
+                        />
+                    ),
+                },
+            ]);
+            render(
+                <AllProvidersWrapper>
+                    <AuthContext value={{ authContextVersion: 'rendered-context' }}>
+                        <Stub initialEntries={['/global/en-GB/login']} />
+                    </AuthContext>
+                </AllProvidersWrapper>
+            );
+
+            const formAction = new URL(
+                screen.getByTestId('confirm-magic-link-email').getAttribute('action') ?? '',
+                'http://localhost'
+            );
+            expect(formAction.searchParams.get(AUTH_CONTEXT_QUERY)).toBe('rendered-context');
         });
 
         it('renders PasswordlessLoginForm when mode is passwordless', () => {

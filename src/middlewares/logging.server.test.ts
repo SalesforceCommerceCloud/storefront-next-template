@@ -60,6 +60,24 @@ describe('logging.server', () => {
     });
 
     describe('loggingMiddleware', () => {
+        it('binds only the pathname for query-bearing agent launch and callback requests', async () => {
+            const { loggingMiddleware, pinoLogger } = await importModule();
+            const child = vi.spyOn(pinoLogger, 'child');
+            for (const path of [
+                '/login/agent?loginId=private@example.com',
+                '/login/agent/callback?code=private-code&state=provider-state',
+            ]) {
+                const context = { get: () => undefined, set: vi.fn() };
+                await loggingMiddleware(
+                    { context, request: new Request(`https://store.example${path}`) } as never,
+                    () => Promise.resolve(new Response())
+                );
+            }
+            expect(child.mock.calls.map(([bindings]) => bindings)).toEqual([
+                { method: 'GET', path: '/login/agent' },
+                { method: 'GET', path: '/login/agent/callback' },
+            ]);
+        });
         it('binds the originating client IP to request audit events', async () => {
             const { loggingMiddleware, pinoLogger } = await importModule();
             const child = vi.spyOn(pinoLogger, 'child');

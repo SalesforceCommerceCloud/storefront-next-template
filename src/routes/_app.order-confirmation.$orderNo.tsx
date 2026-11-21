@@ -16,7 +16,8 @@
 import { Fragment, type ReactElement, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { UITarget } from '@/targets/ui-target';
 import AddressDisplay from '@/components/address-display';
-import { Await, useFetcher, useParams, useRouteError } from 'react-router';
+import { Await, useParams, useRouteError } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import type { action as postOrderRegisterAction } from '@/routes/action.post-order-register';
 import type { Route } from './+types/_app.order-confirmation.$orderNo';
 import { Link } from '@/components/link';

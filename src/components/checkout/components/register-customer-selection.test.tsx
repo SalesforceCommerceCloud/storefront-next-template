@@ -22,6 +22,7 @@ import { resourceRoutes } from '@/route-paths';
 
 // Mock dependencies
 vi.mock('react-router', () => ({
+    useFormAction: () => '.',
     href: (path: string) => path,
     useFetcher: vi.fn(() => ({
         submit: vi.fn(),

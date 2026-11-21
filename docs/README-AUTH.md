@@ -124,6 +124,15 @@ PUBLIC__app__commerce__api__guestRefreshTokenExpirySeconds=2592000
 PUBLIC__app__commerce__api__registeredRefreshTokenExpirySeconds=7776000
 ```
 
+### Trusted agent cookie keys
+
+When `features.trustedAgent.enabled` is true, every shopper carries sealed auth-generation cookies (`cc-auth-fence-*`, `cc-auth-provenance`) lasting up to 90 days. They are sealed with the server-only `TAOB_COOKIE_KEYS` ring and the configured `trustedAgent.clientId`.
+
+| Change | Effect on returning shoppers |
+|--------|------------------------------|
+| Add a new key at the front of the ring and keep the old one for 90 days plus 5 minutes | None. Cookies are re-sealed with the new key as they refresh. |
+| Remove a key still used by live cookies, change `clientId`, or turn the feature off | Shoppers with no agent session continue as a fresh guest once (signed out, cart not carried over). Their unreadable cookies are cleared. Active agent sessions must relaunch from the entry route. |
+
 ### Cookie domain
 
 To share cookies across subdomains — or to keep session continuity in a hybrid Storefront Next + SFRA deployment — set a cookie domain via the global `app.cookies.domain` or a per-site `commerce.sites[].cookies.domain` override. It applies to **every** cookie the storefront writes and is opt-in (host-only by default). See **[Cookie Domain Configuration](./README-COOKIE-DOMAIN.md)** for the full guide: the storefront config and its precedence, the matching Business Manager setting, and rollout guidance/limitations.

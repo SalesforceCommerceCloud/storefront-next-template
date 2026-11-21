@@ -27,6 +27,8 @@ import { toast } from '@/components/toast';
 import { useNavigate } from '@/hooks/use-navigate';
 import { routes } from '@/route-paths';
 import { bufferToBase64Url } from '@/lib/auth/webauthn';
+import { useAuth } from '@/providers/auth';
+import { bindAuthContext } from '@/lib/auth/context-binding';
 
 // SLAS issues OTPs in the 6-to-8-digit range (pwd_action_token: ^[0-9]{6,8}$). Mirrors
 // OtpModal's constants: `config.auth.otpLength` is the storefront's configured guess at the
@@ -66,6 +68,7 @@ export function PasskeyRegistrationModal({
     const navigate = useNavigate();
     const revalidator = useRevalidator();
     const config = useConfig();
+    const authContextVersion = useAuth()?.authContextVersion;
     const otpLength = (config.auth as { otpLength?: number } | undefined)?.otpLength ?? 6;
     const [step, setStep] = useState<Step>('name');
     const [nickName, setNickName] = useState('');
@@ -77,7 +80,7 @@ export function PasskeyRegistrationModal({
     // Delivery mode (email vs. callback) is a server-side decision driven by
     // features.passkey.mode — the client just triggers the send.
     const sendOtp = useCallback(() => {
-        fetch('/action/passkey-authorize-registration', { method: 'POST' })
+        fetch(bindAuthContext('/action/passkey-authorize-registration', authContextVersion), { method: 'POST' })
             .then(async (res) => {
                 const data = (await res.json()) as { success: boolean };
                 if (!res.ok || !data.success) {
@@ -87,7 +90,7 @@ export function PasskeyRegistrationModal({
             .catch(() => {
                 setError(t('passkeys.addError'));
             });
-    }, [t]);
+    }, [t, authContextVersion]);
 
     // Deduplicate sendOtp per modal-open. React 19 Strict Mode double-invokes effects in
     // dev; this ref survives the artificial unmount/remount so only one OTP is issued.
@@ -168,10 +171,13 @@ export function PasskeyRegistrationModal({
                     startFormData.append('nickName', nickName.trim());
                 }
 
-                const startRes = await fetch('/action/passkey-start-registration', {
-                    method: 'POST',
-                    body: startFormData,
-                });
+                const startRes = await fetch(
+                    bindAuthContext('/action/passkey-start-registration', authContextVersion),
+                    {
+                        method: 'POST',
+                        body: startFormData,
+                    }
+                );
                 const startData = (await startRes.json()) as {
                     success: boolean;
                     publicKey?: Record<string, unknown>;
@@ -263,11 +269,14 @@ export function PasskeyRegistrationModal({
                           };
 
                 // Step 4: finish registration
-                const finishRes = await fetch('/action/passkey-finish-registration', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ credential: credentialJson, pwdActionToken: code }),
-                });
+                const finishRes = await fetch(
+                    bindAuthContext('/action/passkey-finish-registration', authContextVersion),
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ credential: credentialJson, pwdActionToken: code }),
+                    }
+                );
                 const finishData = (await finishRes.json()) as { success: boolean };
 
                 if (!finishRes.ok || !finishData.success) {
@@ -306,7 +315,7 @@ export function PasskeyRegistrationModal({
                 otpInputsRef.current.clear();
             }
         },
-        [otpInputsRef, t, onClose, navigate, revalidator, nickName, suppressSuccessToast]
+        [otpInputsRef, t, onClose, navigate, revalidator, nickName, suppressSuccessToast, authContextVersion]
     );
 
     const enteredOtp = otpInputs.values.join('');

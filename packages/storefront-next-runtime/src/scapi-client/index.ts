@@ -23,6 +23,25 @@ export { AuthTokenInvalidError } from './AuthTokenInvalidError';
 export { SLAS_AUTH_ENDPOINTS } from './constants';
 export { createBasketHelpers } from './basket';
 export { createAuthHelpers } from './auth';
+export { createCodeVerifier } from './auth';
+export {
+    createTrustedAgentHelpers,
+    parseTrustedAgentToken,
+    validateTrustedAgentLogin,
+    TrustedAgentError,
+    createProtectedStateCodec,
+} from './auth';
+export type {
+    TrustedAgentConfig,
+    TrustedAgentHelpers,
+    TrustedAgentAuthorizeOptions,
+    TrustedAgentAuthorization,
+    TrustedAgentExchangeOptions,
+    TrustedAgentIdentity,
+    TrustedAgentResponse,
+    ProtectedStateKey,
+    ProtectedStateBinding,
+} from './auth';
 export type {
     Basket,
     BasketHelpersConfig,

@@ -15,6 +15,24 @@
  */
 
 import type { ShopperLogin } from '../types';
+export { createCodeVerifier } from './utils';
+export {
+    createTrustedAgentHelpers,
+    parseTrustedAgentToken,
+    validateTrustedAgentLogin,
+    TrustedAgentError,
+} from './trusted-agent';
+export { createProtectedStateCodec } from './protected-state';
+export type { ProtectedStateKey, ProtectedStateBinding } from './protected-state';
+export type {
+    TrustedAgentConfig,
+    TrustedAgentHelpers,
+    TrustedAgentAuthorizeOptions,
+    TrustedAgentAuthorization,
+    TrustedAgentExchangeOptions,
+    TrustedAgentIdentity,
+    TrustedAgentResponse,
+} from './types';
 import type {
     AuthConfig,
     AuthNamespace,

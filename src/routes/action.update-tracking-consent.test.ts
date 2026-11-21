@@ -82,6 +82,17 @@ describe('action.update-tracking-consent', () => {
     };
 
     describe('successful updates', () => {
+        it('keeps assisted DNT declined without refresh or ordinary session writers even when accepting is requested', async () => {
+            mockGetAuth.mockReturnValue({
+                authMode: 'trusted-agent',
+                userType: 'registered',
+                trackingConsent: TrackingConsent.Declined,
+            });
+            const response = await action(createActionArgs(TrackingConsent.Accepted));
+            expect(await response.json()).toEqual({ success: true, trackingConsent: TrackingConsent.Declined });
+            expect(mockRefreshAccessToken).not.toHaveBeenCalled();
+            expect(mockUpdateAuth).not.toHaveBeenCalled();
+        });
         it('should successfully update tracking consent to Accepted', async () => {
             mockRefreshAccessToken.mockResolvedValue(mockTokenResponse);
 
@@ -93,7 +104,9 @@ describe('action.update-tracking-consent', () => {
                 trackingConsent: TrackingConsent.Accepted,
             });
             expect(mockUpdateAuth).toHaveBeenCalledTimes(2);
-            expect(mockUpdateAuth).toHaveBeenNthCalledWith(1, mockContextProvider, mockTokenResponse);
+            expect(mockUpdateAuth).toHaveBeenNthCalledWith(1, mockContextProvider, mockTokenResponse, {
+                isRefresh: true,
+            });
             // Verify tracking consent is set in the updater
             const updaterFn = mockUpdateAuth.mock.calls[1][1] as (session: unknown) => unknown;
             const updatedSession = updaterFn({});

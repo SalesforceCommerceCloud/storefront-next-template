@@ -28,6 +28,7 @@ vi.mock('react-router', async (importOriginal) => ({
     ...(await importOriginal<typeof import('react-router')>()),
     useFetcher: vi.fn(),
     useFetchers: vi.fn(() => []),
+    useFormAction: () => '/',
 }));
 vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
     useStoreLocator: (select: (state: unknown) => unknown) =>

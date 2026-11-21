@@ -39,6 +39,7 @@ vi.mock('react-router', async () => ({
     createContext: vi.fn().mockImplementation(() => ({})),
     createCookie: vi.fn().mockImplementation((name) => ({ name, parse: vi.fn(), serialize: vi.fn() })),
     useFetcher: () => fetcherMock,
+    useFormAction: () => '.',
     useFetchers: () => [],
     useNavigate: () => vi.fn(),
     useLocation: () => ({ pathname: '/', search: '', hash: '', state: null, key: 'test' }),

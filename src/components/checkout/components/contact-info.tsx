@@ -16,7 +16,8 @@
 import { useMemo, useRef, useCallback, useEffect, useState, lazy, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFetcher, useResolvedPath, useRevalidator } from 'react-router';
+import { useResolvedPath, useRevalidator } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { ToggleCard, ToggleCardEdit, ToggleCardSummary } from '@/components/toggle-card';
 import { Button } from '@/components/ui/button';
 import { FormInput, FormNativeSelect } from '@/components/form-fields';

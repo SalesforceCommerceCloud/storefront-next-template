@@ -1,0 +1,290 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`trusted-agent entry states > PendingAuthorization 1`] = `
+<div
+  class="mx-auto max-w-lg px-4 py-12"
+>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui"
+    data-slot="card"
+  >
+    <div
+      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+      data-slot="card-header"
+    >
+      <div
+        class="leading-none font-semibold"
+        data-slot="card-title"
+      >
+        <h1
+          class="text-2xl font-semibold"
+        >
+          Agent authorization
+        </h1>
+      </div>
+    </div>
+    <div
+      class="px-6"
+      data-slot="card-content"
+    >
+      <p
+        class="mb-6 text-muted-foreground"
+      >
+        Authorization is in progress. Complete the Account Manager sign-in or end this attempt.
+      </p>
+      <form
+        action="/login/agent"
+        class="space-y-4"
+        data-discover="true"
+        method="post"
+      >
+        <input
+          name="nonce"
+          type="hidden"
+          value="11111111-1111-4111-8111-111111111111"
+        />
+        <input
+          name="popup"
+          type="hidden"
+          value="false"
+        />
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm font-medium"
+            for="agent-login-id"
+          >
+            Act on behalf of
+          </label>
+          <input
+            autocomplete="off"
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive read-only:cursor-not-allowed read-only:bg-muted"
+            data-slot="input"
+            id="agent-login-id"
+            maxlength="512"
+            name="loginId"
+            placeholder="Shopper Login ID"
+            readonly=""
+            type="text"
+            value="shopper@example.com"
+          />
+        </div>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          formnovalidate=""
+          name="intent"
+          type="submit"
+          value="end"
+        >
+          End agent mode
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`trusted-agent entry states > Playground 1`] = `
+<div
+  class="mx-auto max-w-lg px-4 py-12"
+>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui"
+    data-slot="card"
+  >
+    <div
+      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+      data-slot="card-header"
+    >
+      <div
+        class="leading-none font-semibold"
+        data-slot="card-title"
+      >
+        <h1
+          class="text-2xl font-semibold"
+        >
+          Agent authorization
+        </h1>
+      </div>
+    </div>
+    <div
+      class="px-6"
+      data-slot="card-content"
+    >
+      <p
+        class="mb-6 text-muted-foreground"
+      >
+        Confirm the registered shopper, then sign in with Account Manager.
+      </p>
+      <form
+        action="/login/agent"
+        class="space-y-4"
+        data-discover="true"
+        method="post"
+      >
+        <input
+          name="nonce"
+          type="hidden"
+          value="11111111-1111-4111-8111-111111111111"
+        />
+        <input
+          name="popup"
+          type="hidden"
+          value="false"
+        />
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm font-medium"
+            for="agent-login-id"
+          >
+            Act on behalf of
+          </label>
+          <input
+            autocomplete="off"
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive read-only:cursor-not-allowed read-only:bg-muted"
+            data-slot="input"
+            id="agent-login-id"
+            maxlength="512"
+            name="loginId"
+            placeholder="Shopper Login ID"
+            required=""
+            type="text"
+            value="shopper@example.com"
+          />
+        </div>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+          name="intent"
+          type="submit"
+          value="start"
+        >
+          Continue
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`trusted-agent entry states > RenewalRequired 1`] = `
+<div
+  class="mx-auto max-w-lg px-4 py-12"
+>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui"
+    data-slot="card"
+  >
+    <div
+      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+      data-slot="card-header"
+    >
+      <div
+        class="leading-none font-semibold"
+        data-slot="card-title"
+      >
+        <h1
+          class="text-2xl font-semibold"
+        >
+          Agent authorization
+        </h1>
+      </div>
+    </div>
+    <div
+      class="px-6"
+      data-slot="card-content"
+    >
+      <p
+        class="mb-6 text-muted-foreground"
+      >
+        Your assisted session requires authorization before you can continue.
+      </p>
+      <form
+        action="/login/agent"
+        class="space-y-4"
+        data-discover="true"
+        method="post"
+      >
+        <input
+          name="nonce"
+          type="hidden"
+          value="11111111-1111-4111-8111-111111111111"
+        />
+        <input
+          name="popup"
+          type="hidden"
+          value="false"
+        />
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm font-medium"
+            for="agent-login-id"
+          >
+            Act on behalf of
+          </label>
+          <input
+            aria-describedby="agent-login-id-hint"
+            autocomplete="off"
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive read-only:cursor-not-allowed read-only:bg-muted"
+            data-slot="input"
+            id="agent-login-id"
+            maxlength="512"
+            name="loginId"
+            placeholder="Shopper Login ID"
+            readonly=""
+            required=""
+            type="text"
+            value="shopper@example.com"
+          />
+          <p
+            class="text-sm text-muted-foreground"
+            id="agent-login-id-hint"
+          >
+            This session is for the shopper above. To assist someone else, choose "Assist a different shopper" below.
+          </p>
+        </div>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          data-size="default"
+          data-slot="button"
+          data-variant="default"
+          name="intent"
+          type="submit"
+          value="renew"
+        >
+          Continue
+        </button>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          formnovalidate=""
+          name="intent"
+          type="submit"
+          value="end"
+        >
+          End agent mode
+        </button>
+      </form>
+      <a
+        class="mt-4 block text-sm underline"
+        data-discover="true"
+        href="/global/en-GB/login/agent?mode=switch"
+      >
+        Assist a different shopper
+      </a>
+    </div>
+  </div>
+</div>
+`;

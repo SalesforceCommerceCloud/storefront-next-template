@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { useEffect, useRef } from 'react';
-import { useLocation, useFetcher, useNavigation } from 'react-router';
+import { useLocation, useNavigation } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useNavigate } from '@/hooks/use-navigate';
 import { useAuth } from '@/providers/auth';
 import { useToast } from '@/components/toast';

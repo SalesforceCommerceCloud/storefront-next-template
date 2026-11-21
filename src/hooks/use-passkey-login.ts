@@ -18,6 +18,8 @@ import { useCallback, useRef, useState } from 'react';
 import { resourceRoutes } from '@/route-paths';
 import { bufferToBase64Url } from '@/lib/auth/webauthn';
 import type { ShopperLogin } from '@/scapi';
+import { useAuth } from '@/providers/auth';
+import { bindAuthContext } from '@/lib/auth/context-binding';
 
 export interface PasskeyLoginSuccess {
     tokenResponse: ShopperLogin.schemas['TokenResponse'];
@@ -47,6 +49,7 @@ export interface PasskeyLoginSuccess {
  * the shopper never asked to sign in with a passkey, so there is nothing to report.
  */
 export function usePasskeyLogin(onSuccess?: (result: PasskeyLoginSuccess) => void, onError?: () => void) {
+    const auth = useAuth();
     const onSuccessRef = useRef(onSuccess);
     onSuccessRef.current = onSuccess;
     const onErrorRef = useRef(onError);
@@ -64,7 +67,7 @@ export function usePasskeyLogin(onSuccess?: (result: PasskeyLoginSuccess) => voi
     }, []);
 
     const loginWithPasskey = useCallback(async (): Promise<void> => {
-        if (typeof window === 'undefined' || inFlightRef.current) return;
+        if (typeof window === 'undefined' || inFlightRef.current || auth?.authMode === 'trusted-agent') return;
         if (
             typeof window.PublicKeyCredential === 'undefined' ||
             typeof window.PublicKeyCredential.isConditionalMediationAvailable !== 'function' ||
@@ -99,10 +102,13 @@ export function usePasskeyLogin(onSuccess?: (result: PasskeyLoginSuccess) => voi
         let gestureCommitted = false;
 
         try {
-            const startRes = await fetch(resourceRoutes.passkeyStartAuthentication, {
-                method: 'POST',
-                signal: controller.signal,
-            });
+            const startRes = await fetch(
+                bindAuthContext(resourceRoutes.passkeyStartAuthentication, auth?.authContextVersion),
+                {
+                    method: 'POST',
+                    signal: controller.signal,
+                }
+            );
             const startData = (await startRes.json()) as {
                 success: boolean;
                 publicKey?: Record<string, unknown>;
@@ -186,12 +192,15 @@ export function usePasskeyLogin(onSuccess?: (result: PasskeyLoginSuccess) => voi
                           },
                       };
 
-            const finishRes = await fetch(resourceRoutes.passkeyFinishAuthentication, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ credential: credentialJson }),
-                signal: controller.signal,
-            });
+            const finishRes = await fetch(
+                bindAuthContext(resourceRoutes.passkeyFinishAuthentication, auth?.authContextVersion),
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: credentialJson }),
+                    signal: controller.signal,
+                }
+            );
             const finishData = (await finishRes.json()) as {
                 success: boolean;
                 tokenResponse?: ShopperLogin.schemas['TokenResponse'];
@@ -225,7 +234,7 @@ export function usePasskeyLogin(onSuccess?: (result: PasskeyLoginSuccess) => voi
             abortControllerRef.current = null;
             setIsAuthenticating(false);
         }
-    }, []);
+    }, [auth?.authMode, auth?.authContextVersion]);
 
     return { loginWithPasskey, abortPasskeyLogin, isAuthenticating };
 }

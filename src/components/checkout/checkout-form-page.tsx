@@ -24,7 +24,8 @@ import {
     type FormEvent,
     type ReactElement,
 } from 'react';
-import { useFetcher, useNavigation } from 'react-router';
+import { useNavigation } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useCheckoutContext } from '@/hooks/use-checkout';
 import { useBasket, useBasketHydrated } from '@/providers/basket';
 import { useCheckoutActions, type PaymentSubmissionRef } from '@/hooks/use-checkout-actions';
@@ -34,6 +35,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Typography } from '@/components/typography';
 import { useCustomerProfile } from '@/hooks/checkout/use-customer-profile';
 import { useAuth } from '@/providers/auth';
+import { bindAuthContext } from '@/lib/auth/context-binding';
 import type { ShopperBasketsV2, ShopperProducts, ShopperPromotions } from '@/scapi';
 import { useTranslation } from 'react-i18next';
 import { Lock } from 'lucide-react';
@@ -261,6 +263,7 @@ export default function CheckoutFormPage({
     showToast,
     emailVerificationEnabled,
 }: CheckoutFormPageProps) {
+    const auth = useAuth();
     const { t, i18n } = useTranslation('checkout');
     const { t: tErrors } = useTranslation('errors');
     const tAny = t as (key: string) => string;
@@ -580,11 +583,14 @@ export default function CheckoutFormPage({
                     //    would otherwise still hold the shipping-step default.
                     const billing = paymentSubmissionRef.current.billingAddressGetter?.();
                     if (billing) {
-                        const billingResp = await fetch(resourceRoutes.updateBasketBillingAddress, {
-                            method: 'POST',
-                            headers: { ...correlationHeaders, 'Content-Type': 'application/json' },
-                            body: JSON.stringify(billing),
-                        });
+                        const billingResp = await fetch(
+                            bindAuthContext(resourceRoutes.updateBasketBillingAddress, auth?.authContextVersion),
+                            {
+                                method: 'POST',
+                                headers: { ...correlationHeaders, 'Content-Type': 'application/json' },
+                                body: JSON.stringify(billing),
+                            }
+                        );
                         if (!billingResp.ok) {
                             // Fail-closed: if we cannot persist billing, do not delegate
                             // to the extension with stale billing on the basket.
@@ -601,10 +607,13 @@ export default function CheckoutFormPage({
                     }
 
                     // 1. Prepare: validate basket, resolve multiship shipments, recalculate.
-                    const prepareResponse = await fetch(resourceRoutes.placeOrderPrepare, {
-                        method: 'POST',
-                        headers: correlationHeaders,
-                    });
+                    const prepareResponse = await fetch(
+                        bindAuthContext(resourceRoutes.placeOrderPrepare, auth?.authContextVersion),
+                        {
+                            method: 'POST',
+                            headers: correlationHeaders,
+                        }
+                    );
                     if (!prepareResponse.ok) {
                         const prepareBody = await prepareResponse.json().catch(() => ({}));
                         // oxlint-disable-next-line no-console
@@ -646,11 +655,14 @@ export default function CheckoutFormPage({
                     // 3. Finalize: profile saves + basket teardown + confirmation URL.
                     const finalizeFormData = buildPlaceOrderFinalizeFormData();
                     finalizeFormData.set('orderNo', orderNo);
-                    const finalizeResponse = await fetch(resourceRoutes.placeOrderFinalize, {
-                        method: 'POST',
-                        headers: correlationHeaders,
-                        body: finalizeFormData,
-                    });
+                    const finalizeResponse = await fetch(
+                        bindAuthContext(resourceRoutes.placeOrderFinalize, auth?.authContextVersion),
+                        {
+                            method: 'POST',
+                            headers: correlationHeaders,
+                            body: finalizeFormData,
+                        }
+                    );
                     const rawBody = await finalizeResponse.text();
                     let body: { success?: boolean; redirectUrl?: string } = {};
                     let parseError: unknown;

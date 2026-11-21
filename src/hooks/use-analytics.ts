@@ -82,7 +82,7 @@ async function trackEvent<TEventType extends AnalyticsEvent['eventType']>(
 
     // Wait for auth to be defined before tracking
     let auth = await getAuthPromise();
-    if (auth === undefined || !isCurrent()) {
+    if (auth === undefined || auth.authMode === 'trusted-agent' || !isCurrent()) {
         // Auth not available - silently fail to not break the app
         return false;
     }
@@ -94,7 +94,7 @@ async function trackEvent<TEventType extends AnalyticsEvent['eventType']>(
 
     // Auth may have changed while adapters initialized; wait for the current identity.
     auth = await getAuthPromise();
-    if (auth === undefined || !isCurrent()) {
+    if (auth === undefined || auth.authMode === 'trusted-agent' || !isCurrent()) {
         return false;
     }
 

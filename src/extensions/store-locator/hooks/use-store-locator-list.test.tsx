@@ -41,6 +41,7 @@ const mockStoreFetcher = {
 
 vi.mock('react-router', () => ({
     href: (path: string) => path,
+    useFormAction: () => '.',
     useFetcher: () => {
         return mockSearchFetcher;
     },

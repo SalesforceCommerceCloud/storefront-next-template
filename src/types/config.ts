@@ -287,6 +287,13 @@ export type AppConfig = {
      */
     serverExtension?: DeepWritable<typeof GeneratedServerExtensionConfig>;
     features: {
+        trustedAgent?: {
+            enabled: boolean;
+            /** Dedicated public SLAS client with sfcc.ta_ext_on_behalf_of scope. */
+            clientId: string;
+            /** Registered callback on the public storefront origin. */
+            callbackUri: string;
+        };
         passkey: {
             enabled?: boolean;
             callbackUri?: string;

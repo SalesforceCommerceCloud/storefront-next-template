@@ -32,6 +32,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('react-router', () => ({
     useFetcher: () => ({ state: 'idle', data: undefined, submit: mocks.submit }),
+    useFormAction: () => '/',
     useCallback: (fn: unknown) => fn,
 }));
 

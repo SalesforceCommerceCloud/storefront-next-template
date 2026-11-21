@@ -23,6 +23,8 @@ import type {
     ApiResponse,
 } from '@/lib/scapi/types';
 import { encodeResource, RESOURCE_API_ROUTE } from '@/lib/scapi/resource-encoding';
+import { useAuth } from '@/providers/auth';
+import { AUTH_CONTEXT_HEADER } from '@/lib/auth/context-binding';
 import type {
     CommerceSdkMethodArgs,
     CommerceSdkMethodBody,
@@ -66,6 +68,7 @@ function useScapiFetchCore<TData, TBody>(
     buildUrl: (opts: unknown) => string,
     options: unknown
 ): ScapiFetch<TData, TBody> {
+    const authContextVersion = useAuth()?.authContextVersion;
     // Memoize options to avoid re-encoding on every render. `optionsString` is the
     // stable identity key — when it doesn't change, return the previous reference so
     // downstream `useMemo`/`useCallback` deps don't churn.
@@ -99,7 +102,10 @@ function useScapiFetchCore<TData, TBody>(
                 const response = await fetch(url, {
                     method: 'POST',
                     credentials: 'same-origin',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(authContextVersion && { [AUTH_CONTEXT_HEADER]: authContextVersion }),
+                    },
                     body: JSON.stringify(payload ?? {}),
                 });
 
@@ -135,7 +141,7 @@ function useScapiFetchCore<TData, TBody>(
                 setIsPending(false);
             }
         },
-        [buildUrl, defaultUrl, stableOptions]
+        [buildUrl, defaultUrl, stableOptions, authContextVersion]
     );
 
     return { submit, isPending } as ScapiFetch<TData, TBody>;

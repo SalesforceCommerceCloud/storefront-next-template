@@ -60,33 +60,19 @@ const vertical = process.env.VERTICAL ?? 'fashion';
 // Raised again for the shop-by-store merge into main (@W-24926803@): the merged root chunk grew every tier
 // (CI medians: fashion 412386, foundations 411750, footwear 419503, furniture 417653, luxury 422013), so
 // each tier keeps ~1.5 KB headroom over its median, including fashion/foundations.
-// Grocery shared-component optimizations: a matched local production Fashion capture after the
-// minimal-PD revision measured home 414564 B and PDP 489419 B. Fashion takes dedicated 416 KB /
-// 491 KB tiers, retaining ~1.5 KB headroom. Seven-run CI at a85301ef1 passes these tiers; document
-// ceilings and performance-score thresholds are unchanged.
-// The optimized Grocery mirror against CI's RefArch backend measured home 423717 B / PDP 491000 B
-// in one local capture per page. Dedicated 425300 B / 492500 B tiers retain ~1.5 KB headroom for
-// its richer homepage and Grocery shell. Seven-run CI at a85301ef1 also passes these tiers.
-// Seven-run CI at a85301ef1 measured the remaining home/PDP script totals (bytes):
-// cosmetic 420307/494728, foundations 414766/489800, footwear 422543/508477,
-// furniture 420029/508834, luxury 424407/494482. Their updated tiers round up to the
-// next 100 bytes with at least 1500 bytes of headroom. Other assertions remain unchanged.
+// Raised again after merging the trusted-agent work with main's store-qualified pricing: every tier grew 0.5-3 KB
+// (CI medians, home: fashion 419766, foundations 418961, footwear 426560, furniture 424040, cosmetic 424204,
+// luxury 429608, grocery 428811), and each tier keeps ~1.5 KB headroom. Fashion and foundations share the default tier.
 const homeScriptSizeLimit =
     vertical === 'luxury'
-        ? 426000
+        ? 431200
         : vertical === 'footwear'
-          ? 424100
-          : vertical === 'cosmetic'
-            ? 421900
-            : vertical === 'furniture'
-              ? 421600
-              : vertical === 'grocery'
-                ? 425300
-                : vertical === 'fashion' || vertical === undefined
-                  ? 416000
-                  : vertical === 'foundations'
-                    ? 416300
-                    : 413900;
+          ? 428100
+          : vertical === 'grocery'
+            ? 430400
+            : vertical === 'cosmetic' || vertical === 'furniture'
+              ? 425800
+              : 421300;
 // Product ceilings re-measured after the latest upstream/main merge: the combined PDP chunk landed a
 // touch above the earlier raise on the three verticals that carry the most PDP code (CI medians:
 // footwear 499656, luxury 491466, cosmetic 486286). Each ceiling sits ~1.5 KB above its measured
@@ -104,23 +90,20 @@ const homeScriptSizeLimit =
 // root-mounted store-locator provider land on the product view too (CI medians: footwear 505826,
 // furniture 503827, cosmetic 492150, fashion 487549, grocery 487320, foundations 487034). Each tier keeps
 // ~1.5 KB headroom; luxury still passes and is untouched.
-// Luxury PDP's previous 493500-byte tier (@W-24858776@) is superseded by the measured CI tier above.
+// Raised again with the home tiers above (CI medians: footwear 512823, furniture 513190, cosmetic 498923, luxury 499847,
+// fashion 494804, foundations 494303, grocery 496284). Grocery gets its own tier because it lands above the shared default.
 const productScriptSizeLimit =
     vertical === 'footwear'
-        ? 510000
+        ? 514400
         : vertical === 'luxury'
-          ? 496000
+          ? 501400
           : vertical === 'furniture'
-            ? 510400
+            ? 514700
             : vertical === 'cosmetic'
-              ? 496300
+              ? 500500
               : vertical === 'grocery'
-                ? 492500
-                : vertical === 'fashion' || vertical === undefined
-                  ? 491000
-                  : vertical === 'foundations'
-                    ? 491300
-                    : 489100;
+                ? 497800
+                : 496400;
 const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
 const cartScriptSizeLimit = vertical === 'footwear' ? 543000 : vertical === 'luxury' ? 541500 : 535000;
 /**

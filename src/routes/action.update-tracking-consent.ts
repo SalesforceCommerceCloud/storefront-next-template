@@ -76,6 +76,8 @@ export const action = async ({ request, context }: Route.ActionArgs) => {
 
     // Get current auth to retrieve refresh token
     const currentAuth = getAuth(context);
+    if (currentAuth.authMode === 'trusted-agent')
+        return Response.json({ success: true, trackingConsent: TrackingConsent.Declined });
     const refreshToken = currentAuth.refreshToken;
 
     const userType: 'guest' | 'registered' = currentAuth.userType || 'guest';
@@ -95,7 +97,7 @@ export const action = async ({ request, context }: Route.ActionArgs) => {
                 trackingConsent,
             });
             // Update the auth context with the new token response
-            updateAuth(context, tokenResponse);
+            updateAuth(context, tokenResponse, { isRefresh: true });
         } catch (error) {
             logger.warn('UpdateTrackingConsent: token refresh failed, updating session only', { error });
         }

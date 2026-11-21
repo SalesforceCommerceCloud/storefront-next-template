@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { type ReactElement, useState, useRef, useEffect } from 'react';
-import { Form } from 'react-router';
+import { Form } from '@/components/form';
 import { useTranslation } from 'react-i18next';
 import { House, Heart, ShoppingBag, User, MapPin, CreditCard, Building, KeyRound, LogOut } from 'lucide-react';
 

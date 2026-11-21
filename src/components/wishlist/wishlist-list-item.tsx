@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { lazy, Suspense, type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import type { action as wishlistRemoveAction } from '@/routes/action.wishlist-remove';
 import { Link } from '@/components/link';
 import type { ShopperCustomers, ShopperProducts } from '@/scapi';

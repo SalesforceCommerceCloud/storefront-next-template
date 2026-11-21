@@ -117,7 +117,12 @@ const AuthProvider = ({
     // the cached-shell case where `value` is undefined (no per-visitor auth baked in) — the spread of
     // undefined yields `{ userType }`, which is the correct restored state.
     const effectiveValue = useMemo<PublicSessionData | undefined>(
-        () => (cookieUserType && cookieUserType !== value?.userType ? { ...value, userType: cookieUserType } : value),
+        () =>
+            value?.authContextVersion || value?.authMode === 'trusted-agent'
+                ? value
+                : cookieUserType && cookieUserType !== value?.userType
+                  ? { ...value, userType: cookieUserType }
+                  : value,
         [value, cookieUserType]
     );
 

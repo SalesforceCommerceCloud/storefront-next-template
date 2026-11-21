@@ -48,6 +48,7 @@ vi.mock('react-router', async () => ({
     UNSAFE_DataRouterContext: (await import('react')).createContext({}),
     href: (path: string) => path,
     createContext: vi.fn().mockImplementation(() => ({})),
+    useFormAction: () => '.',
     useFetcher: () => ({
         data: null,
         state: 'idle',

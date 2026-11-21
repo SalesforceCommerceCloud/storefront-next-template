@@ -61,6 +61,7 @@ vi.mock('@/providers/auth', () => ({ useAuth: vi.fn() }));
 vi.mock('react-router', async (importOriginal) => ({
     ...(await importOriginal<typeof import('react-router')>()),
     useFetcher,
+    useFormAction: () => '.',
 }));
 
 vi.mock('@/extensions/shipping-delivery/lib/api/use-delivery-destination', () => ({ useDeliveryDestination }));

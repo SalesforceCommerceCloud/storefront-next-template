@@ -25,7 +25,7 @@ import {
     useMemo,
     type PropsWithChildren,
 } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 import { resourceRoutes } from '@/route-paths';
 import { Button } from '@/components/ui/button';

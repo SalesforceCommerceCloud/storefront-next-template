@@ -15,13 +15,8 @@
  */
 /** @sfdc-extension-file SFDC_EXT_APPOINTMENT_SCHEDULING */
 import { type ReactElement, useCallback } from 'react';
-import {
-    redirect,
-    useFetcher,
-    useNavigation,
-    type LoaderFunctionArgs,
-    type ShouldRevalidateFunctionArgs,
-} from 'react-router';
+import { redirect, useNavigation, type LoaderFunctionArgs, type ShouldRevalidateFunctionArgs } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 import { SeoMeta } from '@/components/seo-meta';
 import { buildCanonicalUrl } from '@/utils/canonical-url';

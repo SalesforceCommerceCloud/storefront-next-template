@@ -30,6 +30,7 @@ import { isResourceOperationAllowed, sanitizeResourceOptions } from '@/lib/scapi
 
 import type { Route } from './+types/resource.api.client.$resource';
 import { getLogger } from '@/lib/logger.server';
+import { updateTrustedAgentLogin } from '@/lib/auth/trusted-agent/session.server';
 
 // Selectively reloads registered `useScapiFetcher()` fetchers after a mutation, per the SCAPI revalidation policy,
 // and opts the route's own fetchers out of React Router's blanket auto-revalidation.
@@ -248,6 +249,17 @@ export async function action<
 
         // Extract data from the new response format
         const data = result?.data as Awaited<R>;
+        if (
+            clientKey === 'shopperCustomers' &&
+            methodName === 'updateCustomer' &&
+            data &&
+            typeof data === 'object' &&
+            'customerId' in data &&
+            'login' in data &&
+            typeof data.customerId === 'string' &&
+            typeof data.login === 'string'
+        )
+            updateTrustedAgentLogin(context, data.customerId, data.login);
 
         return {
             success: true,

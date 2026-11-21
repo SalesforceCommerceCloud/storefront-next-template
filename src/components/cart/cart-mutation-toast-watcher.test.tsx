@@ -34,6 +34,7 @@ vi.mock('react-i18next', () => ({
 let fetcherState: { state: string; data: unknown } = { state: 'idle', data: undefined };
 vi.mock('react-router', () => ({
     useFetcher: () => fetcherState,
+    useFormAction: () => '.',
 }));
 
 // Controllable registry: the watcher renders one leaf per entry, and each leaf unregisters after firing.

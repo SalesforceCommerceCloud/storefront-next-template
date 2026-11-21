@@ -75,6 +75,67 @@ describe('MrtConsoleSpanExporter', () => {
         expect(() => JSON.parse(output)).not.toThrow();
     });
 
+    it('removes launch identifiers, callback secrets, fragments, and embedded credentials from all URL attribute locations without mutating spans', () => {
+        const attributes = {
+            'url.full':
+                'https://user:password@store.example/login/agent?loginId=private%40example.com#private-fragment',
+            'http.url': 'https://api.example/oauth2/trusted-agent?code=private-code&code_verifier=private-verifier',
+            'url.query': 'loginId=private@example.com',
+            'url.fragment': 'private-fragment',
+            'url.path': '/login/agent/callback?code=private-code',
+            'http.target': '/callback?state=private-state',
+            'http.response.status_code': 303,
+        };
+        const span = createMockSpan({
+            attributes,
+            events: [{ name: 'request', time: [1, 0], attributes }],
+            links: [{ context: { traceId: 'a'.repeat(32), spanId: 'b'.repeat(16), traceFlags: 1 }, attributes }],
+        });
+        new MrtConsoleSpanExporter().export([span], vi.fn());
+        const output = consoleSpy.mock.calls[0][0] as string;
+        expect(output).not.toContain('private');
+        expect(output).not.toContain('password');
+        const parsed = JSON.parse(output);
+        expect(parsed.attributes).toEqual({
+            'url.full': 'https://store.example/login/agent',
+            'http.url': 'https://api.example/oauth2/trusted-agent',
+            'url.path': '/login/agent/callback',
+            'http.target': '/callback',
+            'http.response.status_code': 303,
+        });
+        expect(parsed.events[0].attributes).toEqual(parsed.attributes);
+        expect(parsed.links[0].attributes).toEqual(parsed.attributes);
+        expect(span.attributes).toBe(attributes);
+        expect(attributes['url.query']).toBe('loginId=private@example.com');
+    });
+
+    it('strips query strings, fragments, and credentials from span names, status messages, and exception details', () => {
+        const span = createMockSpan({
+            name: 'GET /login/agent?loginId=private@example.com',
+            status: {
+                code: SpanStatusCode.ERROR,
+                message: 'failed https://user:password@store.example/cb?code=private-code',
+            },
+            events: [
+                {
+                    name: 'exception',
+                    time: [1, 0],
+                    attributes: {
+                        'exception.message': 'bad /callback?state=private-state#private-fragment',
+                        'exception.stacktrace': 'Error: x\n    at GET /a?code=private-code',
+                    },
+                },
+            ],
+        });
+        new MrtConsoleSpanExporter().export([span], vi.fn());
+        const output = consoleSpy.mock.calls[0][0] as string;
+        expect(output).not.toContain('private');
+        expect(output).not.toContain('password');
+        const parsed = JSON.parse(output);
+        expect(parsed.name).toBe('GET /login/agent');
+        expect(parsed.status.message).toBe('failed https://store.example/cb');
+    });
+
     it('includes all required MRT fields', () => {
         const exporter = new MrtConsoleSpanExporter();
         const callback = vi.fn();

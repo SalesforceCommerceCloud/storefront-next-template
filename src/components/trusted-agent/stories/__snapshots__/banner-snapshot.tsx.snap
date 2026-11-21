@@ -1,0 +1,200 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`trusted-agent session banner > LongLogin 1`] = `
+<aside
+  aria-label="Assisted shopping"
+  class="sticky top-0 z-[60] border-b border-warning-border bg-warning-bg px-4 py-3 text-foreground [@media(max-height:400px)]:static"
+>
+  <div
+    class="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between gap-3"
+  >
+    <div>
+      <p
+        class="font-semibold [overflow-wrap:anywhere]"
+      >
+        Acting on behalf of shopper a.very.long.shopper.login.name+taob.testing@example-subdomain.company.example.com (abkHIYxekZlXkRxekYxqYYlKk0)
+      </p>
+      <p
+        class="text-sm"
+      >
+        Agent support-agent
+      </p>
+    </div>
+    <div
+      class="flex flex-wrap items-center gap-4"
+    >
+      <a
+        class="underline"
+        data-discover="true"
+        href="/global/en-GB/login/agent?mode=switch"
+      >
+        Assist a different shopper
+      </a>
+      <form
+        action="/logout"
+        data-discover="true"
+        method="post"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          type="submit"
+        >
+          End agent mode
+        </button>
+      </form>
+    </div>
+  </div>
+</aside>
+`;
+
+exports[`trusted-agent session banner > Playground 1`] = `
+<aside
+  aria-label="Assisted shopping"
+  class="sticky top-0 z-[60] border-b border-warning-border bg-warning-bg px-4 py-3 text-foreground [@media(max-height:400px)]:static"
+>
+  <div
+    class="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between gap-3"
+  >
+    <div>
+      <p
+        class="font-semibold [overflow-wrap:anywhere]"
+      >
+        Acting on behalf of shopper shopper@example.com (abkHIYxekZlXkRxekYxqYYlKk0)
+      </p>
+      <p
+        class="text-sm"
+      >
+        Agent support-agent
+      </p>
+    </div>
+    <div
+      class="flex flex-wrap items-center gap-4"
+    >
+      <a
+        class="underline"
+        data-discover="true"
+        href="/global/en-GB/login/agent?mode=switch"
+      >
+        Assist a different shopper
+      </a>
+      <form
+        action="/logout"
+        data-discover="true"
+        method="post"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          type="submit"
+        >
+          End agent mode
+        </button>
+      </form>
+    </div>
+  </div>
+</aside>
+`;
+
+exports[`trusted-agent session banner > RecoveryRequired 1`] = `
+<aside
+  aria-label="Assisted shopping"
+  class="sticky top-0 z-[60] border-b border-warning-border bg-warning-bg px-4 py-3 text-foreground [@media(max-height:400px)]:static"
+>
+  <div
+    class="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between gap-3"
+  >
+    <div>
+      <p
+        class="font-semibold [overflow-wrap:anywhere]"
+      >
+        Acting on behalf of shopper shopper@example.com (abkHIYxekZlXkRxekYxqYYlKk0)
+      </p>
+      <p
+        class="text-sm"
+      >
+        Agent support-agent
+      </p>
+    </div>
+    <div
+      class="flex flex-wrap items-center gap-4"
+    >
+      <a
+        class="font-medium underline"
+        href="/login/agent"
+      >
+        Continue
+      </a>
+      <form
+        action="/logout"
+        data-discover="true"
+        method="post"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          type="submit"
+        >
+          End agent mode
+        </button>
+      </form>
+    </div>
+  </div>
+</aside>
+`;
+
+exports[`trusted-agent session banner > WithoutLogin 1`] = `
+<aside
+  aria-label="Assisted shopping"
+  class="sticky top-0 z-[60] border-b border-warning-border bg-warning-bg px-4 py-3 text-foreground [@media(max-height:400px)]:static"
+>
+  <div
+    class="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between gap-3"
+  >
+    <div>
+      <p
+        class="font-semibold [overflow-wrap:anywhere]"
+      >
+        Acting on behalf of shopper abkHIYxekZlXkRxekYxqYYlKk0
+      </p>
+      <p
+        class="text-sm"
+      >
+        Agent support-agent
+      </p>
+    </div>
+    <div
+      class="flex flex-wrap items-center gap-4"
+    >
+      <a
+        class="underline"
+        data-discover="true"
+        href="/global/en-GB/login/agent?mode=switch"
+      >
+        Assist a different shopper
+      </a>
+      <form
+        action="/logout"
+        data-discover="true"
+        method="post"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+          type="submit"
+        >
+          End agent mode
+        </button>
+      </form>
+    </div>
+  </div>
+</aside>
+`;

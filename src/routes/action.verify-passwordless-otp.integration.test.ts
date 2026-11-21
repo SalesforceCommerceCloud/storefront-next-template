@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { webcrypto } from 'node:crypto';
 import { createCookie } from 'react-router';
 import { action } from './action.verify-passwordless-otp';
 import authMiddleware, { getAuth } from '@/middlewares/auth.server';
@@ -37,6 +38,19 @@ vi.mock('@/lib/api/wishlist.server', () => ({ captureGuestWishlistSnapshot: vi.f
 vi.mock('@/lib/api/customer.server', () => ({ getCustomerProfileForCheckout: vi.fn() }));
 
 describe('OTP registration with authentication and basket middleware', () => {
+    beforeEach(() => {
+        vi.stubGlobal('crypto', webcrypto);
+        vi.stubGlobal('Uint8Array', Object.getPrototypeOf(Buffer.prototype).constructor);
+        vi.stubEnv(
+            'TAOB_COOKIE_KEYS',
+            JSON.stringify([{ id: 'test', key: Buffer.alloc(32, 1).toString('base64url') }])
+        );
+    });
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        vi.unstubAllEnvs();
+    });
+
     it('reauthorizes and recalculates the inherited basket without creating an empty replacement', async () => {
         const context = createTestContext();
         const inherited = {

@@ -58,6 +58,7 @@ import { TrackingConsent } from '@/types/tracking-consent';
 import { ATTRIBUTION_COOKIE_NAME } from '@/lib/attribution';
 import { getLogger } from '@/lib/logger.server';
 import type { Logger } from '@/lib/logger';
+import { trustedAgentContext } from '@/lib/auth/trusted-agent/session.server';
 
 /**
  * Matches the SCAPI shopper-orders `createOrder` path (`.../orders`). Anchored to the end of the
@@ -93,7 +94,10 @@ export const attributionForwardingMiddleware: MiddlewareFunction<Response> = asy
         getScapiMiddlewareRegistry(context).register(REGISTRY_KEY, {
             clients: ['shopperOrders'],
             factory: (factoryContext) =>
-                createAttributionForwardingMiddleware(attributionValue, getLogger(factoryContext)),
+                createAttributionForwardingMiddleware(attributionValue, getLogger(factoryContext), () => {
+                    const mode = factoryContext.get(trustedAgentContext)?.lifecycle.mode;
+                    return Boolean(mode && mode !== 'none' && mode !== 'ended');
+                }),
         });
     }
 
@@ -108,10 +112,15 @@ export const attributionForwardingMiddleware: MiddlewareFunction<Response> = asy
  * ECOM reads and carries no cookie separators, so it must not be re-encoded. Any existing `Cookie`
  * header is preserved (the attribution pair is appended, not overwritten).
  */
-function createAttributionForwardingMiddleware(attributionValue: string, logger: Logger): Middleware {
+function createAttributionForwardingMiddleware(
+    attributionValue: string,
+    logger: Logger,
+    assisted: () => boolean
+): Middleware {
     return {
         onRequest({ request }) {
             try {
+                if (assisted()) return request;
                 if (request.method !== 'POST' || !CREATE_ORDER_PATH_RE.test(new URL(request.url).pathname)) {
                     return request;
                 }

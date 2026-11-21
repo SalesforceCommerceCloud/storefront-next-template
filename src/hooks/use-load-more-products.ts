@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import type { ShopperSearch } from '@/scapi';
 import type { CategoryProductsResult, loader as categoryProductsLoader } from '@/routes/resource.category-products';
 import { resourceRoutes } from '@/route-paths';

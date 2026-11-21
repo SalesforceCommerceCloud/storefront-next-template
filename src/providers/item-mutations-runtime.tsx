@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import { useLayoutEffect, useRef, useSyncExternalStore } from 'react';
-import { useFetcher, useFetchers, useInRouterContext } from 'react-router';
+import { useFetchers, useInRouterContext } from 'react-router';
+import { useAuthFetcher } from '@/hooks/use-auth-fetcher';
 import { useBasketItemStore } from '@/providers/basket-item-state';
 import { getStore, type Entry, type Store } from '@/providers/item-mutations-store';
 
 /** Native fetcher ownership stays in a small leaf; controls do not subscribe to Router's full fetcher context. */
 function ItemFetcherHandle({ store, entry }: { store: Store; entry: Entry }) {
-    const fetcher = useFetcher<unknown>({ key: entry.key });
+    const fetcher = useAuthFetcher<unknown>({ key: entry.key });
     const submitRef = useRef(fetcher.submit);
     useLayoutEffect(() => {
         submitRef.current = fetcher.submit;

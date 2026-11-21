@@ -55,6 +55,7 @@ vi.mock('react-router', async (importOriginal) => ({
     ...(await importOriginal<typeof import('react-router')>()),
     UNSAFE_DataRouterContext: createContext({}),
     useRevalidator: () => ({ revalidate: mocks.revalidate, state: 'idle' }),
+    useFormAction: () => '/',
     useFetcher: ({ key = '' }: { key?: string } = {}) => ({
         ...(key.startsWith('store-locator-selected-store:') ? mocks.preference : mocks.pickup),
     }),

@@ -67,8 +67,9 @@ function CimulateAgent({ cimulateConfiguration }: CimulateAgentProps) {
             userType: session.userType,
             usid: session.usid,
             customerId: session.customerId,
+            ...(session.authContextVersion && { authContextVersion: session.authContextVersion }),
         };
-    }, [site.id, session?.userType, session?.usid, session?.customerId]);
+    }, [site.id, session?.userType, session?.usid, session?.customerId, session?.authContextVersion]);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;

@@ -31,8 +31,13 @@ import {
     type RouterContextProvider,
     type ActionFunctionArgs,
 } from 'react-router';
-import { BASKET_COOKIE_NAME } from '@/lib/basket/cookie';
-import { ApiError, type AuthResponse, AuthTokenInvalidError, type ShopperLogin } from '@/scapi';
+import {
+    ApiError,
+    type AuthResponse,
+    AuthTokenInvalidError,
+    type ShopperLogin,
+    type TrustedAgentResponse,
+} from '@/scapi';
 import type { SessionData as AuthData } from '@/lib/api/types';
 import { invalidateAuthenticatedCommerce } from '@/lib/auth/commerce-context.server';
 import { clearStorage, type StorageErrorData, unpackStorage } from '@/lib/storage-map';
@@ -81,6 +86,28 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { TrackingConsent, trackingConsentToBoolean } from '@/types/tracking-consent';
 import { SHOPPER_CONTEXT_COOKIE_NAME_BASE, SOURCE_CODE_COOKIE_NAME_BASE } from '@/lib/shopper-context/constants';
+import { BASKET_COOKIE_NAME } from '@/lib/basket/cookie';
+import { ATTRIBUTION_COOKIE_NAME } from '@/lib/attribution';
+import { USERTYPE_COOKIE_NAME } from '@/lib/auth/user-type-hint';
+import {
+    authGenerationContext,
+    canUseOrdinaryCredentials,
+    prepareGuestGeneration,
+    advanceAuthGeneration,
+    persistAuthGeneration,
+    assertAuthResponseFresh,
+    authMutationFailure,
+} from '@/lib/auth/auth-generation.server';
+import {
+    restoreTrustedAgentState,
+    trustedAgentContext,
+    getTrustedAgentSessionData,
+    establishTrustedAgentState,
+    requireTrustedAgentReauthorization,
+    endTrustedAgentState,
+    persistTrustedAgentState,
+    TAOB_REAUTH_REQUIRED,
+} from '@/lib/auth/trusted-agent/session.server';
 
 /**
  * Sentinel value stored in auth storage when a registered shopper's refresh token fails.
@@ -138,6 +165,10 @@ export async function refreshAccessToken(
     refreshToken: string,
     options?: { trackingConsent?: TrackingConsent }
 ): Promise<AuthResponse> {
+    if (context.get(trustedAgentContext) && getAuth(context).authMode === 'trusted-agent') {
+        requireTrustedAgentReauthorization(context);
+        throw new AuthTokenInvalidError();
+    }
     const logger = getLogger(context);
     const clients = createApiClients(context);
     const performanceTimer = context.get(performanceTimerContext);
@@ -165,6 +196,7 @@ export async function refreshAccessToken(
             // Convert TrackingConsent enum to boolean for SLAS API
             ...(trackingConsent !== undefined && { dnt: trackingConsentToBoolean(trackingConsent) }),
         });
+        assertAuthResponseFresh(context);
         logger.debug('Auth: refreshAccessToken succeeded');
         return result;
     } catch (error) {
@@ -188,6 +220,10 @@ export async function loginGuestUser(
     context: Readonly<RouterContextProvider>,
     options?: { usid?: string }
 ): Promise<AuthResponse> {
+    if (context.get(trustedAgentContext) && getAuth(context).authMode === 'trusted-agent') {
+        requireTrustedAgentReauthorization(context);
+        throw new AuthTokenInvalidError();
+    }
     const logger = getLogger(context);
     const clients = createApiClients(context);
     const performanceTimer = context.get(performanceTimerContext);
@@ -206,6 +242,7 @@ export async function loginGuestUser(
     try {
         // SDK handles auth flow selection internally when proxyHost is configured
         const result = await clients.auth.loginAsGuest({ usid: options?.usid });
+        assertAuthResponseFresh(context);
         logger.debug('Auth: loginGuestUser succeeded');
         return result;
     } catch (error) {
@@ -226,6 +263,7 @@ export async function loginRegisteredUser(
     password: string,
     options?: { customParameters?: Record<string, unknown>; skipUsid?: boolean }
 ): Promise<AuthResponse> {
+    if (getAuth(context).authMode === 'trusted-agent') throw new Error('End agent mode before changing authentication');
     const logger = getLogger(context);
     const clients = createApiClients(context);
     const performanceTimer = context.get(performanceTimerContext);
@@ -446,6 +484,7 @@ export async function getPasswordLessAccessToken(
     pwdlessLoginToken: string,
     loginId: string
 ): Promise<AuthResponse> {
+    if (getAuth(context).authMode === 'trusted-agent') throw new Error('End agent mode before changing authentication');
     const clients = createApiClients(context);
     const performanceTimer = context.get(performanceTimerContext);
     const session = getAuth(context);
@@ -712,6 +751,7 @@ export async function finishPasskeyAuthentication(
     context: ActionFunctionArgs['context'],
     parameters: { credential: Record<string, unknown> }
 ): Promise<AuthResponse> {
+    if (getAuth(context).authMode === 'trusted-agent') throw new Error('End agent mode before changing authentication');
     const clients = createApiClients(context);
     const logger = getLogger(context);
     logger.debug('Auth: finishPasskeyAuthentication starting');
@@ -868,6 +908,13 @@ const retrieveAuthStorageData = async (
 
     // Otherwise, get a new guest token (fallback for users not logged in)
     // Note: Registered users should log in through `/login` action, not here
+    if (await prepareGuestGeneration(context)) {
+        const consent = storage.get('trackingConsent');
+        clearStorage(storage, false);
+        if (consent !== undefined) storage.set('trackingConsent', consent);
+        cache.ref = {};
+        context.get(authContext).ref = Promise.resolve(cache.ref);
+    }
     const storedUsid = storage.get('usid');
     const hasUsid = typeof storedUsid === 'string' && storedUsid.length > 0;
     logger.debug('Auth: no valid tokens, performing guest login', { hasUsid });
@@ -1136,6 +1183,151 @@ const handleAuthTokenInvalidation = async ({
 
 const authCacheContext = createContext<{ ref: AuthData | undefined }>();
 
+/** Publish all auth views together; never leave bearer injection waiting on an in-flight exchange. */
+export function publishTrustedAgentSession(context: Readonly<RouterContextProvider>): void {
+    const storage = context.get(authStorageContext);
+    const cache = context.get(authCacheContext);
+    const promiseCache = context.get(authContext);
+    const data = getTrustedAgentSessionData(context);
+    storage.clear();
+    for (const [key, value] of Object.entries(data) as [keyof AuthData, AuthData[keyof AuthData]][])
+        storage.set(key, value);
+    cache.ref = data;
+    promiseCache.ref = Promise.resolve(data);
+}
+
+/** Dedicated ingestion: TAOB is never sent through the ordinary refresh-token writer. */
+export async function updateTrustedAgentSession(
+    context: Readonly<RouterContextProvider>,
+    result: TrustedAgentResponse,
+    contextVersion?: string
+): Promise<void> {
+    await establishTrustedAgentState(context, result, contextVersion);
+    publishTrustedAgentSession(context);
+}
+
+function trustedAgentRecoveryResponse(
+    request: Request,
+    context: Readonly<RouterContextProvider>,
+    original?: Response
+): Response {
+    const requestUrl = new URL(request.url);
+    const returnPath = stripMrtBasePathFromUrl(requestUrl.pathname.replace(/\.data$/, '')) || '/';
+    const login = `${buildUrlFromContext('/login/agent', context)}?returnUrl=${encodeURIComponent(returnPath)}`;
+    const isDocument =
+        request.method === 'GET' &&
+        !requestUrl.pathname.endsWith('.data') &&
+        !original?.headers.has('X-Remix-Response') &&
+        (request.headers.get('sec-fetch-dest') === 'document' || request.headers.get('accept')?.includes('text/html'));
+    const headers = new Headers(original?.headers);
+    headers.set('Cache-Control', 'private, no-store');
+    headers.set('x-sfnext-auth-error', TAOB_REAUTH_REQUIRED);
+    headers.set('x-sfnext-auth-recovery-url', login);
+    if (isDocument) {
+        headers.delete('Content-Length');
+        headers.set('Location', login);
+        return new Response(null, { status: 303, headers });
+    }
+    // Retain a failed action's original body/status for reconciliation, especially createOrder.
+    if (original)
+        return new Response(original.body, { status: original.status >= 400 ? original.status : 401, headers });
+    headers.set('Content-Type', 'application/json');
+    return new Response(JSON.stringify({ error: TAOB_REAUTH_REQUIRED }), { status: 401, headers });
+}
+
+/** Lifecycle requests skip ordinary auth; commerce requires usable assisted state. */
+async function handleTrustedAgentRequest(
+    request: Request,
+    context: Readonly<RouterContextProvider>,
+    next: () => Promise<Response>
+): Promise<Response> {
+    const state = context.get(trustedAgentContext);
+    if (!state) throw new Error('Trusted agent state is not initialized');
+    const storage = new Map<keyof AuthStorageData, AuthStorageData[keyof AuthStorageData]>();
+    context.set(authStorageContext, storage);
+    context.set(authCacheContext, { ref: undefined });
+    context.set(authContext, { ref: Promise.resolve(undefined) });
+    state.publish = () => publishTrustedAgentSession(context);
+    publishTrustedAgentSession(context);
+    const navigation = new URL(request.url);
+    if (
+        !state.lifecycleRoute &&
+        state.lifecycle.mode === 'active' &&
+        request.method === 'GET' &&
+        !/\/(action|resource)(\/|$)/.test(navigation.pathname) &&
+        (navigation.searchParams.has('action') || navigation.searchParams.has('actionParams'))
+    ) {
+        navigation.searchParams.delete('action');
+        navigation.searchParams.delete('actionParams');
+        return new Response(null, {
+            status: 303,
+            headers: {
+                Location: `${navigation.pathname}${navigation.search}`,
+                'Cache-Control': 'private, no-store',
+                'Referrer-Policy': 'no-referrer',
+            },
+        });
+    }
+    let response: Response;
+    if (!state.lifecycleRoute && state.lifecycle.mode !== 'active') {
+        response = trustedAgentRecoveryResponse(request, context);
+    } else {
+        const stale = authMutationFailure(request, context, state.lifecycleRoute);
+        if (stale) return stale;
+        try {
+            response = await next();
+        } catch (error) {
+            if (
+                !isAuthTokenInvalidError(error) &&
+                !state.invalidated &&
+                storage.get('error') !== AUTH_TOKEN_INVALID_ERROR
+            )
+                throw error;
+            requireTrustedAgentReauthorization(context);
+            publishTrustedAgentSession(context);
+            response = trustedAgentRecoveryResponse(request, context, error instanceof Response ? error : undefined);
+        }
+        if (state.invalidated || storage.get('error') === AUTH_TOKEN_INVALID_ERROR) {
+            requireTrustedAgentReauthorization(context);
+            publishTrustedAgentSession(context);
+            response = trustedAgentRecoveryResponse(request, context, response);
+        }
+    }
+    response.headers.set('Cache-Control', 'private, no-store');
+    response.headers.set('Referrer-Policy', 'no-referrer');
+    await persistTrustedAgentState(context, response);
+    if (state.clearOrdinary) {
+        const deletion = getCookieConfig({ httpOnly: true, maxAge: undefined, expires: new Date(0) }, context);
+        const ordinaryCookieNames = [
+            COOKIE_REFRESH_TOKEN_GUEST,
+            COOKIE_REFRESH_TOKEN_REGISTERED,
+            COOKIE_ACCESS_TOKEN,
+            COOKIE_USID,
+            COOKIE_CUSTOMER_ID,
+            COOKIE_ENC_USER_ID,
+            COOKIE_IDP_ACCESS_TOKEN,
+            COOKIE_ID_TOKEN,
+            COOKIE_IDP_REFRESH_TOKEN,
+            COOKIE_CODE_VERIFIER,
+            COOKIE_TRACKING_CONSENT,
+            COOKIE_DWSID,
+            COOKIE_AUTH_RECOVERY_GUARD,
+            SHOPPER_CONTEXT_COOKIE_NAME_BASE,
+            SOURCE_CODE_COOKIE_NAME_BASE,
+            USERTYPE_COOKIE_NAME,
+        ];
+        const deletions = await Promise.all(
+            ordinaryCookieNames.map((name) => createCookie<string>(name, deletion, context).serialize('', deletion))
+        );
+        for (const serialized of deletions) response.headers.append('Set-Cookie', serialized);
+        // Basket middleware uses its own unnamespaced React Router cookie.
+        for (const name of [BASKET_COOKIE_NAME, ATTRIBUTION_COOKIE_NAME]) {
+            response.headers.append('Set-Cookie', await createPlainCookie(name, deletion).serialize('', deletion));
+        }
+    }
+    return response;
+}
+
 /**
  * Publish a token response to auth storage and cache. Every credential-publication path goes through here so
  * identity-bound commerce snapshots and helpers are cleared before any consumer reads under the new credential.
@@ -1281,6 +1473,9 @@ export async function recoverCompletedLogin(context: Readonly<RouterContextProvi
 const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }, next) => {
     const logger = getLogger(context);
     logger.debug('Auth middleware: start');
+    const assisted = await restoreTrustedAgentState(request, context);
+    if (assisted.lifecycleRoute || assisted.lifecycle.mode !== 'none')
+        return handleTrustedAgentRequest(request, context, next);
     // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
     // The recovery loader runs after initial auth setup. Validate its input here too,
     // so an expired incoming token cannot be rotated before a rejected destination.
@@ -1304,9 +1499,15 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
 
     // Parse cookie header once (not 5 times) for optimal performance
     const allCookies = parseAllCookies(cookieHeader);
+    const ordinaryCredentialsUsable = await canUseOrdinaryCredentials(request, context);
 
     // Extract auth cookies from parsed map (no decoding/JSON parsing)
     const getAuthCookie = (name: string): string | null => {
+        if (
+            !ordinaryCredentialsUsable &&
+            ![COOKIE_TRACKING_CONSENT, COOKIE_CODE_VERIFIER, COOKIE_AUTH_RECOVERY_GUARD].includes(name)
+        )
+            return null;
         const namespacedName = getCookieNameWithSiteId(name, context);
         return allCookies[namespacedName] || null;
     };
@@ -1503,10 +1704,20 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
             logger.warn('Auth middleware: retrieveAuthStorageData failed', { error });
         });
 
+    assertAuthResponseFresh(context);
+    const generationId = context.get(authGenerationContext)?.current?.id;
+    if (generationId) {
+        authStorage.set('authGeneration', generationId);
+        authCache.ref = unpackStorage<AuthData>(authStorage);
+        authPromiseCache.ref = Promise.resolve(authCache.ref);
+    }
+
     let response: Response;
     let authRecoveryTriggered = false;
 
     // Execute handler (loader/action/render)
+    const stale = authMutationFailure(request, context);
+    if (stale) return stale;
     try {
         // JWT-integrity validation: SLAS guarantees usid in `sub` and gcid/rcid in `isb`.
         // A decoded-but-missing-claim token is a critical token-integrity failure — throw
@@ -1607,6 +1818,28 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
         }
     }
 
+    const credentialsUpdated = authStorage.has('isUpdated');
+    if (context.get(authGenerationContext)?.clearOrdinary) {
+        const deletion = getCookieConfig({ httpOnly: true, maxAge: undefined, expires: new Date(0) }, context);
+        for (const name of [
+            COOKIE_REFRESH_TOKEN_GUEST,
+            COOKIE_REFRESH_TOKEN_REGISTERED,
+            COOKIE_ACCESS_TOKEN,
+            COOKIE_USID,
+            COOKIE_CUSTOMER_ID,
+            COOKIE_ENC_USER_ID,
+            COOKIE_IDP_ACCESS_TOKEN,
+            COOKIE_ID_TOKEN,
+            COOKIE_IDP_REFRESH_TOKEN,
+            COOKIE_CODE_VERIFIER,
+            COOKIE_DWSID,
+        ]) {
+            response.headers.append(
+                'Set-Cookie',
+                await createCookie<string>(name, deletion, context).serialize('', deletion)
+            );
+        }
+    }
     // After calling the handler: Write back storage data and cookies, if required
     if (authStorage.has('isDestroyed') || authStorage.has('error')) {
         logger.warn('Auth middleware: session destroyed or errored, clearing all auth cookies', {
@@ -1957,6 +2190,8 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
         response.headers.set('x-sfnext-auth-recovery-guard', String(authRecoveryStage));
     }
 
+    await persistTrustedAgentState(context, response);
+    await persistAuthGeneration(context, response, authCache.ref, credentialsUpdated);
     logger.debug('Auth middleware: complete', {
         userType: (authStorage.get('userType') as string) ?? 'unknown',
         authAction,
@@ -1979,8 +2214,13 @@ export const getAuth = (context: Readonly<RouterContextProvider>): AuthData & St
 
 export const updateAuth = (
     context: Readonly<RouterContextProvider>,
-    updater: AuthResponse | ((data: AuthData & StorageErrorData) => AuthData & StorageErrorData)
+    updater: AuthResponse | ((data: AuthData & StorageErrorData) => AuthData & StorageErrorData),
+    { isRefresh = false }: { isRefresh?: boolean } = {}
 ) => {
+    if (context.get(trustedAgentContext) && getAuth(context).authMode === 'trusted-agent') {
+        // Ordinary login/consent writers cannot silently discard the actor or re-enable tracking.
+        throw new Error('Use the trusted agent session lifecycle to update assisted authentication');
+    }
     const storage = context.get(authStorageContext);
     const cache = context.get(authCacheContext);
     const promiseCache = context.get(authContext);
@@ -1989,8 +2229,15 @@ export const updateAuth = (
         throw new Error('updateAuth must be used within the Commerce API middleware');
     }
 
+    // A refresh re-issues credentials for the generation it captured; only a new login starts a new one.
+    if (typeof updater !== 'function' && !isRefresh) {
+        assertAuthResponseFresh(context);
+        advanceAuthGeneration(context, 'shopper');
+    }
     // Update storage data
     updateAuthStorageData(storage, updater, appConfig);
+    const generationId = context.get(authGenerationContext)?.current?.id;
+    if (generationId) storage.set('authGeneration', generationId);
     invalidateAuthenticatedCommerce(context);
     cache.ref = storage.has('error') ? undefined : unpackStorage<AuthData>(storage);
     promiseCache.ref = storage.has('error')
@@ -1999,12 +2246,21 @@ export const updateAuth = (
 };
 
 export const destroyAuth = (context: Readonly<RouterContextProvider>): void => {
+    if (
+        context.get(trustedAgentContext)?.lifecycleRoute ||
+        (context.get(trustedAgentContext) && getAuth(context).authMode === 'trusted-agent')
+    ) {
+        endTrustedAgentState(context);
+        publishTrustedAgentSession(context);
+        return;
+    }
     const storage = context.get(authStorageContext);
     const cache = context.get(authCacheContext);
     const promiseCache = context.get(authContext);
     if (!storage || !cache || !promiseCache) {
         throw new Error('destroyAuth must be used within the Commerce API middleware');
     }
+    advanceAuthGeneration(context, 'ended');
 
     // Unset storage data
     clearStorage(storage);
@@ -2017,6 +2273,11 @@ export const destroyAuth = (context: Readonly<RouterContextProvider>): void => {
 };
 
 export const flashAuth = (context: Readonly<RouterContextProvider>, message?: string): void => {
+    if (context.get(trustedAgentContext) && getAuth(context).authMode === 'trusted-agent') {
+        requireTrustedAgentReauthorization(context);
+        publishTrustedAgentSession(context);
+        return;
+    }
     const storage = context.get(authStorageContext);
     const cache = context.get(authCacheContext);
     const promiseCache = context.get(authContext);
@@ -2041,6 +2302,11 @@ export const flashAuth = (context: Readonly<RouterContextProvider>, message?: st
  * the middleware's response section to send Set-Cookie deletion headers.
  */
 export const clearInvalidSessionAndRestoreGuest = async (context: Readonly<RouterContextProvider>): Promise<void> => {
+    if (context.get(trustedAgentContext) && getAuth(context).authMode === 'trusted-agent') {
+        requireTrustedAgentReauthorization(context);
+        publishTrustedAgentSession(context);
+        return;
+    }
     const logger = getLogger(context);
     const { t } = getTranslation();
     const storage = context.get(authStorageContext);

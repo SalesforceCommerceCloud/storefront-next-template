@@ -15,7 +15,7 @@
  */
 import { useState, useEffect, useMemo, useCallback, type ReactElement } from 'react';
 import type { ShopperProducts } from '@/scapi';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';

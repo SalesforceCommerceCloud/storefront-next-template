@@ -27,6 +27,7 @@ import {
 } from './wishlist';
 import { resetWishlistStore, seedWishlistStore } from '@/test-utils/wishlist';
 import { resourceRoutes } from '@/route-paths';
+import { AuthContext } from '@/providers/auth';
 
 /** Build a `Response` mirroring what `/action/wishlist-*` serializes via `data()`. */
 function actionResponse(body: unknown, status = 200): Response {
@@ -101,6 +102,46 @@ describe('wishlist store — action-backed mutations', () => {
             entry: useWishlistEntry(productId),
         }));
     }
+
+    test('binds queued writes to their rendering context and drops queued work after a shopper switch', async () => {
+        let finish!: (response: Response) => void;
+        fetchSpy.mockImplementationOnce(
+            () =>
+                new Promise<Response>((resolve) => {
+                    finish = resolve;
+                })
+        );
+        function wrapper({ children, version }: React.PropsWithChildren<{ version: string }>) {
+            return <AuthContext value={{ authContextVersion: version }}>{children}</AuthContext>;
+        }
+        let version = 'v1';
+        const { result, rerender } = renderHook(
+            () => {
+                useWishlistSession('same-customer');
+                return useWishlistActions();
+            },
+            { wrapper: ({ children }) => wrapper({ children, version }) }
+        );
+        const oldActions = result.current;
+        let first!: Promise<unknown>;
+        let queued!: Promise<unknown>;
+        act(() => {
+            first = oldActions.add('one');
+            queued = oldActions.add('two');
+        });
+        await waitFor(() => expect(fetchSpy).toHaveBeenCalledOnce());
+        expect(fetchSpy.mock.calls[0][0]).toBe('/action/wishlist-add?__authContext=v1');
+        version = 'v2';
+        rerender();
+        await act(async () => {
+            finish(actionResponse({ success: true }));
+            await Promise.all([first, queued]);
+        });
+        expect(fetchSpy).toHaveBeenCalledOnce();
+        expect(await oldActions.add('stale')).toMatchObject({ success: false });
+        expect(fetchSpy).toHaveBeenCalledOnce();
+        expect(renderHook(() => useWishlistCount()).result.current).toBe(0);
+    });
 
     test('add(): optimistic insert while pending; success confirms; a single POST is issued', async () => {
         fetchSpy.mockResolvedValue(actionResponse({ success: true }));

@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { usePasswordValidation } from '@/hooks/use-password-validation';
 import { PasswordRequirement } from '@/components/password-requirements';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
 import type { action as postOrderRegisterAction } from '@/routes/action.post-order-register';

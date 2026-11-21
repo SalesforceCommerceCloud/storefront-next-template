@@ -33,7 +33,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import type { ShopperBasketsV2, ShopperProducts } from '@/scapi';
 import type { loader as basketProductsLoader } from '@/routes/resource.basket-products';
 import type { ProductsWithPromotionsMap } from '@/lib/cart/bonus-product-utils';

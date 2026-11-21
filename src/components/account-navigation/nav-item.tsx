@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { ReactElement } from 'react';
-import { Form } from 'react-router';
+import { Form } from '@/components/form';
 import type { LucideIcon } from 'lucide-react';
 
 // Runtime SDK

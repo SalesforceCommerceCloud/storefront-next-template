@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { bindAuthContext } from '@/lib/auth/context-binding';
 import type {
     CimulateAuthLinkResult,
     CimulateIdentityLinkResult,
@@ -116,19 +117,24 @@ export async function endCimulateConversation(): Promise<{ success: boolean }> {
 
 export async function linkCimulateIdentity({
     fetchImpl = fetch,
+    authContextVersion,
 }: {
     fetchImpl?: typeof fetch;
+    authContextVersion?: string;
 } = {}): Promise<CimulateIdentityLinkResult> {
     const authLinkResult = await requestCimulateAuthLinkKey();
     if (!authLinkResult.success) return authLinkResult;
 
     try {
-        const bridgeResponse = await fetchImpl(resourceRoutes.cimulateTokenBridge, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ auth_link_key: authLinkResult.authLinkKey }),
-        });
+        const bridgeResponse = await fetchImpl(
+            bindAuthContext(resourceRoutes.cimulateTokenBridge, authContextVersion),
+            {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ auth_link_key: authLinkResult.authLinkKey }),
+            }
+        );
         const result = parseBridgeResult(await bridgeResponse.json());
         return result ?? { success: false, error: { code: 'TOKEN_BRIDGE_UNAVAILABLE', retryable: true } };
     } catch {

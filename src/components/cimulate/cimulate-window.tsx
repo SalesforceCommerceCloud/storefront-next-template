@@ -187,7 +187,9 @@ export function CimulateWindow({ config, identity }: CimulateWindowProps) {
             const startedAt = Date.now();
 
             const attempt = async (attemptNumber: number): Promise<void> => {
-                const result = await linkCimulateIdentity();
+                const result = await (identity?.authContextVersion
+                    ? linkCimulateIdentity({ authContextVersion: identity.authContextVersion })
+                    : linkCimulateIdentity());
                 if (!isCurrentCimulateLinkGeneration(generation)) return;
 
                 if (result.success) {

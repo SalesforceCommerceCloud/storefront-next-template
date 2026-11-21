@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { useCheckoutContext } from '@/hooks/use-checkout';
 import { useBasket, useBasketUpdater } from '@/providers/basket';

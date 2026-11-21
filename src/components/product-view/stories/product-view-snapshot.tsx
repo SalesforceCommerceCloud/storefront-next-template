@@ -55,6 +55,7 @@ vi.mock('react-router', async (importOriginal) => {
     return {
         ...actual,
         useFetcher: () => fetcherMock,
+        useFormAction: () => '.',
         useFetchers: () => [],
         useNavigate: () => vi.fn(),
         useLocation: () => ({ pathname: '/', search: '', hash: '', state: null, key: 'test' }),

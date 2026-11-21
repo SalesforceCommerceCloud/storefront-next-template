@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useCallback, useState, useEffect, useRef, useMemo } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 import type { ShopperSearch } from '@/scapi';
 import { useToast } from '@/components/toast';

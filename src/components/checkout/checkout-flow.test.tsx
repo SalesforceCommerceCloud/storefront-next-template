@@ -276,6 +276,7 @@ vi.mock('react-router', async () => {
         useLoaderData: () => mockUseLoaderData(),
         useNavigation: () => mockUseNavigation(),
         useFetcher: () => mockUseFetcher(),
+        useFormAction: () => '.',
         useSearchParams: () => mockUseSearchParams(),
     };
 });

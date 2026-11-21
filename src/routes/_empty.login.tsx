@@ -15,8 +15,11 @@
  */
 import { type ReactElement, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from '@/hooks/use-navigate';
-import { data, Form, redirect, redirectDocument, useActionData } from 'react-router';
+import { data, redirect, redirectDocument, useActionData } from 'react-router';
+import { Form } from '@/components/form';
 import { usePasskeyLogin } from '@/hooks/use-passkey-login';
+import { useAuth } from '@/providers/auth';
+import { bindAuthContext } from '@/lib/auth/context-binding';
 import type { Route } from './+types/_empty.login';
 import { Link } from '@/components/link';
 import { Card } from '@/components/ui/card';
@@ -584,6 +587,7 @@ export async function action({
 }
 
 export default function Login({ loaderData }: { loaderData: LoginLoaderData }): ReactElement {
+    const authContextVersion = useAuth()?.authContextVersion;
     const { t } = useTranslation('login');
     const actionData = useActionData<typeof action>();
     const navigate = useNavigate();
@@ -830,7 +834,7 @@ export default function Login({ loaderData }: { loaderData: LoginLoaderData }): 
                     if (resendTurnstileToken) {
                         formData.append('turnstileToken', resendTurnstileToken);
                     }
-                    await fetch(window.location.pathname, {
+                    await fetch(bindAuthContext(window.location.pathname, authContextVersion), {
                         method: 'POST',
                         body: formData,
                     });

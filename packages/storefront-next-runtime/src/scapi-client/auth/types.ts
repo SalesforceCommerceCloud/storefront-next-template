@@ -57,6 +57,57 @@ export interface RawTokenResult {
  */
 export type ShopperLoginClient = ProxyClient<Client<ShopperLogin.endpoints>, typeof shopperLoginOps>;
 
+/** Dedicated public-client configuration; never inherits ordinary shopper credentials. */
+export type TrustedAgentConfig = Pick<
+    AuthConfig,
+    'shopperLoginClient' | 'clientId' | 'organizationId' | 'siteId' | 'redirectUri'
+>;
+
+export interface TrustedAgentAuthorizeOptions {
+    /** Exact registered shopper login; not a customer number. */
+    loginId: string;
+    /** Optional server-prepared verifier, already persisted in a protected authorization transaction. */
+    codeVerifier?: string;
+}
+
+export interface TrustedAgentAuthorization {
+    authorizationUrl: string;
+    /** Server-only transaction secret. Persist in protected HttpOnly state. */
+    codeVerifier: string;
+}
+
+export interface TrustedAgentExchangeOptions extends TrustedAgentAuthorizeOptions {
+    code: string;
+    codeVerifier: string;
+    /** Provider callback state, when supplied; not an application-generated authorize parameter. */
+    state?: string;
+    /** Protected current USID for renewal only. Omit when switching shoppers. */
+    usid?: string;
+    /** Protected current actor for renewal. Never accept from browser input. */
+    agentId?: string;
+}
+
+/** Parsed identity, not proof of JWT signature verification. Times are milliseconds. */
+export interface TrustedAgentIdentity {
+    loginId: string;
+    customerId: string;
+    agentId: string;
+    usid: string;
+    tokenExpiresAt: number;
+}
+
+/** TAOB deliberately has no refresh credential and is not an ordinary AuthResponse. */
+export interface TrustedAgentResponse {
+    accessToken: string;
+    identity: TrustedAgentIdentity;
+    dwsid?: string;
+}
+
+export interface TrustedAgentHelpers {
+    authorizeRegistered(options: TrustedAgentAuthorizeOptions): Promise<TrustedAgentAuthorization>;
+    exchangeCode(options: TrustedAgentExchangeOptions): Promise<TrustedAgentResponse>;
+}
+
 /**
  * Configuration required to create auth helpers.
  *

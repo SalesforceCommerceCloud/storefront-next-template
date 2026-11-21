@@ -243,6 +243,12 @@
                         "name": "react-router",
                         "importNames": ["Link", "NavLink", "useNavigate"],
                         "message": "Import Link/NavLink from \"@/components/link\" and useNavigate from \"@/hooks/use-navigate\" for multi-site URL prefixing."
+                    },
+                    {
+                        "name": "react-router",
+                        "importNames": ["Form", "useFetcher"],
+                        "allowTypeImports": true,
+                        "message": "Import Form from \"@/components/form\" and useFetcher from \"@/hooks/use-auth-fetcher\" (as useAuthFetcher) so submissions carry the auth context; the auth middleware rejects unbound mutations with 409 AUTH_CONTEXT_CHANGED."
                     }
                 ],
                 "patterns": [
@@ -480,7 +486,9 @@
                 "**/src/components/link/index.tsx",
                 "**/src/components/link.tsx",
                 "**/src/dashboard/components/link.tsx",
-                "**/src/hooks/use-navigate.ts"
+                "**/src/hooks/use-navigate.ts",
+                "**/src/hooks/use-auth-fetcher.tsx",
+                "**/src/components/form.tsx"
             ],
             "rules": {
                 "no-restricted-imports": "off",
@@ -596,7 +604,9 @@
                 "src/lib/api-clients.server.ts",
                 "src/components/link/index.tsx",
                 "src/components/link.tsx",
-                "src/hooks/use-navigate.ts"
+                "src/hooks/use-navigate.ts",
+                "src/hooks/use-auth-fetcher.tsx",
+                "src/components/form.tsx"
             ],
             "rules": {
                 "no-restricted-imports": [
@@ -607,6 +617,12 @@
                                 "name": "react-router",
                                 "importNames": ["Link", "NavLink", "useNavigate"],
                                 "message": "Import Link/NavLink from \"@/components/link\" and useNavigate from \"@/hooks/use-navigate\" for multi-site URL prefixing."
+                            },
+                            {
+                                "name": "react-router",
+                                "importNames": ["Form", "useFetcher"],
+                                "allowTypeImports": true,
+                                "message": "Import Form from \"@/components/form\" and useFetcher from \"@/hooks/use-auth-fetcher\" (as useAuthFetcher) so submissions carry the auth context; the auth middleware rejects unbound mutations with 409 AUTH_CONTEXT_CHANGED."
                             }
                         ],
                         "patterns": [

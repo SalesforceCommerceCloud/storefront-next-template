@@ -53,6 +53,7 @@ const mocks = vi.hoisted(() => {
 
 vi.mock('react-router', () => ({
     useFetcher: ({ key }: { key: string }) => mocks.fetchers.get(key),
+    useFormAction: () => '.',
 }));
 
 vi.mock('@/hooks/use-checkout', () => ({

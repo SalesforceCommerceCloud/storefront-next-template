@@ -19,6 +19,7 @@ import {
     createClient,
     createOpenApiFetchClient,
     createAuthHelpers,
+    createTrustedAgentHelpers,
     createBasketHelpers,
     defaultQuerySerializer,
     BUILT_IN_CLIENT_DEFAULTS,
@@ -50,6 +51,11 @@ import {
     type ScapiClientProvenance,
 } from '@/lib/scapi/non-personalized-response.server';
 import { defaultNonPersonalizedResponseClassifier } from '@/lib/scapi/non-personalized-response-policy.server';
+import {
+    getTrustedAgentSettings,
+    trustedAgentContext,
+    requireTrustedAgentReauthorization,
+} from '@/lib/auth/trusted-agent/session.server';
 import { onAuthenticationChange } from '@/lib/auth/commerce-context.server';
 import { fingerprintCredential } from '@/lib/auth/credential-fingerprint';
 
@@ -578,6 +584,7 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
 
     const responseCredentials = new WeakMap<Response, string | null>();
     const onAuthTokenInvalid = (response: Response) => {
+        if (context.get(trustedAgentContext)?.lifecycle.mode === 'active') requireTrustedAgentReauthorization(context);
         const failedCredential = responseCredentials.get(response);
         // Storage is cleared during refresh; credential hashes remain request-scoped.
         const recovery = context.get(completedLoginRecoveryContext);
@@ -661,6 +668,18 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
             // Get the auth session from context
             const authPromise = context.get(authContext);
             const session = await authPromise.ref;
+            if (
+                !isSlasAuthEndpoint &&
+                session?.authMode === 'trusted-agent' &&
+                (context.get(trustedAgentContext)?.lifecycle.mode !== 'active' ||
+                    context.get(trustedAgentContext)?.invalidated ||
+                    !session.accessToken ||
+                    !session.accessTokenExpiry ||
+                    session.accessTokenExpiry <= Date.now())
+            ) {
+                requireTrustedAgentReauthorization(context);
+                throw new AuthTokenInvalidError();
+            }
 
             // Inject sfdc_dwsid when available:
             // - For SCAPI endpoints: always send it (maintains app-server affinity)
@@ -807,12 +826,14 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
                 status: response.status,
                 ...(duration != null && { duration }),
             };
-            const apiParams = Object.fromEntries(
-                [...new Set(url.searchParams.keys())].map((key) => {
-                    const values = url.searchParams.getAll(key);
-                    return [key, values.length === 1 ? values[0] : values];
-                })
-            );
+            const apiParams = url.pathname.includes('/oauth2/trusted-agent')
+                ? {}
+                : Object.fromEntries(
+                      [...new Set(url.searchParams.keys())].map((key) => {
+                          const values = url.searchParams.getAll(key);
+                          return [key, values.length === 1 ? values[0] : values];
+                      })
+                  );
             const personalizationMode = personalizationModes.get(id) ?? 'absent';
             personalizationModes.delete(id);
             const message = `${LOGGER_PREFIX} fetch ${request.method} ${url.pathname}`;
@@ -978,4 +999,12 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
     }
 
     return appClients;
+}
+
+/** Bind to the final merchant-configured ShopperLogin client, including overrides and transport middleware. */
+export function createTrustedAgentClient(context: Readonly<RouterContextProvider>) {
+    return createTrustedAgentHelpers({
+        ...getTrustedAgentSettings(context),
+        shopperLoginClient: createApiClients(context).shopperLogin,
+    });
 }

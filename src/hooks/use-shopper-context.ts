@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useCallback } from 'react';
 import { SHOPPER_CONTEXT_ACTION_NAME } from '@/lib/shopper-context/constants';
 import { resourceRoutes } from '@/route-paths';

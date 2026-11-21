@@ -15,6 +15,7 @@
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { FormSubmitButton } from '../form-submit-button';
+// oxlint-disable-next-line no-restricted-imports -- Stories render without the auth provider; the button works with either Form flavour.
 import { Form, useFetcher } from 'react-router';
 import { action } from 'storybook/actions';
 import { useEffect, useMemo, useRef, type ReactNode, type ReactElement } from 'react';

@@ -16,7 +16,7 @@
 /** @sfdc-extension-file SFDC_EXT_RATINGS_REVIEWS */
 /* oxlint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
 import { createContext, useCallback, type PropsWithChildren, useContext, useEffect, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useProduct } from '@/providers/product-context';
 import type { ReviewItem, ReviewsData, ReviewsSummaryData } from '@/extensions/ratings-reviews/lib/api/reviews.server';
 import type { ReviewsSummaryResult } from '@/extensions/ratings-reviews/routes/resource.reviews-summary';

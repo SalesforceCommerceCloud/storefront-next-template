@@ -154,6 +154,11 @@ const ALLOWLIST = {
     '_empty.forgot-password': 'deferred:auto-discovery,no Scenario yet',
     '_empty.reset-password': 'deferred:auto-discovery,token-gated, no Scenario yet',
     '_empty.maintenance': 'deferred:auto-discovery,ops page, no Scenario yet',
+    '_empty.login_.agent': 'deferred:auto-discovery,requires features.trustedAgent enabled, no Scenario yet',
+    '_empty.login_.agent_.authorize': 'loader-only redirect to the SLAS authorize URL, renders no page',
+    '_empty.login_.agent_.callback': 'loader-only redirect after the SLAS callback, renders no page',
+    '_empty.login_.agent_.complete':
+        'deferred:auto-discovery,popup handoff page reachable only after a completed authorization, no Scenario yet',
 };
 
 // =============================================================================

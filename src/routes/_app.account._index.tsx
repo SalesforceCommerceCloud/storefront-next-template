@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { lazy, type ReactElement, type Ref, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Await, useFetcher, useLoaderData, useOutletContext, useRevalidator } from 'react-router';
+import { Await, useLoaderData, useOutletContext, useRevalidator } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 /** @sfdc-extension-line SFDC_EXT_CUSTOMER_PREFERENCES */
 import type { Route } from './+types/_app.account._index';
 import { ToggleCard, ToggleCardSummary, ToggleCardEdit } from '@/components/toggle-card';
@@ -32,6 +33,7 @@ import { useFetcherEffect } from '@/hooks/use-fetcher-effect';
 import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
 import { SeoMeta } from '@/components/seo-meta';
 import { useAuth } from '@/providers/auth';
+import { bindAuthContext } from '@/lib/auth/context-binding';
 import { useTranslation } from 'react-i18next';
 /** @sfdc-extension-block-start SFDC_EXT_CUSTOMER_PREFERENCES */
 import { getCustomerPreferencesData } from '@/extensions/customer-preferences/lib/api/customer-preferences.server';
@@ -429,6 +431,7 @@ function AccountDetailsContent({
         // Show saved email immediately via optimistic override.
         // The override is cleared when the server customer prop refreshes.
         setProfileOverride({ email: formData.email, login: formData.email, emailVerified: false });
+        if (auth?.authMode === 'trusted-agent') return;
 
         // For passwordless shoppers: trigger OTP modal for re-authentication with new email
         if (!hasPassword && formData.email) {
@@ -566,7 +569,7 @@ function AccountDetailsContent({
             // - 'changeEmail' or 'verifyEmail': Just verify OTP (before email edit or for verification badge)
             const action =
                 otpModalMode === 'reauthenticate' ? resourceRoutes.verifyPasswordlessOtp : resourceRoutes.otpVerify;
-            const response = await fetch(action, {
+            const response = await fetch(bindAuthContext(action, auth?.authContextVersion), {
                 method: 'POST',
                 body: formData,
             });
@@ -607,6 +610,7 @@ function AccountDetailsContent({
         // Close the editing mode
         setIsEditingPassword(false);
 
+        if (auth?.authMode === 'trusted-agent') return;
         // Authenticate the user with the new password
         // Get email from customer data (userInfo) and password from formData
         if (userInfo.email && formData.password) {

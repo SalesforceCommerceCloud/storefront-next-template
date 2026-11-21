@@ -16,7 +16,7 @@
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
 import { useRef, useState, type FormEvent, type ReactElement } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {

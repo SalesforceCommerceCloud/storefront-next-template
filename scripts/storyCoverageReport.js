@@ -134,6 +134,8 @@ const EXCLUDED_COMPONENTS = new Set([
     // Internal implementation of the public `navigation-menu/index.tsx` —
     // exercised via the index story; not a public component.
     'navigation-menu/impl',
+    // Thin wrapper over React Router's `Form` that only rewrites the action URL; renders no UI of its own.
+    'form',
     // Storybook-only utility (renders nothing visible), covered by unit test
     'checkout/storybook/checkout-action-logger',
     // These are basically wrappers around other components, so no value in having storybook stories for them

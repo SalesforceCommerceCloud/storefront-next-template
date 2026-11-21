@@ -18,7 +18,7 @@
 import { type ReactElement, useEffect, useRef } from 'react';
 
 // React Router
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 
 // i18n
 import { useTranslation } from 'react-i18next';

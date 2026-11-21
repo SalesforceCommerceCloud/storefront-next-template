@@ -55,6 +55,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', async () => {
 vi.mock('react-router', () => ({
     href: (path: string) => path,
     createContext: vi.fn().mockImplementation(() => ({})),
+    useFormAction: () => '.',
     useFetcher: () => ({
         data: null,
         state: 'idle',

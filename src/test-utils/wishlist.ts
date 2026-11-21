@@ -25,6 +25,7 @@ import { pendingStore, wishlistState, wishlistStore } from '@/providers/wishlist
 /** Reset all module-level wishlist state between tests. */
 export function resetWishlistStore(): void {
     wishlistState.sessionCustomerId = null;
+    wishlistState.authContextVersion = undefined;
     wishlistState.loadState = { done: false, inFlight: null };
     wishlistState.pendingRemovals = new Set();
     wishlistState.loadRequested = false;

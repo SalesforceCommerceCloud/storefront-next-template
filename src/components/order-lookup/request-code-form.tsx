@@ -17,7 +17,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, type FormEvent } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';

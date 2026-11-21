@@ -47,6 +47,22 @@ function buildArgs(overrides: Partial<ShouldRevalidateFunctionArgs>): ShouldReva
 }
 
 describe('rootShouldRevalidate', () => {
+    test.each([
+        [401, 'TAOB_REAUTH_REQUIRED'],
+        [409, 'AUTH_CONTEXT_CHANGED'],
+    ])('refreshes authoritative identity after auth failure %s even on optimized checkout mutations', (actionStatus, error) => {
+        expect(
+            rootShouldRevalidate(
+                buildArgs({
+                    formMethod: 'POST',
+                    formAction: resourceRoutes.cartItemAdd,
+                    actionStatus,
+                    actionResult: { error },
+                    defaultShouldRevalidate: false,
+                })
+            )
+        ).toBe(true);
+    });
     describe('listing-/auth-irrelevant mutations are skipped', () => {
         // Every denylisted action, paired with the HTTP method it is actually submitted with in the app, so the
         // table mirrors production rather than assuming POST. cart-item-update and cart-bundle-update use PATCH

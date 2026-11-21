@@ -30,6 +30,7 @@ vi.mock('react-router', async () => {
     return {
         ...actual,
         useFetcher: () => fetcherMock,
+        useFormAction: () => '.',
     };
 });
 

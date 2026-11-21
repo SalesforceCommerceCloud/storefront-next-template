@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { useFetcher } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useTranslation } from 'react-i18next';
 const OtpModal = lazy(() => import('@/components/login/otp-modal'));
 import { Badge } from '@/components/ui/badge';

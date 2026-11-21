@@ -15,7 +15,8 @@
  */
 import { type ReactElement, useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFetcher, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 
 import { NativeSelect } from '@/components/ui/native-select';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';

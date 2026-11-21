@@ -19,7 +19,8 @@ import { readsQualifiedCommerce } from '@/lib/scapi/qualified-reads';
 import { isResourceLoaderAllowed } from '@/lib/scapi/resource-policy';
 // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { type FetcherSubmitOptions, type FetcherWithComponents, type SubmitTarget, useFetcher } from 'react-router';
+import { type FetcherSubmitOptions, type FetcherWithComponents, type SubmitTarget } from 'react-router';
+import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { createFetcherRegistration } from '@/lib/scapi/fetcher-registry';
 import type {
     ApiResponse,

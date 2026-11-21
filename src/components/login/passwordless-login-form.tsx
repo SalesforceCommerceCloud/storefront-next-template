@@ -24,7 +24,8 @@ import {
     useRef,
     useEffect,
 } from 'react';
-import { Form as RouterForm, useLocation, useResolvedPath } from 'react-router';
+import { useLocation, useResolvedPath } from 'react-router';
+import { Form as RouterForm } from '@/components/form';
 import { buildUrl } from '@salesforce/storefront-next-runtime/site-context';
 import { useCurrentSiteAndLocaleRef } from '@/hooks/use-current-site-and-locale-ref';
 import { Link } from '@/components/link';
