@@ -178,6 +178,7 @@ export const resourceRoutes = {
     // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
     shippingDestination: '/resource/shipping-destination',
     categoryProducts: '/resource/category-products',
+    storeStock: '/resource/store-stock',
     orderedProducts: '/resource/ordered-products',
     lastOrder: '/resource/last-order',
     stores: '/resource/stores',

@@ -134,4 +134,11 @@ export function isStoreQualificationMutation(
     // conservatively; only an explicit unchanged native context proves no refresh is needed.
     return actionResult?.effects?.nativeContext !== 'unchanged';
 }
+/** Refresh preparing-store stock after committed/reconciled effects, including partial account-save failures. */
+export function isStoreInventoryMutation(
+    actionPath: string,
+    actionResult: ShouldRevalidateFunctionArgs['actionResult']
+): boolean {
+    return getStoreSelectionRevalidation(actionPath, actionResult) === true;
+}
 // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR

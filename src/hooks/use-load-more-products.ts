@@ -39,6 +39,12 @@ function asCategoryProductsResult(data: unknown): CategoryProductsResult | null 
     return candidate as CategoryProductsResult;
 }
 
+/** Both successful windows and rejected old-store requests can identify their source store. */
+function getResponseStore(data: unknown): string | undefined {
+    if (!data || typeof data !== 'object' || !('inventoryStore' in data)) return undefined;
+    return typeof data.inventoryStore === 'string' ? data.inventoryStore : undefined;
+}
+
 /** Viewports below the theme's `md` breakpoint get the mobile batch size (the exact complement of `md:` styles). */
 const MOBILE_QUERY = `not all and ${minWidthQuery('md')}`;
 
@@ -62,6 +68,8 @@ export interface UseLoadMoreProductsOptions {
     refine: string[];
     sort?: string;
     currency?: string;
+    /** Committed store that produced the initial window; empty means no store, omitted means unscoped. */
+    inventoryStore?: string;
     initialCount: number;
     total: number;
     batchSize: number;
@@ -111,6 +119,7 @@ export function useLoadMoreProducts({
     refine,
     sort,
     currency,
+    inventoryStore,
     initialCount,
     total,
     batchSize,
@@ -151,10 +160,11 @@ export function useLoadMoreProducts({
     // Reset accumulation whenever the underlying query changes, and scroll back to the top so the
     // shopper starts the new result set from its first product (filter/sort reset behavior).
     const isFirstRenderRef = useRef(true);
-    const prevIdentityRef = useRef(identity);
+    const queryIdentity = JSON.stringify([identity, inventoryStore]);
+    const prevIdentityRef = useRef(queryIdentity);
     useEffect(() => {
-        const identityChanged = prevIdentityRef.current !== identity;
-        prevIdentityRef.current = identity;
+        const identityChanged = prevIdentityRef.current !== queryIdentity;
+        prevIdentityRef.current = queryIdentity;
 
         nextOffsetRef.current = offset + initialCount;
         shopperLoadPendingRef.current = false;
@@ -172,11 +182,15 @@ export function useLoadMoreProducts({
             return;
         }
         globalThis.scrollTo?.({ top: 0, behavior: 'smooth' });
-    }, [identity, initialCount, offset]);
+    }, [queryIdentity, initialCount, offset]);
 
     // Merge each settled batch into the accumulated list, de-duplicating by product id so a
     // shifted offset window (e.g. after a background revalidation) never renders a tile twice.
-    const result = asCategoryProductsResult(fetcher.data);
+    const candidate = asCategoryProductsResult(fetcher.data);
+    const responseStore = getResponseStore(fetcher.data);
+    const staleStore =
+        inventoryStore !== undefined && typeof responseStore === 'string' && responseStore !== inventoryStore;
+    const result = inventoryStore !== undefined && candidate?.inventoryStore !== inventoryStore ? null : candidate;
     const lastMergedRef = useRef<unknown>(null);
     useEffect(() => {
         if (fetcher.state !== 'idle') {
@@ -240,7 +254,7 @@ export function useLoadMoreProducts({
     const isLoading = fetcher.state === 'loading';
     // A settled fetch whose payload is not our JSON result object (the resource route returned a
     // non-2xx Response, which useFetcher surfaces as the raw body) means the last request failed.
-    const hasError = fetcher.state === 'idle' && fetcher.data !== undefined && result === null;
+    const hasError = fetcher.state === 'idle' && fetcher.data !== undefined && result === null && !staleStore;
 
     const loadMore = useCallback(() => {
         if (isLoading || !hasMore) {
@@ -253,6 +267,7 @@ export function useLoadMoreProducts({
             return;
         }
         const params = new URLSearchParams();
+        if (inventoryStore !== undefined) params.set('inventoryStore', inventoryStore);
         params.set(PRODUCT_SEARCH_QUERY_PARAMS.OFFSET, String(nextOffsetRef.current));
         params.set(PRODUCT_SEARCH_QUERY_PARAMS.LIMIT, String(requestLimit));
         if (sort) {
@@ -266,7 +281,7 @@ export function useLoadMoreProducts({
         }
         shopperLoadPendingRef.current = true;
         void fetcher.load(`${resourceRoutes.categoryProducts}?${params.toString()}`);
-    }, [isLoading, hasMore, effectiveBatchSize, maxProducts, sort, currency, refine]); // oxlint-disable-line react-hooks/exhaustive-deps -- fetcher.load is stable per React Router
+    }, [isLoading, hasMore, effectiveBatchSize, maxProducts, sort, currency, inventoryStore, refine]); // oxlint-disable-line react-hooks/exhaustive-deps -- fetcher.load is stable per React Router
 
     // Back-nav catch-up: fetch missing products in a single request to restore the prior depth.
     // The gap is capped at 100 to respect the resource route's per-request limit and avoid multiple
@@ -286,6 +301,7 @@ export function useLoadMoreProducts({
         }
         restorationTargetRef.current = initialCount + gap;
         const params = new URLSearchParams();
+        if (inventoryStore !== undefined) params.set('inventoryStore', inventoryStore);
         params.set(PRODUCT_SEARCH_QUERY_PARAMS.OFFSET, String(offset + initialCount));
         params.set(PRODUCT_SEARCH_QUERY_PARAMS.LIMIT, String(gap));
         if (sort) {

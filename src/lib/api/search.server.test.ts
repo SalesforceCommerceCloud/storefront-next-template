@@ -15,10 +15,22 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createApiClients } from '@/lib/api-clients.server';
-import { createTestContext } from '@/lib/test-utils';
+import { createTestContext as createBaseTestContext } from '@/lib/test-utils';
+import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
 import { fetchSearchProducts } from './search.server';
 import { ApiError } from '@/scapi';
 import { NormalizedApiError } from './normalized-api-error';
+
+// These cases cover site search defaults; local-inventory.server.test.ts covers selected-store scoping.
+function createTestContext(...args: Parameters<typeof createBaseTestContext>) {
+    const context = createBaseTestContext(...args);
+    const config = context.get(appConfigContext);
+    context.set(appConfigContext, {
+        ...config,
+        features: { ...config.features, localInventory: { enabled: false } },
+    });
+    return context;
+}
 
 vi.mock('@/lib/api-clients.server', () => ({
     createApiClients: vi.fn(),

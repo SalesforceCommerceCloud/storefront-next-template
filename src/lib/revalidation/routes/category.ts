@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getSearchWithoutClientOnlyParams } from '@/hooks/use-filters-panel-state';
+import { resourceRoutes } from '@/route-paths';
 import {
     getActionPath,
     isAmbientMutation,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    isStoreInventoryMutation,
     // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
     isStoreQualificationMutation,
 } from './shared';
 
 /**
  * Shared `shouldRevalidate` policy for the product listing pages (category + search). Both routes derive their data
- * purely from the URL (`q` / `refine` / `sort` / `offset` / category id) and the site context (currency), so the
- * loader only needs to re-run when one of those actually changes.
+ * from the URL, site context and preparing-store selection, so the loader refreshes when those inputs change.
  *
  * Two cases are suppressed beyond React Router's default:
  *
@@ -40,8 +44,8 @@ import {
  *    cannot be confirmed as an ambient dimension, so it is skipped too. (Wishlist eviction is handled by the
  *    `_app` shell from client auth, not this loader.)
  *
- * Store selection has a separate effects contract: refresh prices only when native qualification has settled,
- * including a committed selection followed by a failed account-default write. Preference-only changes skip pricing.
+ * Committed/reconciled store effects also invalidate stock and refinements after a failed account-default save.
+ * Uncertain effects wait for the existing recovery; preference-only changes do not change stock.
  *
  * Everything else falls through to `defaultShouldRevalidate`, so genuine navigations (new query, refinement, sort,
  * page) and explicit `useRevalidator()` calls (no `formMethod`) behave normally.
@@ -69,9 +73,15 @@ export function shouldRevalidate({
     // `formAction`) cannot be confirmed as an ambient dimension, so it is skipped too.
     if (formMethod && formMethod !== 'GET') {
         const actionPath = getActionPath(formAction, currentUrl.origin);
-        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
-        if (actionPath && isStoreQualificationMutation(actionPath, actionResult)) return true;
-        if (!actionPath || !isAmbientMutation(actionPath)) {
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        if (
+            actionPath &&
+            (isStoreQualificationMutation(actionPath, actionResult) ||
+                (getConfig().features?.localInventory?.enabled && isStoreInventoryMutation(actionPath, actionResult)))
+        )
+            return true;
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+        if (!actionPath || (!isAmbientMutation(actionPath) && actionPath !== resourceRoutes.cartPickupStoreUpdate)) {
             return false;
         }
     }

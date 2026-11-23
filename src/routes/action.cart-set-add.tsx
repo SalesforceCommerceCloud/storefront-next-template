@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { data } from 'react-router';
+import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
+import { assertLocalBasketStock } from '@/lib/cart/local-inventory.server';
 import { BasketAction, createBasketAction } from '@/lib/cart/basket-action.server';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
@@ -43,16 +45,7 @@ export const action = createBasketAction(
                 : null;
         },
     },
-    async ({
-        input,
-        basketId,
-        // @sfdc-extension-line SFDC_EXT_BOPIS
-        basket,
-        // @sfdc-extension-line SFDC_EXT_BOPIS
-        context,
-        clients,
-        logger,
-    }) => {
+    async ({ input, basketId, basket, context, clients, logger }) => {
         if (!input) {
             logger.warn('CartSetAdd: missing productItems in form data');
             return data(
@@ -69,8 +62,10 @@ export const action = createBasketAction(
 
         logger.debug('CartSetAdd: starting addMultipleItemsToCart', { itemCount: input.length });
 
-        const fulfillment = { shipmentId: 'me' };
+        const localInventoryId = getLocalInventoryContext(context)?.inventoryId;
+        const fulfillment = { shipmentId: 'me', inventoryId: undefined as string | undefined };
 
+        await assertLocalBasketStock(context, basket, [...(basket.productItems ?? []), ...input]);
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
         const fulfillmentItems = input.map((item) => ({
             storeId: item.storeId?.trim(),
@@ -149,6 +144,7 @@ export const action = createBasketAction(
             }
             const pickupShipment = await findOrCreatePickupShipment(basket, context, pickupStoreId);
             fulfillment.shipmentId = pickupShipment.shipmentId;
+            fulfillment.inventoryId = storeInventoryId;
         }
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -159,9 +155,11 @@ export const action = createBasketAction(
             body: input.map((item) => ({
                 productId: item.productId,
                 quantity: item.quantity,
-                // @sfdc-extension-block-start SFDC_EXT_BOPIS
-                ...(pickupInventoryId ? { inventoryId: pickupInventoryId } : {}),
-                // @sfdc-extension-block-end SFDC_EXT_BOPIS
+                ...(localInventoryId
+                    ? { inventoryId: localInventoryId }
+                    : fulfillment.inventoryId
+                      ? { inventoryId: fulfillment.inventoryId }
+                      : {}),
                 shipmentId: fulfillment.shipmentId,
             })),
         });

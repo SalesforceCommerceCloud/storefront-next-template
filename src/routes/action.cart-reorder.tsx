@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { data } from 'react-router';
+import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
+import { assertLocalBasketStock } from '@/lib/cart/local-inventory.server';
 import { BasketAction, createBasketAction } from '@/lib/cart/basket-action.server';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
@@ -46,8 +48,9 @@ export const action = createBasketAction(
             return { orderNo, quantityMode };
         },
     },
-    async ({ input, basketId, context, clients, logger }) => {
+    async ({ input, basketId, basket, context, clients, logger }) => {
         const { orderNo, quantityMode } = input;
+        const local = getLocalInventoryContext(context);
 
         if (!orderNo) {
             return data(
@@ -102,7 +105,7 @@ export const action = createBasketAction(
             }
 
             const stockLevel = getEffectiveStockLevel({ product, isPickup: false, variant: null });
-            const deferred = hasDeferredAvailability(product.inventory);
+            const deferred = !local && hasDeferredAvailability(product.inventory);
 
             if (stockLevel <= 0 && !deferred) {
                 skippedItems.push({ productId, productName, requestedQuantity, reason: ErrorCode.OUT_OF_STOCK });
@@ -131,6 +134,13 @@ export const action = createBasketAction(
         if (payload.length === 0) {
             return data<ReorderActionResponse>({ success: true, skippedItems, adjustedItems });
         }
+
+        // Validate the full SKU budget before any write, then use the trusted preparing list.
+        await assertLocalBasketStock(context, basket, [...(basket.productItems ?? []), ...payload]);
+        if (local)
+            payload.forEach((item) => {
+                item.inventoryId = local.inventoryId;
+            });
 
         // 4. Add all orderable items in one SCAPI call
         const { data: updatedBasket } = await clients.shopperBasketsV2.addItemToBasket({

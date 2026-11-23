@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 import { data } from 'react-router';
+import { scaleInventoryQuantity } from '@/scapi';
+import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
+import { assertLocalBasketStock } from '@/lib/cart/local-inventory.server';
 import { BasketAction, createBasketAction } from '@/lib/cart/basket-action.server';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
@@ -36,7 +39,7 @@ export const action = createBasketAction(
             return raw ? (JSON.parse(raw) as { itemId: string; quantity: number; productId?: string }[]) : null;
         },
     },
-    async ({ input, basketId, clients, logger }) => {
+    async ({ input, basket, context, basketId, clients, logger }) => {
         if (!input) {
             logger.warn('CartBundleUpdate: missing items data in form data');
             return data(
@@ -63,7 +66,7 @@ export const action = createBasketAction(
         }
 
         for (const item of input) {
-            if (!item.itemId || !item.quantity || item.quantity <= 0) {
+            if (!item.itemId || !Number.isFinite(item.quantity) || item.quantity <= 0) {
                 logger.warn('CartBundleUpdate: invalid item data', { itemId: item.itemId, quantity: item.quantity });
                 return data(
                     {
@@ -76,6 +79,28 @@ export const action = createBasketAction(
                     { status: 400 }
                 );
             }
+        }
+
+        if (getLocalInventoryContext(context)) {
+            const nextItems = (basket.productItems ?? []).map((item) => {
+                const change = input.find((entry) => entry.itemId === item.itemId);
+                const quantity = change?.quantity ?? item.quantity ?? 1;
+                return {
+                    ...item,
+                    ...change,
+                    bundledProductItems: item.bundledProductItems?.map((child) => {
+                        const childChange = input.find((entry) => entry.itemId === child.itemId);
+                        return {
+                            ...child,
+                            ...childChange,
+                            quantity:
+                                childChange?.quantity ??
+                                scaleInventoryQuantity(child.quantity ?? 0, quantity, item.quantity ?? 0),
+                        };
+                    }),
+                };
+            });
+            await assertLocalBasketStock(context, basket, nextItems);
         }
 
         logger.debug('CartBundleUpdate: updating items', { itemCount: input.length, basketId });

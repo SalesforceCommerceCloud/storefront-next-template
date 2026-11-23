@@ -137,6 +137,28 @@ describe('MyCart', () => {
         vi.clearAllMocks();
     });
 
+    it('shows a stock warning for duplicate-SKU consumption at checkout', () => {
+        const localProduct = {
+            id: 'sku',
+            name: 'Milk',
+            c_localInventoryId: 'list-A',
+            inventory: { id: 'list-A', orderable: true, stockLevel: 3, ats: 3 },
+        };
+        render(
+            <MyCart
+                basket={{
+                    productItems: [
+                        { itemId: 'one', productId: 'sku', quantity: 2 },
+                        { itemId: 'two', productId: 'sku', quantity: 2 },
+                    ],
+                }}
+                productMap={{ one: localProduct, two: localProduct }}
+            />
+        );
+        expect(screen.getByRole('alert')).toHaveTextContent('inventory.blockMessage');
+        expect(screen.getAllByText('outOfStockLabel')).toHaveLength(2);
+    });
+
     it('renders the cart items container', () => {
         render(<MyCart basket={basket} productMap={productMap} />);
 

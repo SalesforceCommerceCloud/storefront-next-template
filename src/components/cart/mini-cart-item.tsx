@@ -128,7 +128,7 @@ export default function MiniCartItem({
 
     const stockLevel =
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
-        isPickup
+        isPickup || typeof product.c_localInventoryId === 'string'
             ? getEffectiveStockLevel({
                   product: product as unknown as ShopperProducts.schemas['Product'],
                   isPickup: true,

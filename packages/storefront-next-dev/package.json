@@ -43,6 +43,12 @@
         "default": "./dist/mrt/ssr.mjs"
       }
     },
+    "./mrt/config": {
+      "import": {
+        "types": "./dist/mrt/config/index.d.ts",
+        "default": "./dist/mrt/config/index.js"
+      }
+    },
     "./cartridge-services": {
       "import": {
         "types": "./dist/cartridge-services/index.d.ts",

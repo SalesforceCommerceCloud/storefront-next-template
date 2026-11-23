@@ -18,6 +18,20 @@ import type { AppConfig } from '@/types/config';
 import { extractClientConfig, SERVER_ONLY_NAMESPACES } from './app-config-client';
 
 describe('extractClientConfig', () => {
+    it('keeps the inventory registry private without mutating server configuration', () => {
+        const localInventory = {
+            enabled: true,
+            nativeSearchVerified: true,
+            inventoryListsBySite: { GroceryNext: ['private-list'] },
+        };
+        const input = { features: { localInventory } } as unknown as AppConfig;
+        const client = extractClientConfig(input);
+        expect(client.features.localInventory).toEqual({ enabled: true, nativeSearchVerified: true });
+        expect(JSON.stringify(client)).not.toContain('private-list');
+        expect(input.features.localInventory).toBe(localInventory);
+        expect(input.features.localInventory?.inventoryListsBySite).toEqual({ GroceryNext: ['private-list'] });
+    });
+
     it('keeps store-selection mappings and cleanup policy on the server at large store counts', () => {
         const stores = Object.fromEntries(
             Array.from({ length: 4000 }, (_, i) => [

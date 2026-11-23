@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { ShopperProducts } from '@/scapi';
+import { hasInventoryStock, type ShopperProducts } from '@/scapi';
 
 type VariantWithInventory = ShopperProducts.schemas['Variant'] & {
     inventory?: ShopperProducts.schemas['Inventory'];
@@ -53,7 +53,6 @@ export interface ChildProductSelection {
     quantity: number;
 }
 
-// @sfdc-extension-block-start SFDC_EXT_BOPIS
 /**
  * Gets inventory data for a specific store by inventory ID.
  * Searches the product.inventories array for an inventory object matching the given inventory ID.
@@ -71,9 +70,6 @@ export function getStoreInventoryById(
     }
     return product.inventories.find((inv) => inv.id === inventoryId) || null;
 }
-// @sfdc-extension-block-end SFDC_EXT_BOPIS
-
-// @sfdc-extension-block-start SFDC_EXT_BOPIS
 /**
  * Returns whether the selected store is out of stock for the given product and quantity.
  *
@@ -98,16 +94,16 @@ export function isStoreOutOfStock(
     selectedStoreInventoryId: string | undefined,
     quantity: number = 1
 ): boolean {
-    if (!product || !selectedStoreInventoryId) {
-        return false;
+    if (!product) return false;
+    if (typeof product.c_localInventoryId === 'string') {
+        return !hasInventoryStock(getEffectiveInventory({ product }), quantity);
     }
-
+    if (!selectedStoreInventoryId) return false;
     // Check product inventory (already calculated for sets/bundles)
     const storeInventory = getStoreInventoryById(product, selectedStoreInventoryId);
     const stockLevel = storeInventory?.stockLevel ?? 0;
     return !storeInventory || !storeInventory.orderable || stockLevel < quantity;
 }
-// @sfdc-extension-block-end SFDC_EXT_BOPIS
 
 /**
  * Returns whether the site-level inventory is out of stock for the given product and quantity.
@@ -141,6 +137,10 @@ export function isSiteOutOfStock(
         return false;
     }
 
+    if (typeof product.c_localInventoryId === 'string') {
+        return !hasInventoryStock(getEffectiveInventory({ product, variant }), quantity);
+    }
+
     // Site inventory: variant takes precedence over product (already calculated for sets/bundles)
     // Note: TypeScript Variant schema doesn't include inventory, but it exists at runtime (proven by PWA Kit)
     const inventory = (variant as { inventory?: ShopperProducts.schemas['Inventory'] })?.inventory || product.inventory;
@@ -172,6 +172,15 @@ export function getEffectiveInventory(params: {
 }): ShopperProducts.schemas['Inventory'] | null {
     const { product, variant } = params;
     if (!product) return null;
+    if (typeof product.c_localInventoryId === 'string') {
+        if (variant) {
+            return getStoreInventoryById(
+                variant as { inventories?: ShopperProducts.schemas['Inventory'][] },
+                product.c_localInventoryId
+            );
+        }
+        return getStoreInventoryById(product, product.c_localInventoryId);
+    }
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const { isPickup, storeInventoryId } = params;
@@ -230,6 +239,9 @@ export function getEffectiveStockLevel(params: {
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
         variant,
     });
+    if (typeof product.c_localInventoryId === 'string') {
+        return Math.max(0, Math.min(inventory?.stockLevel ?? 0, inventory?.ats ?? inventory?.stockLevel ?? 0));
+    }
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     if (params.isPickup && params.storeInventoryId) {
         return inventory?.stockLevel ?? 0;
@@ -276,6 +288,9 @@ export function isInStock(params: {
 }): boolean {
     const { product, quantity = 1, variant } = params;
     if (!product) return false;
+    if (typeof product.c_localInventoryId === 'string') {
+        return hasInventoryStock(getEffectiveInventory({ product, variant }), quantity);
+    }
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const { isPickup, storeInventoryId } = params;

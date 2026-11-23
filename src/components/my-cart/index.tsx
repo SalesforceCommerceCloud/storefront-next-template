@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { validateCartInventory } from '@/lib/cart/inventory-validation';
+import { CartInventoryErrorBanner } from '@/components/cart/cart-inventory-error-banner';
 import { useMemo, type ReactElement } from 'react';
 import { Link } from '@/components/link';
 import { Truck } from 'lucide-react';
@@ -67,6 +69,14 @@ interface MyCartProps {
 export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactElement {
     const { t } = useTranslation('checkout');
     const { t: tCart } = useTranslation('cart');
+    const { t: tProduct } = useTranslation('product');
+    const localInventoryIssues = useMemo(
+        () =>
+            Object.values(productMap).some((product) => typeof product.c_localInventoryId === 'string')
+                ? validateCartInventory(basket, productMap)
+                : null,
+        [basket, productMap]
+    );
     const { i18n } = useTranslation();
     const { currency } = useSite();
     const config = useConfig();
@@ -139,6 +149,9 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
                                 {productName}
                             </Link>
 
+                            {localInventoryIssues?.itemsExceedingInventory.some(
+                                (issue) => issue.itemId === item.itemId
+                            ) && <p className="text-sm text-destructive">{tProduct('outOfStockLabel')}</p>}
                             <div className="mt-1 space-y-0.5 text-xs">
                                 {Object.entries(displayVariationValues).map(([name, value]) => (
                                     <div key={name}>
@@ -192,11 +205,25 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
                 </div>
             );
         });
-    }, [basket?.productItems, productMap, currency, i18n.language, config, t, tCart, seoUrlContext]);
+    }, [
+        basket?.productItems,
+        productMap,
+        currency,
+        i18n.language,
+        config,
+        t,
+        tCart,
+        tProduct,
+        localInventoryIssues,
+        seoUrlContext,
+    ]);
 
     return (
         <div className="w-full">
             <UITarget targetId="sfcc.myCart.header.before" />
+            {localInventoryIssues?.hasInventoryIssues && (
+                <CartInventoryErrorBanner issues={localInventoryIssues.itemsExceedingInventory} />
+            )}
             <div
                 data-testid="my-cart-toggle"
                 className="divide-y divide-border -mx-[var(--cart-divider-extend,0px)] [&>*]:px-4 [&>*]:py-5 md:[&>*]:px-[var(--cart-divider-extend,0px)] md:[&>*]:py-6">

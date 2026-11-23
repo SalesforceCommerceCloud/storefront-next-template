@@ -20,6 +20,15 @@ export * from './createClients';
 export * from './createClient';
 export { ApiError, type ErrorDetail } from './ApiError';
 export { AuthTokenInvalidError } from './AuthTokenInvalidError';
+export {
+    fetchInventoryRecords,
+    hasInventoryStock,
+    hasUsableInventoryStock,
+    aggregateInventoryQuantities,
+    scaleInventoryQuantity,
+    InventoryQuantityError,
+    type InventoryRecord,
+} from './inventory';
 export { SLAS_AUTH_ENDPOINTS } from './constants';
 export { createBasketHelpers } from './basket';
 export { createAuthHelpers } from './auth';

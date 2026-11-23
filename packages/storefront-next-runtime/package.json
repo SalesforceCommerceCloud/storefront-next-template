@@ -4,6 +4,12 @@
   "description": "Runtime agnostic libraries for SFCC Storefront Next",
   "type": "module",
   "exports": {
+    "./scapi/inventory": {
+      "import": {
+        "types": "./dist/scapi-inventory.d.ts",
+        "default": "./dist/scapi-inventory.js"
+      }
+    },
     "./design": {
       "import": {
         "types": "./dist/design.d.ts",

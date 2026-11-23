@@ -273,6 +273,267 @@ exports[`RefineInventory stories snapshot > FilterChecked story renders and matc
 </div>
 `;
 
+exports[`RefineInventory stories snapshot > LocalAvailabilityFilteringUnavailable story renders and matches snapshot 1`] = `
+<fieldset
+  aria-busy="false"
+  class="border border-border mb-4 p-4 rounded-ui"
+>
+  <legend
+    class="text-sm font-medium"
+  >
+    Availability
+  </legend>
+  <div
+    class="flex items-center gap-2"
+  >
+    <button
+      aria-checked="true"
+      class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+      data-slot="checkbox"
+      data-state="checked"
+      id="_r_8_"
+      role="checkbox"
+      type="button"
+      value="on"
+    >
+      <span
+        class="grid place-content-center text-current transition-none"
+        data-slot="checkbox-indicator"
+        data-state="checked"
+        style="pointer-events: none;"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-check size-3.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M20 6 9 17l-5-5"
+          />
+        </svg>
+      </span>
+    </button>
+    <label
+      class="text-sm"
+      for="_r_8_"
+    >
+      Show unavailable products
+    </label>
+  </div>
+  <button
+    class="mt-2 underline text-sm"
+    type="button"
+  >
+    Market Street Downtown
+  </button>
+</fieldset>
+`;
+
+exports[`RefineInventory stories snapshot > LocalAvailabilityNoStoreSelected story renders and matches snapshot 1`] = `
+<fieldset
+  aria-busy="false"
+  class="border border-border mb-4 p-4 rounded-ui"
+>
+  <legend
+    class="text-sm font-medium"
+  >
+    Availability
+  </legend>
+  <div
+    class="flex items-center gap-2"
+  >
+    <button
+      aria-checked="true"
+      class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+      data-disabled=""
+      data-slot="checkbox"
+      data-state="checked"
+      disabled=""
+      id="_r_6_"
+      role="checkbox"
+      type="button"
+      value="on"
+    >
+      <span
+        class="grid place-content-center text-current transition-none"
+        data-disabled=""
+        data-slot="checkbox-indicator"
+        data-state="checked"
+        style="pointer-events: none;"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-check size-3.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M20 6 9 17l-5-5"
+          />
+        </svg>
+      </span>
+    </button>
+    <label
+      class="text-sm"
+      for="_r_6_"
+    >
+      Show unavailable products
+    </label>
+  </div>
+  <button
+    class="mt-2 underline text-sm"
+    type="button"
+  >
+    Select a store
+  </button>
+</fieldset>
+`;
+
+exports[`RefineInventory stories snapshot > LocalAvailabilitySelectedStore story renders and matches snapshot 1`] = `
+<fieldset
+  aria-busy="false"
+  class="border border-border mb-4 p-4 rounded-ui"
+>
+  <legend
+    class="text-sm font-medium"
+  >
+    Availability
+  </legend>
+  <div
+    class="flex items-center gap-2"
+  >
+    <button
+      aria-checked="true"
+      class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+      data-slot="checkbox"
+      data-state="checked"
+      id="_r_7_"
+      role="checkbox"
+      type="button"
+      value="on"
+    >
+      <span
+        class="grid place-content-center text-current transition-none"
+        data-slot="checkbox-indicator"
+        data-state="checked"
+        style="pointer-events: none;"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-check size-3.5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M20 6 9 17l-5-5"
+          />
+        </svg>
+      </span>
+    </button>
+    <label
+      class="text-sm"
+      for="_r_7_"
+    >
+      Show unavailable products
+    </label>
+  </div>
+  <button
+    class="mt-2 underline text-sm"
+    type="button"
+  >
+    Market Street Downtown
+  </button>
+</fieldset>
+`;
+
+exports[`RefineInventory stories snapshot > LocalUnavailableProducts story renders and matches snapshot 1`] = `
+<div>
+  <fieldset
+    aria-busy="false"
+    class="border border-border mb-4 p-4 rounded-ui"
+  >
+    <legend
+      class="text-sm font-medium"
+    >
+      Availability
+    </legend>
+    <div
+      class="flex items-center gap-2"
+    >
+      <button
+        aria-checked="true"
+        class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+        data-slot="checkbox"
+        data-state="checked"
+        id="_r_5_"
+        role="checkbox"
+        type="button"
+        value="on"
+      >
+        <span
+          class="grid place-content-center text-current transition-none"
+          data-slot="checkbox-indicator"
+          data-state="checked"
+          style="pointer-events: none;"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-check size-3.5"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M20 6 9 17l-5-5"
+            />
+          </svg>
+        </span>
+      </button>
+      <label
+        class="text-sm"
+        for="_r_5_"
+      >
+        Show unavailable products
+      </label>
+    </div>
+    <button
+      class="mt-2 underline text-sm"
+      type="button"
+    >
+      Magasin de préparation de Saint-Germain-en-Laye — Londres / London
+    </button>
+  </fieldset>
+</div>
+`;
+
 exports[`RefineInventory stories snapshot > MobileLayout story renders and matches snapshot 1`] = `
 <div>
   <div

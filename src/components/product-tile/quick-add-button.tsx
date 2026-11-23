@@ -36,6 +36,7 @@ interface QuickAddButtonProps {
     initialVariantSelections?: Record<string, string>;
     /** Custom button label. Defaults to the `product.quickAdd` locale key */
     label?: string;
+    disabled?: boolean;
 }
 
 const CornerQuickAdd = lazy(() => import('./corner-quick-add').then((module) => ({ default: module.CornerQuickAdd })));
@@ -58,6 +59,7 @@ export function QuickAddButton({
     selectedColorValue,
     initialVariantSelections,
     label,
+    disabled,
     variant = 'default',
     preload = false,
 }: QuickAddButtonProps) {
@@ -127,13 +129,19 @@ export function QuickAddButton({
             {variant === 'corner' ? (
                 cornerReady ? (
                     <Suspense fallback={cornerPlaceholder}>
-                        <CornerQuickAdd productId={productId} productName={productName} onSelect={handleSelect} />
+                        <CornerQuickAdd
+                            productId={productId}
+                            productName={productName}
+                            onSelect={handleSelect}
+                            disabled={disabled}
+                        />
                     </Suspense>
                 ) : (
                     cornerPlaceholder
                 )
             ) : (
                 <Button
+                    disabled={disabled}
                     variant="outline"
                     size="default"
                     className="w-full shadow-sm cursor-pointer"

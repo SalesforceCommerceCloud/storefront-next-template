@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
+import LocalAvailability from '@/extensions/bopis/components/refine-inventory/local-availability';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -44,7 +46,7 @@ interface RefineInventoryProps {
  * @param toggleFilter - Function to toggle a filter on/off
  * @returns ReactElement
  */
-export default function RefineInventory({ isFilterSelected, hasActiveFilter, toggleFilter }: RefineInventoryProps) {
+function LegacyRefineInventory({ isFilterSelected, hasActiveFilter, toggleFilter }: RefineInventoryProps) {
     const { t } = useTranslation('extBopis');
 
     // Get selected store info to display name and use inventoryId for filtering
@@ -162,4 +164,9 @@ export default function RefineInventory({ isFilterSelected, hasActiveFilter, tog
             </CollapsibleContent>
         </Collapsible>
     );
+}
+
+export default function RefineInventory(props: RefineInventoryProps) {
+    const config = useConfig();
+    return config.features.localInventory?.enabled ? <LocalAvailability /> : <LegacyRefineInventory {...props} />;
 }

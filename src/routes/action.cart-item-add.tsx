@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { data } from 'react-router';
+import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
+import { assertLocalBasketStock } from '@/lib/cart/local-inventory.server';
 import { BasketAction, createBasketAction } from '@/lib/cart/basket-action.server';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
@@ -43,16 +45,7 @@ export const action = createBasketAction(
                 : null;
         },
     },
-    async ({
-        input,
-        // @sfdc-extension-line SFDC_EXT_BOPIS
-        basket,
-        // @sfdc-extension-line SFDC_EXT_BOPIS
-        context,
-        basketId,
-        clients,
-        logger,
-    }) => {
+    async ({ input, basket, context, basketId, clients, logger }) => {
         if (!input) {
             logger.warn('CartItemAdd: missing productItem in form data');
             return data(
@@ -72,10 +65,16 @@ export const action = createBasketAction(
             quantity: input.quantity,
         });
 
+        const localInventoryId = getLocalInventoryContext(context)?.inventoryId;
         const fulfillment = {
             shipmentId: 'me',
             inventoryId: undefined as string | undefined,
         };
+
+        await assertLocalBasketStock(context, basket, [
+            ...(basket.productItems ?? []),
+            { productId: input.productId, quantity: input.quantity },
+        ]);
 
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
         const storeId = input.storeId?.trim();
@@ -134,7 +133,11 @@ export const action = createBasketAction(
         const payload = {
             productId: input.productId,
             quantity: input.quantity,
-            ...(fulfillment.inventoryId ? { inventoryId: fulfillment.inventoryId } : {}),
+            ...(localInventoryId
+                ? { inventoryId: localInventoryId }
+                : fulfillment.inventoryId
+                  ? { inventoryId: fulfillment.inventoryId }
+                  : {}),
             shipmentId: fulfillment.shipmentId,
         };
         const { data: updatedBasket } = await clients.shopperBasketsV2.addItemToBasket({

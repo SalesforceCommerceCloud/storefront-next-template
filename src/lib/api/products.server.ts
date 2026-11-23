@@ -18,6 +18,7 @@ import type { ShopperProducts } from '@/scapi';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getLogger } from '@/lib/logger.server';
+import { applyLocalInventory, getLocalInventoryContext } from '@/lib/product/local-inventory.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 
 type GetProductsQuery = ShopperProducts.operations['getProducts']['parameters']['query'];
@@ -85,6 +86,13 @@ export async function fetchProductsByIds(
         return [];
     }
 
+    const local = getLocalInventoryContext(context);
+    if (local)
+        options = {
+            ...options,
+            inventoryIds: [local.inventoryId],
+            expand: [...new Set([...(options.expand ?? getDefaultProductExpansions()), 'availability' as const])],
+        };
     const logger = getLogger(context);
     const clients = createApiClients(context);
 
@@ -113,10 +121,13 @@ export async function fetchProductsByIds(
         // SCAPI returns results in arbitrary order within each batch; restore the
         // caller's input order so callers that sort by ID position get correct results.
         const productMap = new Map(responses.flatMap(({ data }) => data?.data ?? []).map((p) => [p.id, p]));
-        return normalizedIds.flatMap((id) => {
-            const product = productMap.get(id);
-            return product ? [product] : [];
-        });
+        return applyLocalInventory(
+            context,
+            normalizedIds.flatMap((id) => {
+                const product = productMap.get(id);
+                return product ? [product] : local ? [{ id, name: id }] : [];
+            })
+        );
     } catch (error) {
         logger.error('shopperProducts.getProducts failed', { ids: normalizedIds });
         throw new NormalizedApiError(error);
@@ -148,6 +159,13 @@ export async function fetchProductById(
         return null;
     }
 
+    const local = getLocalInventoryContext(context);
+    if (local)
+        options = {
+            ...options,
+            inventoryIds: [local.inventoryId],
+            expand: [...new Set([...(options.expand ?? getDefaultProductExpansions()), 'availability' as const])],
+        };
     const logger = getLogger(context);
     const clients = createApiClients(context);
     const trimmedId = id.trim();
@@ -159,7 +177,7 @@ export async function fetchProductById(
                 query: { ...options, currency: options.currency ?? context.get(siteContext)?.currency },
             },
         });
-        return data ?? null;
+        return data ? (await applyLocalInventory(context, [data]))[0] : null;
     } catch (error) {
         logger.error('shopperProducts.getProduct failed', { productId: trimmedId });
         throw new NormalizedApiError(error);

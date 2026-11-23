@@ -68,7 +68,7 @@ const meta: Meta<typeof ActiveFilters> = {
         docs: {
             description: {
                 component:
-                    'Active-filter chip row for Product Listing Pages. Reads `refine` URL params and renders one removable chip per active filter (cgid is hidden — owned by QuickFilters). Returns null when no filters are active.',
+                    'Active-filter chip row for Product Listing Pages. Reads `refine` URL params and renders one removable chip per active filter (cgid is owned by QuickFilters; the native orderable boolean is owned by the availability control). Returns null when no filters are active.',
             },
         },
     },
@@ -153,5 +153,27 @@ export const NoActiveFilters: Story = {
         if (activeFiltersText) {
             await expect(activeFiltersText).not.toHaveTextContent(/active filters/i);
         }
+    },
+};
+
+/** The native boolean belongs to the availability control, not an extra applied chip. */
+export const PreparingStoreAvailability: Story = {
+    args: { result: mockSearchResult },
+    parameters: {
+        initialEntries: ['/?refine=ilids%3Dlist-A&refine=orderable_only%3Dtrue'],
+    },
+    decorators: [
+        (Story: ComponentType, context) => (
+            <>
+                <RouteSetter initialEntries={context.parameters.initialEntries ?? ['/']} />
+                <Story />
+            </>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        await expect(canvas.getByRole('button', { name: /in stock/i })).toBeInTheDocument();
+        await expect(canvas.queryByRole('button', { name: 'true' })).not.toBeInTheDocument();
     },
 };

@@ -175,6 +175,10 @@ Entry values use the SCAPI preference-list envelope, one record per preference. 
 { "RefArch-custom-site-preferences": { "data": [{ "id": "feefoEnableReviews", "value": true, "groupId": "Storefront Configs" }], "total": 1 } }
 ```
 
+### `/scapi/inventory` Physical Stock Check
+
+Exports `hasInventoryStock()` and the `InventoryRecord` type without SCAPI clients or cart quantity aggregation. The predicate checks orderability, physical stock and any supplied ATS against the requested quantity; it does not fetch stock or select an inventory list. The `/scapi` barrel continues to export the same helper.
+
 ### `/scapi-client` SCAPI Client
 
 Type-safe, auto-generated API clients for Salesforce Commerce APIs with operation-based method names.

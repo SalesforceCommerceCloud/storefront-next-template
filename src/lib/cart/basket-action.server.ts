@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { data, type ActionFunctionArgs } from 'react-router';
-import { ApiError, type ShopperBasketsV2 } from '@/scapi';
+import { LocalInventoryError } from '@/lib/product/local-inventory.server';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { ApiError, InventoryQuantityError, type ShopperBasketsV2 } from '@/scapi';
 import type { AppClients } from '@/scapi/custom-clients';
 import type { Logger } from '@/lib/logger';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
@@ -202,7 +204,20 @@ export function createBasketAction<TInput>(
             // coupon code → 400), not a server fault — pass its status through so
             // it isn't misreported as a 500 in error-rate monitoring. Server-side
             // (5xx) and non-API errors still surface as 500.
-            const status = error instanceof ApiError && error.status >= 400 && error.status < 500 ? error.status : 500;
+            if (error instanceof CommerceContextError) {
+                return data(
+                    { ...(error.change ?? { success: false, code: error.code }), error: createActionError({ error }) },
+                    { status: error.status, headers: { 'Cache-Control': 'private, no-store' } }
+                );
+            }
+            const status =
+                error instanceof InventoryQuantityError
+                    ? 400
+                    : error instanceof LocalInventoryError
+                      ? error.status
+                      : error instanceof ApiError && error.status >= 400 && error.status < 500
+                        ? error.status
+                        : 500;
             return data({ success: false, error: createActionError({ error }) }, { status });
         }
     };

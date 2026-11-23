@@ -35,8 +35,9 @@ export const SERVER_ONLY_NAMESPACES = ['serverExtension'] as const;
 export type ServerOnlyNamespace = (typeof SERVER_ONLY_NAMESPACES)[number];
 
 export type ClientAppConfig = Omit<AppConfig, ServerOnlyNamespace | 'features'> & {
-    features: Omit<AppConfig['features'], 'shopperContext'> & {
+    features: Omit<AppConfig['features'], 'shopperContext' | 'localInventory'> & {
         shopperContext: Omit<AppConfig['features']['shopperContext'], 'storeSelection'>;
+        localInventory?: Pick<NonNullable<AppConfig['features']['localInventory']>, 'enabled' | 'nativeSearchVerified'>;
     };
 };
 
@@ -56,6 +57,15 @@ export function extractClientConfig(app: AppConfig): ClientAppConfig {
         const shopperContext = { ...app.features.shopperContext };
         delete shopperContext.storeSelection;
         out.features = { ...app.features, shopperContext };
+    }
+    if (app.features?.localInventory) {
+        out.features = {
+            ...(out.features as object),
+            localInventory: {
+                enabled: app.features.localInventory.enabled,
+                nativeSearchVerified: app.features.localInventory.nativeSearchVerified,
+            },
+        };
     }
     return out as ClientAppConfig;
 }

@@ -35,6 +35,10 @@ pnpm add @salesforce/storefront-next-dev
 
 ## Usage
 
+### MRT Configuration
+
+Import `buildMrtSsrConfig()` from `@salesforce/storefront-next-dev/mrt/config` to reuse MRT bundle defaults without loading the Vite plugin or its build-engine dependencies. The main package export remains available.
+
 ### Vite Plugin
 
 Add the plugin to your `vite.config.ts`:

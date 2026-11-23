@@ -19,6 +19,9 @@ export { storefrontNextTargets as default, type StorefrontNextTargetsConfig } fr
 // Named export: Transform target placeholder components (UITarget & UITargetProviders)
 export { transformTargetPlaceholderPlugin } from './plugins/transformTargets';
 
+// Strip server-only Page Designer loaders in standalone browser tooling such as Storybook.
+export { componentLoadersPlugin, type ComponentLoadersPluginConfig } from './plugins/componentLoaders';
+
 // Named export: Target dev mode plugin (DEPRECATED — no-op for backward compatibility)
 export { uiTargetDevModePlugin, type UITargetDevModeConfig } from './plugins/uiTargetDevMode';
 

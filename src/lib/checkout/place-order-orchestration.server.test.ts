@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import { RouterContextProvider } from 'react-router';
+import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
+import { mockConfig } from '@/test-utils/config';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ShopperBasketsV2, ShopperOrders } from '@/scapi';
 import type { CustomerProfile } from '@/components/checkout/utils/checkout-context-types';
@@ -97,7 +100,8 @@ vi.mock('@/lib/error-codes', () => ({
 }));
 
 // Bare `as never` cast: none of the helpers under test inspect the context shape.
-const ctx = {} as never;
+const ctx = new RouterContextProvider();
+ctx.set(appConfigContext, mockConfig);
 
 beforeEach(() => {
     calculateBasketMock.mockReset();

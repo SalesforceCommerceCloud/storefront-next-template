@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { InventoryQuantityError } from '@/scapi';
+import { LocalInventoryError } from '@/lib/product/local-inventory-error';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { action as actionImpl } from './action.place-order-prepare';
 
@@ -117,6 +120,39 @@ describe('action.place-order-prepare', () => {
         const response = await action({ request: buildRequest(), context: ctx, params: {} });
         expect(response.status).toBe(400);
         expect(calculateBasketForOrderMock).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        [new InventoryQuantityError(), 400, 'INVALID_INPUT'],
+        [new LocalInventoryError('LOCAL_STOCK_UNAVAILABLE', 422), 422, 'OUT_OF_STOCK'],
+        [new LocalInventoryError('INVALID_INVENTORY_LIST'), 503, 'OPERATION_FAILED'],
+        [
+            new CommerceContextError('STORE_CHANGE_CONFIRMATION_REQUIRED', 409),
+            409,
+            'STORE_CHANGE_CONFIRMATION_REQUIRED',
+        ],
+    ])('preserves %s as HTTP %s', async (error, status, code) => {
+        calculateBasketForOrderMock.mockRejectedValueOnce(error);
+        const response = await action({ request: buildRequest(), context: ctx, params: {} });
+        expect(response.status).toBe(status);
+        expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+        expect(await response.json()).toMatchObject({ success: false, error: { code }, step: 'placeOrder' });
+        expect(syncPaymentInstrumentAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('preserves the shared store-change confirmation payload', async () => {
+        const change = {
+            success: false as const,
+            code: 'STORE_CHANGE_CONFIRMATION_REQUIRED' as const,
+            current: { storeId: 'A' },
+            candidate: { storeId: 'B' },
+        };
+        calculateBasketForOrderMock.mockRejectedValueOnce(new CommerceContextError(change.code, 409, { change }));
+        const response = await action({ request: buildRequest(), context: ctx, params: {} });
+        expect(response.status).toBe(409);
+        const body = await response.json();
+        expect(body).toMatchObject({ ...change, error: { code: change.code } });
+        expect(body).not.toHaveProperty('recovery');
     });
 
     it('returns 500 when calculate throws', async () => {

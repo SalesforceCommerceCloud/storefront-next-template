@@ -18,6 +18,7 @@ import { useAsyncError, useLocation, useNavigation } from 'react-router';
 import type { Route } from './+types/_app.search';
 import type { ShopperSearch } from '@/scapi';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
+import { redirectLocalInventorySearch } from '@/lib/product/local-inventory-search.server';
 import { fetchSearchProducts } from '@/lib/api/search.server';
 import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config';
 import { siteContext, useSite } from '@salesforce/storefront-next-runtime/site-context';
@@ -91,6 +92,7 @@ export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
     const { context, request } = args;
     const requestUrl = new URL(request.url);
     redirectToCanonicalPath(requestUrl);
+    redirectLocalInventorySearch(context, requestUrl);
     const { searchParams } = requestUrl;
     const offset = parseInt(searchParams.get('offset') || '0', 10);
     const q = searchParams.get('q') ?? '';
@@ -245,7 +247,10 @@ export default function SearchPage({
         currency,
     ]);
     const selectedFiltersCount = useMemo(
-        () => new URLSearchParams(location.search).getAll('refine').length,
+        () =>
+            new URLSearchParams(location.search)
+                .getAll('refine')
+                .filter((value) => !value.startsWith('orderable_only=')).length,
         [location.search]
     );
     const isProductGridLoading = useMemo(() => {

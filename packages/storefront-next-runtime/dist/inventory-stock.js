@@ -1,0 +1,2 @@
+function e(e){return!!(e?.orderable&&Number.isFinite(e.stockLevel)&&(e.stockLevel??0)>0&&(e.ats===void 0||Number.isFinite(e.ats)&&e.ats>0))}function t(t,n=1){return!!(e(t)&&Number.isFinite(n)&&n>0&&(t?.stockLevel??0)>=n&&(t?.ats===void 0||t.ats>=n))}export{e as n,t};
+//# sourceMappingURL=inventory-stock.js.map

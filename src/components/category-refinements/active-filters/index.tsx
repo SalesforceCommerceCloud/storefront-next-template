@@ -92,7 +92,8 @@ export default function CategoryFilters({
             const value = refine.substring(separatorIndex + 1);
             // Category selection is represented by quick filters, so keep cgid in URL for behavior
             // and clear-all, but hide it from applied-filter chips.
-            if (attributeId === 'cgid') continue;
+            // The availability toggle owns the native boolean; the store chip represents the pair.
+            if (attributeId === 'cgid' || attributeId === 'orderable_only') continue;
 
             const valueLabel = getValueLabel(
                 attributeId,
@@ -128,9 +129,12 @@ export default function CategoryFilters({
 
             // Remove this specific refinement
             params.delete('refine');
-            refines.filter((r) => r !== refinePair).forEach((r) => params.append('refine', r));
+            refines
+                .filter((r) => r !== refinePair && !(attributeId === 'ilids' && r.startsWith('orderable_only=')))
+                .forEach((r) => params.append('refine', r));
 
             params.set('offset', '0');
+            params.delete('page');
             return navigate({
                 ...location,
                 search: `?${params.toString()}`,
@@ -144,6 +148,7 @@ export default function CategoryFilters({
         const params = new URLSearchParams(location.search);
         params.delete('refine');
         params.set('offset', '0');
+        params.delete('page');
 
         void navigate({
             ...location,

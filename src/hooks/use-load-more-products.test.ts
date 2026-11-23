@@ -317,3 +317,67 @@ describe('useLoadMoreProducts', () => {
         vi.unstubAllGlobals();
     });
 });
+
+describe('load-more store identity', () => {
+    it.each(['store-a', ''])('sends source store %j with regular and restored windows', (inventoryStore) => {
+        window.history.replaceState({ key: 'store-window' }, '');
+        sessionStorage.setItem('sfnext:loadMore', JSON.stringify({ 'store-window': 48 }));
+        const { result } = renderHook(() => useLoadMoreProducts({ ...baseOptions, inventoryStore }));
+        act(() => result.current.loadMore());
+        expect(fetcher.load.mock.calls.length).toBeGreaterThanOrEqual(2);
+        for (const [url] of fetcher.load.mock.calls) {
+            expect(new URL(url, 'https://shop.example.com').searchParams.get('inventoryStore')).toBe(inventoryStore);
+        }
+    });
+
+    it('discards a late old-store window after selection changes and accepts the new store window', () => {
+        const { result, rerender } = renderHook((props: UseLoadMoreProductsOptions) => useLoadMoreProducts(props), {
+            initialProps: { ...baseOptions, inventoryStore: 'store-a' },
+        });
+        act(() => result.current.loadMore());
+        setFetcher({
+            data: { inventoryStore: 'store-a', hits: [{ productId: 'old-sku' }], offset: 24, limit: 24, total: 218 },
+        });
+        rerender({ ...baseOptions, inventoryStore: 'store-b' });
+        expect(result.current.appended).toEqual([]);
+        expect(result.current.hasError).toBe(false);
+        act(() => result.current.loadMore());
+        setFetcher({
+            data: { inventoryStore: 'store-b', hits: [{ productId: 'new-sku' }], offset: 24, limit: 24, total: 218 },
+        });
+        rerender({ ...baseOptions, inventoryStore: 'store-b' });
+        expect(result.current.appended.map((hit) => hit.productId)).toEqual(['new-sku']);
+    });
+
+    it.each(['store-b', ''])('ignores a rejected old-store window after selection changes to %j', (inventoryStore) => {
+        const { result, rerender } = renderHook((props: UseLoadMoreProductsOptions) => useLoadMoreProducts(props), {
+            initialProps: { ...baseOptions, inventoryStore: 'store-a' },
+        });
+        act(() => result.current.loadMore());
+        setFetcher({ data: { code: 'STORE_INVENTORY_CHANGED', inventoryStore: 'store-a' } });
+        rerender({ ...baseOptions, inventoryStore });
+        expect(result.current.appended).toEqual([]);
+        expect(result.current.hasError).toBe(false);
+        act(() => result.current.loadMore());
+        expect(
+            new URL(fetcher.load.mock.calls.at(-1)?.[0] ?? '', 'https://shop.example.com').searchParams.get(
+                'inventoryStore'
+            )
+        ).toBe(inventoryStore);
+        setFetcher({ data: { code: 'STORE_INVENTORY_CHANGED', inventoryStore } });
+        rerender({ ...baseOptions, inventoryStore });
+        expect(result.current.hasError).toBe(true);
+    });
+
+    it('clears accumulated stock on store clear and ignores the previous store response', () => {
+        setFetcher({
+            data: { inventoryStore: 'store-a', hits: [{ productId: 'old-sku' }], offset: 24, limit: 24, total: 218 },
+        });
+        const { result, rerender } = renderHook((props: UseLoadMoreProductsOptions) => useLoadMoreProducts(props), {
+            initialProps: { ...baseOptions, inventoryStore: 'store-a' },
+        });
+        expect(result.current.appended).toHaveLength(1);
+        rerender({ ...baseOptions, inventoryStore: '' });
+        expect(result.current.appended).toEqual([]);
+    });
+});

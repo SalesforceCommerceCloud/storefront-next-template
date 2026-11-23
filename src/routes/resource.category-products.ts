@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import type { Route } from './+types/resource.category-products';
 import type { ShopperSearch } from '@/scapi';
+import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
 import { fetchSearchProducts } from '@/lib/api/search.server';
 import { getAllQueryParams, getQueryParam, PRODUCT_SEARCH_QUERY_PARAMS } from '@/lib/query-params';
 import { isSameOrigin } from '@/lib/origin';
 import { getLogger } from '@/lib/logger.server';
+import { LocalInventoryError } from '@/lib/product/local-inventory-error';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { isCategoryRefinement } from '@/lib/seo/url-resolution.server';
 
-export { shouldRevalidate } from '@/lib/revalidation/routes/buy-it-again';
+export { shouldRevalidate } from '@/lib/revalidation/routes/category-products';
 
 type ProductSearchHit = ShopperSearch.schemas['ProductSearchHit'];
 
@@ -40,6 +43,8 @@ export interface CategoryProductsResult {
     total: number;
     offset: number;
     limit: number;
+    /** Source store for this result window; empty means no selected store. */
+    inventoryStore?: string;
 }
 
 const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' } as const;
@@ -64,6 +69,9 @@ export async function loader({ request, context }: Route.LoaderArgs): Promise<Re
 
     const url = new URL(request.url);
     const { searchParams } = url;
+    const local = getLocalInventoryContext(context);
+    const inventoryEnabled = getConfig(context).features?.localInventory?.enabled;
+    const inventoryStore = inventoryEnabled ? (local?.storeId ?? '') : undefined;
 
     const offset = Math.max(
         0,
@@ -74,6 +82,23 @@ export async function loader({ request, context }: Route.LoaderArgs): Promise<Re
     const limit = Math.min(Math.max(1, parsedLimit || 24), 100);
     const sort = getQueryParam(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.SORT) || undefined;
     const refine = getAllQueryParams(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.REFINE);
+    const sourceStore = searchParams.get('inventoryStore');
+    const staleInventory = refine.some(
+        (value) => value.startsWith('ilids=') && (!local || value !== `ilids=${local.inventoryId}`)
+    );
+    if (
+        inventoryEnabled &&
+        ((sourceStore !== null && sourceStore !== inventoryStore) ||
+            (offset > 0 && sourceStore === null) ||
+            staleInventory)
+    ) {
+        // Echo the rejected request's marker so clients can discard a late conflict after switching.
+        // This marker never authorizes inventory; the validated context above remains authoritative.
+        return Response.json(
+            { code: 'STORE_INVENTORY_CHANGED', ...(sourceStore !== null && { inventoryStore: sourceStore }) },
+            { status: 409, headers: NO_STORE_HEADERS }
+        );
+    }
 
     // Explicit query param wins; otherwise fall back to the request-scoped site context.
     const currency =
@@ -99,10 +124,16 @@ export async function loader({ request, context }: Route.LoaderArgs): Promise<Re
             total: result.total ?? 0,
             offset: result.offset ?? offset,
             limit,
+            ...(inventoryStore !== undefined && { inventoryStore }),
         };
         return Response.json(payload, { headers: NO_STORE_HEADERS });
     } catch (error) {
-        const status = error instanceof NormalizedApiError && error.status ? error.status : 500;
+        const status =
+            error instanceof LocalInventoryError
+                ? error.status
+                : error instanceof NormalizedApiError && error.status
+                  ? error.status
+                  : 500;
         logger.error('CategoryProducts: search failed', { error });
         return new Response('Internal Error', { status, headers: NO_STORE_HEADERS });
     }

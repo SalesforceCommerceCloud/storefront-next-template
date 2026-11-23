@@ -55,6 +55,20 @@ export default defineConfig([
         external: [/node_modules/],
         hash: false,
     },
+    // 1c. Focused MRT helpers, isolated from CLI shared chunks.
+    {
+        entry: {
+            index: 'src/mrt/config.ts',
+        },
+        platform: 'node',
+        target: 'node24',
+        format: ['esm'],
+        dts: true,
+        outDir: 'dist/mrt/config',
+        clean: false,
+        external: [/node_modules/],
+        hash: false,
+    },
     // 2. React Router Scripts component
     {
         entry: {

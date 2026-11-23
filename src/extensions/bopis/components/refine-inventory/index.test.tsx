@@ -18,6 +18,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
+import { ConfigWrapper } from '@/test-utils/config';
 import RefineInventory from './index';
 
 // Mock the store locator provider
@@ -33,7 +34,11 @@ vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
 }));
 
 // Wrapper component to provide routing context
-const TestWrapper = ({ children }: { children: React.ReactNode }) => <MemoryRouter>{children}</MemoryRouter>;
+const TestWrapper = ({ children }: { children: React.ReactNode }) => (
+    <ConfigWrapper>
+        <MemoryRouter>{children}</MemoryRouter>
+    </ConfigWrapper>
+);
 
 describe('RefineInventory', () => {
     const mockToggleFilter = vi.fn();

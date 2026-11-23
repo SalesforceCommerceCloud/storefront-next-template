@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
+import { mockConfig } from '@/test-utils/config';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type RouterContextProvider } from 'react-router';
 import { encodeBase64Url } from '@/lib/url';
@@ -96,7 +98,7 @@ vi.mock('@/lib/logger.server', () => ({
 }));
 
 const createMockContextProvider = (): RouterContextProvider => {
-    const store = new Map<unknown, unknown>();
+    const store = new Map<unknown, unknown>([[appConfigContext, mockConfig]]);
     return {
         get(key: unknown) {
             return store.get(key);

@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { InventoryQuantityError } from '@/scapi';
+import { LocalInventoryError } from '@/lib/product/local-inventory.server';
 import type { ActionFunctionArgs } from 'react-router';
 import { getBasket } from '@/middlewares/basket.server';
 // @sfdc-extension-line SFDC_EXT_MULTISHIP
@@ -65,16 +68,26 @@ export async function action({ request, context }: ActionFunctionArgs): Promise<
         return Response.json({ success: true });
     } catch (error) {
         logger.error('[Checkout] place-order-prepare: unexpected error', { error });
+        const status =
+            error instanceof CommerceContextError || error instanceof LocalInventoryError
+                ? error.status
+                : error instanceof InventoryQuantityError
+                  ? 400
+                  : 500;
         return Response.json(
             {
                 success: false,
+                ...(error instanceof CommerceContextError && (error.change ?? { code: error.code })),
                 error: createActionError({
-                    code: ErrorCode.OPERATION_FAILED,
-                    message: 'Failed to prepare order',
+                    error,
+                    code:
+                        error instanceof LocalInventoryError && error.status === 422
+                            ? ErrorCode.OUT_OF_STOCK
+                            : ErrorCode.OPERATION_FAILED,
                 }),
                 step: 'placeOrder',
             },
-            { status: 500 }
+            { status, headers: { 'Cache-Control': 'private, no-store' } }
         );
     }
 }

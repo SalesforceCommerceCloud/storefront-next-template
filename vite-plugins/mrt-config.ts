@@ -16,7 +16,7 @@
 import { glob, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { Plugin, ResolvedConfig } from 'vite';
-import { buildMrtSsrConfig } from '@salesforce/storefront-next-dev';
+import { buildMrtSsrConfig } from '@salesforce/storefront-next-dev/mrt/config';
 import { loadConfig } from '@salesforce/storefront-next-runtime/config/load-config';
 import type { Config } from '@/types/config';
 

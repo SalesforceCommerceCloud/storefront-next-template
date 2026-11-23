@@ -95,6 +95,15 @@ beforeEach(() => {
 });
 
 describe('corner Quick Add', () => {
+    test('keeps an unavailable product disabled without fetching or adding', async () => {
+        const user = userEvent.setup();
+        render(<CornerQuickAdd productId="pretzels" productName="Mini pretzels" onSelect={mocks.select} disabled />);
+        expect(screen.getByRole('button')).toBeDisabled();
+        await user.click(screen.getByRole('button'));
+        expect(mocks.load).not.toHaveBeenCalled();
+        expect(mocks.add).not.toHaveBeenCalled();
+    });
+
     test('loads details only on interaction and adds a choice-free product exactly once', async () => {
         const user = userEvent.setup();
         const { rerender } = render(control());

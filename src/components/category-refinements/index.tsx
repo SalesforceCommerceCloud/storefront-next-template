@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { type ReactElement, useCallback, useId, useMemo, useState } from 'react';
 import { useLocation, useNavigation } from 'react-router';
 import { useNavigate } from '@/hooks/use-navigate';
@@ -43,6 +44,7 @@ type CategoryRefinementsProps = {
 
 export default function CategoryRefinements({ result, refine = [], category }: CategoryRefinementsProps): ReactElement {
     const { t } = useTranslation();
+    const localInventoryEnabled = useConfig().features.localInventory?.enabled;
     const navigate = useNavigate();
     const location = useLocation();
     const navigation = useNavigation();
@@ -173,7 +175,7 @@ export default function CategoryRefinements({ result, refine = [], category }: C
     };
 
     // No refinements available
-    if (refinements.length === 0) {
+    if (refinements.length === 0 && !localInventoryEnabled) {
         return (
             <div className="border p-4">
                 <p className="text-muted-foreground text-sm">{t('categoryRefinements:noFilterOptionsAvailable')}</p>

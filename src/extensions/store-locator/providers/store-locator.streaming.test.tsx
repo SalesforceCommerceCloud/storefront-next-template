@@ -30,6 +30,7 @@ import {
     StoreLocatorStateProvider,
     useStoreLocatorApi,
     useStoreLocator,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
     useSelectedStoreSource,
     type StoreLocatorStoreApi,
 } from './store-locator';

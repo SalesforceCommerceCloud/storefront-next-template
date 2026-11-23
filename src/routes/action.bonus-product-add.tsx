@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { data } from 'react-router';
+import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
+import { assertLocalBasketStock } from '@/lib/cart/local-inventory.server';
 import { BasketAction, createBasketAction } from '@/lib/cart/basket-action.server';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { bonusProductAddSchema } from '@/lib/cart/basket-schemas';
@@ -36,7 +38,7 @@ export const action = createBasketAction(
         action: BasketAction.BonusProductAdd,
         parse: (fd) => ({ bonusItems: fd.get('bonusItems')?.toString() || '' }),
     },
-    async ({ input, basketId, basket, clients, logger }) => {
+    async ({ input, basketId, basket, context, clients, logger }) => {
         const validationResult = bonusProductAddSchema.safeParse(input);
 
         if (!validationResult.success) {
@@ -96,12 +98,15 @@ export const action = createBasketAction(
             }
         }
 
+        const local = getLocalInventoryContext(context);
         // Build request body for SCAPI - each item becomes an entry in the array
         const requestBody = bonusItems.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
             bonusDiscountLineItemId: item.bonusDiscountLineItemId,
+            ...(local ? { inventoryId: local.inventoryId } : {}),
         }));
+        await assertLocalBasketStock(context, basket, [...(basket.productItems ?? []), ...requestBody]);
 
         const { data: updatedBasket } = await clients.shopperBasketsV2.addItemToBasket({
             params: {

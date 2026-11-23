@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 import { data } from 'react-router';
+import { scaleInventoryQuantity } from '@/scapi';
+import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
+import { assertLocalBasketStock } from '@/lib/cart/local-inventory.server';
 import { BasketAction, createBasketAction } from '@/lib/cart/basket-action.server';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { cartItemUpdateSchema } from '@/lib/cart/basket-schemas';
@@ -58,15 +61,7 @@ export const action = createBasketAction(
             // @sfdc-extension-block-end SFDC_EXT_BOPIS
         }),
     },
-    async ({
-        input,
-        basket,
-        basketId,
-        // @sfdc-extension-line SFDC_EXT_BOPIS
-        context,
-        clients,
-        logger,
-    }) => {
+    async ({ input, basket, basketId, context, clients, logger }) => {
         const validationResult = cartItemUpdateSchema.safeParse(input);
 
         if (!validationResult.success) {
@@ -84,6 +79,26 @@ export const action = createBasketAction(
         }
 
         const { itemId, productId, quantity } = validationResult.data;
+
+        if (getLocalInventoryContext(context)) {
+            await assertLocalBasketStock(
+                context,
+                basket,
+                (basket.productItems ?? []).map((item) =>
+                    item.itemId === itemId
+                        ? {
+                              ...item,
+                              productId: productId || item.productId,
+                              quantity,
+                              bundledProductItems: item.bundledProductItems?.map((child) => ({
+                                  ...child,
+                                  quantity: scaleInventoryQuantity(child.quantity ?? 0, quantity, item.quantity ?? 0),
+                              })),
+                          }
+                        : item
+                )
+            );
+        }
 
         logger.debug('CartItemUpdate: updating item', { itemId, productId, quantity, basketId });
 
@@ -103,7 +118,12 @@ export const action = createBasketAction(
         const targetProductId = productId || existingItem?.productId;
         const isVariantSwap = !!productId && productId !== existingItem?.productId;
         const isQuantityIncrease = quantity > (existingItem?.quantity ?? 1);
-        if (existingItem && targetProductId && (isQuantityIncrease || isVariantSwap)) {
+        if (
+            !getLocalInventoryContext(context) &&
+            existingItem &&
+            targetProductId &&
+            (isQuantityIncrease || isVariantSwap)
+        ) {
             const isPickupItem = { value: false };
             // @sfdc-extension-block-start SFDC_EXT_BOPIS
             // A pickup line is bound to a store's inventory, not site ATS. The minicart stepper submits only

@@ -160,6 +160,7 @@ const ProductTile = memo(
 
             const { config, t, currency, seoUrlContext, getBadges } = useProductTileContext();
             const { t: tCommon } = useTranslation('common');
+            const localUnavailable = product?.c_localInventoryAvailable === false;
             const { isDesignMode } = usePageDesignerMode();
 
             const productData = useMemo(() => {
@@ -475,6 +476,7 @@ const ProductTile = memo(
                                         productSlug={product.slug}
                                         selectedColorValue={selectedAttributeValue}
                                         initialVariantSelections={initialVariantSelections}
+                                        disabled={localUnavailable}
                                         label={quickAddLabel ?? t('quickAdd')}
                                     />
                                 </div>
@@ -483,6 +485,7 @@ const ProductTile = memo(
                                 <div className="absolute bottom-2 right-2 z-20">
                                     <QuickAddButton
                                         variant="corner"
+                                        disabled={localUnavailable}
                                         preload={tileEngaged}
                                         productId={product.productId ?? ''}
                                         productName={productName}
@@ -498,6 +501,7 @@ const ProductTile = memo(
 
                     {/* Info section */}
                     <div className={cn('relative flex flex-col flex-1', compact ? 'gap-1 pt-2' : 'p-4')}>
+                        {localUnavailable && <p className="text-sm text-muted-foreground">{t('outOfStockLabel')}</p>}
                         {compact && (
                             <ProductPrice
                                 type="unit"
@@ -620,6 +624,7 @@ const ProductTile = memo(
                                     productSlug={product.slug}
                                     selectedColorValue={selectedAttributeValue}
                                     initialVariantSelections={initialVariantSelections}
+                                    disabled={localUnavailable}
                                     label={quickAddLabel ?? t('quickAdd')}
                                 />
                             </div>

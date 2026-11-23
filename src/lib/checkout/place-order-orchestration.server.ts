@@ -28,6 +28,7 @@
  *   - finalizeOrderSuccess
  */
 
+import { assertLocalBasketStock } from '@/lib/cart/local-inventory.server';
 import type { ActionFunctionArgs } from 'react-router';
 import type { ShopperBasketsV2, ShopperOrders } from '@/scapi';
 import { calculateBasket, getBasketCurrency, updatePaymentInstrumentInBasket } from '@/lib/api/basket.server';
@@ -126,6 +127,7 @@ export async function calculateBasketForOrder(context: ActionContext, basket: Ba
     if (!basket.basketId) {
         throw new Error('calculateBasketForOrder: basket has no basketId');
     }
+    await assertLocalBasketStock(context, basket);
     const currency = getBasketCurrency(context, basket);
     const calculated = await calculateBasket(context, basket.basketId, currency);
     updateBasketResource(context, calculated);

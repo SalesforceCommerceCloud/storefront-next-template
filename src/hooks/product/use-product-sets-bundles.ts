@@ -17,7 +17,7 @@ import { useState, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { getInitialVariant } from '@/lib/product/initial-variant';
-import type { ShopperProducts } from '@/scapi';
+import { hasInventoryStock, scaleInventoryQuantity, type ShopperProducts } from '@/scapi';
 import { isProductSet, isProductBundle, isStandardProduct } from '@/lib/product/product-utils';
 import {
     type ChildProductSelection,
@@ -322,14 +322,16 @@ export function useProductSetsBundles({
         // Formula: availableSets = Math.floor(childStockLevel / childQuantity)
         // The set is limited by whichever child runs out first (minimum across all children)
         if (isProductASet) {
-            let lowestInventory: ShopperProducts.schemas['Inventory'] | undefined;
+            const localInventoryId =
+                typeof product.c_localInventoryId === 'string' ? product.c_localInventoryId : undefined;
+            const inventoryScope = { id: localInventoryId };
             // @sfdc-extension-line SFDC_EXT_BOPIS
+            inventoryScope.id ??= selectedStoreInventoryId;
+            let lowestInventory: ShopperProducts.schemas['Inventory'] | undefined;
             let lowestStoreInventory: ShopperProducts.schemas['Inventory'] | undefined;
             let lowestSiteRatio = Infinity;
-            // @sfdc-extension-line SFDC_EXT_BOPIS
             let lowestStoreRatio = Infinity;
             let missingInventory = false;
-            // @sfdc-extension-line SFDC_EXT_BOPIS
             let missingStoreInventory = false;
 
             childProducts.forEach((childProduct) => {
@@ -342,7 +344,11 @@ export function useProductSetsBundles({
                 if (!childProduct.inventory) {
                     missingInventory = true;
                 } else {
-                    const availableSets = calculateAvailableSets(childProduct.inventory, childQuantity);
+                    const availableSets = calculateAvailableSets(
+                        childProduct.inventory,
+                        childQuantity,
+                        Boolean(localInventoryId)
+                    );
 
                     if (availableSets < lowestSiteRatio) {
                         lowestSiteRatio = availableSets;
@@ -357,16 +363,19 @@ export function useProductSetsBundles({
                     }
                 }
 
-                // @sfdc-extension-block-start SFDC_EXT_BOPIS
-                // Store inventory (BOPIS pickup): calculate how many complete sets can be made
-                if (selectedStoreInventoryId) {
+                // Selected inventory: both stock and ATS must represent complete sets.
+                if (inventoryScope.id) {
                     const childStoreInventory = childProduct.inventories?.find(
-                        (inv: ShopperProducts.schemas['Inventory']) => inv.id === selectedStoreInventoryId
+                        (inv: ShopperProducts.schemas['Inventory']) => inv.id === inventoryScope.id
                     );
                     if (!childStoreInventory) {
                         missingStoreInventory = true;
                     } else {
-                        const availableSets = calculateAvailableSets(childStoreInventory, childQuantity);
+                        const availableSets = calculateAvailableSets(
+                            childStoreInventory,
+                            childQuantity,
+                            Boolean(localInventoryId)
+                        );
 
                         if (availableSets < lowestStoreRatio) {
                             lowestStoreRatio = availableSets;
@@ -376,11 +385,11 @@ export function useProductSetsBundles({
                             lowestStoreInventory = {
                                 ...childStoreInventory,
                                 stockLevel: availableSets,
+                                ats: availableSets,
                             };
                         }
                     }
                 }
-                // @sfdc-extension-block-end SFDC_EXT_BOPIS
             });
 
             // Return product with calculated inventory representing number of complete sets available
@@ -388,10 +397,12 @@ export function useProductSetsBundles({
             return {
                 ...product,
                 inventory: !missingInventory && lowestInventory ? lowestInventory : product.inventory,
-                // @sfdc-extension-block-start SFDC_EXT_BOPIS
                 inventories:
-                    !missingStoreInventory && lowestStoreInventory ? [lowestStoreInventory] : product.inventories,
-                // @sfdc-extension-block-end SFDC_EXT_BOPIS
+                    !missingStoreInventory && lowestStoreInventory
+                        ? [lowestStoreInventory]
+                        : localInventoryId
+                          ? []
+                          : product.inventories,
             };
         }
 
@@ -474,6 +485,10 @@ export function useProductSetsBundles({
     // For sets: both return undefined since sets don't have a parent quantity picker
     const bundleStockLevel = useMemo(() => {
         if (!isProductABundle) return undefined;
+        if (typeof productWithCalculatedInventory.c_localInventoryId === 'string') {
+            const inventory = productWithCalculatedInventory.inventory;
+            return Math.max(0, Math.min(inventory?.stockLevel ?? 0, inventory?.ats ?? inventory?.stockLevel ?? 0));
+        }
 
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
         // Use isPickupSelected to determine which inventory to show (consistent with standard products)
@@ -575,11 +590,20 @@ export function useProductSetsBundles({
  *
  * @param inventory - The inventory object (site or store) containing stockLevel
  * @param childQuantity - The quantity of this child required for one complete set
- * @returns Number of complete sets that can be made (Math.floor(stockLevel / childQuantity))
+ * @param strictStock - Require physical stock and usable ATS for the selected preparing inventory
+ * @returns Number of complete sets supported by the child stock budget
  */
-function calculateAvailableSets(inventory: ShopperProducts.schemas['Inventory'], childQuantity: number): number {
-    const stockLevel = inventory.stockLevel ?? 0;
-    return Math.floor(stockLevel / childQuantity);
+function calculateAvailableSets(
+    inventory: ShopperProducts.schemas['Inventory'],
+    childQuantity: number,
+    strictStock = false
+): number {
+    if (strictStock) {
+        if (!hasInventoryStock(inventory, childQuantity)) return 0;
+        const stockLevel = Math.min(inventory.stockLevel ?? 0, inventory.ats ?? inventory.stockLevel ?? 0);
+        return Math.floor(scaleInventoryQuantity(stockLevel, 1, childQuantity));
+    }
+    return Math.floor((inventory.stockLevel ?? 0) / childQuantity);
 }
 
 // Helper function to normalize set/bundle product data

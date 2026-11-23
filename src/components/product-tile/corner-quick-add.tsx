@@ -86,9 +86,11 @@ export function CornerQuickAdd({
     productId,
     productName,
     onSelect,
+    disabled,
 }: {
     productId: string;
     productName: string;
+    disabled?: boolean;
     onSelect: (trigger: HTMLElement | null) => void;
 }) {
     const triggerRef = useRef<HTMLElement | null>(null);
@@ -125,6 +127,7 @@ export function CornerQuickAdd({
         <>
             <ConnectedInlineAddToCart
                 variant="compact"
+                disabled={disabled}
                 productId={direct ? productId : undefined}
                 productName={productName}
                 stockLevel={product && direct ? getEffectiveStockLevel({ product }) : undefined}

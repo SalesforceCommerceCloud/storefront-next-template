@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ConfigProvider, useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useEffect, type ReactElement, type ReactNode } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect } from 'storybook/test';
@@ -59,10 +60,12 @@ function StoreSetter({
     children,
     storeId,
     inventoryId,
+    storeName = 'Downtown Store',
 }: {
     children: ReactNode;
     storeId?: string;
     inventoryId?: string;
+    storeName?: string;
 }): ReactElement {
     const setSelectedStoreInfo = useStoreLocator((s) => s.setSelectedStoreInfo);
     const store = useStoreLocator((s) => s.selectedStoreInfo);
@@ -70,9 +73,9 @@ function StoreSetter({
     // Set store in useEffect - this will trigger a re-render of children
     useEffect(() => {
         if (storeId && inventoryId && (!store || store.inventoryId !== inventoryId)) {
-            setSelectedStoreInfo({ id: storeId, inventoryId, name: 'Downtown Store' });
+            setSelectedStoreInfo({ id: storeId, inventoryId, name: storeName });
         }
-    }, [storeId, inventoryId, setSelectedStoreInfo, store]);
+    }, [storeId, inventoryId, setSelectedStoreInfo, store, storeName]);
 
     return <>{children}</>;
 }
@@ -324,5 +327,44 @@ The component provides a clean layout for desktop screens.
         // Wait for and verify accordion is rendered
         const accordion = canvasElement.querySelector('[data-testid="sf-store-inventory-filter"]');
         await expect(accordion).toBeInTheDocument();
+    },
+};
+
+function LocalConfig({ children }: { children: ReactNode }) {
+    const config = useConfig();
+    return (
+        <ConfigProvider
+            config={{
+                ...config,
+                features: { ...config.features, localInventory: { enabled: true, nativeSearchVerified: false } },
+            }}>
+            {children}
+        </ConfigProvider>
+    );
+}
+
+export const LocalUnavailableProducts: Story = {
+    tags: ['local-availability'],
+    decorators: [
+        (Story) => (
+            <LocalConfig>
+                <StoreSetter
+                    storeId="A"
+                    inventoryId="list-A"
+                    storeName="Magasin de préparation de Saint-Germain-en-Laye — Londres / London">
+                    <Story />
+                </StoreSetter>
+            </LocalConfig>
+        ),
+    ],
+    args: { isFilterSelected: () => false, hasActiveFilter: () => false, toggleFilter: () => {} },
+    play: async ({ canvas, canvasElement, userEvent }) => {
+        await waitForStorybookReady(canvasElement);
+        const checkbox = await canvas.findByRole('checkbox', { name: 'Show unavailable products' });
+        await expect(checkbox).toBeChecked();
+        checkbox.focus();
+        await userEvent.keyboard(' ');
+        await expect(checkbox).toHaveFocus();
+        await expect(canvas.getByRole('alert')).toHaveTextContent('Availability filtering is temporarily unavailable');
     },
 };

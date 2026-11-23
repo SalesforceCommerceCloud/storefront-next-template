@@ -75,10 +75,16 @@ vi.mock('react-router', async () => ({
 
 import { composeStories } from '@storybook/react-vite';
 import * as RefineInventoryStories from './index.stories';
+import * as LocalAvailabilityStories from './local-availability.stories';
 import { render, cleanup } from '@testing-library/react';
 import { StoryTestWrapper } from '../../../../../../.storybook/test-wrapper';
 
-const composed = composeStories(RefineInventoryStories);
+const composed = {
+    ...composeStories(RefineInventoryStories),
+    ...Object.fromEntries(
+        Object.entries(composeStories(LocalAvailabilityStories)).map(([name, story]) => [`LocalAvailability${name}`, story])
+    ),
+};
 
 afterEach(() => {
     cleanup();

@@ -19,6 +19,7 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import ActiveFilters from './index';
 import type { ShopperSearch } from '@/scapi';
+import { normalizeLocalInventorySearch } from '@/lib/product/local-inventory-search';
 
 const mockNavigate = vi.fn();
 
@@ -41,6 +42,7 @@ const createProductSearchResult = (): ShopperSearch.schemas['ProductSearchResult
     },
     sortingOptions: [],
     refinements: [
+        { attributeId: 'ilids', label: 'Inventory', values: [{ value: 'list-A', label: 'In stock', hitCount: 1 }] },
         {
             attributeId: 'cgid',
             label: 'Category',
@@ -77,6 +79,45 @@ describe('ActiveFilters on category pages', () => {
 
         expect(screen.getByRole('button', { name: /Black/i })).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Outfits/i })).not.toBeInTheDocument();
+    });
+
+    test('represents the paired inventory filter with the store chip only', () => {
+        renderComponent('/search?refine=ilids%3Dlist-A&refine=orderable_only%3Dtrue&refine=c_refinementColor%3DBlack');
+        expect(screen.getByRole('button', { name: /in stock/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Black' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'true' })).not.toBeInTheDocument();
+    });
+
+    test('removing the store chip clears the paired boolean without restoring it on normalization', async () => {
+        renderComponent(
+            '/search?q=shirt&sort=best-matches&utm_source=qa&inventoryStore=A&refine=ilids%3Dlist-A&refine=orderable_only%3Dtrue&refine=c_refinementColor%3DBlack&offset=48&page=3'
+        );
+        await userEvent.setup().click(screen.getByRole('button', { name: /in stock/i }));
+        const params = new URLSearchParams(mockNavigate.mock.calls[0][0].search);
+        expect(params.getAll('refine')).toEqual(['c_refinementColor=Black']);
+        expect(params.get('offset')).toBe('0');
+        expect(params.has('page')).toBe(false);
+        expect(params.get('q')).toBe('shirt');
+        expect(params.get('sort')).toBe('best-matches');
+        expect(params.get('utm_source')).toBe('qa');
+        expect(params.get('inventoryStore')).toBe('A');
+        expect(normalizeLocalInventorySearch(params, 'list-A', 'A').getAll('refine')).toEqual([
+            'c_refinementColor=Black',
+        ]);
+    });
+
+    test('clear all resets both pagination modes and retains selection and unrelated parameters', async () => {
+        renderComponent(
+            '/search?q=shirt&sort=best-matches&inventoryStore=A&refine=ilids%3Dlist-A&refine=orderable_only%3Dtrue&offset=48&page=3'
+        );
+        await userEvent.setup().click(screen.getByRole('button', { name: /clear all/i }));
+        const params = new URLSearchParams(mockNavigate.mock.calls[0][0].search);
+        expect(params.has('refine')).toBe(false);
+        expect(params.get('offset')).toBe('0');
+        expect(params.has('page')).toBe(false);
+        expect(params.get('q')).toBe('shirt');
+        expect(params.get('sort')).toBe('best-matches');
+        expect(params.get('inventoryStore')).toBe('A');
     });
 
     test('clear all still removes all refine params including cgid', async () => {

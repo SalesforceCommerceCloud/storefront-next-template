@@ -342,6 +342,7 @@ export default defineConfig<Config>(
                     providers: ['Twitter', 'Facebook', 'LinkedIn', 'Email'],
                 },
                 guestCheckout: true,
+                localInventory: { enabled: false, inventoryListsBySite: {}, nativeSearchVerified: false },
                 shopperContext: {
                     enabled: false,
                     storeSelectionEnabled: false,

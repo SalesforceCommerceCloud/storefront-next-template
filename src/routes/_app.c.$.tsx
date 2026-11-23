@@ -20,6 +20,8 @@ import type { Route } from './+types/_app.c.$';
 import { ApiError, type ShopperProducts, type ShopperSearch } from '@/scapi';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { fetchCategory } from '@/lib/api/categories.server';
+import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
+import { redirectLocalInventorySearch } from '@/lib/product/local-inventory-search.server';
 import { fetchSearchProducts } from '@/lib/api/search.server';
 import {
     applyCategoryRouteRefinement,
@@ -105,6 +107,7 @@ type CategoryPageData = {
     pageUrl: string;
     refine: string[];
     currency: string;
+    inventoryStore?: string;
     locale: string;
     initialFiltersOpen?: boolean;
     categorySchema: Promise<ReturnType<typeof generateCategorySchema> | null>;
@@ -135,6 +138,7 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     const { context, request } = args;
     const requestUrl = new URL(request.url);
     redirectToCanonicalPath(requestUrl);
+    redirectLocalInventorySearch(context, requestUrl);
     const { searchParams } = requestUrl;
     const logger = getLogger(context);
     const config = getConfig(context);
@@ -366,6 +370,9 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
         categoryId,
         pageUrl,
         refine: effectiveRefine,
+        inventoryStore: config.features?.localInventory?.enabled
+            ? (getLocalInventoryContext(context)?.storeId ?? '')
+            : undefined,
         currency,
         locale,
         initialFiltersOpen,
@@ -430,6 +437,7 @@ export default function CategoryPage({
         categorySchema,
         seoPagination,
         initialCount,
+        inventoryStore,
         offset = 0,
     },
 }: {
@@ -466,7 +474,7 @@ export default function CategoryPage({
         (navigation.location.pathname !== location.pathname ||
             getSearchWithoutFiltersParam(navigation.location.search) !== searchWithoutFiltersParam);
     const pageIdentity = `${site.id}-${categoryId}-${currency}-${locale}`;
-    const productGridDataKey = `${pageIdentity}-${searchWithoutFiltersParam}`;
+    const productGridDataKey = `${pageIdentity}-${searchWithoutFiltersParam}-${inventoryStore ?? ''}`;
     const analyticsSequence = useMemo(() => {
         return {
             key: `${productGridDataKey}-${initialCount}-${offset}`,
@@ -483,7 +491,10 @@ export default function CategoryPage({
         };
     }, [analyticsSequence]);
     const selectedFiltersCount = useMemo(
-        () => new URLSearchParams(location.search).getAll('refine').length,
+        () =>
+            new URLSearchParams(location.search)
+                .getAll('refine')
+                .filter((value) => !value.startsWith('orderable_only=')).length,
         [location.search]
     );
 
@@ -550,6 +561,7 @@ export default function CategoryPage({
         loadMore,
     } = useLoadMoreProducts({
         refine,
+        inventoryStore,
         sort: searchResultCritical.selectedSortingOption,
         currency,
         initialCount,

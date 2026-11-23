@@ -254,3 +254,30 @@ export const WithPromotion: Story = {
         await expect(canvas.getByText(/Saved/)).toBeInTheDocument();
     },
 };
+
+export const LocalDuplicateSkuUnavailable: Story = {
+    args: {
+        basket: {
+            productItems: [
+                { itemId: 'one', productId: 'milk', productName: 'Milk', quantity: 2, basePrice: 1, price: 2 },
+                { itemId: 'two', productId: 'milk', productName: 'Milk', quantity: 2, basePrice: 1, price: 2 },
+            ],
+        },
+        productMap: {
+            one: {
+                id: 'milk',
+                name: 'Milk',
+                price: 1,
+                c_localInventoryId: 'list-A',
+                inventory: { id: 'list-A', stockLevel: 3, ats: 3, orderable: true },
+            },
+            two: {
+                id: 'milk',
+                name: 'Milk',
+                price: 1,
+                c_localInventoryId: 'list-A',
+                inventory: { id: 'list-A', stockLevel: 3, ats: 3, orderable: true },
+            },
+        },
+    },
+};

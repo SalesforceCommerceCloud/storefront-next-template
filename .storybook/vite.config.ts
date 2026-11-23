@@ -19,7 +19,7 @@ import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { transformTargetPlaceholderPlugin } from '@salesforce/storefront-next-dev';
+import { componentLoadersPlugin, transformTargetPlaceholderPlugin } from '@salesforce/storefront-next-dev';
 import { themeBreakpoints } from '../vite-plugins/theme-breakpoints';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -49,6 +49,9 @@ const pageDesignerPreloadManifestStub = {
  */
 export default defineConfig({
     plugins: [
+        // Apply the storefront's browser/server boundary to Page Designer components.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Plugin type mismatch with Vite plugin types
+        componentLoadersPlugin() as any,
         react({
             babel: {
                 parserOpts: {

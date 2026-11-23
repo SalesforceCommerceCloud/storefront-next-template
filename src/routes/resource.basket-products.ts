@@ -29,6 +29,7 @@ import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { getInventoryIdsFromPickupShipments } from '@/extensions/bopis/lib/basket-utils';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
+import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
 import { getLogger } from '@/lib/logger.server';
 import type { ProductWithPromotions, ProductsWithPromotionsMap } from '@/lib/cart/bonus-product-utils';
 import { isMiniCartPanelMounted } from '@/hooks/mini-cart-store';
@@ -140,6 +141,7 @@ export async function loader({ context }: Route.LoaderArgs): Promise<BasketProdu
         return { basket, productsById };
     } catch (error) {
         logger.error('BasketProducts: failed to fetch product details', { error });
+        if (getLocalInventoryContext(context)) throw error;
         // Return basket on error - mini cart can still display basic basket data
         return { basket, productsById: {} };
     }

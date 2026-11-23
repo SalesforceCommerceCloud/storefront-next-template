@@ -480,6 +480,7 @@ async function restoreStoreSelection(request: Request, context: Context): Promis
                   { id: remembered.id },
                   { useCache: !isSelectionAction(request, context) }
               ).catch((error: unknown) => {
+                  if (getConfig(context).features.localInventory?.enabled) throw error;
                   if (error instanceof StoreSelectionError) return null;
                   unavailable = true;
                   getLogger(context).warn('Remembered store validation unavailable', { error });

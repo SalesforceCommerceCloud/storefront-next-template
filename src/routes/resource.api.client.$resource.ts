@@ -16,9 +16,11 @@
 
 import { decodeBase64Url } from '@/lib/url';
 import { extractResponseError, getErrorMessage } from '@/lib/utils';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { applyLocalInventory, getLocalInventoryContext } from '@/lib/product/local-inventory.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import type { AppClients } from '@/scapi/custom-clients';
-import { ApiError } from '@/scapi';
+import { ApiError, type ShopperProducts } from '@/scapi';
 import {
     type ApiResponse,
     type CommerceSdkKeyMap,
@@ -127,10 +129,31 @@ export async function loader<
         }
 
         // Call the method - new API returns { data, response }
-        const result = (await client[methodName](sanitizeResourceOptions(resource[2]))) as Record<string, unknown>;
+        const options = sanitizeResourceOptions(resource[2]);
+        const local = clientKey === 'shopperProducts' ? getLocalInventoryContext(context) : null;
+        if (
+            clientKey === 'shopperProducts' &&
+            getConfig(context).features.localInventory?.enabled &&
+            options.params?.query
+        ) {
+            delete options.params.query.inventoryIds;
+        }
+        if (local) {
+            options.params ??= {};
+            options.params.query = { ...options.params.query, inventoryIds: [local.inventoryId] };
+        }
+        const result = (await client[methodName](options)) as Record<string, unknown>;
 
         // Extract data from the new response format
-        const data = result?.data as Awaited<R>;
+        let data = result?.data as Awaited<R>;
+        if (local) {
+            if (methodName === 'getProduct')
+                data = (await applyLocalInventory(context, [data as never]))[0] as Awaited<R>;
+            if (methodName === 'getProducts') {
+                const list = data as { data?: ShopperProducts.schemas['Product'][] };
+                data = { ...list, data: await applyLocalInventory(context, list.data ?? []) } as Awaited<R>;
+            }
+        }
 
         return {
             success: true,

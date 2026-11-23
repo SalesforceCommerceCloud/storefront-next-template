@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { redirect } from 'react-router';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { LocalInventoryError } from '@/lib/product/local-inventory.server';
 import type { Route } from './+types/action.place-order';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { getAuth } from '@/middlewares/auth.server';
@@ -24,7 +26,7 @@ import type { CustomerProfile } from '@/components/checkout/utils/checkout-conte
 import { getPaymentMethodsFromCustomer } from '@/lib/customer/profile-utils';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
-import { ApiError } from '@/scapi';
+import { ApiError, InventoryQuantityError } from '@/scapi';
 // @sfdc-extension-line SFDC_EXT_MULTISHIP
 import { resolveEmptyShipments } from '@/extensions/multiship/lib/api/basket.server';
 import { getLogger } from '@/lib/logger.server';
@@ -532,7 +534,7 @@ export async function action({ request, context }: Route.ActionArgs) {
         // orders, backend adjustments), so this stays as the last-line backstop that turns a generic
         // "try again" into an actionable stock message. The display layer maps OUT_OF_STOCK to
         // errors:checkout.stockNotAvailable.
-        if (isInventoryError(error)) {
+        if (isInventoryError(error) || (error instanceof LocalInventoryError && error.status === 422)) {
             return Response.json(
                 {
                     success: false,
@@ -548,13 +550,20 @@ export async function action({ request, context }: Route.ActionArgs) {
                 { status: 422 }
             );
         }
+        const status =
+            error instanceof CommerceContextError || error instanceof LocalInventoryError
+                ? error.status
+                : error instanceof InventoryQuantityError
+                  ? 400
+                  : 500;
         return Response.json(
             {
                 success: false,
+                ...(error instanceof CommerceContextError && (error.change ?? { code: error.code })),
                 error: createActionError({ error }),
                 step: 'placeOrder',
             },
-            { status: 500 }
+            { status, headers: { 'Cache-Control': 'private, no-store' } }
         );
     }
 }

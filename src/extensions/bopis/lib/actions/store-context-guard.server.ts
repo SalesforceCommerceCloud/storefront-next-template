@@ -28,7 +28,8 @@ import { isNativeStoreSelectionEnabled } from '@/lib/shopper-context/store-selec
  * still validated by the caller before any shipment or item write.
  */
 export function rejectUnconfirmedStoreChange(context: Readonly<RouterContextProvider>, pickupStoreId?: string) {
-    if (!isNativeStoreSelectionEnabled(getConfig(context).features.shopperContext)) return null;
+    const features = getConfig(context).features;
+    if (!isNativeStoreSelectionEnabled(features.shopperContext) && !features.localInventory?.enabled) return null;
     if (pickupStoreId !== undefined && context.get(selectedStoreContext)?.id === pickupStoreId) return null;
     getLogger(context).warn('Native fulfillment change requires confirmation', {
         actor: getAuth(context).customerId ?? 'anonymous',

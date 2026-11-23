@@ -20,6 +20,7 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getLogger } from '@/lib/logger.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
+import { scopeLocalInventorySearch, applyLocalSearchInventory } from '@/lib/product/local-inventory-search.server';
 import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 
 type QueryParameters = Partial<ShopperSearch.operations['productSearch']['parameters']['query']>;
@@ -79,8 +80,10 @@ export const fetchSearchProducts = async (
      * Build refinements for product search. As indicated above, in our out-of-the-box setting we only search for
      * currently orderable products.
      */
-    const refineSet = new Set<string>(params.refine || []);
-    if (appConfig?.search.products.refine?.orderableOnly === true) {
+    const localInventoryEnabled = appConfig?.features?.localInventory?.enabled;
+    const scopedParams = scopeLocalInventorySearch(context, params);
+    const refineSet = new Set<string>(scopedParams.refine || []);
+    if (!localInventoryEnabled && appConfig?.search.products.refine?.orderableOnly === true) {
         // Make sure we don't accidentally overwrite any existing orderable_only refinements to avoid conflicts
         const orderableOnly = [...refineSet].find((r: string) => r.startsWith('orderable_only='));
         if (!orderableOnly) {
@@ -93,7 +96,7 @@ export const fetchSearchProducts = async (
         const { data } = await clients.shopperSearch.productSearch({
             params: {
                 query: {
-                    ...(params as ShopperSearch.operations['productSearch']['parameters']['query']),
+                    ...(scopedParams as ShopperSearch.operations['productSearch']['parameters']['query']),
                     ...(refineSet.size > 0 && { refine: [...refineSet] }),
                 },
             },
@@ -127,7 +130,7 @@ export const fetchSearchProducts = async (
             });
         }
 
-        return data;
+        return applyLocalSearchInventory(context, data, refineSet.has('orderable_only=true'));
     } catch (error) {
         logger.error('shopperSearch.productSearch failed', {
             q: params.q,

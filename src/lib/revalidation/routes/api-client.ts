@@ -16,6 +16,8 @@
 // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
 import { readsQualifiedCommerce } from '@/lib/scapi/qualified-reads';
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import { resourceRoutes } from '@/route-paths';
 import { invokeMatchingFetchers } from '@/lib/scapi/fetcher-registry';
@@ -23,6 +25,8 @@ import type { DecodedResource } from '@/lib/scapi/resource-encoding';
 import {
     getActionPath,
     isContextMutation,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    isStoreInventoryMutation,
     // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
     isStoreQualificationMutation,
     // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
@@ -63,8 +67,8 @@ const STORE_SELECTION_MUTATIONS: ReadonlySet<string> = new Set([
 /**
  * True when the decoded resource is scoped to a specific store's inventory (`options.params.query.inventoryIds`).
  * Keying off this query field rather than the SCAPI method covers every store-scoped call uniformly — `getProduct`,
- * the bulk `getProducts` child-inventory fetch, and any future product call that reads store inventory. A call
- * without `inventoryIds` reads site-default availability, which a store switch does not change, so it is left alone.
+ * the bulk `getProducts` child-inventory fetch, and any future product call that reads store inventory.
+ * The separate preparing-store rule handles server-injected stock without browser inventory parameters.
  */
 function requestsInventoryIds(resource: DecodedResource): boolean {
     const inventoryIds = (resource.options as { params?: { query?: { inventoryIds?: unknown } } })?.params?.query
@@ -114,6 +118,13 @@ const REVALIDATION_RULES: readonly ScapiRevalidationRule[] = [
         affects: () => true,
     },
     // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    {
+        when: (args) => matchesMutation((path) => isStoreInventoryMutation(path, args.actionResult))(args),
+        affects: (resource) =>
+            Boolean(getConfig().features?.localInventory?.enabled) &&
+            resource.client === 'shopperProducts' &&
+            (resource.method === 'getProduct' || resource.method === 'getProducts'),
+    },
     {
         when: (args) => matchesMutation((path) => isStoreQualificationMutation(path, args.actionResult))(args),
         affects: readsQualifiedCommerce,

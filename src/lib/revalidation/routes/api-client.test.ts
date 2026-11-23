@@ -25,6 +25,11 @@ vi.mock('@/lib/scapi/fetcher-registry', () => ({
     invokeMatchingFetchers: (predicate: unknown) => mockInvokeMatching(predicate),
 }));
 
+vi.mock('@salesforce/storefront-next-runtime/config', async (original) => ({
+    ...(await original<Record<string, unknown>>()),
+    getConfig: () => ({ features: { localInventory: { enabled: true } } }),
+}));
+
 /** Flush the `queueMicrotask` that resets the once-per-pass guard. */
 const flushMicrotasks = () => new Promise<void>((resolve) => queueMicrotask(resolve));
 
@@ -142,11 +147,11 @@ describe('store-selection policy (BOPIS: reload store-scoped inventory fetchers)
         }
     });
 
-    it('reloads default product reads but skips explicit site availability without inventoryIds', async () => {
+    it('reloads product fetchers whose inventory scope is injected server-side', async () => {
         const matches = await policyPredicate({ formAction: resourceRoutes.setSelectedStore });
-        // Native prices/promotions depend on active store qualification, even without inventoryIds.
+        // The browser no longer needs to supply inventoryIds for a store-scoped read.
         expect(matches(inv('shopperProducts', 'getProduct', { params: { query: { expand: ['availability'] } } }))).toBe(
-            false
+            true
         );
         expect(matches(inv('shopperProducts', 'getProduct'))).toBe(true);
     });

@@ -354,7 +354,7 @@ function ProductItem({
     // Determine stock level: site-level ATS by default, store-specific for pickup items
     const stockLevel =
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
-        isPickup && productItem
+        productItem && (isPickup || typeof productItem.c_localInventoryId === 'string')
             ? getEffectiveStockLevel({
                   product: productItem as unknown as ShopperProducts.schemas['Product'],
                   isPickup: true,

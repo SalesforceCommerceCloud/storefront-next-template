@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ShopperProducts } from '@/scapi';
+import { scaleInventoryQuantity, type ShopperProducts } from '@/scapi';
 import { data } from 'react-router';
+import { assertLocalBasketStock } from '@/lib/cart/local-inventory.server';
+import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
 import { BasketAction, createBasketAction } from '@/lib/cart/basket-action.server';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
@@ -61,16 +63,7 @@ export const action = createBasketAction(
             };
         },
     },
-    async ({
-        input,
-        basketId,
-        // @sfdc-extension-line SFDC_EXT_BOPIS
-        basket,
-        // @sfdc-extension-line SFDC_EXT_BOPIS
-        context,
-        clients,
-        logger,
-    }) => {
+    async ({ input, basketId, basket, context, clients, logger }) => {
         if (!input) {
             logger.warn('CartBundleAdd: missing bundle data in form data');
             return data(
@@ -86,6 +79,21 @@ export const action = createBasketAction(
         }
 
         const { bundleItem, childSelections } = input;
+
+        const localInventoryId = getLocalInventoryContext(context)?.inventoryId;
+        if (localInventoryId) {
+            await assertLocalBasketStock(context, basket, [
+                ...(basket.productItems ?? []),
+                {
+                    productId: bundleItem.productId,
+                    quantity: bundleItem.quantity,
+                    bundledProductItems: childSelections.map((selection) => ({
+                        productId: selection.variant?.productId || selection.product.id,
+                        quantity: scaleInventoryQuantity(selection.quantity, bundleItem.quantity),
+                    })),
+                },
+            ]);
+        }
 
         logger.debug('CartBundleAdd: starting addBundleToCart', {
             productId: bundleItem.productId,
@@ -170,8 +178,11 @@ export const action = createBasketAction(
                 {
                     productId: bundleItem.productId,
                     quantity: bundleItem.quantity,
-                    // @sfdc-extension-line SFDC_EXT_BOPIS
-                    ...(fulfillment.inventoryId ? { inventoryId: fulfillment.inventoryId } : {}),
+                    ...(localInventoryId
+                        ? { inventoryId: localInventoryId }
+                        : fulfillment.inventoryId
+                          ? { inventoryId: fulfillment.inventoryId }
+                          : {}),
                     shipmentId: fulfillment.shipmentId,
                     bundledProductItems,
                 },
@@ -203,8 +214,11 @@ export const action = createBasketAction(
                         itemId: bundledItem.itemId,
                         productId: selectedProductId || bundledItem.productId,
                         quantity: matchingSelection?.quantity || bundledItem.quantity,
-                        // @sfdc-extension-line SFDC_EXT_BOPIS
-                        ...(fulfillment.inventoryId ? { inventoryId: fulfillment.inventoryId } : {}),
+                        ...(localInventoryId
+                            ? { inventoryId: localInventoryId }
+                            : fulfillment.inventoryId
+                              ? { inventoryId: fulfillment.inventoryId }
+                              : {}),
                         shipmentId: fulfillment.shipmentId,
                     };
                 });

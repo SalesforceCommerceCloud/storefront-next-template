@@ -24,6 +24,8 @@ import type { Plugin } from 'vite';
  * than in the template's vite.config.ts or in a new single-purpose plugin.
  *
  * Current defaults:
+ * - Client entry chunks omit redundant transitive import statements; React Router
+ *   preloads the SSR dependency graph and Vite preloads dynamic-import dependencies.
  * - `resolve.dedupe`: prevents duplicate React / React Router copies on the
  *   client. Duplicate React instances cause hooks to throw "Invalid hook call".
  * - `optimizeDeps.include`: forces Vite's dep optimizer to pre-bundle
@@ -63,6 +65,19 @@ export const baseConfigPlugin = (): Plugin => ({
     name: 'storefront-next:base-config',
     config() {
         return {
+            environments: {
+                client: {
+                    build: {
+                        rollupOptions: {
+                            output: {
+                                // React Router and Vite already preload these dependencies. Avoid repeating
+                                // their import paths in every route entry as inventory gains more consumers.
+                                hoistTransitiveImports: false,
+                            },
+                        },
+                    },
+                },
+            },
             resolve: {
                 dedupe: ['react', 'react-dom', 'react-router'],
             },

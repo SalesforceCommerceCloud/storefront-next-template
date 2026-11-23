@@ -200,6 +200,25 @@ describe('ProductTile — rendering', () => {
         vi.clearAllMocks();
     });
 
+    test.each([
+        'overlay',
+        'inline',
+        'corner',
+    ] as const)('disables unavailable quick add in %s placement', async (quickAddPlacement) => {
+        const user = userEvent.setup();
+        renderTile({
+            product: { ...mockSingleVariantProduct, c_localInventoryAvailable: false },
+            variant: 'compact',
+            quickAddPlacement,
+        });
+        fireEvent.pointerEnter(screen.getByText('Simple Test Product').closest('.product-card') as HTMLElement);
+        const button = await screen.findByRole('button', { name: quickAddButtonName(mockSingleVariantProduct) });
+        expect(button).toBeDisabled();
+        await user.click(button);
+        expect(mockLoad).not.toHaveBeenCalled();
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
     test('compact presentation keeps product links and quick add while removing framed secondary metadata', () => {
         const { container } = renderTile({ variant: 'compact', quickAddPlacement: 'inline' });
         expect(container.querySelector('.product-card')).toHaveClass('[--ui-border-width:0]', 'bg-transparent');

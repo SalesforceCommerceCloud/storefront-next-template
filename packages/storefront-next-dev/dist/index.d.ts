@@ -1,3 +1,4 @@
+import { parse } from "@babel/parser";
 import { Project } from "ts-morph";
 import { Plugin, ResolvedConfig } from "vite";
 
@@ -147,6 +148,38 @@ declare function transformTargetPlaceholderPlugin(): {
     map: null;
   } | null;
 };
+//#endregion
+//#region src/plugins/componentLoaders.d.ts
+/**
+ * Configuration options for the component loader strip plugin.
+ */
+interface ComponentLoadersPluginConfig {
+  /**
+   * Path prefix (relative to project root) that limits which files are
+   * processed. Only modules whose resolved id contains this path segment
+   * will be transformed.
+   *
+   * @default 'src/components'
+   */
+  componentPath?: string;
+}
+/**
+ * Vite plugin that strips environment-specific loader exports from
+ * component modules.
+ *
+ * Following the React Router convention:
+ * - `export const loader` → server-only, stripped from the **client** bundle
+ * - `export const clientLoader` → client-only, stripped from the **server** bundle
+ *
+ * This ensures that server-only code (e.g. API calls, database access) is
+ * never included in the client bundle, and vice versa.
+ *
+ * The plugin only processes files that:
+ * 1. Are under the configured `componentPath` directory
+ * 2. Contain a `@Component` decorator (i.e. are Page Designer components)
+ * 3. Are not test or story files
+ */
+declare function componentLoadersPlugin(config?: ComponentLoadersPluginConfig): Plugin;
 //#endregion
 //#region src/plugins/uiTargetDevMode.d.ts
 /**
@@ -339,5 +372,5 @@ type RuntimeConfig = {
  */
 declare const buildMrtSsrConfig: (runtime?: RuntimeConfig["runtime"], mode?: string) => MrtSsrConfig;
 //#endregion
-export { type HybridProxyPluginOptions, type StorefrontNextTargetsConfig, type UITargetDevModeConfig, buildMrtSsrConfig, storefrontNextTargets as default, hybridProxyPlugin, shouldRouteToNext, transformTargetPlaceholderPlugin, uiTargetDevModePlugin };
+export { type ComponentLoadersPluginConfig, type HybridProxyPluginOptions, type StorefrontNextTargetsConfig, type UITargetDevModeConfig, buildMrtSsrConfig, componentLoadersPlugin, storefrontNextTargets as default, hybridProxyPlugin, shouldRouteToNext, transformTargetPlaceholderPlugin, uiTargetDevModePlugin };
 //# sourceMappingURL=index.d.ts.map

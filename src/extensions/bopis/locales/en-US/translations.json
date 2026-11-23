@@ -93,5 +93,11 @@
             "continueToPayment": "Continue to Payment",
             "continueToShipping": "Continue to Shipping"
         }
+    },
+    "localAvailability": {
+        "showUnavailable": "Show unavailable products",
+        "filterUnavailable": "Availability filtering is temporarily unavailable. You can still browse all products.",
+        "heading": "Availability",
+        "selectStore": "Select a store"
     }
 }

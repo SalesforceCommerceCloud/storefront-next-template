@@ -29,8 +29,13 @@ describe('BOPIS translations', () => {
         for (const translationFile of translationFiles) {
             const translations = JSON.parse(readFileSync(translationFile, 'utf-8')) as {
                 deliveryOptions?: { pickupOrDelivery?: { selectStore?: unknown } };
+                localAvailability?: { showUnavailable?: unknown; filterUnavailable?: unknown };
             };
             expect(translations.deliveryOptions?.pickupOrDelivery?.selectStore).toEqual(expect.any(String));
+            if (basename(dirname(translationFile)).startsWith('en-')) {
+                expect(translations.localAvailability?.showUnavailable).toEqual(expect.any(String));
+                expect(translations.localAvailability?.filterUnavailable).toEqual(expect.any(String));
+            }
             if (!basename(dirname(translationFile)).startsWith('en-')) {
                 expect(translations.deliveryOptions?.pickupOrDelivery?.selectStore).not.toBe('Select Store');
             }

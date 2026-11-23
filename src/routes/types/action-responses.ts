@@ -26,6 +26,8 @@ export interface ActionResponse<T = unknown> {
 
 // Specific response types for common actions
 export interface BasketActionResponse extends ActionResponse {
+    /** Existing commerce-context handoff code; no basket mutation occurred. */
+    code?: string;
     basket?: ShopperBasketsV2.schemas['Basket'];
 }
 

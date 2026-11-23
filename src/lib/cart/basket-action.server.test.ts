@@ -20,6 +20,7 @@ import { createActionArgs, expectStatus } from '@/lib/test-utils';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { ApiError } from '@/scapi';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
 
 vi.mock('@/middlewares/basket.server');
 vi.mock('@/lib/api-clients.server');
@@ -111,6 +112,25 @@ describe('createBasketAction', () => {
 
         expectStatus(result, 500);
         expect(result.data.success).toBe(false);
+    });
+
+    it('preserves a real shared confirmation handoff without fabricating auth recovery', async () => {
+        const change = {
+            success: false as const,
+            code: 'STORE_CHANGE_CONFIRMATION_REQUIRED' as const,
+            current: { storeId: 'A' },
+            candidate: { storeId: 'B' },
+        };
+        const result = await postFormData(
+            buildAction(() => Promise.reject(new CommerceContextError(change.code, 409, { change })))
+        );
+        expectStatus(result, 409);
+        expect(result.data).toMatchObject(change);
+        expect(result.data.error?.code).toBe(change.code);
+        expect(result.data.error?.message).not.toBe(change.code);
+        expect(result.data).not.toHaveProperty('recovery');
+        expect(result.init?.headers).toEqual({ 'Cache-Control': 'private, no-store' });
+        expect(updateBasketResource).not.toHaveBeenCalled();
     });
 
     /** Build an ApiError with the given HTTP status. */

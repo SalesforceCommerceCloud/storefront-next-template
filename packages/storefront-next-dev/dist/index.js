@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 import { parse } from "@babel/parser";
 import { isArrayPattern, isClassDeclaration, isExportSpecifier, isFunctionDeclaration, isIdentifier, isJSXAttribute, isJSXElement, isJSXFragment, isJSXIdentifier, isMemberExpression, isObjectPattern, isObjectProperty, isRestElement, isVariableDeclaration, jsxClosingElement, jsxClosingFragment, jsxElement, jsxFragment, jsxIdentifier, jsxOpeningElement, jsxOpeningFragment, jsxText } from "@babel/types";
 import { generate } from "@babel/generator";
-import traverseModule from "@babel/traverse";
+import _traverse from "@babel/traverse";
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import { glob } from "glob";
 import { Node, Project, ts } from "ts-morph";
@@ -397,7 +397,7 @@ const patchReactRouterPlugin = () => {
 
 //#endregion
 //#region src/extensibility/target-utils.ts
-const traverse$1 = traverseModule.default || traverseModule;
+const traverse$1 = _traverse.default || _traverse;
 const TARGET_COMPONENT_TAG = "UITarget";
 const TARGET_PROVIDERS_TAG = "UITargetProviders";
 const TARGET_ID_ATTRIBUTE = "targetId";
@@ -1823,7 +1823,7 @@ const workspacePlugin = () => {
 
 //#endregion
 //#region src/plugins/componentLoaders.ts
-const traverse = traverseModule.default || traverseModule;
+const traverse = _traverse.default || _traverse;
 const generate$1 = generate.default || generate;
 /**
 * Names of exports to strip per environment.
@@ -2186,6 +2186,8 @@ function i18nPlugin(config) {
 * than in the template's vite.config.ts or in a new single-purpose plugin.
 *
 * Current defaults:
+* - Client entry chunks omit redundant transitive import statements; React Router
+*   preloads the SSR dependency graph and Vite preloads dynamic-import dependencies.
 * - `resolve.dedupe`: prevents duplicate React / React Router copies on the
 *   client. Duplicate React instances cause hooks to throw "Invalid hook call".
 * - `optimizeDeps.include`: forces Vite's dep optimizer to pre-bundle
@@ -2225,6 +2227,7 @@ const baseConfigPlugin = () => ({
 	name: "storefront-next:base-config",
 	config() {
 		return {
+			environments: { client: { build: { rollupOptions: { output: { hoistTransitiveImports: false } } } } },
 			resolve: { dedupe: [
 				"react",
 				"react-dom",
@@ -2964,5 +2967,5 @@ const buildMrtSsrConfig = (runtime, mode = "production") => {
 };
 
 //#endregion
-export { buildMrtSsrConfig, storefrontNextTargets as default, hybridProxyPlugin, shouldRouteToNext, transformTargetPlaceholderPlugin, uiTargetDevModePlugin };
+export { buildMrtSsrConfig, componentLoadersPlugin, storefrontNextTargets as default, hybridProxyPlugin, shouldRouteToNext, transformTargetPlaceholderPlugin, uiTargetDevModePlugin };
 //# sourceMappingURL=index.js.map

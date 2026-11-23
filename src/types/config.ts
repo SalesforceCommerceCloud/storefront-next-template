@@ -325,6 +325,13 @@ export type AppConfig = {
             providers: Array<'Twitter' | 'Facebook' | 'LinkedIn' | 'Email'>;
         };
         guestCheckout: boolean;
+        localInventory?: {
+            enabled: boolean;
+            /** Trusted lists verified to exist with default-in-stock disabled. Server only. */
+            inventoryListsBySite?: Record<string, string[]>;
+            /** Enable only after proving strict store-only native filtering, including missing records. */
+            nativeSearchVerified?: boolean;
+        };
         shopperContext: {
             enabled: boolean;
             /** Opt in to native store ownership separately from generic URL qualifiers. */

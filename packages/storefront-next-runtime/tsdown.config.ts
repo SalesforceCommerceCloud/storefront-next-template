@@ -79,6 +79,7 @@ export default defineConfig([
     {
         entry: {
             scapi: 'src/scapi-client/index.ts',
+            'scapi-inventory': 'src/scapi-client/inventory-stock.ts',
         },
         platform: 'neutral',
         target: 'node24',

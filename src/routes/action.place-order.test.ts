@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { RouterContextProvider, type ActionFunctionArgs } from 'react-router';
+import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
+import { mockConfig } from '@/test-utils/config';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { action } from './action.place-order';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
@@ -20,7 +23,6 @@ import { getAuth } from '@/middlewares/auth.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { createFormDataRequest } from '@/test-utils/request-helpers';
 import { resourceRoutes } from '@/route-paths';
-import type { ActionFunctionArgs } from 'react-router';
 import {
     savePaymentMethodToCustomerViaOrder,
     saveShippingAddressToCustomer,
@@ -39,7 +41,9 @@ import {
 } from '@/lib/api/basket.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getAddressBookFromCustomer, getPaymentMethodsFromCustomer } from '@/lib/customer/profile-utils';
-import { ApiError } from '@/scapi';
+import { ApiError, InventoryQuantityError } from '@/scapi';
+import { CommerceContextError } from '@/lib/auth/commerce-context.server';
+import { LocalInventoryError } from '@/lib/product/local-inventory-error';
 
 vi.mock('@/middlewares/basket.server', () => ({
     getBasket: vi.fn(),
@@ -79,7 +83,8 @@ async function parsePlaceOrderResponse(
 }
 
 describe('action.place-order action', () => {
-    const mockContext = {} as ActionFunctionArgs['context'];
+    const mockContext: ActionFunctionArgs['context'] = new RouterContextProvider();
+    mockContext.set(appConfigContext, mockConfig);
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -95,6 +100,45 @@ describe('action.place-order action', () => {
         vi.mocked(updatePaymentInstrumentInBasket).mockImplementation((_ctx, basketId, _piId, instrument) =>
             Promise.resolve({ basketId, paymentInstruments: [instrument] } as any)
         );
+    });
+
+    test.each([
+        [new InventoryQuantityError(), 400, 'INVALID_INPUT'],
+        [new LocalInventoryError('INVALID_INVENTORY_LIST'), 503, 'OPERATION_FAILED'],
+        [
+            new CommerceContextError('STORE_CHANGE_CONFIRMATION_REQUIRED', 409),
+            409,
+            'STORE_CHANGE_CONFIRMATION_REQUIRED',
+        ],
+    ])('preserves checkout validation status for %s', async (error, status, code) => {
+        vi.mocked(getBasket).mockRejectedValueOnce(error);
+        const response = await action({
+            request: createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {}),
+            context: mockContext,
+            params: {},
+            pattern: resourceRoutes.placeOrder,
+        } as ActionFunctionArgs);
+        expect(response.status).toBe(status);
+        expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+        expect(await response.json()).toMatchObject({ success: false, error: { code }, step: 'placeOrder' });
+    });
+
+    test('preserves the standard checkout shared confirmation payload', async () => {
+        const change = {
+            success: false as const,
+            code: 'STORE_CHANGE_CONFIRMATION_REQUIRED' as const,
+            current: { storeId: 'A' },
+            candidate: { storeId: 'B' },
+        };
+        vi.mocked(getBasket).mockRejectedValueOnce(new CommerceContextError(change.code, 409, { change }));
+        const response = await action({
+            request: createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {}),
+            context: mockContext,
+            params: {},
+            pattern: resourceRoutes.placeOrder,
+        } as ActionFunctionArgs);
+        expect(response.status).toBe(409);
+        expect(await response.json()).toMatchObject({ ...change, error: { code: change.code } });
     });
 
     test('returns noActiveBasket when basket is missing', async () => {

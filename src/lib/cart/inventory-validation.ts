@@ -17,6 +17,7 @@
 import type { ShopperBasketsV2, ShopperProducts } from '@/scapi';
 import { getEffectiveStockLevel, isInStock } from '@/lib/product/inventory-utils';
 import { isBonusProduct } from '@/lib/product/product-utils';
+import { validateLocalCartInventory } from '@/lib/cart/local-inventory';
 import { useMemo } from 'react';
 
 /**
@@ -68,6 +69,9 @@ export function validateCartInventory(
     basket: ShopperBasketsV2.schemas['Basket'] | undefined,
     productsByItemId: Record<string, ShopperProducts.schemas['Product']>
 ): CartInventoryValidationResult {
+    if (basket && Object.values(productsByItemId).some((product) => typeof product.c_localInventoryId === 'string')) {
+        return validateLocalCartInventory(basket, productsByItemId);
+    }
     const issues: CartInventoryIssue[] = [];
 
     // Early return if no basket or product items
