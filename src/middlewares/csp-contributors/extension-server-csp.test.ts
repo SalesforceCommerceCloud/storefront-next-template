@@ -18,7 +18,7 @@ import { defaultCspDirectives, type SecurityConfig } from '@salesforce/storefron
 import { describe, expect, it, vi } from 'vitest';
 import { mergeExtensionServerCsp } from './extension-server-csp';
 
-type Directive = 'script-src' | 'connect-src' | 'worker-src';
+type Directive = 'script-src' | 'connect-src' | 'form-action' | 'worker-src';
 
 function defaultSources(name: Directive): string[] {
     const sources = defaultCspDirectives[name];
@@ -112,7 +112,7 @@ describe('mergeExtensionServerCsp', () => {
                             'ws://localhost:*',
                         ],
                         'not-a-directive': ['https://ignored.example.com'],
-                        'form-action': ['https://evil.example.com'],
+                        'frame-ancestors': ['https://evil.example.com'],
                         'default-src': ['https://evil.example.com'],
                     },
                 },
@@ -120,7 +120,7 @@ describe('mergeExtensionServerCsp', () => {
         );
         expect(directive(merged, 'script-src')).toEqual([...defaultSources('script-src'), 'https://ok.example.com']);
         expect(merged.csp && typeof merged.csp === 'object' ? merged.csp.directives : undefined).not.toHaveProperty(
-            'form-action'
+            'frame-ancestors'
         );
         expect(merged.csp && typeof merged.csp === 'object' ? merged.csp.directives : undefined).not.toHaveProperty(
             'default-src'
@@ -151,6 +151,26 @@ describe('mergeExtensionServerCsp', () => {
             expect.stringContaining('"source":"https://*.co.uk"'),
         ]);
         warn.mockRestore();
+    });
+
+    it('appends form-action hosts onto the default self list', () => {
+        const merged = mergeExtensionServerCsp(
+            {},
+            { checkout: { csp: { 'form-action': ['https://pay.example.com'] } } }
+        );
+        expect(directive(merged, 'form-action')).toEqual([...defaultSources('form-action'), 'https://pay.example.com']);
+    });
+
+    it('keeps a merchant form-action list and appends extension hosts', () => {
+        const merged = mergeExtensionServerCsp(
+            { csp: { directives: { 'form-action': ["'self'", 'https://pay.merchant.com'] } } },
+            { checkout: { csp: { 'form-action': ['https://pay.example.com'] } } }
+        );
+        expect(directive(merged, 'form-action')).toEqual([
+            "'self'",
+            'https://pay.merchant.com',
+            'https://pay.example.com',
+        ]);
     });
 
     it('starts worker-src from script-src so existing workers keep loading', () => {

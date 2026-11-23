@@ -38,13 +38,14 @@ const WILDCARD_HOST = /^\*\.(?:[A-Za-z0-9-]+\.)+[A-Za-z0-9-]+$/;
 const PORT = /^(?:\d{1,5}|\*)$/;
 
 // Resource host lists an extension may extend. Directives that change page
-// policy (default-src, form-action, base-uri, frame-ancestors) are not accepted.
+// policy (default-src, base-uri, frame-ancestors) are not accepted.
 const DIRECTIVES = new Set<CspDirectiveName>([
     'script-src',
     'style-src',
     'img-src',
     'frame-src',
     'connect-src',
+    'form-action',
     'worker-src',
 ]);
 
@@ -130,6 +131,7 @@ function sourcesFor(directive: CspDirectiveName, customer: CspDirectives | undef
  *   csp: {
  *     'script-src': ['https://*.example.com'],
  *     'connect-src': ['wss://*.example.com'],
+ *     'form-action': ['https://pay.example.com'],
  *   },
  * };
  * ```
