@@ -2303,7 +2303,8 @@ function compiledRoutesPlugin() {
 		resolveId(id, _importer, options) {
 			if (id !== publicId) return;
 			if (serverBundles) throw new Error("Storefront Next compiled routes do not support React Router serverBundles");
-			if (!(options?.ssr || this.environment?.config.consumer === "server")) throw new Error(`${publicId} is server-only`);
+			const scan = options?.scan;
+			if (!(options?.ssr || scan || this.environment?.config.consumer === "server")) throw new Error(`${publicId} is server-only`);
 			return resolvedId;
 		},
 		load(id) {

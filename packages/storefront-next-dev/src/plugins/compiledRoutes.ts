@@ -87,7 +87,11 @@ export function compiledRoutesPlugin(): Plugin {
             if (serverBundles) {
                 throw new Error('Storefront Next compiled routes do not support React Router serverBundles');
             }
-            if (!(options?.ssr || this.environment?.config.consumer === 'server')) {
+            // The dep optimizer scan walks `.server` modules as raw source in the client
+            // environment. It only collects imports and never serves the module, so allow it.
+            // Vite passes `scan` at runtime but omits it from the public hook types.
+            const scan = (options as { scan?: boolean } | undefined)?.scan;
+            if (!(options?.ssr || scan || this.environment?.config.consumer === 'server')) {
                 throw new Error(`${publicId} is server-only`);
             }
             return resolvedId;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createServer, isRunnableDevEnvironment, normalizePath, type ViteDevServer } from 'vite';
+import { createLogger, createServer, isRunnableDevEnvironment, normalizePath, type ViteDevServer } from 'vite';
 import { reactRouter } from '@react-router/dev/vite';
 import { mkdtempSync, mkdirSync, writeFileSync, symlinkSync, rmSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -189,6 +189,43 @@ describe('compiled routes SDK virtual module', () => {
         } finally {
             await broken.close();
         }
+    }, 30000);
+
+    it('resolves the id for the client dep-scan but still rejects other client imports', async () => {
+        const vite = await start();
+        // Vite's dep optimizer scan walks .server modules as raw source in the client environment.
+        const scanOptions = { scan: true } as Parameters<typeof vite.pluginContainer.resolveId>[2];
+        await expect(
+            vite.pluginContainer.resolveId('virtual:storefront-next/compiled-routes', undefined, scanOptions)
+        ).resolves.toMatchObject({ id: '\0virtual:storefront-next/compiled-routes' });
+        await expect(vite.pluginContainer.resolveId('virtual:storefront-next/compiled-routes')).rejects.toThrow(
+            'server-only'
+        );
+    }, 30000);
+
+    it('does not log a server-only error during a real client dep-scan', async () => {
+        root = realpathSync.native(mkdtempSync(join(tmpdir(), 'compiled-routes-scan-')));
+        writeFileSync(join(root, 'package.json'), '{"type":"module"}');
+        writeFileSync(join(root, 'index.html'), '<script type="module" src="/main.js"></script>');
+        writeFileSync(join(root, 'main.js'), 'import { manifest } from "./auth.server.js"; console.log(manifest);');
+        writeFileSync(
+            join(root, 'auth.server.js'),
+            'import manifest from "virtual:storefront-next/compiled-routes"; export { manifest };'
+        );
+        const errors: string[] = [];
+        server = await createServer({
+            root,
+            configFile: false,
+            plugins: [compiledRoutesPlugin()],
+            server: { middlewareMode: true },
+            optimizeDeps: { entries: ['index.html'] },
+            customLogger: {
+                ...createLogger('silent'),
+                error: (msg) => void errors.push(msg),
+            },
+        });
+        await server.environments.client.depsOptimizer?.scanProcessing;
+        expect(errors.filter((message) => message.includes('server-only'))).toEqual([]);
     }, 30000);
 
     it('reloads the server graph only when a route module changes', () => {
