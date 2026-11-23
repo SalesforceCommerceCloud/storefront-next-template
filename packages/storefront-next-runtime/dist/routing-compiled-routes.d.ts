@@ -1,4 +1,4 @@
-import * as react_router0 from "react-router";
+import * as react_router1 from "react-router";
 
 //#region src/routing/compiled-routes.d.ts
 /** SDK-owned metadata contract, independent of React Router's private manifest. */
@@ -18,7 +18,7 @@ interface CompiledRouteManifest {
 /** Match the compiled tree using React Router's public ranking, decoding and basename rules. */
 declare function matchCompiledRoute(routes: CompiledRoutes, pathname: string, basename?: string): {
   metadata: CompiledRouteMetadata;
-  params: react_router0.Params<string>;
+  params: react_router1.Params<string>;
 } | null;
 //#endregion
 export { CompiledRouteManifest, CompiledRouteMetadata, CompiledRoutes, matchCompiledRoute };

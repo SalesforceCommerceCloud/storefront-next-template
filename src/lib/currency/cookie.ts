@@ -17,7 +17,7 @@
 import { parseCookie } from '@/lib/cookie';
 
 /** Read the currency cookie the site-context middleware writes; currency codes are plain strings. */
-export function parseCurrencyCookie(cookieHeader: string, cookieName: string): string | null {
+export function parseCurrencyCookie(cookieHeader: string, cookieName = 'currency'): string | null {
     const value = parseCookie(cookieHeader, cookieName);
     return typeof value === 'string' ? value : null;
 }

@@ -21,8 +21,8 @@ import { parseCurrencyCookie, validateCurrency } from './cookie';
 const SERIALIZED_GBP = 'IkdCUCI%3D';
 
 describe('parseCurrencyCookie', () => {
-    it('decodes the named cookie value written by the site-context middleware', () => {
-        expect(parseCurrencyCookie(`currency=${SERIALIZED_GBP}`, 'currency')).toBe('GBP');
+    it('decodes the default cookie value written by the site-context middleware', () => {
+        expect(parseCurrencyCookie(`currency=${SERIALIZED_GBP}`)).toBe('GBP');
     });
 
     it('reads the configured cookie name, ignoring others', () => {

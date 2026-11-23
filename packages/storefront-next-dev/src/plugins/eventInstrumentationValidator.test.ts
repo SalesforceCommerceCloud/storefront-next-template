@@ -198,13 +198,13 @@ export const useAnalytics = () => {
     }
 
     const trackViewPage = async (data: { url: string }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_page', {
+        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, getCurrency, 'view_page', {
             path: data.url,
         });
     };
 
     const trackViewProduct = async (data: { product: ShopperProducts.schemas['Product'] }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_product', {
+        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, getCurrency, 'view_product', {
             product: data.product,
         });
     };
@@ -215,7 +215,7 @@ export const useAnalytics = () => {
         sort: string;
         refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
     }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_search', {
+        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, getCurrency, 'view_search', {
             searchInputText: data.searchInputText,
             searchResults: data.searchResults,
             sort: data.sort || '',
@@ -227,7 +227,7 @@ export const useAnalytics = () => {
         category: ShopperProducts.schemas['Category'];
         searchResults: ShopperSearch.schemas['ProductSearchHit'][];
     }) => {
-        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_category', {
+        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, getCurrency, 'view_category', {
             category: data.category,
             searchResults: data.searchResults,
             sort: '',

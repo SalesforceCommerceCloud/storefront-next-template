@@ -45,6 +45,8 @@ type BaseEvent = {
   eventType: string;
   payload: AnalyticsPayload;
   deviceInfo?: string;
+  /** Active shopper currency code captured when the event is created (e.g. "EUR"). */
+  currency?: string;
 };
 interface ViewPageEvent extends BaseEvent {
   eventType: 'view_page';

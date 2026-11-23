@@ -22,7 +22,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 
 // Unmock useAnalytics for this specific test file (overrides global mock)
 vi.unmock('@/hooks/use-analytics');
@@ -50,7 +50,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', () => ({
 
 vi.mock('@salesforce/storefront-next-runtime/site-context', () => ({
     useSite: vi.fn(() => ({
-        site: { id: mockSiteObject.id },
+        site: { id: mockSiteObject.id, supportedCurrencies: ['USD', 'EUR', 'GBP'] },
         locale: { id: mockSiteObject.defaultLocale },
         language: mockSiteObject.defaultLocale,
         currency: mockSiteObject.defaultCurrency,
@@ -164,11 +164,13 @@ describe('useAnalytics', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        document.cookie = 'currency=; Max-Age=0; path=/';
+        document.cookie = 'currency.v2=; Max-Age=0; path=/';
 
         // Setup default mocks
         vi.mocked(useConfig).mockReturnValue(mockConfig as any);
         vi.mocked(useSite).mockReturnValue({
-            site: { id: mockSiteObject.id },
+            site: { id: mockSiteObject.id, supportedCurrencies: ['USD', 'EUR', 'GBP'] },
             locale: { id: mockSiteObject.defaultLocale },
             language: mockSiteObject.defaultLocale,
             currency: mockSiteObject.defaultCurrency,
@@ -208,6 +210,91 @@ describe('useAnalytics', () => {
                 },
             };
         }
+    });
+
+    describe('event currency', () => {
+        const setCurrency = (value: string, name = 'currency') => {
+            document.cookie = `${name}=${encodeURIComponent(btoa(JSON.stringify(value)))}; path=/`;
+        };
+
+        it('delivers creation-time currency through the real factory and mediator to an adapter', async () => {
+            const events = await vi.importActual<typeof import('@salesforce/storefront-next-runtime/events')>(
+                '@salesforce/storefront-next-runtime/events'
+            );
+            events.resetEventMediator();
+            const sendEvent = vi.fn().mockResolvedValue(undefined);
+            const mediator = events.getEventMediator(() => [{ name: 'recording', sendEvent }]);
+            vi.mocked(getEventMediator).mockReturnValue(mediator);
+            vi.mocked(createEvent).mockImplementation(events.createEvent);
+            vi.mocked(useAuth).mockReturnValue(mockAuth);
+            const { result } = renderHook(() => useAnalytics());
+            try {
+                setCurrency('EUR');
+                await result.current.trackViewProduct({ product: mockProduct });
+                setCurrency('GBP');
+                await result.current.trackCartItemAdd({ cartItems: [mockCartItem] });
+                await result.current.trackCheckoutStart({ basket: mockBasket });
+                await waitFor(() => expect(sendEvent).toHaveBeenCalledTimes(3));
+                expect(sendEvent.mock.calls.map(([event]) => [event.eventType, event.currency])).toEqual([
+                    ['view_product', 'EUR'],
+                    ['cart_item_add', 'GBP'],
+                    ['checkout_start', 'GBP'],
+                ]);
+            } finally {
+                events.resetEventMediator();
+            }
+        });
+
+        it('reads a custom cookie again after initialization without a re-render', async () => {
+            vi.mocked(useAuth).mockReturnValue(mockAuth);
+            vi.mocked(useConfig).mockReturnValue({
+                ...mockConfig,
+                siteContext: { currencyCookieName: 'currency.v2' },
+            } as ReturnType<typeof useConfig>);
+            let initialize!: () => void;
+            vi.mocked(ensureAdaptersInitialized).mockReturnValueOnce(
+                new Promise<void>((resolve) => {
+                    initialize = resolve;
+                })
+            );
+            setCurrency('EUR', 'currency.v2');
+            const { result } = renderHook(() => useAnalytics());
+            const pending = result.current.trackViewProduct({ product: mockProduct });
+            await act(async () => {
+                await Promise.resolve();
+            });
+            setCurrency('GBP', 'currency.v2');
+            initialize();
+            await pending;
+            expect(mockAnalytics.track).toHaveBeenLastCalledWith(
+                expect.objectContaining({ currency: 'GBP' }),
+                expect.anything(),
+                expect.anything()
+            );
+            setCurrency('EUR', 'currency.v2');
+            await result.current.trackViewPage({ url: '/next' });
+            expect(mockAnalytics.track).toHaveBeenLastCalledWith(
+                expect.objectContaining({ currency: 'EUR' }),
+                expect.anything(),
+                expect.anything()
+            );
+        });
+
+        it.each([
+            undefined,
+            'garbage',
+            encodeURIComponent(btoa(JSON.stringify('JPY'))),
+        ])('uses site-context currency for unusable cookie %s', async (value) => {
+            vi.mocked(useAuth).mockReturnValue(mockAuth);
+            if (value !== undefined) document.cookie = `currency=${value}; path=/`;
+            const { result } = renderHook(() => useAnalytics());
+            await result.current.trackViewPage({ url: '/' });
+            expect(mockAnalytics.track).toHaveBeenCalledWith(
+                expect.objectContaining({ currency: mockSiteObject.defaultCurrency }),
+                expect.anything(),
+                expect.anything()
+            );
+        });
     });
 
     it('reports skipped consent and a successful mediator handoff after acceptance', async () => {
@@ -437,7 +524,7 @@ describe('useAnalytics', () => {
         it('uses the resolved commerce locale when the translation language differs', async () => {
             vi.mocked(useAuth).mockReturnValue(mockAuth);
             vi.mocked(useSite).mockReturnValue({
-                site: { id: mockSiteObject.id },
+                site: { id: mockSiteObject.id, supportedCurrencies: ['USD', 'EUR', 'GBP'] },
                 locale: { id: mockSiteObject.defaultLocale },
                 language: 'en-US',
                 currency: mockSiteObject.defaultCurrency,

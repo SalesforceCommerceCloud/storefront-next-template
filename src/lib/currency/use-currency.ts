@@ -33,15 +33,14 @@ const getServerSnapshot = (): string | null => null;
  * client read the cookie after hydration without a mismatch — a render-time
  * `document.cookie` read would break SSR and flicker on hydration.
  */
-export function useCurrency(loaderCurrency: string, supportedCurrencies: string[], cookieName: string): string {
+export function useCurrency(loaderCurrency: string, supportedCurrencies: string[], cookieName?: string): string {
     // Cache the parse keyed on the raw cookie header (and cookie name) so re-renders
     // don't re-run the regex/atob when neither has changed.
     const cacheRef = useRef<{ header?: string; cookieName?: string; value: string | null }>({ value: null });
 
     const getSnapshot = useCallback((): string | null => {
-        // Without a cookie name there's nothing to read — fall back to the loader currency
-        // rather than letting a best-effort restore crash the app shell.
-        if (!cookieName) {
+        // An explicitly empty name disables cookie restoration; undefined uses the parser default.
+        if (cookieName === '') {
             return null;
         }
         const header = document.cookie;

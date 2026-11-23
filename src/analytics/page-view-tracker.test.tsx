@@ -137,12 +137,14 @@ describe('PageViewTracker', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        document.cookie = 'currency=; Max-Age=0; path=/';
+        document.cookie = 'currency.v2=; Max-Age=0; path=/';
 
         // Setup default mocks - auth must be defined for tracking to occur
         mockUseAuth.mockReturnValue(defaultGuestAuth);
         mockUseConfig.mockReturnValue(defaultConfig);
         mockUseSite.mockReturnValue({
-            site: { id: mockSiteObject.id },
+            site: { id: mockSiteObject.id, supportedCurrencies: ['USD', 'EUR', 'GBP'] },
             locale: { id: mockSiteObject.defaultLocale },
             language: mockSiteObject.defaultLocale,
             currency: mockSiteObject.defaultCurrency,
@@ -269,11 +271,53 @@ describe('PageViewTracker', () => {
         callNumber?: number
     ) => {
         if (callNumber) {
-            expect(createEvent).toHaveBeenNthCalledWith(callNumber, 'view_page', { path, payload });
+            expect(createEvent).toHaveBeenNthCalledWith(callNumber, 'view_page', {
+                path,
+                payload,
+                currency: mockSiteObject.defaultCurrency,
+            });
         } else {
-            expect(createEvent).toHaveBeenCalledWith('view_page', { path, payload });
+            expect(createEvent).toHaveBeenCalledWith('view_page', {
+                path,
+                payload,
+                currency: mockSiteObject.defaultCurrency,
+            });
         }
     };
+
+    describe('event currency', () => {
+        it.each(['currency', 'currency.v2'])('reads %s after adapter initialization', async (cookieName) => {
+            mockUseConfig.mockReturnValue({ ...defaultConfig, siteContext: { currencyCookieName: cookieName } });
+            let initialize!: () => void;
+            vi.mocked(ensureAdaptersInitialized).mockReturnValueOnce(
+                new Promise<void>((resolve) => {
+                    initialize = resolve;
+                })
+            );
+            document.cookie = `${cookieName}=${encodeURIComponent(btoa(JSON.stringify('EUR')))}; path=/`;
+            renderPageViewTracker();
+            await waitFor(() => expect(ensureAdaptersInitialized).toHaveBeenCalled());
+            document.cookie = `${cookieName}=${encodeURIComponent(btoa(JSON.stringify('GBP')))}; path=/`;
+            initialize();
+            await waitFor(() =>
+                expect(createEvent).toHaveBeenCalledWith('view_page', expect.objectContaining({ currency: 'GBP' }))
+            );
+        });
+
+        it.each([
+            'bad',
+            encodeURIComponent(btoa(JSON.stringify('JPY'))),
+        ])('falls back for unusable currency %s', async (value) => {
+            document.cookie = `currency=${value}; path=/`;
+            renderPageViewTracker();
+            await waitFor(() =>
+                expect(createEvent).toHaveBeenCalledWith(
+                    'view_page',
+                    expect.objectContaining({ currency: mockSiteObject.defaultCurrency })
+                )
+            );
+        });
+    });
 
     describe('Basic tracking', () => {
         it('should wait for auth to be defined before tracking', async () => {

@@ -22,6 +22,7 @@ import { ensureAdaptersInitialized } from '@/lib/adapters/engagement/initialize'
 import { getAllAdapters, buildConsentPreferences } from '@/lib/adapters';
 import { useTrackingConsent } from '@/hooks/use-tracking-consent';
 import { createLogger } from '@/lib/logger';
+import { resolveAnalyticsCurrency } from '@/analytics/currency';
 import { isPageViewBlocked } from '@/lib/url';
 
 const logger = createLogger();
@@ -40,7 +41,7 @@ export function PageViewTracker() {
     const config = useConfig();
     const auth = useAuth();
     const { trackingConsent, isTrackingConsentEnabled } = useTrackingConsent();
-    const { site, locale } = useSite();
+    const { site, locale, currency } = useSite();
     const trackedRef = useRef<{ path: string; timestamp: number } | null>(null);
     const trackingResetDuration = config.engagement.analytics.pageViewsResetDuration;
 
@@ -113,6 +114,12 @@ export function PageViewTracker() {
                 // Auth is guaranteed to be defined at this point due to the check above
                 const event = createEvent('view_page', {
                     path: fullPath,
+                    currency: resolveAnalyticsCurrency(
+                        document.cookie,
+                        config.siteContext?.currencyCookieName,
+                        site.supportedCurrencies,
+                        currency
+                    ),
                     payload: {
                         userType: auth.userType ?? 'guest',
                         encUserId: auth.encUserId ?? undefined,
@@ -145,6 +152,7 @@ export function PageViewTracker() {
         isTrackingConsentEnabled,
         site,
         locale,
+        currency,
     ]);
 
     return null;

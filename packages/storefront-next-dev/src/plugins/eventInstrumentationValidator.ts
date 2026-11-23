@@ -54,8 +54,8 @@ async function scanForInstrumentedEvents(projectRoot: string, scanPaths: string[
     // Pattern 1: trackEvent(...leading args..., 'event_type', ...)
     // The event type is the first string-literal argument, which sits after the
     // leading non-string args (auth, config, consent, and — in the current hook —
-    // siteInfo). Matching "≥3 non-string args then a string literal" tolerates both
-    // the older 4-arg call shape and the current 5-arg one (siteInfo added).
+    // siteInfo and getCurrency). Matching "≥3 non-string args then a string literal"
+    // supports older call shapes and the current currency-aware hook.
     //
     // SOURCE OF TRUTH: the `trackEvent` helper in the template's `src/hooks/use-analytics.ts`.
     // If that signature changes (a leading positional arg added/removed, or `eventType` passed

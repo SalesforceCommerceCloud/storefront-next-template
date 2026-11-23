@@ -862,11 +862,7 @@ export default function App({
     // Under a cached shell the loader currency is frozen; restore from the cookie post-hydration.
     // The cookie name is bundled app config (never changes at runtime), so read it straight from
     // appConfig rather than threading it through the loader.
-    const currency = useCurrency(
-        loaderCurrency,
-        site.supportedCurrencies,
-        appConfig.siteContext?.currencyCookieName ?? 'currency'
-    );
+    const currency = useCurrency(loaderCurrency, site.supportedCurrencies, appConfig.siteContext?.currencyCookieName);
 
     // Memoize the providers array to prevent unnecessary remounting of providers on render
     const providers = useMemo(

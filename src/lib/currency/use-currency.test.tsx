@@ -44,9 +44,9 @@ describe('useCurrency', () => {
         expect(result.current).toBe('USD');
     });
 
-    it('restores a supported currency from the cookie', () => {
+    it('restores a supported currency from the default cookie', () => {
         document.cookie = COOKIE_GBP;
-        const { result } = renderHook(() => useCurrency('USD', SUPPORTED, 'currency'));
+        const { result } = renderHook(() => useCurrency('USD', SUPPORTED));
         expect(result.current).toBe('GBP');
     });
 
@@ -58,7 +58,7 @@ describe('useCurrency', () => {
 
     it('keeps the loader currency when the cookie name is empty (no cookie to read)', () => {
         // A best-effort restore must never crash the app shell when the configured cookie name
-        // is missing — it falls back to the loader value instead of running an empty-name regex.
+        // is empty — it falls back to the loader value instead of running an empty-name regex.
         document.cookie = COOKIE_GBP;
         const { result } = renderHook(() => useCurrency('USD', SUPPORTED, ''));
         expect(result.current).toBe('USD');
