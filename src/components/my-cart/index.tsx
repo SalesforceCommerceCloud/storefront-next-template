@@ -17,7 +17,11 @@ import { validateCartInventory } from '@/lib/cart/inventory-validation';
 import { CartInventoryErrorBanner } from '@/components/cart/cart-inventory-error-banner';
 import { useMemo, type ReactElement } from 'react';
 import { Link } from '@/components/link';
-import { Truck } from 'lucide-react';
+import {
+    Truck,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    Store,
+} from 'lucide-react';
 
 // Commerce SDK
 import type { ShopperBasketsV2, ShopperProducts, ShopperPromotions } from '@/scapi';
@@ -69,6 +73,8 @@ interface MyCartProps {
 export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactElement {
     const { t } = useTranslation('checkout');
     const { t: tCart } = useTranslation('cart');
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    const { t: tBopis } = useTranslation('extBopis');
     const { t: tProduct } = useTranslation('product');
     const localInventoryIssues = useMemo(
         () =>
@@ -119,6 +125,17 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
                     ? (priceData.listPrice - priceData.currentPrice) * quantity
                     : 0;
             const hasSavings = savings > 0;
+            const fulfillment = { Icon: Truck, label: t('myCart.delivery') };
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+            // Native shipment assignment describes this line, including mixed-fulfillment baskets.
+            if (
+                item.shipmentId &&
+                basket?.shipments?.some((shipment) => shipment.shipmentId === item.shipmentId && shipment.c_fromStoreId)
+            ) {
+                fulfillment.Icon = Store;
+                fulfillment.label = tBopis('deliveryOptions.pickupOrDelivery.storePickupLabel');
+            }
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
             return (
                 <div key={item.itemId || `item-${index}`} data-testid={`my-cart-item-${item.productId ?? index}`}>
@@ -187,11 +204,11 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
                             </div>
                         </div>
 
-                        {/* Column 3: Tags (delivery, savings) */}
+                        {/* Column 3: Fulfillment and savings */}
                         <div className="flex flex-col items-end gap-1 shrink-0">
                             <span className="text-xs bg-muted px-1.5 py-0.5 flex items-center gap-1">
-                                <Truck className="size-3" />
-                                {t('myCart.delivery')}
+                                <fulfillment.Icon className="size-3" />
+                                {fulfillment.label}
                             </span>
                             {hasSavings && (
                                 <span className="text-xs font-medium bg-muted px-1.5 py-0.5">
@@ -207,12 +224,15 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
         });
     }, [
         basket?.productItems,
+        basket?.shipments,
         productMap,
         currency,
         i18n.language,
         config,
         t,
         tCart,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        tBopis,
         tProduct,
         localInventoryIssues,
         seoUrlContext,

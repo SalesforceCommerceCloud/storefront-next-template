@@ -36,6 +36,8 @@ import { createContext, type PropsWithChildren, useContext } from 'react';
 interface StoreLocatorLayoutValue {
     /** When true, components should render using the mobile layout regardless of viewport */
     forceMobile: boolean;
+    /** Explicit visibility for feedback in an independently controlled sheet. */
+    selectionFeedbackVisible?: boolean;
 }
 
 /**
@@ -60,8 +62,16 @@ const StoreLocatorLayoutContext = createContext<StoreLocatorLayoutValue>({ force
  *   <StoreLocator />
  * </StoreLocatorLayoutProvider>
  */
-export function StoreLocatorLayoutProvider({ forceMobile, children }: PropsWithChildren<StoreLocatorLayoutValue>) {
-    return <StoreLocatorLayoutContext.Provider value={{ forceMobile }}>{children}</StoreLocatorLayoutContext.Provider>;
+export function StoreLocatorLayoutProvider({
+    forceMobile,
+    selectionFeedbackVisible,
+    children,
+}: PropsWithChildren<StoreLocatorLayoutValue>) {
+    return (
+        <StoreLocatorLayoutContext.Provider value={{ forceMobile, selectionFeedbackVisible }}>
+            {children}
+        </StoreLocatorLayoutContext.Provider>
+    );
 }
 
 /**

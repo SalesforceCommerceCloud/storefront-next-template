@@ -556,6 +556,248 @@ exports[`MyCart stories snapshot > LocalDuplicateSkuUnavailable story renders an
 </div>
 `;
 
+exports[`MyCart stories snapshot > MixedFulfillment story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="w-full"
+  >
+    <div
+      class="divide-y divide-border -mx-[var(--cart-divider-extend,0px)] [&>*]:px-4 [&>*]:py-5 md:[&>*]:px-[var(--cart-divider-extend,0px)] md:[&>*]:py-6"
+      data-testid="my-cart-toggle"
+    >
+      <div
+        data-testid="my-cart-item-701642868279M"
+      >
+        <div
+          class="flex items-start gap-3 md:gap-4"
+        >
+          <div
+            class="flex-shrink-0"
+          >
+            <div
+              class="w-16 h-16 md:w-20 md:h-20 bg-muted overflow-hidden flex items-center justify-center"
+            >
+              <div
+                class="w-full h-full bg-muted"
+              />
+            </div>
+          </div>
+          <div
+            class="flex-1 min-w-0"
+          >
+            <a
+              class="text-sm font-semibold text-foreground hover:text-primary"
+              href="/RefArchGlobal/en-GB/p/25502228M"
+            >
+              Button Front Jacket
+            </a>
+            <div
+              class="mt-1 space-y-0.5 text-xs"
+            >
+              <div>
+                Color
+                : 
+                Grey Heather
+              </div>
+              <div>
+                Size
+                : 
+                6
+              </div>
+            </div>
+            <div
+              class="mt-1"
+            >
+              <div
+                class="items-center gap-2"
+              >
+                <span
+                  aria-hidden="true"
+                  class="[&:not(:first-child)]:mt-6 text-left text-sm font-semibold text-foreground"
+                >
+                  £39.67
+                </span>
+                <span
+                  aria-atomic="true"
+                  aria-live="polite"
+                  class="sr-only"
+                >
+                  Button Front Jacket
+                   
+                  Current price: £39.67
+                </span>
+                 
+              </div>
+            </div>
+            <div
+              class="mt-0.5 text-xs"
+            >
+              Qty:
+               
+              1
+            </div>
+          </div>
+          <div
+            class="flex flex-col items-end gap-1 shrink-0"
+          >
+            <span
+              class="text-xs bg-muted px-1.5 py-0.5 flex items-center gap-1"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-store size-3"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"
+                />
+                <path
+                  d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244"
+                />
+                <path
+                  d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"
+                />
+              </svg>
+              Pick Up
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        data-testid="my-cart-item-883360520599M"
+      >
+        <div
+          class="flex items-start gap-3 md:gap-4"
+        >
+          <div
+            class="flex-shrink-0"
+          >
+            <div
+              class="w-16 h-16 md:w-20 md:h-20 bg-muted overflow-hidden flex items-center justify-center"
+            >
+              <div
+                class="w-full h-full bg-muted"
+              />
+            </div>
+          </div>
+          <div
+            class="flex-1 min-w-0"
+          >
+            <a
+              class="text-sm font-semibold text-foreground hover:text-primary"
+              href="/RefArchGlobal/en-GB/p/25592770M"
+            >
+              Casual To Dressy Trousers
+            </a>
+            <div
+              class="mt-1 space-y-0.5 text-xs"
+            >
+              <div>
+                Color
+                : 
+                Black
+              </div>
+              <div>
+                Size
+                : 
+                8
+              </div>
+            </div>
+            <div
+              class="mt-1"
+            >
+              <div
+                class="items-center gap-2"
+              >
+                <span
+                  aria-hidden="true"
+                  class="[&:not(:first-child)]:mt-6 text-left text-sm font-semibold text-foreground"
+                >
+                  £374.40
+                </span>
+                <span
+                  aria-atomic="true"
+                  aria-live="polite"
+                  class="sr-only"
+                >
+                  Casual To Dressy Trousers
+                   
+                  Current price: £374.40
+                </span>
+                 
+              </div>
+              <div
+                class="text-xs"
+              >
+                £124.80
+                 each
+              </div>
+            </div>
+            <div
+              class="mt-0.5 text-xs"
+            >
+              Qty:
+               
+              3
+            </div>
+          </div>
+          <div
+            class="flex flex-col items-end gap-1 shrink-0"
+          >
+            <span
+              class="text-xs bg-muted px-1.5 py-0.5 flex items-center gap-1"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-truck size-3"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"
+                />
+                <path
+                  d="M15 18H9"
+                />
+                <path
+                  d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"
+                />
+                <circle
+                  cx="17"
+                  cy="18"
+                  r="2"
+                />
+                <circle
+                  cx="7"
+                  cy="18"
+                  r="2"
+                />
+              </svg>
+              Delivery
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`MyCart stories snapshot > SingleItem story renders and matches snapshot 1`] = `
 <div>
   <div

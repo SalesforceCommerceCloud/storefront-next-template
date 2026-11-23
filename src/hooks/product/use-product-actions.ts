@@ -48,6 +48,8 @@ import {
     hasDeferredAvailability,
     isInStock as isProductInStock,
 } from '@/lib/product/inventory-utils';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import { useStoreEntryAdd } from '@/extensions/store-locator/hooks/use-store-entry-add';
 import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
 interface ProductSelectionValues {
     product: ShopperProducts.schemas['Product'];
@@ -89,6 +91,8 @@ interface UseProductActionsProps {
      */
     hydrateVariantInventory?: boolean;
     initialFulfillmentSelection?: SelectedFulfillmentOption;
+    /** Selected product options, retained with the resolved SKU through store selection. */
+    optionItems?: Array<{ optionId: string; optionValueId: string }>;
 }
 
 /**
@@ -142,6 +146,7 @@ export function useProductActions({
     allowMissingPrice = false,
     hydrateVariantInventory = false,
     initialFulfillmentSelection,
+    optionItems,
 }: UseProductActionsProps) {
     const { t } = useTranslation();
     const location = useLocation();
@@ -149,6 +154,8 @@ export function useProductActions({
     const isProductASet = isProductSet(product);
     const isProductABundle = isProductBundle(product);
 
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+    const storeEntry = useStoreEntryAdd();
     const [isAddingToOrUpdatingCart, setIsAddingToOrUpdatingCart] = useState(false);
     const hasHandledWishlistResponseRef = useRef(false);
     const [quantity, setQuantity] = useState(initialQuantity ?? 1);
@@ -722,6 +729,34 @@ export function useProductActions({
         // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [wishlistFetcher.data, wishlistFetcher.state, product.name, location.pathname, location.search]);
 
+    const reportAddFailure = useCallback(() => {
+        setIsAddingToOrUpdatingCart(false);
+        addToast(t('product:failedToAddProductToCart'), 'error');
+    }, [addToast, t]);
+
+    // Both an immediate add and a confirmed captured intent use the same native submission/error path.
+    const submitProductAdd = useCallback(
+        async (productItem: Record<string, unknown>, track = true) => {
+            setIsAddingToOrUpdatingCart(true);
+            try {
+                await cartFetcher.submit(
+                    { productItem: JSON.stringify(productItem) },
+                    {
+                        method: 'POST',
+                        action: resourceRoutes.cartItemAdd,
+                    }
+                );
+                if (track)
+                    void analytics.trackCartItemAdd({
+                        cartItems: [productItem as ShopperBasketsV2.schemas['ProductItem']],
+                    });
+            } catch {
+                reportAddFailure();
+            }
+        },
+        [cartFetcher, analytics, reportAddFailure]
+    );
+
     // Handle adding to cart
     const handleAddToCart = useCallback(async () => {
         if (isAddingToOrUpdatingCart || !canAddToCart) {
@@ -733,13 +768,33 @@ export function useProductActions({
         const itemProductId = getProductId(productToAdd);
         const price = productToAdd?.price;
 
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        if (!itemProductId || !Number.isInteger(quantity) || quantity <= 0) return;
+        if (
+            storeEntry.intercept(
+                { productId: itemProductId, quantity, optionItems },
+                (intent, selection) =>
+                    void submitProductAdd(
+                        {
+                            ...intent,
+                            storeId: selection.fulfillmentMode === 'pickup' ? selection.id : null,
+                            inventoryId: selection.fulfillmentMode === 'pickup' ? selection.inventoryId : null,
+                        },
+                        false
+                    ),
+                reportAddFailure
+            )
+        )
+            return;
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
         // Pickup is stored by product.id (master) in DeliveryOptions; for variants, lookup by variant id may miss.
         const selectedPickupMetadata =
             fulfillmentSelection?.optionId === FULFILLMENT_OPTION_IDS.PICKUP
                 ? fulfillmentSelection.metadata
                 : undefined;
-        const pickupInfo = fulfillmentSelection
+        let pickupInfo = fulfillmentSelection
             ? selectedPickupMetadata &&
               typeof selectedPickupMetadata.storeId === 'string' &&
               typeof selectedPickupMetadata.inventoryId === 'string'
@@ -747,7 +802,18 @@ export function useProductActions({
                 : undefined
             : (pickupContext?.pickupBasketItems?.get(itemProductId ?? '') ??
               (product.id !== itemProductId ? pickupContext?.pickupBasketItems?.get(product.id) : undefined));
-        if (fulfillmentSelection?.optionId === FULFILLMENT_OPTION_IDS.PICKUP && !pickupInfo) {
+        let isPickupSelection = fulfillmentSelection?.optionId === FULFILLMENT_OPTION_IDS.PICKUP;
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        const committedStore = storeEntry.getSelection();
+        if (committedStore?.fulfillmentMode) {
+            isPickupSelection = committedStore.fulfillmentMode === 'pickup';
+            pickupInfo =
+                isPickupSelection && committedStore.inventoryId
+                    ? { storeId: committedStore.id, inventoryId: committedStore.inventoryId }
+                    : undefined;
+        }
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+        if (isPickupSelection && !pickupInfo) {
             addToast(tBopis('cart.pickupStoreInfo.missingStoreIdOrInventoryIdError'), 'error');
             return;
         }
@@ -766,51 +832,33 @@ export function useProductActions({
             return;
         }
 
-        setIsAddingToOrUpdatingCart(true);
-
-        try {
-            // @sfdc-extension-line SFDC_EXT_BOPIS
-            const inventoryId = pickupInfo?.inventoryId ?? null;
-
-            const productItem = {
-                productId: itemProductId,
-                quantity,
-                price,
-                // @sfdc-extension-block-start SFDC_EXT_BOPIS
-                inventoryId,
-                storeId,
-                // @sfdc-extension-block-end SFDC_EXT_BOPIS
-            };
-
-            // Use server action to add item to cart
-            await cartFetcher.submit(
-                { productItem: JSON.stringify(productItem) },
-                {
-                    method: 'POST',
-                    action: resourceRoutes.cartItemAdd,
-                }
-            );
-
-            // Track cart item add
-            void analytics.trackCartItemAdd({
-                cartItems: [productItem as ShopperBasketsV2.schemas['ProductItem']],
-            });
-        } catch {
-            setIsAddingToOrUpdatingCart(false);
-            addToast(t('product:failedToAddProductToCart'), 'error');
-        }
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        const inventoryId = pickupInfo?.inventoryId ?? null;
+        await submitProductAdd({
+            productId: itemProductId,
+            quantity,
+            optionItems,
+            price,
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+            inventoryId,
+            storeId,
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
+        });
     }, [
         product,
+        submitProductAdd,
         quantity,
+        optionItems,
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        storeEntry,
+        reportAddFailure,
         isMasterOrVariantProduct,
         currentVariant,
         isAddingToOrUpdatingCart,
         canAddToCart,
-        cartFetcher,
         addToast,
         // @sfdc-extension-line SFDC_EXT_BOPIS
         tBopis,
-        analytics,
         t,
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
         basket,

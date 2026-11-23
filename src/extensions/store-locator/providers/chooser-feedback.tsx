@@ -27,7 +27,8 @@ export default function StoreSelectionFeedback() {
     const { retry } = useStoreSelection();
     useStoreSelectionFeedbackHost();
     const isOpen = useStoreLocator((state) => state.isOpen);
-    const { forceMobile } = useStoreLocatorLayout();
-    if (isOpen !== forceMobile) return null;
+    const { forceMobile, selectionFeedbackVisible } = useStoreLocatorLayout();
+    if (selectionFeedbackVisible === false || (selectionFeedbackVisible === undefined && isOpen !== forceMobile))
+        return null;
     return <SelectionFeedback retry={retry} />;
 }

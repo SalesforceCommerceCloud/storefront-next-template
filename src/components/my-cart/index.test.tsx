@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 import { describe, expect, it, beforeEach, vi } from 'vitest';
-import { render as rtlRender, screen, type RenderOptions } from '@testing-library/react';
+import {
+    render as rtlRender,
+    screen,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    within,
+    type RenderOptions,
+} from '@testing-library/react';
 import type { ReactNode } from 'react';
 import MyCart from './index';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
@@ -136,6 +142,51 @@ describe('MyCart', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
+
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    it('labels each line by its shipment, including the same SKU in pickup and delivery shipments', () => {
+        render(
+            <MyCart
+                basket={{
+                    ...basket,
+                    productItems: [
+                        { itemId: 'pickup-line', productId: 'same-sku', shipmentId: 'pickup', quantity: 1 },
+                        {
+                            itemId: 'delivery-line',
+                            productId: 'same-sku',
+                            shipmentId: 'delivery',
+                            inventoryId: 'local',
+                            quantity: 1,
+                        },
+                    ],
+                    shipments: [{ shipmentId: 'pickup', c_fromStoreId: 'flagship' }, { shipmentId: 'delivery' }],
+                }}
+            />
+        );
+        const [pickup, delivery] = screen.getAllByTestId('my-cart-item-same-sku');
+        expect(within(pickup).getByText('deliveryOptions.pickupOrDelivery.storePickupLabel')).toBeInTheDocument();
+        expect(within(pickup).queryByText('myCart.delivery')).not.toBeInTheDocument();
+        expect(within(delivery).getByText('myCart.delivery')).toBeInTheDocument();
+        expect(
+            within(delivery).queryByText('deliveryOptions.pickupOrDelivery.storePickupLabel')
+        ).not.toBeInTheDocument();
+    });
+
+    it('updates fulfillment labels when shipment data changes without replacing the product items', () => {
+        const productItems = [{ itemId: 'line', productId: 'sku', shipmentId: 'shipment', quantity: 1 }];
+        const { rerender } = render(
+            <MyCart basket={{ ...basket, productItems, shipments: [{ shipmentId: 'shipment' }] }} />
+        );
+        expect(screen.getByText('myCart.delivery')).toBeInTheDocument();
+        rerender(
+            <MyCart
+                basket={{ ...basket, productItems, shipments: [{ shipmentId: 'shipment', c_fromStoreId: 'flagship' }] }}
+            />
+        );
+        expect(screen.getByText('deliveryOptions.pickupOrDelivery.storePickupLabel')).toBeInTheDocument();
+        expect(screen.queryByText('myCart.delivery')).not.toBeInTheDocument();
+    });
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     it('shows a stock warning for duplicate-SKU consumption at checkout', () => {
         const localProduct = {

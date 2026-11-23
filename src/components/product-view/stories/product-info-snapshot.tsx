@@ -54,6 +54,7 @@ const { storeLocatorState } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
+    useOptionalStoreLocatorApi: () => undefined,
     useSelectedStoreSource: () => null,
     useLateAuthRecovery: () => () => {},
     useStoreLocator: (selector: (state: typeof storeLocatorState) => unknown) => selector(storeLocatorState),

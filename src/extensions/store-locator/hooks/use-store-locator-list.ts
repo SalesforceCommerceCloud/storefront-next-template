@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useAuthFetcher as useFetcher } from '@/hooks/use-auth-fetcher';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
@@ -46,7 +48,26 @@ export function useStoreLocatorList() {
     const mode = useStoreLocator((s) => s.mode);
     const searchParams = useStoreLocator((s) => s.searchParams);
     const deviceCoordinates = useStoreLocator((s) => s.deviceCoordinates);
-    const config = useStoreLocator((s) => s.config);
+    const entry = useConfig().features?.storeEntry;
+    const { i18n } = useTranslation('extStoreLocator');
+    const fulfillmentMode = useStoreLocator((s) => s.fulfillmentMode);
+    const locatorConfig = useStoreLocator((s) => s.config);
+    const config = useMemo(() => {
+        if (!entry?.enabled) return locatorConfig;
+        const names = new Intl.DisplayNames([i18n.language], { type: 'region' });
+        return {
+            ...locatorConfig,
+            ...(entry.distanceUnit ? { radiusUnit: entry.distanceUnit } : {}),
+            ...(entry.countries
+                ? {
+                      supportedCountries: entry.countries.map((countryCode) => ({
+                          countryCode,
+                          countryName: names.of(countryCode) ?? countryCode,
+                      })),
+                  }
+                : {}),
+        };
+    }, [entry, locatorConfig, i18n.language]);
     const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
     const { select: setSelectedStoreInfo, retry: retrySelection } = useStoreSelection();
     const selectionPending = useStoreLocator((s) => s.selectionPending);
@@ -62,10 +83,11 @@ export function useStoreLocatorList() {
     const fetcher = useFetcher<typeof searchStoresLoader>();
     const [page, setPage] = useState<number>(1);
     const [hasSearched, setHasSearched] = useState<boolean>(false);
-    // Track intentional search loads to distinguish from revalidation-triggered loads
-    const isSearchingRef = useRef(false);
+    // Own the full intentional request, including the idle frames before dispatch and result publication.
+    const [isSearching, setIsSearching] = useState(false);
     const pendingSearchRef = useRef<{
         mode: 'input' | 'device';
+        fulfillmentMode: typeof fulfillmentMode;
         searchParams: typeof searchParams;
     } | null>(null);
     const lastHandledSearchResultRef = useRef<unknown>(undefined);
@@ -78,7 +100,7 @@ export function useStoreLocatorList() {
         if (generationRef.current === generation) return;
         generationRef.current = generation;
         pendingSearchRef.current = null;
-        isSearchingRef.current = false;
+        setIsSearching(false);
         setAcceptedSearch(null);
         lastHandledSearchResultRef.current = fetcher.data;
         setHasSearched(false);
@@ -86,10 +108,11 @@ export function useStoreLocatorList() {
     }, [generation, fetcher.data]);
 
     useEffect(() => {
-        if (!shouldSearch) return;
+        if (!shouldSearch || (entry?.enabled && !fulfillmentMode)) return;
 
         const params = new URLSearchParams();
         params.set('mode', mode);
+        if (entry?.enabled && fulfillmentMode) params.set('fulfillmentMode', fulfillmentMode);
         params.set('maxDistance', String(config.radius));
         params.set('distanceUnit', config.radiusUnit);
         params.set('limit', String(config.limit));
@@ -100,7 +123,7 @@ export function useStoreLocatorList() {
             const hasPostal = Boolean(searchParams?.postalCode);
             if (hasCountry && hasPostal && searchParams) {
                 params.set('countryCode', searchParams.countryCode);
-                params.set('postalCode', searchParams.postalCode);
+                params.set(searchParams.searchType === 'city' ? 'city' : 'postalCode', searchParams.postalCode);
                 canFetch = true;
             }
         } else if (mode === 'device') {
@@ -116,11 +139,12 @@ export function useStoreLocatorList() {
         if (canFetch) {
             pendingSearchRef.current = {
                 mode,
+                fulfillmentMode,
                 searchParams: searchParams ? { ...searchParams } : null,
             };
             clearStoreLocatorSearchMemory(site.id);
             setHasSearched(true);
-            isSearchingRef.current = true;
+            setIsSearching(true);
             void fetcher.load(`${resourceRoutes.stores}?${params.toString()}`);
             setShouldSearch(false);
         }
@@ -134,12 +158,10 @@ export function useStoreLocatorList() {
         deviceCoordinates.latitude,
         deviceCoordinates.longitude,
         site.id,
+        fulfillmentMode,
+        entry?.enabled,
+        searchParams?.searchType,
     ]);
-
-    // Clear the intentional search flag once the fetcher settles
-    if (fetcher.state === 'idle' && isSearchingRef.current) {
-        isSearchingRef.current = false;
-    }
 
     useEffect(() => {
         if (fetcher.state !== 'idle' || !fetcher.data || fetcher.data === lastHandledSearchResultRef.current) {
@@ -153,8 +175,20 @@ export function useStoreLocatorList() {
             return;
         }
 
-        setSearchResult(fetcher.data);
-        setAcceptedSearch({ generation, data: fetcher.data });
+        setIsSearching(false);
+
+        if (
+            entry?.enabled &&
+            (pendingSearch.fulfillmentMode !== fulfillmentMode ||
+                (fetcher.data.success && fetcher.data.fulfillmentMode !== fulfillmentMode))
+        )
+            return;
+        // Middleware/provider failures may omit the response mode; attribute them to the owning search.
+        const accepted = entry?.enabled
+            ? { ...fetcher.data, fulfillmentMode: pendingSearch.fulfillmentMode ?? undefined }
+            : fetcher.data;
+        setSearchResult(accepted);
+        setAcceptedSearch({ generation, data: accepted });
         if (fetcher.data.success) {
             setStoreLocatorSearchMemory(site.id, {
                 mode: pendingSearch.mode,
@@ -162,20 +196,29 @@ export function useStoreLocatorList() {
                 searchResult: fetcher.data,
             });
         }
-    }, [fetcher.data, fetcher.state, setSearchResult, site.id, generation]);
+    }, [fetcher.data, fetcher.state, setSearchResult, site.id, generation, entry?.enabled, fulfillmentMode]);
 
     const fallback = acceptedSearch?.generation === generation ? acceptedSearch.data : undefined;
-    const stores = useMemo(() => searchResult?.stores?.data ?? fallback?.stores?.data ?? [], [searchResult, fallback]);
-    const hasError = searchResult?.success === false || fallback?.success === false;
+    const result = searchResult ?? fallback;
+    const matchingResult = !entry?.enabled || result?.fulfillmentMode === fulfillmentMode ? result : undefined;
+    const stores = useMemo(() => matchingResult?.stores?.data ?? [], [matchingResult]);
+    const hasError = matchingResult?.success === false;
     const showCount = page * 10;
     const storesPaginated = stores.slice(0, showCount);
 
-    // Only show loading skeleton for intentional searches, not revalidation-triggered reloads
-    const isLoading = fetcher.state === 'loading' && isSearchingRef.current;
+    // The store queues a request before the effect/fetcher starts; do not expose an empty result in that frame.
+    const hasSearchInput =
+        mode === 'input'
+            ? Boolean(searchParams?.countryCode && searchParams?.postalCode)
+            : typeof deviceCoordinates.latitude === 'number' && typeof deviceCoordinates.longitude === 'number';
+    const searchQueued = shouldSearch && hasSearchInput && (!entry?.enabled || Boolean(fulfillmentMode));
+    // Background revalidation does not replace already-visible results with a loading skeleton.
+    const isLoading = isSearching || searchQueued;
 
     return {
         // store state
         mode,
+        fulfillmentMode,
         searchParams,
         config,
         selectedStoreInfo,
@@ -184,12 +227,18 @@ export function useStoreLocatorList() {
         selectionBlocked,
         selectionError,
         retrySelection,
-        setSelectedStoreInfo,
+        setSelectedStoreInfo: (info: Parameters<typeof setSelectedStoreInfo>[0]) =>
+            setSelectedStoreInfo(
+                info && entry?.enabled ? { ...info, fulfillmentMode: fulfillmentMode ?? undefined } : info
+            ),
         geoError,
         // fetch state
         hasSearched: hasSearched || searchResult !== null,
         hasError,
         isLoading,
+        eligibility: matchingResult?.eligibility,
+        searchError: matchingResult?.error,
+        retrySearch: () => setShouldSearch(true),
         stores,
         storesPaginated,
         setPage,

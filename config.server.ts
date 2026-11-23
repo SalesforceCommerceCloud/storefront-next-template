@@ -342,6 +342,15 @@ export default defineConfig<Config>(
                     providers: ['Twitter', 'Facebook', 'LinkedIn', 'Email'],
                 },
                 guestCheckout: true,
+                // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+                storeEntry: {
+                    enabled: false,
+                    // Implement the server-side city-search provider before enabling this control.
+                    citySearchEnabled: false,
+                    policy: 'soft',
+                    fulfillmentModes: ['pickup', 'delivery'],
+                },
+                // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
                 localInventory: { enabled: false, inventoryListsBySite: {}, nativeSearchVerified: false },
                 shopperContext: {
                     enabled: false,

@@ -16,6 +16,7 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+vi.mock('@salesforce/storefront-next-runtime/config', () => ({ useConfig: () => ({ features: {} }) }));
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import StoreLocatorList from './list';
 import { useStoreLocatorList } from '@/extensions/store-locator/hooks/use-store-locator-list';
@@ -197,6 +198,19 @@ describe('StoreLocatorList', () => {
 
         const { container } = render(<StoreLocatorList />);
         expect(container.firstChild).toBeNull();
+    });
+
+    test.each([
+        false,
+        true,
+    ])('keeps empty/error feedback hidden while a search is pending (prior error: %s)', (hasError) => {
+        const state = { ...baseState, isLoading: true, hasError, stores: [], storesPaginated: [] };
+        vi.mocked(useStoreLocatorList).mockReturnValue(state as unknown as ReturnType<typeof useStoreLocatorList>);
+        render(<StoreLocatorList />);
+        expect(screen.getByRole('status')).toHaveTextContent('Searching for stores…');
+        expect(screen.getByLabelText('loading store results')).toBeInTheDocument();
+        expect(screen.queryByText(t('extStoreLocator:storeLocator.list.noResults'))).not.toBeInTheDocument();
+        expect(screen.queryByText(t('extStoreLocator:storeLocator.list.fetchError'))).not.toBeInTheDocument();
     });
 
     test('renders loading skeleton when isLoading is true', () => {

@@ -1980,6 +1980,138 @@ describe('logout store intent', () => {
     });
 });
 
+describe.each([true, false])('fulfillment selection using shared context (native: %s)', (nativeEnabled) => {
+    beforeEach(() => {
+        enabled = nativeEnabled;
+        const config = getConfig(context());
+        vi.mocked(getConfig).mockReturnValue({
+            ...config,
+            features: {
+                ...config.features,
+                storeEntry: { enabled: true, policy: 'soft', fulfillmentModes: ['pickup', 'delivery'] },
+            },
+        });
+    });
+    async function choose(mode: 'pickup' | 'delivery', cookie = '', id = 'A') {
+        const form = new FormData();
+        form.set(
+            'storeInfo',
+            JSON.stringify({
+                id,
+                fulfillmentMode: mode,
+            })
+        );
+        const request = new Request('https://example.com/action/set-selected-store', {
+            method: 'POST',
+            headers: { Cookie: cookie, Origin: 'https://example.com' },
+            body: form,
+        });
+        return run(
+            async (ctx) => {
+                const result = await action({ context: ctx, request } as unknown as Parameters<typeof action>[0]);
+                return Response.json(result.data, { status: result.init?.status });
+            },
+            cookie,
+            request
+        );
+    }
+    it.each([
+        'pickup',
+        'delivery',
+    ] as const)('commits and restores %s without service/coverage metadata', async (mode) => {
+        const chosen = await choose(mode);
+        expect(chosen.response.status).toBe(200);
+        expect(chosen.ctx.get(shoppingContext)).toMatchObject({
+            preparingStoreId: 'A',
+            fulfillmentMode: mode,
+        });
+        const restored = await run(undefined, responseCookies(chosen.response));
+        expect(restored.ctx.get(selectedStoreContext)).toMatchObject({ id: 'A', fulfillmentMode: mode });
+        if (nativeEnabled) expect(native.assignmentQualifiers).toMatchObject({ campaign: 'summer', store: 'store-a' });
+        else expect(patch).not.toHaveBeenCalled();
+    });
+    it('hands a same-store mode change with basket items to the shared confirmation boundary', async () => {
+        const chosen = await choose('pickup');
+        items = [{ productId: 'sku' }];
+        const changed = await choose('delivery', responseCookies(chosen.response));
+        expect(changed.response.status).toBe(409);
+        expect(await changed.response.json()).toMatchObject({
+            success: false,
+            code: 'STORE_CHANGE_CONFIRMATION_REQUIRED',
+            candidate: { fulfillmentMode: 'delivery' },
+        });
+        expect(changed.ctx.get(selectedStoreContext)).toMatchObject({ id: 'A', fulfillmentMode: 'pickup' });
+        expect(changed.response.headers.getSetCookie().join(';')).not.toContain('selectedStoreInfo');
+    });
+    it('rejects a store without inventory before publishing the candidate', async () => {
+        storeRead.mockResolvedValue({ data: { data: [{ id: 'A', name: 'Store A' }] } });
+        const chosen = await choose('pickup');
+        expect(chosen.response.status).toBe(422);
+        expect(chosen.ctx.get(selectedStoreContext)).toBeNull();
+        expect(chosen.response.headers.getSetCookie().join(';')).not.toContain('selectedStoreInfo');
+    });
+    it('rejects an unconfigured mode before publishing the candidate', async () => {
+        const config = getConfig(context());
+        vi.mocked(getConfig).mockReturnValue({
+            ...config,
+            features: {
+                ...config.features,
+                storeEntry: { enabled: true, policy: 'soft', fulfillmentModes: ['pickup'] },
+            },
+        });
+        const nativeBefore = structuredClone(native);
+        const chosen = await choose('delivery');
+        expect(chosen.response.status).toBe(400);
+        expect(await chosen.response.json()).toMatchObject({ success: false, code: 'INVALID_FULFILLMENT_MODE' });
+        expect(chosen.ctx.get(selectedStoreContext)).toBeNull();
+        // Native context initialization may issue an empty PATCH; it must not publish a selection.
+        expect(native).toEqual(nativeBefore);
+        expect(chosen.response.headers.getSetCookie().join(';')).not.toContain('selectedStoreInfo');
+    });
+    it.each(['pickup', 'delivery'] as const)('does not publish %s selection for an unknown store', async (mode) => {
+        const chosen = await choose(mode, '', 'unknown-store');
+        expect(chosen.response.status).toBe(400);
+        expect(chosen.ctx.get(selectedStoreContext)).toBeNull();
+        expect(chosen.response.headers.getSetCookie().join(';')).not.toContain('selectedStoreInfo');
+    });
+    it.each([
+        '/action/cart-item-add',
+        '/action/cart-set-add',
+        '/action/cart-bundle-add',
+        '/action/cart-reorder',
+    ])('rejects a first add without committed store/mode before %s executes', async (path) => {
+        const add = vi.fn();
+        const result = await run(add, '', new Request(`https://example.com${path}`, { method: 'POST' }));
+        expect(result.response.status).toBe(422);
+        expect(await result.response.json()).toMatchObject({ success: false, code: 'STORE_SELECTION_REQUIRED' });
+        expect(add).not.toHaveBeenCalled();
+    });
+    it('keeps the prior replica on store API failure and restores it after retry', async () => {
+        const chosen = await choose('delivery');
+        const cookie = responseCookies(chosen.response);
+        storeRead.mockRejectedValue(new StoreSelectionError('STORE_CONTEXT_UNAVAILABLE', 503));
+        const failure = await run(undefined, cookie);
+        expect(failure.response.headers.getSetCookie().join(';')).not.toContain('selectedStoreInfo');
+        expect(failure.ctx.get(selectedStoreContext)?.id).not.toBe('B');
+        storeRead.mockResolvedValue({ data: { data: stores } });
+        const recovered = await run(undefined, cookie);
+        expect(recovered.ctx.get(selectedStoreContext)).toMatchObject({ id: 'A', fulfillmentMode: 'delivery' });
+    });
+    it('allows replacement after a store loses its inventory mapping while preserving the basket guard', async () => {
+        const chosen = await choose('pickup');
+        const cookie = responseCookies(chosen.response);
+        storeRead.mockResolvedValue({ data: { data: [{ id: 'A', name: 'Store A' }, stores[1]] } });
+        items = [{ productId: 'sku' }];
+        const blocked = await choose('pickup', cookie, 'B');
+        expect(blocked.response.status).toBe(409);
+        expect(blocked.response.headers.getSetCookie().join(';')).not.toContain('selectedStoreInfo');
+        items = [];
+        const replaced = await choose('pickup', cookie, 'B');
+        expect(replaced.response.status).toBe(200);
+        expect(replaced.ctx.get(selectedStoreContext)).toMatchObject({ id: 'B', fulfillmentMode: 'pickup' });
+    });
+});
+
 describe('authoritative store-selection effects', () => {
     it.each([
         true,

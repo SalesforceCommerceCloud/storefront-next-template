@@ -67,4 +67,19 @@ describe('public selection response', () => {
             candidate: { id: 'B' },
         });
     });
+    it.each([
+        'pickup',
+        'delivery',
+    ] as const)('preserves the committed %s mode without identity internals', (fulfillmentMode) => {
+        const result = toPublicStoreChangeResult({
+            success: true,
+            selectedStoreInfo: { id: 'B', inventoryId: 'IB', fulfillmentMode },
+            shoppingContext: { ...internal, fulfillmentMode },
+        });
+        expect(result).toMatchObject({
+            selectedStoreInfo: { fulfillmentMode },
+            shoppingContext: { fulfillmentMode },
+        });
+        expect(JSON.stringify(result)).not.toContain('private-');
+    });
 });

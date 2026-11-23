@@ -63,7 +63,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
     const actual = await importOriginal<typeof import('@salesforce/storefront-next-runtime/config')>();
     return {
         ...actual,
-        useConfig: () => ({ cimulateAgent: { enabled: false } }),
+        useConfig: () => ({ cimulateAgent: { enabled: false }, features: {} }),
     };
 });
 

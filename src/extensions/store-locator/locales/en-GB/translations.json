@@ -14,15 +14,15 @@
             "checking": "Checking your preferred store…"
         },
         "title": "Find a Store",
-        "description": "Search for stores by country and postal code or use your current location.",
+        "description": "Search for stores by country and postcode or use your current location.",
         "form": {
             "searchFormAriaLabel": "Store search form",
             "countryLabel": "Country",
             "selectCountry": "Select a country",
             "selectCountryValidation": "Select a country.",
-            "postalCodeLabel": "Postal Code",
-            "postalCodePlaceholder": "Enter postal code",
-            "postalCodeValidation": "Enter a postal code.",
+            "postalCodeLabel": "Postcode",
+            "postalCodePlaceholder": "Enter postcode",
+            "postalCodeValidation": "Enter a postcode.",
             "findButton": "Find",
             "or": "Or",
             "useMyLocationButton": "Use My Location"
@@ -44,13 +44,14 @@
             "closeAriaLabel": "Close store locator"
         },
         "list": {
-            "geoError": "To use your location, enable location sharing.",
+            "geoError": "Your location is unavailable. Enter a postcode or city instead.",
             "noResults": "Sorry, there are no locations in this area.",
             "statusInput": "Viewing stores within {{distanceText}} of {{postal}} in {{countryName}}",
             "statusLocation": "Viewing stores near your location",
             "loadMoreButton": "Load More",
             "fetchError": "Something went wrong. Try again!",
-            "storeChangeUnavailable": "We can’t change your store while your basket has items. Your current store is unchanged."
+            "storeChangeUnavailable": "We can’t change your store while your basket has items. Your current store is unchanged.",
+            "searching": "Searching for stores…"
         },
         "details": {
             "phoneLabel": "Phone:",
@@ -62,6 +63,33 @@
         "address": {
             "multilineFormat": "{{address1}}\n{{city}}, {{stateCode}} {{postalCode}}",
             "singleLineFormat": "{{address1}}, {{city}}, {{stateCode}} {{postalCode}}"
+        },
+        "entry": {
+            "chooseMode": "How would you like to receive your order?",
+            "requiredTitle": "Choose a store to continue",
+            "requiredDescription": "Choose a store and how you would like to receive your order before shopping.",
+            "chooseStore": "Choose store",
+            "loadingSelection": "Loading store selection…",
+            "pickup": "Collection",
+            "delivery": "Delivery",
+            "searchBy": "Search by",
+            "postcode": "Postcode",
+            "city": "City",
+            "location": "Postcode or city",
+            "locationPlaceholder": "Enter a postcode or city",
+            "retrySearch": "Retry search",
+            "retrySelection": "Retry selection",
+            "ineligible": "Not eligible for this fulfilment mode",
+            "current": "{{store}} · {{mode}}",
+            "selected": "Selected {{store}} for {{mode}}.",
+            "invalidSearch": "Enter a valid postcode or city, or try your location again.",
+            "invalidPostalSearch": "Enter a valid postcode, or try your location again.",
+            "cityValidation": "Enter a city.",
+            "checkout": {
+                "label": "Shopping store",
+                "change": "Change",
+                "changeAriaLabel": "Change shopping store: {{store}} · {{mode}}"
+            }
         }
     }
 }

@@ -16,12 +16,14 @@
 import { type PropsWithChildren, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
+import { useStoreLocatorApi } from '@/extensions/store-locator/providers/store-locator';
 import StoreLocator from '@/extensions/store-locator/components/store-locator';
 import { StoreLocatorLayoutProvider } from '@/extensions/store-locator/context/layout';
 
 interface StoreLocatorSheetProps extends PropsWithChildren {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onCloseAutoFocus?: (event: Event) => void;
 }
 
 /**
@@ -34,6 +36,7 @@ interface StoreLocatorSheetProps extends PropsWithChildren {
  *   opened programmatically (controlled via `open`) so no empty, non-interactive trigger is rendered.
  * @param open - Controlled open state (required)
  * @param onOpenChange - Callback when open state changes (required)
+ * @param onCloseAutoFocus - Optional focus-restoration override for programmatic entry gates
  * @returns ReactElement
  *
  * @example
@@ -47,19 +50,35 @@ interface StoreLocatorSheetProps extends PropsWithChildren {
  * // Programmatic open with no trigger child
  * <StoreLocatorSheet open={isOpen} onOpenChange={setIsOpen} />
  */
-export default function StoreLocatorSheet({ children, open, onOpenChange }: StoreLocatorSheetProps): ReactElement {
+export default function StoreLocatorSheet({
+    children,
+    open,
+    onOpenChange,
+    onCloseAutoFocus,
+}: StoreLocatorSheetProps): ReactElement {
     const { t } = useTranslation('extStoreLocator');
+    const store = useStoreLocatorApi();
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             {children ? <SheetTrigger asChild>{children}</SheetTrigger> : null}
-            <SheetContent className="md:w-1/3 md:max-w-1/3 p-0">
+            <SheetContent
+                className="w-full md:w-1/3 md:max-w-1/3 p-0"
+                onCloseAutoFocus={(event) => {
+                    onCloseAutoFocus?.(event);
+                    const origin = store?.getState().returnFocusTarget;
+                    if (!event.defaultPrevented && origin?.isConnected) {
+                        event.preventDefault();
+                        origin.focus();
+                    }
+                    store?.setState({ returnFocusTarget: null });
+                }}>
                 <SheetHeader>
                     <SheetTitle>{t('storeLocator.title')}</SheetTitle>
                     <SheetDescription>{t('storeLocator.description')}</SheetDescription>
                 </SheetHeader>
                 <div className="flex-1 overflow-y-auto px-4 pb-4">
-                    <StoreLocatorLayoutProvider forceMobile>
+                    <StoreLocatorLayoutProvider forceMobile selectionFeedbackVisible={open}>
                         <StoreLocator />
                     </StoreLocatorLayoutProvider>
                 </div>

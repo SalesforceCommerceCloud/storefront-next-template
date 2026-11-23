@@ -39,7 +39,7 @@ The selection policy, including every site's mappings, is stripped from browser 
 
 Use the existing `/action/set-selected-store` action with `storeInfo` JSON or an empty string to clear. The BFF resolves store names and inventory; browser-supplied assignment values are ignored and inventory mismatches are rejected. Native success precedes `Set-Cookie` and client selection updates. Errors do not activate the candidate.
 
-The response and root loader expose `shoppingContext`: site, preparing store, inventory, committed context revision/time, selection origin, identity epoch and current-session explicit-choice lineage. Fulfillment mode and service versions belong to their integration stories. The compatible `selectedStoreInfo` remains available to locator/BOPIS consumers.
+The response and root loader expose `shoppingContext`: site, preparing store, inventory, committed context revision/time, selection origin, identity epoch and current-session explicit-choice lineage. Opt-in fulfillment-first entry also preserves fulfillment mode. The compatible `selectedStoreInfo` remains available to locator/BOPIS consumers.
 
 Native context owns the enabled selection. The reserved custom qualifier `sfnextStoreSelection` records its revision and explicit clear, alongside the configured assignment keys. Unrelated source code, coupons, customer groups and custom/assignment qualifiers are preserved. URL and generic qualifier controls cannot change configured store keys.
 
@@ -89,7 +89,26 @@ Successful identity reconciliation publishes a new context revision/identity epo
 
 Logout remains available during failed reconciliation. It preserves the remembered store ID, removes explicit registered provenance, and keeps the existing auth/basket destruction. The next fresh guest request validates that ID and reconciles only store-owned qualification; registered eligibility and unrelated native qualifiers are not copied from the old session.
 
-The read helper is reused from the native preferred-store integration. Real `preferredStoreId` support on the target tenant and preview/apply integration are release dependencies; unit test doubles do not establish either capability. Closed/inactive-store eligibility still requires authoritative service data and the agreed entry policy.
+The read helper is reused from the native preferred-store integration. Real `preferredStoreId` support on the target tenant and preview/apply integration are release dependencies; unit test doubles do not establish either capability. Store-specific open/closed/service rules are merchant policy; opt-in fulfillment-first entry currently follows BOPIS store/inventory validation.
+
+## Optional fulfillment-first entry and city search
+
+`features.storeEntry` is disabled by default. When enabled, `policy: 'soft'` (also the default when omitted) permits browsing and requests selection before a single-product add; its captured SKU, options and quantity resume after successful selection. Set `policy: 'required'` to require a committed store/mode before displaying shopping pages.
+
+Required entry gates the homepage, product/category/search, cart and checkout views, including initial server rendering, site-prefixed URLs, SEO URLs and the unprefixed root homepage alias. It keeps the normal header/footer and original URL, including query and fragment. Close, Escape or outside dismissal leaves a “Choose store to continue” view with a button to reopen the chooser. Success reveals the requested page and returns focus to its main content; arrival never creates an add intent. Help, legal and account routes remain accessible. Merchant routes can declare `handle.storeEntryRequired: true` or `false` to override the default route policy.
+
+Both policies use existing BOPIS store/inventory validation. Delivery follows ordinary ship-to-address; selecting a store does not establish store-to-address coverage. The entry gate controls the rendered view; loaders retain their existing fetching behavior and server-side basket/context guards still apply. Nonempty-basket changes require the shared confirmed-change integration. The checkout order summary shows the committed shopping store and mode, with Change opening the shared locator. On mobile this row stays visible above collapsed totals. Rejected changes retain the current context and keep search/retry available.
+
+Postcode and device-location searches use the existing Shopper Stores API. City search has no default provider and is disabled independently with `citySearchEnabled: false`; the form offers postcode/location search without a city option.
+
+To add city search:
+
+1. Implement [`searchStoresByCity`](../src/extensions/store-locator/lib/store-entry-services.server.ts) in the merchant-owned template. Its typed input supplies country, city, result limit and distance preferences; its output is the existing `ShopperStores.schemas['StoreResult']` shape.
+2. Choose and document whether city input means matching recorded cities or searching near a resolved city. An indexed store directory or a geocoder followed by Shopper Stores can implement the contract. Radius preferences apply when the provider supports a geographic origin; omit distance when none is known.
+3. Filter the authoritative source before limiting results. Do not copy a fixed boutique list, download the entire directory into the browser, or filter only an already-limited nearby-store response. Return an explicit empty `data` array for no matches and throw on provider failure. Honor the requested limit and return accurate result metadata.
+4. Validate coverage of the merchant's directory, localization, limits and failure behavior, then set `features.storeEntry.citySearchEnabled: true`.
+
+Enabling the flag alone does not install a provider: the stub returns HTTP 503 `CITY_LOOKUP_NOT_CONFIGURED`. Disabled city requests return HTTP 400 `CITY_SEARCH_DISABLED`. Provider calls and credentials stay server-side; the result list and selection continue through the existing locator and authoritative selection service. Fixture tests demonstrate the contract, not a production algorithm or validation at grocery scale.
 
 ## Disable and drain
 

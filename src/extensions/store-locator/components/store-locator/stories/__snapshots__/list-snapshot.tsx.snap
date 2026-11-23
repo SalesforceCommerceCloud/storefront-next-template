@@ -5,7 +5,9 @@ exports[`StoreLocatorList stories snapshot > Default story renders and matches s
   class="mt-4"
 >
   <div
+    aria-live="polite"
     class="mb-4"
+    role="status"
   >
     <div
       class="text-sm font-semibold flex justify-center items-center text-center"
@@ -53,11 +55,11 @@ exports[`StoreLocatorList stories snapshot > Default story renders and matches s
             class="flex-1 min-w-0"
           >
             <div
-              class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+              class="grid grid-cols-2 gap-2 break-words min-w-0 md:grid-cols-[260px_1fr_auto]"
               id="store-info-_r_0_-store-1"
             >
               <div
-                class="col-span-1"
+                class="col-span-2 md:col-span-1"
               >
                 <div
                   class="text-sm font-semibold text-left"
@@ -144,11 +146,11 @@ exports[`StoreLocatorList stories snapshot > Default story renders and matches s
             class="flex-1 min-w-0"
           >
             <div
-              class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+              class="grid grid-cols-2 gap-2 break-words min-w-0 md:grid-cols-[260px_1fr_auto]"
               id="store-info-_r_0_-store-2"
             >
               <div
-                class="col-span-1"
+                class="col-span-2 md:col-span-1"
               >
                 <div
                   class="text-sm font-semibold text-left"

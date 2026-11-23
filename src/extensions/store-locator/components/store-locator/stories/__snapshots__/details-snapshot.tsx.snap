@@ -2,7 +2,7 @@
 
 exports[`StoreDetails stories snapshot > CompactAddress story renders and matches snapshot 1`] = `
 <div
-  class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+  class="grid grid-cols-2 gap-2 break-words min-w-0 md:grid-cols-[260px_1fr_auto]"
 >
   <div
     class="col-span-2 md:col-span-1 md:col-start-2"
@@ -122,10 +122,10 @@ exports[`StoreDetails stories snapshot > CompactAddress story renders and matche
 
 exports[`StoreDetails stories snapshot > Default story renders and matches snapshot 1`] = `
 <div
-  class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+  class="grid grid-cols-2 gap-2 break-words min-w-0 md:grid-cols-[260px_1fr_auto]"
 >
   <div
-    class="col-span-1"
+    class="col-span-2 md:col-span-1"
   >
     <div
       class="text-sm font-semibold text-left"
@@ -247,10 +247,10 @@ exports[`StoreDetails stories snapshot > Default story renders and matches snaps
 
 exports[`StoreDetails stories snapshot > MobileLayout story renders and matches snapshot 1`] = `
 <div
-  class="grid grid-cols-2 gap-2"
+  class="grid grid-cols-2 gap-2 break-words min-w-0"
 >
   <div
-    class="col-span-1"
+    class="col-span-2"
   >
     <div
       class="text-sm font-semibold text-left"
@@ -372,10 +372,10 @@ exports[`StoreDetails stories snapshot > MobileLayout story renders and matches 
 
 exports[`StoreDetails stories snapshot > WithPrimaryAction story renders and matches snapshot 1`] = `
 <div
-  class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+  class="grid grid-cols-2 gap-2 break-words min-w-0 md:grid-cols-[260px_1fr_auto]"
 >
   <div
-    class="col-span-1"
+    class="col-span-1 md:col-span-1"
   >
     <div
       class="text-sm font-semibold text-left"
@@ -509,10 +509,10 @@ exports[`StoreDetails stories snapshot > WithPrimaryAction story renders and mat
 
 exports[`StoreDetails stories snapshot > WithoutDistance story renders and matches snapshot 1`] = `
 <div
-  class="grid grid-cols-2 gap-2 md:grid-cols-[260px_1fr_auto]"
+  class="grid grid-cols-2 gap-2 break-words min-w-0 md:grid-cols-[260px_1fr_auto]"
 >
   <div
-    class="col-span-1"
+    class="col-span-2 md:col-span-1"
   >
     <div
       class="text-sm font-semibold text-left"

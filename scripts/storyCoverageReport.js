@@ -184,6 +184,12 @@ const STORY_ALIASES = new Map([
     ['image-gallery/gallery-content', 'image-gallery'],
     // The public mega-menu stories exercise the extracted responsive navigation engine through its configured wrapper.
     ['navigation-menu-mega/responsive-navigation-menu', 'navigation-menu-mega'],
+    // Parent entry stories render the deferred implementations through the public feature-gated wrappers.
+    ['store-locator/components/required-store-entry', 'store-locator/components/store-entry-gate'],
+    [
+        'store-locator/components/checkout/checkout-store-selection-content',
+        'store-locator/components/checkout/checkout-store-selection',
+    ],
 ]);
 // Ensure OUTPUT DIR exists
 if (!fs.existsSync(OUTPUT_DIR)) {

@@ -85,7 +85,7 @@ export function AllProvidersWrapper({
                 language={mockSiteObject.defaultLocale}
                 currency={currency}>
                 {/* @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */}
-                <StoreLocatorProvider>
+                <StoreLocatorProvider entryEnabled={config.features.storeEntry?.enabled}>
                     {/* The wishlist store is a module-level singleton (no provider). Components that
                         consume it (WishlistButton in PDP / tiles) render without any wrapper; tests
                         that assert wishlist state reset it via resetWishlistStore (@/test-utils/wishlist). */}

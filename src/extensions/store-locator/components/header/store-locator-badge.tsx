@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ export default function StoreLocatorBadge(): ReactElement {
 
 function StoreLocatorBadgeContent({ selection }: { selection?: SelectedStoreInfo | null }): ReactElement {
     const { t } = useTranslation('extStoreLocator');
+    const entry = useConfig().features?.storeEntry;
     const currentSelection = useStoreLocator((state) => state.selectedStoreInfo);
     const selectedStoreInfo = selection === undefined ? currentSelection : selection;
     const isOpen = useStoreLocator((state) => state.isOpen);
@@ -60,6 +62,14 @@ function StoreLocatorBadgeContent({ selection }: { selection?: SelectedStoreInfo
                 ? `${truncateStoreName(selectedStoreName)} · ${selectedStoreDistance}`
                 : truncateStoreName(selectedStoreName)
             : selectedStoreLabel;
+    const modeLabel =
+        entry?.enabled && selectedStoreInfo?.fulfillmentMode
+            ? t(`storeLocator.entry.${selectedStoreInfo.fulfillmentMode}`)
+            : undefined;
+    const entryAriaLabel =
+        modeLabel && selectedStoreInfo
+            ? t('storeLocator.entry.current', { store: selectedStoreLabel ?? selectedStoreInfo.id, mode: modeLabel })
+            : undefined;
     const storeAriaLabel = selectedStoreInfo
         ? selectedStoreInfo.postalCode
             ? t('storeLocator.trigger.selectedAriaLabel', {
@@ -72,29 +82,6 @@ function StoreLocatorBadgeContent({ selection }: { selection?: SelectedStoreInfo
         'hover:bg-transparent hover:text-inherit! hover:opacity-50 transition-opacity max-lg:w-9 max-lg:px-0! lg:w-auto! lg:max-w-64 lg:px-3!';
     const openSelectedStoreLocator = selectedStoreInfo ? openSelectedStore : openStoreLocator;
 
-    if (selectedStoreInfo?.postalCode) {
-        return (
-            <Button
-                variant="ghost"
-                className={triggerClassName}
-                onClick={() => openSelectedStoreLocator()}
-                aria-haspopup="dialog"
-                aria-expanded={isOpen}
-                aria-label={storeAriaLabel}
-                data-slot="store-locator-selected-store">
-                <Store className="size-6" aria-hidden="true" />
-                <span data-header-label className="hidden max-w-40 truncate lg:inline">
-                    {visibleStoreLabel}
-                </span>
-                <span data-header-detail className="mx-0.5 hidden h-4 w-px bg-current/30 lg:block" aria-hidden="true" />
-                <MapPin data-header-detail className="size-5" aria-hidden="true" />
-                <span data-header-label className="hidden max-w-40 shrink-0 truncate lg:inline">
-                    {selectedStoreInfo.postalCode}
-                </span>
-            </Button>
-        );
-    }
-
     return (
         <Button
             variant="ghost"
@@ -102,11 +89,32 @@ function StoreLocatorBadgeContent({ selection }: { selection?: SelectedStoreInfo
             onClick={() => openSelectedStoreLocator()}
             aria-haspopup="dialog"
             aria-expanded={isOpen}
-            aria-label={storeAriaLabel}>
+            aria-label={entryAriaLabel ?? storeAriaLabel}
+            data-slot={selectedStoreInfo?.postalCode ? 'store-locator-selected-store' : 'button'}>
             <Store className="size-6" aria-hidden="true" />
+            {modeLabel && (
+                <span
+                    className="shrink-0 whitespace-normal break-words text-start text-xs"
+                    data-slot="store-locator-fulfillment">
+                    {modeLabel}
+                </span>
+            )}
             <span data-header-label className="hidden max-w-40 truncate lg:inline">
                 {selectedStoreInfo ? visibleStoreLabel : storeAriaLabel}
             </span>
+            {selectedStoreInfo?.postalCode && (
+                <>
+                    <span
+                        data-header-detail
+                        className="mx-0.5 hidden h-4 w-px bg-current/30 lg:block"
+                        aria-hidden="true"
+                    />
+                    <MapPin data-header-detail className="size-5" aria-hidden="true" />
+                    <span data-header-label className="hidden max-w-40 shrink-0 truncate lg:inline">
+                        {selectedStoreInfo.postalCode}
+                    </span>
+                </>
+            )}
         </Button>
     );
 }

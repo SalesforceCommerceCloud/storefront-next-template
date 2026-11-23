@@ -180,6 +180,7 @@ export async function resolveSelectedStore(context: Readonly<RouterContextProvid
         auth.usid,
         auth.accessToken,
         candidate?.id,
+        candidate?.fulfillmentMode,
     ]);
     const cached = context.get(resolutionContext);
     if (cached?.key === key) return cached.promise;
@@ -190,7 +191,17 @@ export async function resolveSelectedStore(context: Readonly<RouterContextProvid
         if (!isValidCandidate(id)) return empty();
         const preferredStoreId = null;
         try {
-            return { ...(await lookupStore(clients, id, context)), preferredStoreId };
+            const resolved = await lookupStore(clients, id, context);
+            return {
+                ...resolved,
+                preferredStoreId,
+                selectedStoreInfo: resolved.selectedStoreInfo
+                    ? {
+                          ...resolved.selectedStoreInfo,
+                          ...(candidate?.fulfillmentMode ? { fulfillmentMode: candidate.fulfillmentMode } : {}),
+                      }
+                    : null,
+            };
         } catch (error) {
             getLogger(context).error('SelectedStore: store resolution failed', {
                 category: 'store',

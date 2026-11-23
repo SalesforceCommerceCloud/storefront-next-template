@@ -23,6 +23,7 @@ import StoreLocator from '@/extensions/store-locator/components/store-locator';
 import { StoreLocatorLayoutProvider } from '@/extensions/store-locator/context/layout';
 import ChangeStoreButton from '@/components/store-preferences/preferred-store/change-store-button';
 
+vi.mock('@salesforce/storefront-next-runtime/config', () => ({ useConfig: () => ({ features: {} }) }));
 const mocks = vi.hoisted(() => ({
     site: 'site',
     preference: { state: 'idle', data: undefined as unknown, submit: vi.fn() },

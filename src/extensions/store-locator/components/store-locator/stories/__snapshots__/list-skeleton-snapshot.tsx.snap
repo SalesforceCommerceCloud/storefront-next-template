@@ -710,7 +710,9 @@ exports[`ListSkeleton stories snapshot > WithStatusMessage story renders and mat
   class="mt-4"
 >
   <div
+    aria-live="polite"
     class="mb-4"
+    role="status"
   >
     <div
       class="text-sm font-semibold flex justify-center items-center text-center"

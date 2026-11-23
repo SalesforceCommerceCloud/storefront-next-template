@@ -92,18 +92,24 @@ const homeScriptSizeLimit =
 // ~1.5 KB headroom; luxury still passes and is untouched.
 // Raised again with the home tiers above (CI medians: footwear 512823, furniture 513190, cosmetic 498923, luxury 499847,
 // fashion 494804, foundations 494303, grocery 496284). Grocery gets its own tier because it lands above the shared default.
+// Store entry (W-24858769), after deferring optional UI/actions: all seven CI runs measured
+// fashion 496543 B, cosmetic 500975 B, footwear 514425 B and grocery 498081 B. The PDP-only
+// increases below add 600–1000 B and retain 519–575 B headroom. Foundations keeps its passing
+// 496400 B ceiling; homepage/cart bytes, document budgets and performance scores are unchanged.
 const productScriptSizeLimit =
     vertical === 'footwear'
-        ? 514400
+        ? 515000
         : vertical === 'luxury'
           ? 501400
           : vertical === 'furniture'
             ? 514700
             : vertical === 'cosmetic'
-              ? 500500
+              ? 501500
               : vertical === 'grocery'
-                ? 497800
-                : 496400;
+                ? 498600
+                : vertical === 'foundations'
+                  ? 496400
+                  : 497100;
 const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
 const cartScriptSizeLimit = vertical === 'footwear' ? 543000 : vertical === 'luxury' ? 541500 : 535000;
 /**

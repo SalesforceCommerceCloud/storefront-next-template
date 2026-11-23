@@ -1096,6 +1096,7 @@ export default function CheckoutFormPage({
                 )}
                 {/* Mobile Order Summary + My Cart */}
                 <div className="md:hidden mb-6 border border-border">
+                    <UITarget targetId="sfcc.checkout.orderSummary.mobile.before" />
                     <Suspense fallback={<OrderSummarySkeleton />}>
                         {/* Pass lazy <OrderSummary /> as children to preserve checkout route code-splitting. */}
                         <OrderSummaryMobileAccordion

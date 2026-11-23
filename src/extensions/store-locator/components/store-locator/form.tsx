@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useCallback, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createLogger } from '@/lib/logger';
@@ -38,12 +39,19 @@ const logger = createLogger();
  * <StoreLocatorForm />
  */
 export default function StoreLocatorForm(): ReactElement {
-    const { t } = useTranslation('extStoreLocator');
+    const { t, i18n } = useTranslation('extStoreLocator');
+    const entry = useConfig().features?.storeEntry;
+    const citySearchEnabled = Boolean(entry?.enabled && entry.citySearchEnabled);
     const store = useStoreLocatorApi();
     const config = useStoreLocator((s) => s.config);
     const setDeviceCoordinates = useStoreLocator((s) => s.setDeviceCoordinates);
     const setGeoError = useStoreLocator((s) => s.setGeoError);
-    const countryOptions = useStoreLocator((s) => s.config.supportedCountries);
+    const locatorCountries = useStoreLocator((s) => s.config.supportedCountries);
+    const names = new Intl.DisplayNames([i18n.language], { type: 'region' });
+    const countryOptions =
+        entry?.enabled && entry.countries
+            ? entry.countries.map((countryCode) => ({ countryCode, countryName: names.of(countryCode) ?? countryCode }))
+            : locatorCountries;
 
     const { form, onSubmit } = useStoreLocatorForm();
 
@@ -61,11 +69,15 @@ export default function StoreLocatorForm(): ReactElement {
                     if (store.getState().generation !== generation) return;
                     logger.warn('Geolocation error', { code: error.code, message: error.message });
                     setGeoError(true);
+                    form.setFocus('postalCode');
                 },
                 { timeout: config.geoTimeout }
             );
+        } else {
+            setGeoError(true);
+            form.setFocus('postalCode');
         }
-    }, [store, setDeviceCoordinates, setGeoError, config.geoTimeout]);
+    }, [store, setDeviceCoordinates, setGeoError, config.geoTimeout, form]);
 
     return (
         <Form {...form}>
@@ -103,18 +115,47 @@ export default function StoreLocatorForm(): ReactElement {
                         />
                     )}
 
+                    {citySearchEnabled && (
+                        <FormField
+                            control={form.control}
+                            name="searchType"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>{t('storeLocator.entry.searchBy')}</FormLabel>
+                                    <FormControl>
+                                        <NativeSelect value={field.value ?? 'postalCode'} onChange={field.onChange}>
+                                            <option value="postalCode">{t('storeLocator.entry.postcode')}</option>
+                                            <option value="city">{t('storeLocator.entry.city')}</option>
+                                        </NativeSelect>
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                     <div className="flex gap-2 items-end">
                         <FormField
                             control={form.control}
                             name="postalCode"
                             render={({ field }) => (
                                 <FormItem className="flex flex-1 flex-col gap-1">
-                                    <FormLabel className="sr-only">{t('storeLocator.form.postalCodeLabel')}</FormLabel>
+                                    <FormLabel className="sr-only">
+                                        {citySearchEnabled
+                                            ? t('storeLocator.entry.location')
+                                            : t('storeLocator.form.postalCodeLabel')}
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
-                                            aria-label={t('storeLocator.form.postalCodeLabel')}
-                                            placeholder={t('storeLocator.form.postalCodePlaceholder')}
+                                            aria-label={
+                                                citySearchEnabled
+                                                    ? t('storeLocator.entry.location')
+                                                    : t('storeLocator.form.postalCodeLabel')
+                                            }
+                                            placeholder={
+                                                citySearchEnabled
+                                                    ? t('storeLocator.entry.locationPlaceholder')
+                                                    : t('storeLocator.form.postalCodePlaceholder')
+                                            }
                                         />
                                     </FormControl>
                                     <FormMessage />

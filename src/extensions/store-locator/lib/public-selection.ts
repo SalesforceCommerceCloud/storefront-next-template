@@ -18,7 +18,13 @@ import type { ShoppingContext, StoreChangeResult } from './store-selection.serve
 
 export type PublicShoppingContext = Pick<
     ShoppingContext,
-    'siteId' | 'preparingStoreId' | 'inventoryId' | 'contextRevision' | 'selectionOrigin' | 'committedAt'
+    | 'siteId'
+    | 'preparingStoreId'
+    | 'inventoryId'
+    | 'contextRevision'
+    | 'selectionOrigin'
+    | 'committedAt'
+    | 'fulfillmentMode'
 >;
 
 /** Browser consumers receive display/revalidation metadata, never preference-session or identity internals. */
@@ -31,6 +37,7 @@ export function toPublicShoppingContext(value: ShoppingContext | null): PublicSh
         contextRevision: value.contextRevision,
         selectionOrigin: value.selectionOrigin,
         committedAt: value.committedAt,
+        ...(value.fulfillmentMode ? { fulfillmentMode: value.fulfillmentMode } : {}),
     };
 }
 

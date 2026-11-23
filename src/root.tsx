@@ -889,6 +889,7 @@ export default function App({
                     StoreLocatorProvider,
                     {
                         selectedStoreResolution,
+                        entryEnabled: appConfig.features.storeEntry?.enabled,
                         homeStorePromptDismissed,
                         identity: JSON.stringify([clientAuth?.userType, clientAuth?.customerId, clientAuth?.usid]),
                     },

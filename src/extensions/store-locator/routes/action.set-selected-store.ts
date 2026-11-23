@@ -15,6 +15,8 @@
  */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
 import { data } from 'react-router';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { isFulfillmentMode } from '@/extensions/store-locator/lib/store-entry';
 import { containMutationTransport } from '@/lib/mutation-transport';
 import { getLogger } from '@/lib/logger.server';
 import type { Route } from './+types/action.set-selected-store';
@@ -110,6 +112,13 @@ export const action = async ({ request, context }: Route.ActionArgs) => {
                 return failure('INVALID_STORE_ID', 400);
             }
             candidate = intent === 'set' ? { id: ids[0] as string } : null;
+            const modes = formData.getAll('fulfillmentMode');
+            if (modes.length > 1 || (modes.length === 1 && !isFulfillmentMode(modes[0])))
+                return failure('INVALID_FULFILLMENT_MODE', 400);
+            if (candidate && isFulfillmentMode(modes[0])) candidate.fulfillmentMode = modes[0];
+        }
+        if (getConfig(context).features.storeEntry?.enabled && candidate && !candidate.fulfillmentMode) {
+            return failure('FULFILLMENT_MODE_REQUIRED', 400);
         }
         const result = toPublicStoreChangeResult(await selectStore(context, candidate));
         invalidateSelectedStoreResolution(context);

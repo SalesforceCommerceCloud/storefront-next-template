@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 import { data } from 'react-router';
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { selectedStoreContext } from '@/extensions/store-locator/middlewares/selected-store.server';
+import { parsePendingAdd } from '@/extensions/store-locator/lib/pending-add';
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 import { getLocalInventoryContext } from '@/lib/product/local-inventory.server';
 import { assertLocalBasketStock } from '@/lib/cart/local-inventory.server';
 import { BasketAction, createBasketAction } from '@/lib/cart/basket-action.server';
@@ -39,12 +44,14 @@ export const action = createBasketAction(
                 ? (JSON.parse(raw) as {
                       productId: string;
                       quantity: number;
+                      optionItems?: Array<{ optionId: string; optionValueId: string }>;
                       inventoryId?: string | null;
                       storeId?: string | null;
                   })
                 : null;
         },
     },
+    // Basket/context are shared by local inventory, Store Locator and BOPIS.
     async ({ input, basket, context, basketId, clients, logger }) => {
         if (!input) {
             logger.warn('CartItemAdd: missing productItem in form data');
@@ -59,6 +66,31 @@ export const action = createBasketAction(
                 { status: 400 }
             );
         }
+
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        const entryEnabled = getConfig(context).features.storeEntry?.enabled;
+        if (entryEnabled) {
+            const selection = context.get(selectedStoreContext);
+            const validIntent = parsePendingAdd(input);
+            if (!validIntent || !selection?.fulfillmentMode || !selection.inventoryId) {
+                return data(
+                    {
+                        success: false,
+                        error: createActionError({
+                            code: ErrorCode.INVALID_INPUT,
+                            message: 'Choose a store and fulfillment mode before adding items',
+                        }),
+                    },
+                    { status: 422 }
+                );
+            }
+            input = {
+                ...validIntent,
+                storeId: selection.fulfillmentMode === 'pickup' ? selection.id : null,
+                inventoryId: selection.fulfillmentMode === 'pickup' ? selection.inventoryId : null,
+            };
+        }
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
         logger.debug('CartItemAdd: starting addToCart', {
             productId: input.productId,
@@ -133,6 +165,7 @@ export const action = createBasketAction(
         const payload = {
             productId: input.productId,
             quantity: input.quantity,
+            ...(input.optionItems ? { optionItems: input.optionItems } : {}),
             ...(localInventoryId
                 ? { inventoryId: localInventoryId }
                 : fulfillment.inventoryId

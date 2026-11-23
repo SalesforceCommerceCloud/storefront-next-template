@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
+import type { FulfillmentMode } from '@/extensions/store-locator/lib/store-entry';
 import { hasSettledStoreSelection, type StoreSelectionEffects } from '@/extensions/store-locator/lib/selection-effects';
 import type { StoreApi, StoreLocatorStore, SelectedStoreInfo } from './store-locator-store';
 
@@ -30,6 +31,7 @@ type Operation = {
     generation: number;
     session: number;
     storeId: string | null;
+    fulfillmentMode?: FulfillmentMode;
     owner: string | null;
     formData: FormData;
     unknown: boolean;
@@ -51,7 +53,12 @@ export function createSelectionCoordinator(store: StoreApi<StoreLocatorStore>) {
             else failed = null;
         }
     };
-    const begin = (storeId: string | null, generation: number, retry?: Operation): Operation | null => {
+    const begin = (
+        storeId: string | null,
+        generation: number,
+        retry?: Operation,
+        fulfillmentMode?: FulfillmentMode
+    ): Operation | null => {
         invalidate();
         const state = store.getState();
         clearStaleFailure();
@@ -62,11 +69,14 @@ export function createSelectionCoordinator(store: StoreApi<StoreLocatorStore>) {
         const formData = new FormData();
         formData.set('intent', retry?.unknown ? 'reconcile' : storeId === null ? 'clear' : 'set');
         if (storeId !== null && !retry?.unknown) formData.set('storeId', storeId);
+        const mode = retry?.fulfillmentMode ?? fulfillmentMode;
+        if (mode && !retry?.unknown) formData.set('fulfillmentMode', mode);
         pending = {
             id: ++sequence,
             generation,
             session: retry?.session ?? state.session,
             storeId,
+            fulfillmentMode: mode,
             owner,
             formData,
             unknown: retry?.unknown ?? false,
@@ -122,7 +132,9 @@ export function createSelectionCoordinator(store: StoreApi<StoreLocatorStore>) {
                 const matches =
                     operation.storeId === null
                         ? canonical === null
-                        : canonical?.id === operation.storeId && !!canonical.inventoryId;
+                        : canonical?.id === operation.storeId &&
+                          !!canonical.inventoryId &&
+                          (!operation.fulfillmentMode || canonical.fulfillmentMode === operation.fulfillmentMode);
                 if (!matches || operation.session !== state.session) {
                     store.setState({ selectionError: null });
                     return null;
@@ -132,7 +144,10 @@ export function createSelectionCoordinator(store: StoreApi<StoreLocatorStore>) {
                 result?.success !== true ||
                 (operation.storeId === null
                     ? canonical !== null
-                    : canonical?.id !== operation.storeId || !canonical?.inventoryId)
+                    : canonical?.id !== operation.storeId ||
+                      !canonical?.inventoryId ||
+                      (operation.fulfillmentMode !== undefined &&
+                          canonical.fulfillmentMode !== operation.fulfillmentMode))
             ) {
                 if (operation.session !== state.session && result && result.outcome !== 'unknown' && !operation.unknown)
                     return null;

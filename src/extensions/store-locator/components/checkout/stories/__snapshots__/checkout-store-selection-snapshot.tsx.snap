@@ -1,0 +1,186 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CheckoutStoreSelection stories snapshot > Collection story renders and matches snapshot 1`] = `
+<section
+  aria-label="Shopping store"
+  class="my-3 flex min-w-0 items-center justify-between gap-3 border border-border p-4"
+  data-slot="checkout-store-selection"
+>
+  <div
+    class="min-w-0 break-words"
+  >
+    <p
+      class="text-xs text-muted-foreground"
+    >
+      Shopping store
+       · 
+      Collection
+    </p>
+    <p
+      class="text-sm font-semibold"
+    >
+      Market Street · City Centre
+    </p>
+  </div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    aria-label="Change shopping store: Market Street · City Centre · Collection"
+    class="inline-flex items-center justify-center gap-2 rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline py-2 has-[>svg]:px-3 h-auto shrink-0 whitespace-normal px-0 text-end"
+    data-size="default"
+    data-slot="button"
+    data-variant="link"
+    type="button"
+  >
+    Change
+  </button>
+</section>
+`;
+
+exports[`CheckoutStoreSelection stories snapshot > Delivery story renders and matches snapshot 1`] = `
+<section
+  aria-label="Shopping store"
+  class="my-3 flex min-w-0 items-center justify-between gap-3 border border-border p-4"
+  data-slot="checkout-store-selection"
+>
+  <div
+    class="min-w-0 break-words"
+  >
+    <p
+      class="text-xs text-muted-foreground"
+    >
+      Shopping store
+       · 
+      Delivery
+    </p>
+    <p
+      class="text-sm font-semibold"
+    >
+      Market Street · City Centre
+    </p>
+  </div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    aria-label="Change shopping store: Market Street · City Centre · Delivery"
+    class="inline-flex items-center justify-center gap-2 rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline py-2 has-[>svg]:px-3 h-auto shrink-0 whitespace-normal px-0 text-end"
+    data-size="default"
+    data-slot="button"
+    data-variant="link"
+    type="button"
+  >
+    Change
+  </button>
+</section>
+`;
+
+exports[`CheckoutStoreSelection stories snapshot > Disabled story renders and matches snapshot 1`] = `null`;
+
+exports[`CheckoutStoreSelection stories snapshot > LongStoreName story renders and matches snapshot 1`] = `
+<section
+  aria-label="Shopping store"
+  class="my-3 flex min-w-0 items-center justify-between gap-3 border border-border p-4"
+  data-slot="checkout-store-selection"
+>
+  <div
+    class="min-w-0 break-words"
+  >
+    <p
+      class="text-xs text-muted-foreground"
+    >
+      Shopping store
+       · 
+      Collection
+    </p>
+    <p
+      class="text-sm font-semibold"
+    >
+      Market Street · A very long neighbourhood and city centre store name
+    </p>
+  </div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    aria-label="Change shopping store: Market Street · A very long neighbourhood and city centre store name · Collection"
+    class="inline-flex items-center justify-center gap-2 rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline py-2 has-[>svg]:px-3 h-auto shrink-0 whitespace-normal px-0 text-end"
+    data-size="default"
+    data-slot="button"
+    data-variant="link"
+    type="button"
+  >
+    Change
+  </button>
+</section>
+`;
+
+exports[`CheckoutStoreSelection stories snapshot > MissingSelection story renders and matches snapshot 1`] = `
+<section
+  aria-label="Shopping store"
+  class="my-3 flex min-w-0 items-center justify-between gap-3 border border-border p-4"
+  data-slot="checkout-store-selection"
+>
+  <div
+    class="min-w-0 break-words"
+  >
+    <p
+      class="text-xs text-muted-foreground"
+    >
+      Shopping store
+    </p>
+    <p
+      class="text-sm font-semibold"
+    >
+      Choose store
+    </p>
+  </div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    aria-label="Choose store"
+    class="inline-flex items-center justify-center gap-2 rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline py-2 has-[>svg]:px-3 h-auto shrink-0 whitespace-normal px-0 text-end"
+    data-size="default"
+    data-slot="button"
+    data-variant="link"
+    type="button"
+  >
+    Choose store
+  </button>
+</section>
+`;
+
+exports[`CheckoutStoreSelection stories snapshot > USPickup story renders and matches snapshot 1`] = `
+<section
+  aria-label="Shopping store"
+  class="my-3 flex min-w-0 items-center justify-between gap-3 border border-border p-4"
+  data-slot="checkout-store-selection"
+>
+  <div
+    class="min-w-0 break-words"
+  >
+    <p
+      class="text-xs text-muted-foreground"
+    >
+      Shopping store
+       · 
+      Pickup
+    </p>
+    <p
+      class="text-sm font-semibold"
+    >
+      Market Street · City Centre
+    </p>
+  </div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    aria-label="Change shopping store: Market Street · City Centre · Pickup"
+    class="inline-flex items-center justify-center gap-2 rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline py-2 has-[>svg]:px-3 h-auto shrink-0 whitespace-normal px-0 text-end"
+    data-size="default"
+    data-slot="button"
+    data-variant="link"
+    type="button"
+  >
+    Change
+  </button>
+</section>
+`;

@@ -161,7 +161,7 @@ export default function StoreSelectionCoordinator({ children }: PropsWithChildre
     );
     const select = useCallback(
         (info: SelectedStoreInfo | null) => {
-            submit(coordinator.current?.begin(info?.id ?? null, generation));
+            submit(coordinator.current?.begin(info?.id ?? null, generation, undefined, info?.fulfillmentMode));
         },
         [generation, submit]
     );

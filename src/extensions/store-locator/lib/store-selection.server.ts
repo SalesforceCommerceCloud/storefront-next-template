@@ -54,9 +54,11 @@ import {
 import { isPageDesignerMode } from '@/lib/shopper-context/server-utils.server';
 import { isNativeStoreSelectionEnabled } from '@/lib/shopper-context/store-selection';
 export type { StoreSelectionConfig } from '@/types/config';
+import { isFulfillmentMode, type FulfillmentMode } from '@/extensions/store-locator/lib/store-entry';
 
 export type ShoppingContext = {
     siteId: string;
+    fulfillmentMode?: FulfillmentMode;
     preparingStoreId: string | null;
     inventoryId?: string;
     contextRevision: string;
@@ -69,6 +71,7 @@ export type ShoppingContext = {
 
 // Browser replicas describe preference only; they never authorize qualification or basket changes.
 type SelectionRecord = {
+    fulfillmentMode?: FulfillmentMode;
     storeId: string | null;
     revision: string;
     sessionId?: string;
@@ -146,6 +149,11 @@ function selectionRecord(context: Context, store: SelectedStoreInfo | null, expl
     const key = identityKey(context);
     return {
         storeId: store?.id ?? null,
+        ...(store?.fulfillmentMode
+            ? {
+                  fulfillmentMode: store.fulfillmentMode,
+              }
+            : {}),
         revision: randomUUID(),
         committedAt: new Date().toISOString(),
         ...(explicit ? { sessionId: state?.sessionId } : {}),
@@ -185,7 +193,12 @@ export function parseSelectedStore(value: unknown): SelectedStoreInfo | null {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
     const { id } = value as Record<string, unknown>;
     if (typeof id !== 'string' || !id.trim() || id.length > 256 || /[,\r\n]/.test(id)) return null;
-    return { id };
+    const input = value as Record<string, unknown>;
+    if (input.fulfillmentMode !== undefined && !isFulfillmentMode(input.fulfillmentMode)) return null;
+    return {
+        id,
+        ...(isFulfillmentMode(input.fulfillmentMode) ? { fulfillmentMode: input.fulfillmentMode } : {}),
+    };
 }
 
 function getSelectionConfig(context: Context): StoreSelectionConfig {
@@ -263,6 +276,14 @@ export async function validateSelectedStore(
     if (candidate.inventoryId !== undefined && candidate.inventoryId !== canonical.inventoryId) {
         throw new StoreSelectionError('INVALID_STORE_INVENTORY');
     }
+    if (config.features.storeEntry?.enabled && candidate.fulfillmentMode) {
+        const mode = candidate.fulfillmentMode;
+        if (!config.features.storeEntry.fulfillmentModes.includes(mode))
+            throw new StoreSelectionError('INVALID_FULFILLMENT_MODE', 400);
+        // Match the existing BOPIS store/inventory validation; product stock is checked on add.
+        if (!canonical.inventoryId) throw new StoreSelectionError('STORE_NOT_ELIGIBLE', 422);
+        canonical = { ...canonical, fulfillmentMode: mode };
+    }
     return canonical;
 }
 
@@ -300,7 +321,12 @@ function readRecord(native: NativeShopperContext): SelectionRecord | null {
     try {
         const record = JSON.parse(raw) as SelectionRecord;
         if (
-            (record.storeId !== null && !parseSelectedStore({ id: record.storeId })) ||
+            (record.storeId !== null &&
+                !parseSelectedStore({
+                    id: record.storeId,
+                    fulfillmentMode: record.fulfillmentMode,
+                })) ||
+            (record.fulfillmentMode !== undefined && !isFulfillmentMode(record.fulfillmentMode)) ||
             typeof record.revision !== 'string' ||
             typeof record.committedAt !== 'string' ||
             (record.sessionId !== undefined && typeof record.sessionId !== 'string') ||
@@ -326,6 +352,7 @@ function publish(context: Context, store: SelectedStoreInfo | null, record: Sele
     context.set(shoppingContext, {
         siteId,
         preparingStoreId: store?.id ?? null,
+        ...(store?.fulfillmentMode ? { fulfillmentMode: store.fulfillmentMode } : {}),
         inventoryId: store?.inventoryId,
         contextRevision: record.revision,
         selectionOrigin: record.sessionId === sessionId ? 'explicit' : 'remembered',
@@ -477,11 +504,14 @@ async function restoreStoreSelection(request: Request, context: Context): Promis
         const validated = remembered
             ? await validateSelectedStore(
                   context,
-                  { id: remembered.id },
+                  {
+                      id: remembered.id,
+                      fulfillmentMode: remembered.fulfillmentMode,
+                  },
                   { useCache: !isSelectionAction(request, context) }
               ).catch((error: unknown) => {
                   if (getConfig(context).features.localInventory?.enabled) throw error;
-                  if (error instanceof StoreSelectionError) return null;
+                  if (error instanceof StoreSelectionError && error.code === 'INVALID_STORE') return null;
                   unavailable = true;
                   getLogger(context).warn('Remembered store validation unavailable', { error });
                   return null;
@@ -591,7 +621,10 @@ async function restoreStoreSelection(request: Request, context: Context): Promis
     }
     if (!nativeEnabled) {
         if (remembered) {
-            const validated = await validateSelectedStore(context, { id: remembered.id });
+            const validated = await validateSelectedStore(context, {
+                id: remembered.id,
+                fulfillmentMode: remembered.fulfillmentMode,
+            });
             context.set(selectedStoreContext, validated);
             updateSelectedStore(context, validated);
         }
@@ -618,7 +651,10 @@ async function restoreStoreSelection(request: Request, context: Context): Promis
         const store = record.storeId
             ? await validateSelectedStore(
                   context,
-                  { id: record.storeId },
+                  {
+                      id: record.storeId,
+                      fulfillmentMode: record.fulfillmentMode,
+                  },
                   {
                       useCache: matches && !isSelectionAction(request, context),
                   }
@@ -639,7 +675,10 @@ async function restoreStoreSelection(request: Request, context: Context): Promis
         // Resolve remembered identity against current trusted store data. Cookie
         // inventory/display values can be stale and never authorize qualification.
         // Legacy/restored cookies contain no explicit-choice provenance.
-        const store = await validateSelectedStore(context, { id: remembered.id }).catch((error: unknown) => {
+        const store = await validateSelectedStore(context, {
+            id: remembered.id,
+            fulfillmentMode: remembered.fulfillmentMode,
+        }).catch((error: unknown) => {
             if (error instanceof StoreSelectionError && error.code === 'INVALID_STORE') return null;
             throw error;
         });
@@ -724,7 +763,7 @@ export const storeSelectionMiddleware: MiddlewareFunction<Response> = async ({ r
             sessionHeader = state?.sessionHeader ?? null;
         } else if (
             error instanceof StoreSelectionError &&
-            (error.code === 'INVALID_STORE' || error.code === 'INVALID_STORE_MAPPING') &&
+            ['INVALID_STORE', 'INVALID_STORE_MAPPING', 'STORE_NOT_ELIGIBLE'].includes(error.code) &&
             state?.record?.storeId &&
             isNativeStoreSelectionEnabled(getConfig(context).features.shopperContext) &&
             isSelectionAction(request, context)
@@ -772,6 +811,22 @@ export const storeSelectionMiddleware: MiddlewareFunction<Response> = async ({ r
         const state = context.get(selectionState);
         if (state) context.set(selectionState, { ...state, native: {} });
     });
+    // Every add endpoint enforces the entry precondition, including direct/replayed POSTs and bulk adds.
+    // Product-specific resumption stays at its originating control; this guard never manufactures an add.
+    const entry = getConfig(context).features.storeEntry;
+    const selected = context.get(selectedStoreContext);
+    if (
+        entry?.enabled &&
+        (!selected?.fulfillmentMode || !selected.inventoryId) &&
+        [
+            resourceRoutes.cartItemAdd,
+            resourceRoutes.cartSetAdd,
+            resourceRoutes.cartBundleAdd,
+            resourceRoutes.cartReorder,
+        ].some((route) => isActionRoute(request, context, route))
+    ) {
+        return commerceContextErrorResponse(new StoreSelectionError('STORE_SELECTION_REQUIRED', 422));
+    }
     const response = await next();
     if (sessionHeader) response.headers.append('Set-Cookie', sessionHeader);
     return response;
@@ -795,7 +850,12 @@ async function applyStoreSelection(
     const store = candidate ? await validateSelectedStore(context, candidate) : null;
     const enabled = isNativeStoreSelectionEnabled(getConfig(context).features.shopperContext);
     const state = context.get(selectionState);
-    const current = state?.record?.storeId ? { id: state.record.storeId } : context.get(selectedStoreContext);
+    const current = state?.record?.storeId
+        ? {
+              id: state.record.storeId,
+              fulfillmentMode: state.record.fulfillmentMode,
+          }
+        : context.get(selectedStoreContext);
     if (enabled) qualifierPatch(context, store);
     const requiresNativeRepair =
         enabled &&
@@ -804,8 +864,13 @@ async function applyStoreSelection(
         !Object.entries(qualifierPatch(context, store)).every(
             ([key, value]) => state?.native.assignmentQualifiers?.[key] === value
         );
-    if (enabled || authentication) {
-        if (state?.requiresRecovery || current?.id !== store?.id || requiresNativeRepair) {
+    if (enabled || authentication || getConfig(context).features.storeEntry?.enabled) {
+        if (
+            state?.requiresRecovery ||
+            current?.id !== store?.id ||
+            current?.fulfillmentMode !== store?.fulfillmentMode ||
+            requiresNativeRepair
+        ) {
             if (authentication?.sourceHasItems || (await hasBasketItems(context))) {
                 return { success: false, code: 'STORE_CHANGE_CONFIRMATION_REQUIRED', current, candidate: store };
             }
@@ -945,7 +1010,12 @@ export async function reconcileStoreAfterAuthentication(context: Context, source
             }
         }
     }
-    let candidate = state.record?.storeId ? { id: state.record.storeId } : null;
+    let candidate: SelectedStoreInfo | null = state.record?.storeId
+        ? {
+              id: state.record.storeId,
+              fulfillmentMode: state.record.fulfillmentMode,
+          }
+        : null;
     const explicit = state.record?.userType === 'guest' && state.record.sessionId === state.sessionId;
     const sameRegisteredIdentity =
         state.record?.userType === 'registered' && state.record.identityKey === identityKey(context);

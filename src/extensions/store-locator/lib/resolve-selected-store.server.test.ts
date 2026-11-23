@@ -78,6 +78,17 @@ describe('identity-separated selected store resolution', () => {
         api.updateCustomer.mockResolvedValue({});
     });
 
+    it.each([
+        'pickup',
+        'delivery',
+    ] as const)('retains committed %s mode on resolution without caching it as store metadata', async (fulfillmentMode) => {
+        context.set(selectedStoreContext, { id: 'store-1', fulfillmentMode });
+        const result = await resolveSelectedStore(context);
+        expect(result.selectedStoreInfo).toMatchObject({ id: 'store-1', inventoryId: 'inventory-1', fulfillmentMode });
+        context.set(selectedStoreContext, { id: 'store-1' });
+        expect((await resolveSelectedStore(context)).selectedStoreInfo).not.toHaveProperty('fulfillmentMode');
+    });
+
     it('validates guest ID exactly and projects canonical fields without writes', async () => {
         const result = await resolveSelectedStore(context);
         expect(result.selectedStoreInfo).toEqual({

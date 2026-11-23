@@ -15,6 +15,9 @@
  */
 import { useRef } from 'react';
 import { Outlet } from 'react-router';
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+import StoreEntryGate from '@/extensions/store-locator/components/store-entry-gate';
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 import type { Route } from './+types/_app';
 import { usePageUIConfig, mainPaddingDataAttributes } from '@/lib/routes/page-ui-config';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
@@ -210,7 +213,13 @@ export default function DefaultLayout({
                 />
             </Header>
             <main id="main-content" tabIndex={-1} className="grow pt-8" {...mainPaddingAttrs}>
-                <Outlet />
+                {/* @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR */}
+                <StoreEntryGate>
+                    {/* @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR */}
+                    <Outlet />
+                    {/* @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR */}
+                </StoreEntryGate>
+                {/* @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR */}
             </main>
             <Footer />
         </>

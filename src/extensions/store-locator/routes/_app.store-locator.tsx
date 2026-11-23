@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ReactElement } from 'react';
-import StoreLocator from '@/extensions/store-locator/components/store-locator';
+import { lazy, Suspense, type ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
+
+// Keep the optional locator implementation out of the shared server route bundle.
+const StoreLocator = lazy(() => import('@/extensions/store-locator/components/store-locator'));
 
 /**
  * StoreLocatorPage
@@ -24,5 +27,15 @@ import StoreLocator from '@/extensions/store-locator/components/store-locator';
  * @returns ReactElement
  */
 export default function StoreLocatorPage(): ReactElement {
-    return <StoreLocator />;
+    const { t } = useTranslation('common');
+    return (
+        <Suspense
+            fallback={
+                <p role="status" className="min-h-80 p-4">
+                    {t('loading')}
+                </p>
+            }>
+            <StoreLocator />
+        </Suspense>
+    );
 }

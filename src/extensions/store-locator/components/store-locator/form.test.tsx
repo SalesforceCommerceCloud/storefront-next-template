@@ -16,6 +16,7 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+vi.mock('@salesforce/storefront-next-runtime/config', () => ({ useConfig: () => ({ features: {} }) }));
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();

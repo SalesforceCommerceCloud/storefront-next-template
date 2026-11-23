@@ -108,6 +108,7 @@ vi.mock('@/hooks/use-scapi-fetcher', () => ({
 
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({
     useConfig: vi.fn(() => ({
+        features: {},
         engagement: {
             adapters: {
                 einstein: { enabled: true },

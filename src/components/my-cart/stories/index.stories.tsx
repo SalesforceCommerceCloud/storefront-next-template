@@ -23,6 +23,8 @@ import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import { mockLocale, mockSiteObject } from '@/test-utils/config';
 import { CheckoutActionLogger } from '@/components/checkout/storybook/checkout-action-logger';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import type { ShopperProducts } from '@/scapi';
 
 const mockProductMap: Record<string, Record<string, unknown>> = {
     '1ed3ed7fb732d0333d076ecf3e': {
@@ -89,7 +91,7 @@ const meta: Meta<typeof MyCart> = {
                 component: `
 ### MyCart Component
 
-Displays cart items on the checkout page, separate from the order summary. Each item shows its product image, name, variation attributes (color, size), price, quantity, and a delivery badge.
+Displays cart items on the checkout page, separate from the order summary. Each item shows its product image, name, variation attributes (color, size), price, quantity, and fulfillment badge.
 
 **Key Features:**
 
@@ -97,9 +99,7 @@ Displays cart items on the checkout page, separate from the order summary. Each 
 - **Variation attributes** — Displays color, size, etc. from the product API data (basket items don't carry variation metadata).
 - **Price with savings** — Uses \`ProductPrice\` with \`type="total"\`. When the item is on sale (\`priceAfterItemDiscount < basePrice\`), shows a strikethrough list price and a "Saved £X.XX" badge.
 - **Per-unit price** — Shown when \`quantity > 1\` (e.g., "£124.80 each").
-- **Delivery badge** — Every item shows a truck icon with "Delivery" text.
-
-**Known gap:** The delivery badge is hardcoded — there is no pickup variant. Items fulfilled via store pickup should show a different badge, but the component does not yet branch on shipment type.
+- **Fulfillment badge** — Uses each item's native shipment assignment to distinguish pickup from delivery, including mixed baskets.
 
 **Dependencies:**
 
@@ -255,6 +255,28 @@ export const WithPromotion: Story = {
     },
 };
 
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
+/** A native mixed basket keeps pickup and delivery labels independent per line. */
+export const MixedFulfillment: Story = {
+    tags: ['!interaction'],
+    args: {
+        basket: {
+            ...checkoutWithMultipleItems.cart,
+            productItems: checkoutWithMultipleItems.cart.productItems?.map((item, index) => ({
+                ...item,
+                shipmentId: index === 0 ? 'pickup' : 'delivery',
+            })),
+            shipments: [{ shipmentId: 'pickup', c_fromStoreId: 'flagship' }, { shipmentId: 'delivery' }],
+        },
+        productMap: mockProductMap as unknown as Record<string, ShopperProducts.schemas['Product']>,
+    },
+    argTypes: {
+        basket: { table: { disable: true } },
+        productMap: { table: { disable: true } },
+        promotions: { table: { disable: true } },
+    },
+};
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
 export const LocalDuplicateSkuUnavailable: Story = {
     args: {
         basket: {

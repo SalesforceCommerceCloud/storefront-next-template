@@ -17,6 +17,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 
 import { useStoreLocatorList, type SearchStoresResult } from './use-store-locator-list';
+import { mockConfig } from '@/test-utils/config';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import type { ShopperStores } from '@/scapi';
 import { getStoreLocatorSearchMemoryKey } from '@/extensions/store-locator/stores/store-locator-search-memory';
@@ -60,8 +61,11 @@ vi.mock('react', async () => {
 // Mock store state used by the hook
 const mockStore = {
     generation: 0,
+    fulfillmentMode: null as 'pickup' | 'delivery' | null,
     mode: 'input' as 'input' | 'device',
-    searchParams: undefined as { countryCode: string; postalCode: string } | undefined,
+    searchParams: undefined as
+        | { countryCode: string; postalCode: string; searchType?: 'city' | 'postalCode' }
+        | undefined,
     deviceCoordinates: { latitude: undefined as number | undefined, longitude: undefined as number | undefined },
     config: {
         radius: 25,
@@ -110,6 +114,99 @@ describe('useStoreLocatorList', () => {
         mockStore.selectedStoreInfo = null;
         mockStore.searchResult = null;
         mockStore.generation = 0;
+        mockStore.fulfillmentMode = null;
+    });
+
+    const entryWrapper = ({ children }: { children: React.ReactNode }) => (
+        <AllProvidersWrapper
+            config={{
+                ...mockConfig,
+                features: {
+                    ...mockConfig.features,
+                    storeEntry: { enabled: true, citySearchEnabled: true, fulfillmentModes: ['pickup', 'delivery'] },
+                },
+            }}>
+            {children}
+        </AllProvidersWrapper>
+    );
+    test('routes city entry to the extension parameter without treating it as a postcode', () => {
+        mockStore.shouldSearch = true;
+        mockStore.fulfillmentMode = 'pickup';
+        mockStore.searchParams = { countryCode: 'FR', postalCode: 'Paris', searchType: 'city' };
+        renderHook(() => useStoreLocatorList(), { wrapper: entryWrapper });
+        const url = new URL(mockSearchFetcher.load.mock.calls[0][0], 'https://example.com');
+        expect(url.searchParams.get('city')).toBe('Paris');
+        expect(url.searchParams.has('postalCode')).toBe(false);
+        expect(url.searchParams.get('fulfillmentMode')).toBe('pickup');
+    });
+    test('retains a mode-less search failure and exposes retry for its initiating mode', () => {
+        mockStore.shouldSearch = true;
+        mockStore.fulfillmentMode = 'delivery';
+        mockStore.searchParams = { countryCode: 'GB', postalCode: 'SW1A 1AA' };
+        const { result, rerender } = renderHook(() => useStoreLocatorList(), { wrapper: entryWrapper });
+        mockStore.shouldSearch = false;
+        mockSearchFetcher.data = { success: false, error: 'STORE_SEARCH_UNAVAILABLE' };
+        rerender();
+        expect(result.current.hasError).toBe(true);
+        expect(result.current.searchError).toBe('STORE_SEARCH_UNAVAILABLE');
+        act(() => result.current.retrySearch());
+        expect(mockStore.setShouldSearch).toHaveBeenLastCalledWith(true);
+    });
+
+    test('stays loading from dispatch through result acceptance without exposing an empty-result frame', () => {
+        mockStore.shouldSearch = true;
+        mockStore.searchParams = { countryCode: 'US', postalCode: '02116' };
+        const frames: Array<{ searched: boolean; loading: boolean; count: number }> = [];
+        const { result, rerender } = renderHook(
+            () => {
+                const state = useStoreLocatorList();
+                frames.push({ searched: state.hasSearched, loading: state.isLoading, count: state.stores.length });
+                return state;
+            },
+            { wrapper: AllProvidersWrapper }
+        );
+        mockStore.shouldSearch = false;
+        rerender();
+        expect(result.current.isLoading).toBe(true);
+        expect(frames.filter((frame) => frame.searched && !frame.loading && frame.count === 0)).toEqual([]);
+        mockSearchFetcher.state = 'loading';
+        rerender();
+        expect(result.current.isLoading).toBe(true);
+        mockSearchFetcher.state = 'idle';
+        mockSearchFetcher.data = { success: true, stores: { data: [], total: 0, limit: 50 } };
+        rerender();
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.hasSearched).toBe(true);
+        expect(result.current.stores).toEqual([]);
+    });
+
+    test('shows loading for an explicit retry but not a background revalidation', () => {
+        mockStore.shouldSearch = true;
+        mockStore.searchParams = { countryCode: 'US', postalCode: '02116' };
+        const { result, rerender } = renderHook(() => useStoreLocatorList(), { wrapper: AllProvidersWrapper });
+        mockStore.shouldSearch = false;
+        mockSearchFetcher.data = { success: false, error: 'STORE_SEARCH_UNAVAILABLE' };
+        rerender();
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.hasError).toBe(true);
+        mockSearchFetcher.state = 'loading';
+        rerender();
+        expect(result.current.isLoading).toBe(false);
+        mockSearchFetcher.state = 'idle';
+        mockStore.shouldSearch = true;
+        rerender();
+        mockStore.shouldSearch = false;
+        rerender();
+        expect(result.current.isLoading).toBe(true);
+        mockSearchFetcher.state = 'loading';
+        rerender();
+        expect(result.current.isLoading).toBe(true);
+        mockSearchFetcher.state = 'idle';
+        mockSearchFetcher.data = { success: true, stores: { data: [{ id: 'flagship' }], total: 1, limit: 50 } };
+        rerender();
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.hasError).toBe(false);
+        expect(result.current.stores).toEqual([{ id: 'flagship' }]);
     });
 
     test('triggers search when shouldSearch and input params present', () => {

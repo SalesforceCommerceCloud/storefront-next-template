@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { isFulfillmentMode } from '@/extensions/store-locator/lib/store-entry';
 import { type MiddlewareFunction, createContext as createRouterContext } from 'react-router';
 import { createCookie, getCookieConfig } from '@/lib/cookie-utils.server';
 import { isHomeStorePromptDismissed } from '@/extensions/store-locator/home-store-prompt-dismissal';
@@ -110,6 +111,7 @@ export const selectedStoreMiddleware: MiddlewareFunction<Response> = async ({ re
             ) {
                 storeInfo = {
                     id: parsed.id,
+                    ...(isFulfillmentMode(parsed.fulfillmentMode) ? { fulfillmentMode: parsed.fulfillmentMode } : {}),
                     ...(typeof parsed.inventoryId === 'string' ? { inventoryId: parsed.inventoryId } : {}),
                 };
             }

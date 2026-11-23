@@ -7345,8 +7345,8 @@ packages:
     resolution: {integrity: sha512-pbKLsbCfi7kriM3s1J4DDCo7jQkI58zPLHi0heXPzPlj0hjUsm+FesPUbE0DSbIVIK503A36aUBoCN7eMFedkA==}
     engines: {node: '>=1.0.0'}
 
-  js-tokens@10.0.0:
-    resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
+  js-tokens@10.0.1:
+    resolution: {integrity: sha512-XMt+uh+yEs6srFvEb/pEe4IMvbtoXVdNxF7lZFU+I9sdWI641L97L+gXQMTGm1x3RjPUVizNVjHueclXr0U7sw==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -9092,8 +9092,8 @@ packages:
     resolution: {integrity: sha512-l0OE8wL34P4nJH/H2ffoaniAokM2qSmrtXHmlpvYr5AVVX8msAyW0l8NVJFDxlSK4u3Uh/f41cQheDVdnYijwQ==}
     hasBin: true
 
-  robots-parser@3.1.0:
-    resolution: {integrity: sha512-plDSjaini00x5DdwQOfHVYmiMbnRjjq+4f866KF3LSKab4/WvzHtaKpso1oQKoB3qDT70knCq37XglSo6sm7cQ==}
+  robots-parser@3.1.1:
+    resolution: {integrity: sha512-ltsI9/0CiaaZpnJeLT4vwK86cW1AfSXoBgnQHIaCtBrg4K8UckV7HakNzWfG8UvT2hqwrLZ1YWilWMEiynBg6g==}
     engines: {node: '>=10.0.0'}
 
   rolldown-plugin-dts@0.17.8:
@@ -14905,7 +14905,7 @@ snapshots:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       estree-walker: 3.0.3
-      js-tokens: 10.0.0
+      js-tokens: 10.0.1
 
   async-limiter@1.0.1:
     optional: true
@@ -18080,7 +18080,7 @@ snapshots:
       easy-stack: 1.0.1
     optional: true
 
-  js-tokens@10.0.0: {}
+  js-tokens@10.0.1: {}
 
   js-tokens@4.0.0: {}
 
@@ -18233,7 +18233,7 @@ snapshots:
       open: 8.4.2
       parse-cache-control: 1.0.1
       puppeteer-core: 24.43.1(bare-buffer@3.7.3)
-      robots-parser: 3.1.0
+      robots-parser: 3.1.1
       semver: 5.7.3
       speedline-core: 1.4.3
       third-party-web: 0.26.7
@@ -18271,7 +18271,7 @@ snapshots:
       lookup-closest-locale: 6.2.0
       open: 8.4.2
       puppeteer-core: 25.16.0(yauzl@2.10.0)
-      robots-parser: 3.1.0
+      robots-parser: 3.1.1
       speedline-core: 1.4.3
       third-party-web: 0.30.0
       tldts-icann: 7.5.5
@@ -20044,7 +20044,7 @@ snapshots:
     dependencies:
       glob: 10.5.0
 
-  robots-parser@3.1.0: {}
+  robots-parser@3.1.1: {}
 
   rolldown-plugin-dts@0.17.8(rolldown@1.0.0-beta.45(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3))(typescript@5.9.2):
     dependencies:

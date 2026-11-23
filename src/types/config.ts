@@ -32,6 +32,8 @@ import type { EngagementAdapterConfig } from '@/lib/adapters';
 import type { ClientAppConfig } from '@/lib/app-config-client';
 import type { EmbeddedAgentConfig } from '@/components/embedded-agent';
 
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+import type { StoreEntryConfig } from '@/extensions/store-locator/lib/store-entry';
 import type { TrackingConsent } from '@/types/tracking-consent';
 // Auto-generated barrel of installed extensions' config defaults. Its type is the source
 // for `AppConfig['extension']`, so the type and the runtime value (config.server.ts) can't drift.
@@ -325,6 +327,8 @@ export type AppConfig = {
             providers: Array<'Twitter' | 'Facebook' | 'LinkedIn' | 'Email'>;
         };
         guestCheckout: boolean;
+        // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
+        storeEntry?: StoreEntryConfig;
         localInventory?: {
             enabled: boolean;
             /** Trusted lists verified to exist with default-in-stock disabled. Server only. */

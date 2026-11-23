@@ -23,10 +23,24 @@ import { useStoreLocator } from '@/extensions/store-locator/providers/store-loca
 import type { FormSearchParams } from '@/extensions/store-locator/stores/store-locator-store';
 
 const createFormSchema = (t: TFunction) => {
-    return z.object({
-        countryCode: z.string().min(1, t('extStoreLocator:storeLocator.form.selectCountryValidation')),
-        postalCode: z.string().min(1, t('extStoreLocator:storeLocator.form.postalCodeValidation')),
-    });
+    return z
+        .object({
+            searchType: z.enum(['postalCode', 'city']).optional(),
+            countryCode: z.string().min(1, t('extStoreLocator:storeLocator.form.selectCountryValidation')),
+            postalCode: z.string().trim(),
+        })
+        .superRefine((value, context) => {
+            if (!value.postalCode)
+                context.addIssue({
+                    code: 'custom',
+                    path: ['postalCode'],
+                    message: t(
+                        value.searchType === 'city'
+                            ? 'extStoreLocator:storeLocator.entry.cityValidation'
+                            : 'extStoreLocator:storeLocator.form.postalCodeValidation'
+                    ),
+                });
+        });
 };
 
 /**

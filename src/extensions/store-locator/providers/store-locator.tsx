@@ -27,6 +27,7 @@ import {
     type ReactNode,
 } from 'react';
 import { Await, UNSAFE_DataRouterContext } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import {
     type StoreLocatorStore,
     type StoreApi,
@@ -158,12 +159,14 @@ export const StoreLocatorStateProvider = ({
     homeStorePromptDismissed,
     identity = 'guest',
     resolutionError = false,
+    entryEnabled = false,
 }: PropsWithChildren<{
     selectedStoreInfo?: SelectedStoreInfo | null;
     selectedStoreResolution?: Promise<SelectedStoreResolution>;
     homeStorePromptDismissed?: boolean;
     identity?: string;
     resolutionError?: boolean;
+    entryEnabled?: boolean;
 }>) => {
     const { site } = useSite();
     const storeRef = useRef<StoreLocatorStoreApi | null>(null);
@@ -207,6 +210,10 @@ export const StoreLocatorStateProvider = ({
                     identityScope: scope,
                     generation: store.getState().generation + 1,
                     session: store.getState().session + 1,
+                    pendingAdd: null,
+                    pendingAddLoad: null,
+                    fulfillmentMode: null,
+                    returnFocusTarget: null,
                     chooserStoreInfo: null,
                     chooserOwner: null,
                     confirmedSelection: null,
@@ -280,16 +287,21 @@ export const StoreLocatorStateProvider = ({
                         : null
                 }>
                 <SelectionAuthRecovery />
+                {entryEnabled && <StoreEntryContinuation />}
                 {children}
             </SelectionResolutionContext.Provider>
         </StoreLocatorContext.Provider>
     );
 };
 
+/** Optional access for feature-disabled consumers outside the extension provider. */
+// oxlint-disable-next-line react-refresh/only-export-components
+export const useOptionalStoreLocatorApi = (): StoreLocatorStoreApi | undefined => useContext(StoreLocatorContext);
+
 /** Read live state in asynchronous callbacks without subscribing the component. */
 // oxlint-disable-next-line react-refresh/only-export-components
 export const useStoreLocatorApi = (): StoreLocatorStoreApi => {
-    const store = useContext(StoreLocatorContext);
+    const store = useOptionalStoreLocatorApi();
     if (!store) {
         throw new Error('useStoreLocator must be used within StoreLocatorProvider');
     }
@@ -326,5 +338,24 @@ export default function StoreLocatorProvider({ children, ...props }: ComponentPr
         <StoreLocatorStateProvider {...props}>
             {router ? <StoreSelectionCoordinator>{children}</StoreSelectionCoordinator> : children}
         </StoreLocatorStateProvider>
+    );
+}
+
+/** Observe confirmed state without eagerly importing optional pending-add validation or actions. */
+function StoreEntryContinuation() {
+    const api = useStoreLocatorApi();
+    const confirmed = useStoreLocator((state) => state.confirmedSelection);
+    const selected = useStoreLocator((state) => state.selectedStoreInfo);
+    const { t } = useTranslation('extStoreLocator');
+    useEffect(() => api.getState().pendingAdd?.resumeAfterSelection(), [api, confirmed]);
+    return (
+        <p className="sr-only" role="status" aria-live="polite">
+            {selected?.fulfillmentMode
+                ? t('storeLocator.entry.selected', {
+                      store: selected.name ?? selected.id,
+                      mode: t(`storeLocator.entry.${selected.fulfillmentMode}`),
+                  })
+                : ''}
+        </p>
     );
 }

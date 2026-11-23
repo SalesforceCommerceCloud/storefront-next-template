@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 import { Outlet } from 'react-router';
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+import StoreEntryGate from '@/extensions/store-locator/components/store-entry-gate';
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { SkipLink } from '@/components/skip-link';
@@ -33,7 +36,13 @@ export default function CheckoutLayout() {
             <SkipLink />
             <Header variant="checkout" />
             <main id="main-content" tabIndex={-1} className="lg:grow">
-                <Outlet />
+                {/* @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR */}
+                <StoreEntryGate>
+                    {/* @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR */}
+                    <Outlet />
+                    {/* @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR */}
+                </StoreEntryGate>
+                {/* @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR */}
             </main>
             <Footer variant="checkout" />
             <CheckoutMobileBarSpacer />

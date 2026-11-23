@@ -27,7 +27,7 @@ export default function ListSkeleton({ statusMessage }: ListSkeletonProps): Reac
     return (
         <div className="mt-4">
             {statusMessage && (
-                <div className="mb-4">
+                <div className="mb-4" role="status" aria-live="polite">
                     <Typography variant="large" as="div" className="flex justify-center items-center text-center">
                         {statusMessage}
                     </Typography>

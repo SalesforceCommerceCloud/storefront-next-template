@@ -97,7 +97,7 @@ export default function StoreDetails({
     mobileLayout = false,
     compactAddress = false,
 }: StoreDetailsProps) {
-    const { t } = useTranslation('extStoreLocator');
+    const { t, i18n } = useTranslation('extStoreLocator');
     const { forceMobile: forceMobileContext } = useStoreLocatorLayout();
     // Use prop if provided, otherwise use context value
     const forceMobile = mobileLayout || forceMobileContext;
@@ -112,13 +112,16 @@ export default function StoreDetails({
     const hasEmail = Boolean(showEmail && store.c_customerServiceEmail);
     const showAccordion = hasPhone || hasEmail || hasHours;
 
-    const containerGridClass = cn('grid grid-cols-2 gap-2', !forceMobile && 'md:grid-cols-[260px_1fr_auto]');
+    const containerGridClass = cn(
+        'grid grid-cols-2 gap-2 break-words min-w-0',
+        !forceMobile && 'md:grid-cols-[260px_1fr_auto]'
+    );
 
     return (
         <div id={id} className={containerGridClass}>
             {/* Store Name - only show separately if not using compact address */}
             {store.name && !compactAddress && (
-                <div className="col-span-1">
+                <div className={cn(primaryAction ? 'col-span-1' : 'col-span-2', !forceMobile && 'md:col-span-1')}>
                     <Typography variant="large" as="div">
                         {store.name}
                     </Typography>
@@ -149,7 +152,10 @@ export default function StoreDetails({
                     <Typography variant="muted" as="div" className="text-xs flex items-center gap-1">
                         <MapPin className="size-4" />
                         {t('storeLocator.details.distanceAway', {
-                            distance: store.distance.toFixed(2),
+                            distance: new Intl.NumberFormat(i18n.language, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            }).format(store.distance),
                             unit: distanceUnit,
                         })}
                     </Typography>

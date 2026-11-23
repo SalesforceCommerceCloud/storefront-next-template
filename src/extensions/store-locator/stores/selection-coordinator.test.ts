@@ -349,6 +349,49 @@ describe('durable store selection', () => {
     });
 });
 
+describe('fulfillment confirmation', () => {
+    it('keeps the requested mode on an explicit retry and rejects a different committed mode', () => {
+        const store = createStoreLocatorStore({ selectedStoreInfo: confirmed });
+        const coordinator = createSelectionCoordinator(store);
+        store.getState().openChooser(chooser);
+        const operation = coordinator.begin('new', 0, undefined, 'delivery');
+        expect(operation?.formData.get('fulfillmentMode')).toBe('delivery');
+        if (!operation) throw new Error('Expected operation');
+        coordinator.complete(operation.id, { success: false, error: 'temporary_failure' });
+        const retry = coordinator.retry(0);
+        expect(retry?.formData.get('fulfillmentMode')).toBe('delivery');
+        if (!retry) throw new Error('Expected retry');
+        coordinator.complete(retry.id, {
+            success: true,
+            selectedStoreInfo: { ...canonical, fulfillmentMode: 'pickup' },
+        });
+        expect(store.getState().selectedStoreInfo).toEqual(confirmed);
+        expect(store.getState().confirmedSelection).toBeNull();
+        expect(store.getState().isOpen).toBe(true);
+    });
+
+    it.each([
+        'pickup',
+        'delivery',
+    ] as const)('reconciles an unknown %s result without repeating the write', (fulfillmentMode) => {
+        const store = createStoreLocatorStore();
+        const coordinator = createSelectionCoordinator(store);
+        store.getState().openChooser(chooser);
+        const operation = coordinator.begin('new', 0, undefined, fulfillmentMode);
+        if (!operation) throw new Error('Expected operation');
+        coordinator.complete(operation.id, { outcome: 'unknown' });
+        expect(coordinator.begin('new', 0, undefined, fulfillmentMode)).toBeNull();
+        const recovery = coordinator.retry(0);
+        expect(recovery?.formData.get('intent')).toBe('reconcile');
+        expect(recovery?.formData.has('storeId')).toBe(false);
+        const selection = { ...canonical, fulfillmentMode };
+        if (!recovery) throw new Error('Expected recovery');
+        coordinator.complete(recovery.id, { success: true, selectedStoreInfo: selection });
+        expect(store.getState().claimConfirmedSelection('caller')).toEqual(selection);
+        expect(store.getState().claimConfirmedSelection('caller')).toBeNull();
+    });
+});
+
 describe('selection effects after partial failure', () => {
     it('publishes committed canonical selection while preserving the account-default error and avoiding pickup confirmation', () => {
         const store = createStoreLocatorStore();

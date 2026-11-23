@@ -39,6 +39,13 @@ interface MockFormProps extends ComponentProps<'form'> {
     children: ReactNode;
 }
 
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+// The Vite UI-target transform injects the extension before tests execute.
+vi.mock('@/extensions/store-locator/components/checkout/checkout-store-selection', () => ({
+    default: () => <span data-testid="checkout-store-selection" />,
+}));
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
+
 // Mock functions
 const mockUseCartStore = vi.fn();
 const mockUseActionData = vi.fn();
@@ -765,6 +772,19 @@ describe('CheckoutFormPage', () => {
     });
 
     describe('Mobile order summary', () => {
+        // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+        test('keeps shopping selection outside the collapsed mobile totals and inside the desktop summary', async () => {
+            await renderCheckoutPage();
+            const rows = screen.getAllByTestId('checkout-store-selection');
+            expect(rows).toHaveLength(2);
+            const mobile = rows[0];
+            expect(mobile.parentElement).toHaveClass('md:hidden');
+            expect(mobile.parentElement?.firstElementChild).toBe(mobile);
+            expect(mobile.closest('[data-slot="accordion-content"]')).toBeNull();
+            expect(screen.getByTestId('checkout-order-summary-sidebar')).toContainElement(rows[1]);
+        });
+
+        // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
         test('renders order summary and cart content on mobile', async () => {
             await renderCheckoutPage();
 

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useMemo, useId, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStoreLocatorList } from '@/extensions/store-locator/hooks/use-store-locator-list';
@@ -31,10 +32,12 @@ import ListSkeleton from './list-skeleton';
  * @returns ReactElement
  */
 export default function StoreLocatorList(): ReactElement | null {
+    const entry = useConfig().features?.storeEntry;
     const { t } = useTranslation('extStoreLocator');
     const instanceId = useId(); // Generate unique ID for this component instance
     const {
         mode,
+        fulfillmentMode,
         searchParams,
         config,
         chooserStoreInfo,
@@ -45,10 +48,13 @@ export default function StoreLocatorList(): ReactElement | null {
         geoError,
         hasSearched,
         hasError,
+        searchError,
         isLoading,
         stores,
         storesPaginated,
         setPage,
+        eligibility,
+        retrySearch,
     } = useStoreLocatorList();
 
     const statusMessage = useMemo(() => {
@@ -81,17 +87,31 @@ export default function StoreLocatorList(): ReactElement | null {
         return renderMessage(t('storeLocator.list.geoError'), 'error');
     }
 
+    if (isLoading) {
+        return <ListSkeleton statusMessage={t('storeLocator.list.searching')} />;
+    }
+
     // Show fetch error if present
     if (hasError) {
-        return renderMessage(t('storeLocator.list.fetchError'), 'error');
+        return (
+            <div>
+                {renderMessage(
+                    t(
+                        searchError === 'INVALID_STORE_SEARCH'
+                            ? entry?.citySearchEnabled
+                                ? 'storeLocator.entry.invalidSearch'
+                                : 'storeLocator.entry.invalidPostalSearch'
+                            : 'storeLocator.list.fetchError'
+                    ),
+                    'error'
+                )}
+                <Button onClick={retrySearch}>{t('storeLocator.entry.retrySearch')}</Button>
+            </div>
+        );
     }
 
     if (!hasSearched) {
         return null;
-    }
-
-    if (isLoading) {
-        return <ListSkeleton statusMessage={statusMessage} />;
     }
 
     if (!stores.length) {
@@ -101,7 +121,7 @@ export default function StoreLocatorList(): ReactElement | null {
     return (
         <div className="mt-4" aria-busy={selectionPending}>
             {statusMessage && (
-                <div className="mb-4">
+                <div className="mb-4" role="status" aria-live="polite">
                     <Typography variant="large" as="div" className="flex justify-center items-center text-center">
                         {statusMessage}
                     </Typography>
@@ -111,7 +131,11 @@ export default function StoreLocatorList(): ReactElement | null {
             <RadioGroup
                 className="store-locator-square-radio-group"
                 name={`selectedStore-${instanceId}`}
-                value={(chooserStoreInfo === undefined ? selectedStoreInfo : chooserStoreInfo)?.id ?? ''}
+                value={
+                    !entry?.enabled || (chooserStoreInfo ?? selectedStoreInfo)?.fulfillmentMode === fulfillmentMode
+                        ? ((chooserStoreInfo === undefined ? selectedStoreInfo : chooserStoreInfo)?.id ?? '')
+                        : ''
+                }
                 aria-disabled={selectionBlocked || undefined}
                 onValueChange={(value: string) => {
                     if (selectionBlocked) return;
@@ -136,7 +160,7 @@ export default function StoreLocatorList(): ReactElement | null {
                                         }}
                                         className="store-locator-square-radio mt-1"
                                         aria-describedby={`store-info-${instanceId}-${s.id}`}
-                                        disabled={!s.inventoryId}
+                                        disabled={!s.inventoryId || (entry?.enabled && !eligibility?.[s.id]?.eligible)}
                                     />
                                     <div className="flex-1 min-w-0">
                                         <StoreDetails
@@ -148,6 +172,17 @@ export default function StoreLocatorList(): ReactElement | null {
                                             showEmail={true}
                                             id={`store-info-${instanceId}-${s.id}`}
                                         />
+                                        {eligibility?.[s.id]?.status && (
+                                            <p className="mt-2 break-words">{eligibility[s.id].status}</p>
+                                        )}
+                                        {Boolean(eligibility?.[s.id]?.services?.length) && (
+                                            <p className="mt-2 break-words">
+                                                {eligibility?.[s.id]?.services?.join(', ')}
+                                            </p>
+                                        )}
+                                        {entry?.enabled && !eligibility?.[s.id]?.eligible && (
+                                            <p>{t('storeLocator.entry.ineligible')}</p>
+                                        )}
                                     </div>
                                 </label>
                                 {idx < storesPaginated.length - 1 && <Separator className="my-3" />}

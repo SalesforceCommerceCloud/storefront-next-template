@@ -15,92 +15,103 @@
  */
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
 import { data } from 'react-router';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import type { Route } from './+types/resource.stores';
 import type { ShopperStores } from '@/scapi';
-import { extractResponseError } from '@/lib/utils';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getLogger } from '@/lib/logger.server';
 import type { StoreSearchResult } from '@/extensions/store-locator/stores/store-locator-store';
+import { isFulfillmentMode } from '@/extensions/store-locator/lib/store-entry';
+import { searchStoresByCity } from '@/extensions/store-locator/lib/store-entry-services.server';
+import { StoreSelectionError } from '@/extensions/store-locator/lib/store-selection-error';
 
-/**
- * Result of searchStores API
- * @property success - Whether the search was successful
- * @property stores - Result of searchStores API
- * @property error - Error message if the search was not successful
- */
 export type SearchStoresResult = StoreSearchResult;
 
-/**
- * Server-side loader to search for stores.
- * Handles store search requests with support for both location-based (device GPS)
- * and address-based (postal code) search modes.
- *
- * @param args - Loader function arguments containing request and context
- * @returns JSON response with store search results or error
- *
- * @example
- * // Location-based search (device mode)
- * GET /resource/stores?mode=device&latitude=37.7749&longitude=-122.4194&maxDistance=50&distanceUnit=km
- *
- * // Address-based search (input mode)
- * GET /resource/stores?mode=input&countryCode=US&postalCode=94102&maxDistance=50&distanceUnit=mi
- */
-// Resource route for store search API
+/** Read-only postcode/city/coordinate discovery. Provider failures never become no results. */
 export async function loader({
     request,
     context,
 }: Route.LoaderArgs): Promise<ReturnType<typeof data<SearchStoresResult>>> {
-    const logger = getLogger(context);
-    logger.debug('StoreSearch: loader starting');
+    const respond = (result: SearchStoresResult, status = 200) =>
+        data(result, { status, headers: { 'Cache-Control': 'private, no-store' } });
     try {
-        const url = new URL(request.url);
-        const mode = url.searchParams.get('mode') ?? 'input';
-        const countryCode = url.searchParams.get('countryCode') ?? undefined;
-        const postalCode = url.searchParams.get('postalCode') ?? undefined;
-        const latitude = url.searchParams.get('latitude');
-        const longitude = url.searchParams.get('longitude');
-        const maxDistance = url.searchParams.get('maxDistance');
-        const distanceUnit = url.searchParams.get('distanceUnit') ?? 'km';
-        const limit = url.searchParams.get('limit');
+        const params = new URL(request.url).searchParams;
+        const mode = params.get('mode') ?? 'input';
+        const countryCode = params.get('countryCode')?.trim();
+        const postalCode = params.get('postalCode')?.trim();
+        const city = params.get('city')?.trim();
+        const distanceUnit = params.get('distanceUnit') ?? 'km';
+        const maxDistance = Number(params.get('maxDistance') ?? 100);
+        const limit = Number(params.get('limit') ?? 200);
+        const latitude = params.has('latitude') ? Number(params.get('latitude')) : undefined;
+        const longitude = params.has('longitude') ? Number(params.get('longitude')) : undefined;
+        const entry = getConfig(context).features.storeEntry;
+        const fulfillmentMode = params.get('fulfillmentMode');
+        if (
+            !['input', 'device'].includes(mode) ||
+            !['mi', 'km'].includes(distanceUnit) ||
+            !Number.isFinite(maxDistance) ||
+            maxDistance <= 0 ||
+            maxDistance > 1000 ||
+            !Number.isInteger(limit) ||
+            limit < 1 ||
+            limit > 200 ||
+            (mode === 'input' &&
+                (!countryCode || !/^[A-Z]{2}$/.test(countryCode) || (!postalCode && !city) || (postalCode && city))) ||
+            (postalCode && postalCode.length > 40) ||
+            (city && city.length > 100) ||
+            (mode === 'device' && (city || postalCode)) ||
+            (mode === 'device' &&
+                (!params.get('latitude')?.trim() ||
+                    !params.get('longitude')?.trim() ||
+                    latitude === undefined ||
+                    longitude === undefined ||
+                    !Number.isFinite(latitude) ||
+                    !Number.isFinite(longitude) ||
+                    Math.abs(latitude) > 90 ||
+                    Math.abs(longitude) > 180)) ||
+            (entry?.enabled &&
+                (!isFulfillmentMode(fulfillmentMode) || !entry.fulfillmentModes.includes(fulfillmentMode)))
+        )
+            return respond({ success: false, error: 'INVALID_STORE_SEARCH' }, 400);
 
-        const clients = createApiClients(context);
-
-        const queryParams: Omit<ShopperStores.operations['searchStores']['parameters']['query'], 'siteId'> =
-            mode === 'device'
-                ? {
-                      latitude: latitude ? Number(latitude) : undefined,
-                      longitude: longitude ? Number(longitude) : undefined,
-                      maxDistance: maxDistance ? Number(maxDistance) : undefined,
-                      distanceUnit: distanceUnit as 'mi' | 'km',
-                      limit: limit ? Number(limit) : undefined,
-                  }
-                : {
-                      countryCode,
-                      postalCode,
-                      maxDistance: maxDistance ? Number(maxDistance) : undefined,
-                      distanceUnit: distanceUnit as 'mi' | 'km',
-                      limit: limit ? Number(limit) : undefined,
-                  };
-
-        const { data: stores } = await clients.shopperStores.searchStores({
-            params: {
-                query: queryParams,
-            },
-        });
-
-        return data({
-            success: true,
-            stores,
-        });
+        let stores: ShopperStores.schemas['StoreResult'];
+        if (city) {
+            if (!entry?.enabled || !entry.citySearchEnabled)
+                return respond({ success: false, error: 'CITY_SEARCH_DISABLED' }, 400);
+            stores = await searchStoresByCity(context, {
+                countryCode: countryCode ?? '',
+                city,
+                maxDistance,
+                distanceUnit: distanceUnit as 'mi' | 'km',
+                limit,
+            });
+            if (!stores || !Array.isArray(stores.data) || stores.data.length > limit) {
+                throw new StoreSelectionError('CITY_LOOKUP_UNAVAILABLE', 503);
+            }
+        } else {
+            const query: Omit<ShopperStores.operations['searchStores']['parameters']['query'], 'siteId'> = {
+                ...(mode === 'device' ? { latitude, longitude } : { countryCode, postalCode }),
+                maxDistance,
+                distanceUnit: distanceUnit as 'mi' | 'km',
+                limit,
+            };
+            ({ data: stores } = await createApiClients(context).shopperStores.searchStores({ params: { query } }));
+        }
+        if (!entry?.enabled) return respond({ success: true, stores });
+        const candidates = stores.data ?? [];
+        const eligibility: NonNullable<SearchStoresResult['eligibility']> = {};
+        // Match BOPIS: discovered stores with inventory mappings support the configured modes.
+        // Product/quantity availability is validated by the existing stock and basket paths.
+        for (const store of candidates) {
+            eligibility[store.id] = {
+                eligible: Boolean(store.inventoryId) && isFulfillmentMode(fulfillmentMode),
+            };
+        }
+        return respond({ success: true, stores, eligibility, fulfillmentMode: fulfillmentMode ?? undefined });
     } catch (error) {
-        logger.error('StoreSearch: search failed', { error });
-        const { responseMessage, status_code } = await extractResponseError(error as Error);
-        return data(
-            {
-                success: false,
-                error: responseMessage,
-            },
-            { status: Number(status_code) }
-        );
+        const code = error instanceof StoreSelectionError ? error.code : 'STORE_SEARCH_UNAVAILABLE';
+        getLogger(context).error('StoreSearch: search failed', { code });
+        return respond({ success: false, error: code }, 503);
     }
 }

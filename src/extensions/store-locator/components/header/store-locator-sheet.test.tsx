@@ -20,6 +20,9 @@ import { useState } from 'react';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();
+vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
+    useStoreLocatorApi: () => ({ getState: () => ({}), setState: vi.fn() }),
+}));
 
 // Mock the heavy StoreLocator to a simple placeholder
 vi.mock('@/extensions/store-locator/components/store-locator', () => ({

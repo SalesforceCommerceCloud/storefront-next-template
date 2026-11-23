@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import type { PendingAddIntent } from '@/extensions/store-locator/lib/pending-add';
+import type { FulfillmentMode, StoreEntryEligibility } from '@/extensions/store-locator/lib/store-entry';
+
 export type StoreLocatorConfig = {
     supportedCountries: Array<{ countryCode: string; countryName: string }>;
     radius: number;
@@ -30,9 +33,11 @@ export type GeoCoordinates = {
 export type FormSearchParams = {
     countryCode: string;
     postalCode: string;
+    searchType?: 'postalCode' | 'city';
 };
 
 export type SelectedStoreInfo = {
+    fulfillmentMode?: FulfillmentMode;
     id: string;
     name?: string;
     inventoryId?: string;
@@ -42,6 +47,8 @@ export type SelectedStoreInfo = {
 };
 
 export type StoreSearchResult = {
+    fulfillmentMode?: string;
+    eligibility?: Record<string, StoreEntryEligibility>;
     success: boolean;
     stores?: ShopperStores.schemas['StoreResult'];
     error?: string;
@@ -69,6 +76,16 @@ export type PickupContext = {
 };
 
 type StoreLocatorState = {
+    fulfillmentMode: FulfillmentMode | null;
+    returnFocusTarget: HTMLElement | null;
+    pendingAddLoad: { owner: string } | null;
+    pendingAdd: {
+        owner: string;
+        intent: PendingAddIntent;
+        resume: (intent: PendingAddIntent, selection: SelectedStoreInfo) => void;
+        /** Installed by the optional add module; the shared coordinator still owns confirmation. */
+        resumeAfterSelection: () => void;
+    } | null;
     identityScope?: string;
     selectionRevision: number;
     /** Revision window of the last confirmed write: reads captured while it was pending (`from`) end at `to`. */
@@ -95,6 +112,8 @@ type StoreLocatorState = {
 };
 
 type StoreLocatorActions = {
+    setFulfillmentMode: (mode: FulfillmentMode) => void;
+    cancelAdd: (owner: string) => void;
     open: (context?: PickupContext) => void;
     openChooser: (options?: StoreChooserOptions) => void;
     openSelectedStore: () => void;
@@ -144,6 +163,9 @@ const normalizeStoreInfo = (
         id: store.id,
         name: store.name || store.id,
         inventoryId: store.inventoryId,
+        ...('fulfillmentMode' in store && store.fulfillmentMode
+            ? { fulfillmentMode: store.fulfillmentMode as FulfillmentMode }
+            : {}),
         ...(store.postalCode ? { postalCode: store.postalCode } : {}),
         ...(store.countryCode ? { countryCode: store.countryCode } : {}),
         ...(typeof store.distance === 'number' ? { distance: store.distance } : {}),
@@ -172,6 +194,10 @@ export const createStoreLocatorStore = (init?: Partial<StoreLocatorState>): Stor
     const listeners = new Set<() => void>();
 
     const initialState: StoreLocatorState = {
+        fulfillmentMode: null,
+        returnFocusTarget: null,
+        pendingAdd: null,
+        pendingAddLoad: null,
         selectionRevision: 0,
         selectionSettlement: null,
         generation: 0,
@@ -197,10 +223,28 @@ export const createStoreLocatorStore = (init?: Partial<StoreLocatorState>): Stor
     };
 
     const actions: StoreLocatorActions = {
+        setFulfillmentMode: (fulfillmentMode) => {
+            if (state.selectionPending || state.selectionError === 'outcome_unknown') return;
+            store.setState({
+                fulfillmentMode,
+                shouldSearch: false,
+                searchParams: null,
+                searchResult: null,
+                geoError: false,
+                selectionError: null,
+            });
+        },
+        cancelAdd: (owner) => {
+            if (state.pendingAdd?.owner === owner) store.setState({ pendingAdd: null });
+            if (state.pendingAddLoad?.owner === owner) store.setState({ pendingAddLoad: null });
+        },
         open: (context) => store.getState().openChooser({ pickupContext: context }),
         openChooser: (options) =>
             store.setState((state) => ({
                 isOpen: true,
+                pendingAdd: null,
+                pendingAddLoad: null,
+                fulfillmentMode: state.selectedStoreInfo?.fulfillmentMode ?? state.fulfillmentMode,
                 pickupContext: options?.pickupContext ?? null,
                 session: state.session + 1,
                 selectionError: state.selectionError === 'outcome_unknown' ? state.selectionError : null,
@@ -240,6 +284,8 @@ export const createStoreLocatorStore = (init?: Partial<StoreLocatorState>): Stor
             if (session === undefined || session === store.getState().session)
                 store.setState({
                     isOpen: false,
+                    pendingAdd: null,
+                    pendingAddLoad: null,
                     pickupContext: null,
                     chooserOwner: null,
                     confirmedSelection: null,

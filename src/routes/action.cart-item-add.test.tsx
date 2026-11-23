@@ -20,6 +20,9 @@ import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { mockConfig } from '@/test-utils/config';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
+// @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+import { selectedStoreContext } from '@/extensions/store-locator/middlewares/selected-store.server';
+// @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
 vi.mock('@/middlewares/basket.server');
 
@@ -102,6 +105,41 @@ describe('action.cart-item-add', () => {
         expect(result.data.success).toBe(true);
         expect(mockClients.shopperBasketsV2.addItemToBasket).toHaveBeenCalledTimes(1);
     });
+
+    // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
+    test('uses ordinary shipping for committed delivery and ignores browser-submitted pickup metadata', async () => {
+        vi.mocked(getConfig).mockReturnValue({
+            ...mockConfig,
+            features: {
+                ...mockConfig.features,
+                storeEntry: { enabled: true, policy: 'soft', fulfillmentModes: ['pickup', 'delivery'] },
+            },
+        });
+        mockClients.shopperBasketsV2.addItemToBasket.mockResolvedValue({ data: updatedBasket });
+        const context = {
+            get: (key: unknown) =>
+                key === selectedStoreContext
+                    ? { id: 'store-A', inventoryId: 'inv-A', fulfillmentMode: 'delivery' }
+                    : null,
+        };
+        const optionItems = [{ optionId: 'wrap', optionValueId: 'yes' }];
+        const request = createFormDataRequest(`http://localhost${resourceRoutes.cartItemAdd}`, 'POST', {
+            productItem: JSON.stringify({
+                productId: 'variant-red-small',
+                quantity: 2,
+                optionItems,
+                storeId: 'store-B',
+                inventoryId: 'inv-B',
+            }),
+        });
+        const result = await action(createActionArgs(request, context as any, { pattern: resourceRoutes.cartItemAdd }));
+        expect(result.data.success).toBe(true);
+        expect(mockClients.shopperBasketsV2.addItemToBasket).toHaveBeenCalledExactlyOnceWith({
+            params: { path: { basketId: 'test-basket-123' } },
+            body: [{ productId: 'variant-red-small', quantity: 2, optionItems, shipmentId: 'me' }],
+        });
+    });
+    // @sfdc-extension-block-end SFDC_EXT_STORE_LOCATOR
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     test('rejects pickup item from a different store than existing pickup items (BOPIS)', async () => {

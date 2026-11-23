@@ -85,13 +85,13 @@ exports[`ChildProductCard stories snapshot > Playground story renders and matche
         class="space-y-3"
       >
         <div
-          aria-labelledby="swatch-group-label-_r_0_"
+          aria-labelledby="swatch-group-label-_r_2_"
           class="flex flex-col gap-3"
           role="radiogroup"
         >
           <div
             class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
-            id="swatch-group-label-_r_0_"
+            id="swatch-group-label-_r_2_"
           >
             <span>
               Color

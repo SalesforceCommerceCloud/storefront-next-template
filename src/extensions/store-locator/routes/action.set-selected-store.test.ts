@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
+import { mockConfig } from '@/test-utils/config';
 import { RouterContextProvider } from 'react-router';
 import { ApiError, AuthTokenInvalidError } from '@/scapi';
 import { action } from './action.set-selected-store';
@@ -64,6 +66,7 @@ describe('set-selected-store action', () => {
     beforeEach(() => {
         vi.resetAllMocks();
         context = new RouterContextProvider();
+        context.set(appConfigContext, mockConfig);
         vi.mocked(selectStore).mockResolvedValue({ success: true, selectedStoreInfo: { id: 'Store-1' } } as never);
         vi.mocked(resolveSelectedStore).mockResolvedValue({ selectedStoreInfo: { id: 'Store-1' } } as never);
         vi.mocked(getAuth).mockReturnValue({ userType: 'guest' } as never);
@@ -104,6 +107,23 @@ describe('set-selected-store action', () => {
         }
         expect(selectStore).not.toHaveBeenCalled();
         expect(resolveSelectedStore).not.toHaveBeenCalled();
+    });
+
+    test('passes fulfillment with the opaque ID and requires it only when entry is enabled', async () => {
+        context.set(appConfigContext, {
+            ...mockConfig,
+            features: {
+                ...mockConfig.features,
+                storeEntry: { enabled: true, fulfillmentModes: ['pickup', 'delivery'] },
+            },
+        });
+        const missing = await action(args(form({ intent: 'set', storeId: 'Store-1' })));
+        expect(missing.data).toMatchObject({ success: false, code: 'FULFILLMENT_MODE_REQUIRED' });
+        expect(selectStore).not.toHaveBeenCalled();
+        await action(args(form({ intent: 'set', storeId: 'Store-1', fulfillmentMode: 'delivery' })));
+        expect(selectStore).toHaveBeenCalledWith(context, { id: 'Store-1', fulfillmentMode: 'delivery' });
+        const invalid = await action(args(form({ intent: 'set', storeId: 'Store-1', fulfillmentMode: 'invalid' })));
+        expect(invalid.data).toMatchObject({ success: false, code: 'INVALID_FULFILLMENT_MODE' });
     });
 
     test('accepts a same-origin Referer fallback', async () => {
@@ -255,7 +275,9 @@ describe('set-selected-store action', () => {
 });
 
 test('does not expose private context or write the profile after registered selection', async () => {
+    vi.resetAllMocks();
     const context = new RouterContextProvider();
+    context.set(appConfigContext, mockConfig);
     vi.mocked(getAuth).mockReturnValue({ userType: 'registered' } as never);
     vi.mocked(selectStore).mockResolvedValue({
         success: true,
