@@ -18,4 +18,4 @@ export type * from './types';
 
 export { createEvent, sendViewPageEvent } from './events';
 
-export { getEventMediator, resetEventMediator } from './mediator';
+export { getEventMediator, getConsentAwareEventMediator, resetEventMediator } from './mediator';

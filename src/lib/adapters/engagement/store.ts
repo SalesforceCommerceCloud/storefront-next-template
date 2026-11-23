@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { EngagementAdapter } from './types';
+import { getConsentAwareEventMediator } from '@salesforce/storefront-next-runtime/events';
 
 // Global engagement adapter store
 // The main purpose of this store is to store the instances of adapters that were created
@@ -24,6 +25,7 @@ const engagementAdapterStore = new Map<string, EngagementAdapter>();
  */
 export function addAdapter(name: string, adapter: EngagementAdapter): void {
     engagementAdapterStore.set(name, adapter);
+    getConsentAwareEventMediator(getAllAdapters)?.syncAdapterConsent(adapter);
 }
 
 /**

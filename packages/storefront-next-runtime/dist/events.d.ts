@@ -226,6 +226,14 @@ type ConsentPreferences = ConsentCategory[];
  */
 interface EventAdapter {
   name: string;
+  /**
+   * Receive effective consent independently of event delivery. Undefined means unknown;
+   * an empty array means declined. Neither permits tracking.
+   * Update local consent synchronously. Deferred SDK work must recheck current consent
+   * before granting or tracking; notification does not wait for returned promises.
+   * This callback must not load an SDK or replay previously suppressed events.
+   */
+  onConsentChange?: (preferences: ConsentPreferences | undefined) => void | Promise<void>;
   sendEvent?: (event: AnalyticsEvent, siteInfo?: EventSiteInfo, consentPreferences?: ConsentPreferences) => Promise<unknown>;
 }
 /**
@@ -234,6 +242,13 @@ interface EventAdapter {
  */
 type EventMediator = {
   track: (event: AnalyticsEvent, siteInfo?: EventSiteInfo, consentPreferences?: ConsentPreferences) => void;
+};
+/** The built-in client mediator also synchronizes consent independently of events. */
+type ConsentAwareEventMediator = EventMediator & {
+  /** Publish effective consent without dispatching events or initializing adapters. */
+  notifyConsentChange: (preferences: ConsentPreferences | undefined) => void;
+  /** Deliver the latest published consent to a newly registered adapter. */
+  syncAdapterConsent: (adapter: EventAdapter) => void;
 };
 //#endregion
 //#region src/events/events.d.ts
@@ -267,10 +282,16 @@ declare function sendViewPageEvent(event: ViewPageEvent, eventMediator: EventMed
 /**
  * Get the event mediator singleton instance
  *
- * Returns the singleton EventMediator instance, creating it if it doesn't exist.
+ * Returns the singleton ConsentAwareEventMediator instance, creating it if it doesn't exist.
  *
  * @param getAdapters - Function that returns the current array of engagement adapters.
- * @returns EventMediator instance (singleton) or undefined if not on client side
+ * @returns ConsentAwareEventMediator instance (singleton) or undefined if not on client side
+ */
+declare function getConsentAwareEventMediator(getAdapters: () => EventAdapter[]): ConsentAwareEventMediator | undefined;
+/**
+ * Get the built-in singleton through the original track-only contract.
+ *
+ * @param getAdapters - Function returning the currently registered adapters
  */
 declare function getEventMediator(getAdapters: () => EventAdapter[]): EventMediator | undefined;
 /**
@@ -280,5 +301,5 @@ declare function getEventMediator(getAdapters: () => EventAdapter[]): EventMedia
  */
 declare function resetEventMediator(): void;
 //#endregion
-export { AnalyticsEvent, AnalyticsEventExtensions, AnalyticsPayload, AnalyticsUser, BaseEvent, CartItemAddEvent, CheckoutStartEvent, CheckoutStepEvent, ClickProductInCategoryEvent, ClickProductInRecommenderEvent, ClickProductInSearchEvent, ClickSearchSuggestionEvent, ConsentCategory, ConsentPreferences, EventAdapter, EventMediator, EventPayload, EventSiteInfo, EventTypeMap, PayloadTbd, ViewCategoryEvent, ViewPageEvent, ViewProductEvent, ViewRecommenderEvent, ViewSearchEvent, ViewSearchSuggestionEvent, WishlistItemAddedEvent, WishlistItemMergedEvent, WishlistItemRemovedEvent, WishlistMergedEvent, WishlistViewedEvent, createEvent, getEventMediator, resetEventMediator, sendViewPageEvent };
+export { AnalyticsEvent, AnalyticsEventExtensions, AnalyticsPayload, AnalyticsUser, BaseEvent, CartItemAddEvent, CheckoutStartEvent, CheckoutStepEvent, ClickProductInCategoryEvent, ClickProductInRecommenderEvent, ClickProductInSearchEvent, ClickSearchSuggestionEvent, ConsentAwareEventMediator, ConsentCategory, ConsentPreferences, EventAdapter, EventMediator, EventPayload, EventSiteInfo, EventTypeMap, PayloadTbd, ViewCategoryEvent, ViewPageEvent, ViewProductEvent, ViewRecommenderEvent, ViewSearchEvent, ViewSearchSuggestionEvent, WishlistItemAddedEvent, WishlistItemMergedEvent, WishlistItemRemovedEvent, WishlistMergedEvent, WishlistViewedEvent, createEvent, getConsentAwareEventMediator, getEventMediator, resetEventMediator, sendViewPageEvent };
 //# sourceMappingURL=events.d.ts.map

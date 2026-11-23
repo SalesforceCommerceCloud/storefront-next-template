@@ -14,28 +14,83 @@
  * limitations under the License.
  */
 
-import type { EventMediator, AnalyticsEvent, EventAdapter, EventSiteInfo, ConsentPreferences } from './types';
+import type {
+    ConsentAwareEventMediator,
+    EventMediator,
+    AnalyticsEvent,
+    EventAdapter,
+    EventSiteInfo,
+    ConsentPreferences,
+} from './types';
 
 // Module-level storage for the event mediator singleton
 // This ensures a single mediator instance across all usages
-let mediatorInstance: EventMediator | undefined;
+let mediatorInstance: ConsentAwareEventMediator | undefined;
 
 /**
  * Create an event mediator instance
  *
- * Creates a new EventMediator that processes events through the provided adapters.
+ * Creates a new ConsentAwareEventMediator that processes events through the provided adapters.
  * The mediator uses the getAdapters function on each track() invocation to ensure
  * it always uses the latest adapters from the adapter registry.
  *
  * @param getAdapters - Function that returns the current array of engagement adapters.
  *                      This function is called on each track() invocation to ensure
  *                      the mediator always uses the latest adapters from the adapter registry.
- * @returns EventMediator instance
+ * @returns ConsentAwareEventMediator instance
  */
-function createEventMediator(getAdapters: () => EventAdapter[]): EventMediator {
+function createEventMediator(getAdapters: () => EventAdapter[]): ConsentAwareEventMediator {
+    let preferences: ConsentPreferences | undefined;
+    let consentKey: string | undefined;
+    let revision = 0;
+    const deliveredRevisions = new WeakMap<EventAdapter, number>();
+
+    const syncAdapterConsent = (adapter: EventAdapter): void => {
+        if (revision === 0 || deliveredRevisions.get(adapter) === revision || !adapter.onConsentChange) {
+            return;
+        }
+        // Mark before calling customer code so reentrant synchronization is safe.
+        deliveredRevisions.set(adapter, revision);
+        try {
+            Promise.resolve(adapter.onConsentChange(preferences?.slice())).catch((error) => {
+                // oxlint-disable-next-line no-console
+                console.error(`Failed to notify consent change to ${adapter.name}:`, error);
+            });
+        } catch (error) {
+            // oxlint-disable-next-line no-console
+            console.error(`Failed to notify consent change to ${adapter.name}:`, error);
+        }
+    };
+
     return {
+        notifyConsentChange: (nextPreferences) => {
+            const nextKey = JSON.stringify(nextPreferences === undefined ? null : [...new Set(nextPreferences)].sort());
+            if (nextKey !== consentKey) {
+                consentKey = nextKey;
+                preferences = nextPreferences?.slice();
+                revision++;
+            }
+            // Also synchronize new instances when the category set is unchanged.
+            for (const adapter of getAdapters()) {
+                if (getAdapters().includes(adapter)) {
+                    syncAdapterConsent(adapter);
+                }
+            }
+        },
+        syncAdapterConsent,
         track: (event: AnalyticsEvent, siteInfo?: EventSiteInfo, consentPreferences?: ConsentPreferences) => {
-            processEventWithAdapters(event, getAdapters, siteInfo, consentPreferences).catch((error) => {
+            processEventWithAdapters(event, getAdapters, syncAdapterConsent, siteInfo, () => {
+                // Resolve immediately before each send, including after customer callbacks.
+                // Published consent can narrow captured event permissions, never widen them.
+                const preferencesForEvent =
+                    revision === 0
+                        ? consentPreferences
+                        : consentPreferences?.filter((category) => preferences?.includes(category));
+                return {
+                    allowed: revision === 0 || Boolean(preferencesForEvent?.length),
+                    preferences: preferencesForEvent,
+                };
+            }).catch((error) => {
                 // oxlint-disable-next-line no-console
                 console.error('Analytics tracking failed:', error);
             });
@@ -46,25 +101,34 @@ function createEventMediator(getAdapters: () => EventAdapter[]): EventMediator {
 /**
  * Get the event mediator singleton instance
  *
- * Returns the singleton EventMediator instance, creating it if it doesn't exist.
+ * Returns the singleton ConsentAwareEventMediator instance, creating it if it doesn't exist.
  *
  * @param getAdapters - Function that returns the current array of engagement adapters.
- * @returns EventMediator instance (singleton) or undefined if not on client side
+ * @returns ConsentAwareEventMediator instance (singleton) or undefined if not on client side
  */
-export function getEventMediator(getAdapters: () => EventAdapter[]): EventMediator | undefined {
+export function getConsentAwareEventMediator(getAdapters: () => EventAdapter[]): ConsentAwareEventMediator | undefined {
+    // Never expose browser consent state to server rendering.
+    if (typeof window === 'undefined') {
+        return undefined;
+    }
+
     // If mediator already exists, return it
     if (mediatorInstance) {
         return mediatorInstance;
     }
 
-    // Only create on client side
-    if (typeof window === 'undefined') {
-        return undefined;
-    }
-
     // Create the event mediator singleton
     mediatorInstance = createEventMediator(getAdapters);
     return mediatorInstance;
+}
+
+/**
+ * Get the built-in singleton through the original track-only contract.
+ *
+ * @param getAdapters - Function returning the currently registered adapters
+ */
+export function getEventMediator(getAdapters: () => EventAdapter[]): EventMediator | undefined {
+    return getConsentAwareEventMediator(getAdapters);
 }
 
 /**
@@ -85,8 +149,9 @@ export function resetEventMediator(): void {
 async function processEventWithAdapters(
     event: AnalyticsEvent,
     getAdapters: () => EventAdapter[],
-    siteInfo?: EventSiteInfo,
-    consentPreferences?: ConsentPreferences
+    syncAdapterConsent: (adapter: EventAdapter) => void,
+    siteInfo: EventSiteInfo | undefined,
+    resolveConsent: () => { allowed: boolean; preferences: ConsentPreferences | undefined }
 ): Promise<void> {
     // Get the current array of event adapters
     const eventAdapters = getAdapters();
@@ -99,9 +164,14 @@ async function processEventWithAdapters(
     // Send event to all registered adapters that implement sendEvent in parallel
     const promises = eventAdapters.map(async (adapter) => {
         try {
+            syncAdapterConsent(adapter);
+            const consent = resolveConsent();
+            if (!consent.allowed) {
+                return;
+            }
             if (typeof adapter.sendEvent === 'function') {
-                await adapter.sendEvent(event, siteInfo, consentPreferences);
-            } else {
+                await adapter.sendEvent(event, siteInfo, consent.preferences);
+            } else if (!adapter.onConsentChange) {
                 // oxlint-disable-next-line no-console
                 console.warn(`Adapter ${adapter.name} does not implement sendEvent`);
             }

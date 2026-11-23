@@ -38,35 +38,76 @@ let mediatorInstance;
 /**
 * Create an event mediator instance
 *
-* Creates a new EventMediator that processes events through the provided adapters.
+* Creates a new ConsentAwareEventMediator that processes events through the provided adapters.
 * The mediator uses the getAdapters function on each track() invocation to ensure
 * it always uses the latest adapters from the adapter registry.
 *
 * @param getAdapters - Function that returns the current array of engagement adapters.
 *                      This function is called on each track() invocation to ensure
 *                      the mediator always uses the latest adapters from the adapter registry.
-* @returns EventMediator instance
+* @returns ConsentAwareEventMediator instance
 */
 function createEventMediator(getAdapters) {
-	return { track: (event, siteInfo, consentPreferences) => {
-		processEventWithAdapters(event, getAdapters, siteInfo, consentPreferences).catch((error) => {
-			console.error("Analytics tracking failed:", error);
-		});
-	} };
+	let preferences;
+	let consentKey;
+	let revision = 0;
+	const deliveredRevisions = /* @__PURE__ */ new WeakMap();
+	const syncAdapterConsent = (adapter) => {
+		if (revision === 0 || deliveredRevisions.get(adapter) === revision || !adapter.onConsentChange) return;
+		deliveredRevisions.set(adapter, revision);
+		try {
+			Promise.resolve(adapter.onConsentChange(preferences?.slice())).catch((error) => {
+				console.error(`Failed to notify consent change to ${adapter.name}:`, error);
+			});
+		} catch (error) {
+			console.error(`Failed to notify consent change to ${adapter.name}:`, error);
+		}
+	};
+	return {
+		notifyConsentChange: (nextPreferences) => {
+			const nextKey = JSON.stringify(nextPreferences === void 0 ? null : [...new Set(nextPreferences)].sort());
+			if (nextKey !== consentKey) {
+				consentKey = nextKey;
+				preferences = nextPreferences?.slice();
+				revision++;
+			}
+			for (const adapter of getAdapters()) if (getAdapters().includes(adapter)) syncAdapterConsent(adapter);
+		},
+		syncAdapterConsent,
+		track: (event, siteInfo, consentPreferences) => {
+			processEventWithAdapters(event, getAdapters, syncAdapterConsent, siteInfo, () => {
+				const preferencesForEvent = revision === 0 ? consentPreferences : consentPreferences?.filter((category) => preferences?.includes(category));
+				return {
+					allowed: revision === 0 || Boolean(preferencesForEvent?.length),
+					preferences: preferencesForEvent
+				};
+			}).catch((error) => {
+				console.error("Analytics tracking failed:", error);
+			});
+		}
+	};
 }
 /**
 * Get the event mediator singleton instance
 *
-* Returns the singleton EventMediator instance, creating it if it doesn't exist.
+* Returns the singleton ConsentAwareEventMediator instance, creating it if it doesn't exist.
 *
 * @param getAdapters - Function that returns the current array of engagement adapters.
-* @returns EventMediator instance (singleton) or undefined if not on client side
+* @returns ConsentAwareEventMediator instance (singleton) or undefined if not on client side
 */
-function getEventMediator(getAdapters) {
-	if (mediatorInstance) return mediatorInstance;
+function getConsentAwareEventMediator(getAdapters) {
 	if (typeof window === "undefined") return;
+	if (mediatorInstance) return mediatorInstance;
 	mediatorInstance = createEventMediator(getAdapters);
 	return mediatorInstance;
+}
+/**
+* Get the built-in singleton through the original track-only contract.
+*
+* @param getAdapters - Function returning the currently registered adapters
+*/
+function getEventMediator(getAdapters) {
+	return getConsentAwareEventMediator(getAdapters);
 }
 /**
 * Reset the event mediator singleton (for testing only)
@@ -82,7 +123,7 @@ function resetEventMediator() {
 * @param event - The analytics event to process
 * @param getAdapters - Function that returns the current array of event adapters
 */
-async function processEventWithAdapters(event, getAdapters, siteInfo, consentPreferences) {
+async function processEventWithAdapters(event, getAdapters, syncAdapterConsent, siteInfo, resolveConsent) {
 	const eventAdapters = getAdapters();
 	if (eventAdapters.length === 0) {
 		console.warn(`There are no active adapters to send the event to`);
@@ -90,8 +131,11 @@ async function processEventWithAdapters(event, getAdapters, siteInfo, consentPre
 	}
 	const promises = eventAdapters.map(async (adapter) => {
 		try {
-			if (typeof adapter.sendEvent === "function") await adapter.sendEvent(event, siteInfo, consentPreferences);
-			else console.warn(`Adapter ${adapter.name} does not implement sendEvent`);
+			syncAdapterConsent(adapter);
+			const consent = resolveConsent();
+			if (!consent.allowed) return;
+			if (typeof adapter.sendEvent === "function") await adapter.sendEvent(event, siteInfo, consent.preferences);
+			else if (!adapter.onConsentChange) console.warn(`Adapter ${adapter.name} does not implement sendEvent`);
 		} catch (error) {
 			console.error(`Failed to send event to ${adapter.name}:`, error);
 		}
@@ -100,5 +144,5 @@ async function processEventWithAdapters(event, getAdapters, siteInfo, consentPre
 }
 
 //#endregion
-export { createEvent, getEventMediator, resetEventMediator, sendViewPageEvent };
+export { createEvent, getConsentAwareEventMediator, getEventMediator, resetEventMediator, sendViewPageEvent };
 //# sourceMappingURL=events.js.map

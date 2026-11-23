@@ -70,6 +70,26 @@ export interface EngagementAdapter extends EventAdapter {
 }
 ```
 
+### Consent changes
+
+Adapters can optionally implement `onConsentChange`, inherited from the runtime `EventAdapter` contract:
+
+```typescript
+onConsentChange?: (preferences: ConsentPreferences | undefined) => void | Promise<void>;
+```
+
+`EngagementConsentObserver` publishes effective consent independently of event delivery. `undefined` means consent is unknown; `[]` means all tracking was declined. Both prohibit tracking. When consent controls are disabled, the observer uses the configured consent categories through the existing policy. Trusted-agent sessions always publish empty preferences to revoke any previously loaded SDKs.
+
+The observer and adapter store use `getConsentAwareEventMediator` from `@salesforce/storefront-next-runtime/events` to publish consent and synchronize registration. `getEventMediator` retains its original track-only return type; both getters return the same client singleton. When upgrading an existing template, port the observer and registration synchronization to activate these notifications and current-consent filtering.
+
+Consent changes are published after the existing server action and session revalidation update auth state. Optimistic withdrawal before acknowledgment, including handling a failed persistence request, is a separate follow-up.
+
+New or replacement adapters receive the latest published state when registered with `addAdapter`. Existing instances receive subsequent changes, including withdrawal with no event or navigation. Equivalent category sets are deduplicated. Removing an adapter stops future notifications; it does not unload an already loaded vendor SDK.
+
+Record current consent synchronously in the callback and update any already loaded SDK. Do not load an SDK or replay suppressed events from this callback. If SDK loading or other work is asynchronous, check current consent again before granting or sending: a pending load must not restore a withdrawn grant. Callbacks are invoked without waiting for their returned promises, so a pending grant cannot block notification of withdrawal. Callback errors are logged and isolated from other adapters.
+
+Keep per-event `hasConsent` checks. Notifications do not replace event consent filtering or authorize events. Once consent has been published, the mediator also limits event preferences to the currently granted categories, suppressing stale in-flight events after withdrawal. Adapters that only send explicit, consent-gated requests can omit the callback.
+
 ### Adapter Store
 
 A `Map<string, EngagementAdapter>` with functional accessors:

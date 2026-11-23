@@ -124,6 +124,7 @@ import { applyAttribution, useAttribution } from '@/hooks/use-attribution';
 import type { PublicSessionData } from '@/lib/api/types';
 import { useCurrency } from '@/lib/currency/use-currency';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import { EngagementConsentObserver } from '@/analytics/engagement-consent-observer';
 import { PageViewTracker } from '@/analytics/page-view-tracker';
 import { buildSeoMetaDescriptors } from '@/utils/seo';
 
@@ -930,6 +931,7 @@ export default function App({
 
     const innerTree = (
         <UITargetProviders>
+            {typeof window !== 'undefined' && <EngagementConsentObserver />}
             <TrustedAgentBanner />
             {(appConfig.features.trustedAgent?.enabled || clientAuth?.authContextVersion) && (
                 <AuthFailureObserver version={clientAuth?.authContextVersion} />

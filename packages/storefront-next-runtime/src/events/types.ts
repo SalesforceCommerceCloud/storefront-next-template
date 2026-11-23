@@ -309,6 +309,14 @@ export type ConsentPreferences = ConsentCategory[];
  */
 export interface EventAdapter {
     name: string;
+    /**
+     * Receive effective consent independently of event delivery. Undefined means unknown;
+     * an empty array means declined. Neither permits tracking.
+     * Update local consent synchronously. Deferred SDK work must recheck current consent
+     * before granting or tracking; notification does not wait for returned promises.
+     * This callback must not load an SDK or replay previously suppressed events.
+     */
+    onConsentChange?: (preferences: ConsentPreferences | undefined) => void | Promise<void>;
     sendEvent?: (
         event: AnalyticsEvent,
         siteInfo?: EventSiteInfo,
@@ -322,4 +330,12 @@ export interface EventAdapter {
  */
 export type EventMediator = {
     track: (event: AnalyticsEvent, siteInfo?: EventSiteInfo, consentPreferences?: ConsentPreferences) => void;
+};
+
+/** The built-in client mediator also synchronizes consent independently of events. */
+export type ConsentAwareEventMediator = EventMediator & {
+    /** Publish effective consent without dispatching events or initializing adapters. */
+    notifyConsentChange: (preferences: ConsentPreferences | undefined) => void;
+    /** Deliver the latest published consent to a newly registered adapter. */
+    syncAdapterConsent: (adapter: EventAdapter) => void;
 };

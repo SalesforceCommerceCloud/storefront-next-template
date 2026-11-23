@@ -15,6 +15,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
+import { createEvent, getEventMediator, sendViewPageEvent } from '@salesforce/storefront-next-runtime/events';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { resolvePrefix, useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { useAuth } from '@/providers/auth';
@@ -30,8 +31,8 @@ const logger = createLogger();
 /**
  * Component that tracks page view events asynchronously
  *
- * This component lazy loads analytics dependencies and tracks page views on location changes.
- * All tracking work is async and non-blocking, so it doesn't impact page load performance.
+ * Lazy-loads adapter implementations and tracks page views on location changes.
+ * Event helpers are shared with the application consent infrastructure.
  *
  * Note: This is a non-visual component (returns null) and is located in lib/analytics
  * rather than components/ to avoid Storybook coverage issues.
@@ -99,11 +100,6 @@ export function PageViewTracker() {
             try {
                 // Ensure adapters are initialized before getting mediator so we have adapters to track the event
                 await ensureAdaptersInitialized(config);
-
-                // Dynamically import event creation functions - these are not in the initial bundle
-                const { createEvent, getEventMediator, sendViewPageEvent } = await import(
-                    '@salesforce/storefront-next-runtime/events'
-                );
 
                 const mediator = getEventMediator(getAllAdapters);
                 if (!mediator) {
