@@ -18,6 +18,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { maxWidthBelowQuery, minWidthQuery } from '@/lib/theme/breakpoints';
 import { HeroCarouselPlain, type HeroSlide } from './index';
 
 const renderInRouter = (element: React.ReactElement) => {
@@ -56,6 +57,9 @@ const mockSlides: HeroSlide[] = [
         ctaLink: '/category/accessories',
     },
 ];
+
+const DESKTOP_MEDIA = minWidthQuery('md');
+const MOBILE_MEDIA = maxWidthBelowQuery('md');
 
 describe('HeroCarousel', () => {
     beforeEach(() => {
@@ -161,5 +165,91 @@ describe('HeroCarousel', () => {
 
         // Button should be keyboard focusable
         expect(pauseButton).not.toHaveAttribute('tabIndex', '-1');
+    });
+});
+
+describe('HeroCarousel mobile image rendition', () => {
+    const slidesWithMobile: HeroSlide[] = [
+        { ...mockSlides[0], mobileImageUrl: '/images/hero-01-mobile.webp' },
+        mockSlides[1],
+    ];
+
+    test('serves the mobile rendition below md and the desktop image otherwise', () => {
+        const { container } = renderInRouter(<HeroCarouselPlain slides={slidesWithMobile} />);
+
+        const source = container.querySelector('picture source');
+        expect(source).toHaveAttribute('media', MOBILE_MEDIA);
+        expect(source).toHaveAttribute('srcset', '/images/hero-01-mobile.webp');
+        expect(container.querySelector('picture img')).toHaveAttribute('src', '/images/hero-01.webp');
+    });
+
+    test('keeps slides without a mobile rendition on the single-image path', () => {
+        const { container } = renderInRouter(<HeroCarouselPlain slides={slidesWithMobile} />);
+
+        expect(container.querySelectorAll(`picture source[media="${MOBILE_MEDIA}"]`)).toHaveLength(1);
+        expect(container.querySelector('img[src="/images/hero-02.webp"]')).toBeInTheDocument();
+    });
+
+    test('a carousel-level image replaces the slide image on every viewport, dropping the mobile rendition', () => {
+        const { container } = renderInRouter(
+            <HeroCarouselPlain slides={slidesWithMobile} image={{ url: '/images/override.webp' } as never} />
+        );
+
+        expect(container.querySelector('picture')).not.toBeInTheDocument();
+        expect(container.querySelector('img[src="/images/override.webp"]')).toBeInTheDocument();
+        expect(container.querySelector('[srcset="/images/hero-01-mobile.webp"]')).not.toBeInTheDocument();
+    });
+
+    test('loads only the first slide eagerly', () => {
+        const slides = slidesWithMobile.map((slide) => ({ ...slide, mobileImageUrl: '/images/m.webp' }));
+        const { container } = renderInRouter(<HeroCarouselPlain slides={slides} />);
+
+        const images = container.querySelectorAll('picture img');
+        expect(images[0]).toHaveAttribute('loading', 'eager');
+        expect(images[1]).toHaveAttribute('loading', 'lazy');
+    });
+});
+
+describe('HeroCarousel art-directed renditions across image kinds', () => {
+    const disUrl = (name: string) =>
+        `https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw4cd0a798/images/large/${name}.jpg`;
+    const renderSlide = (imageUrl: string, mobileImageUrl: string) =>
+        renderInRouter(<HeroCarouselPlain slides={[{ ...mockSlides[0], imageUrl, mobileImageUrl }]} />);
+
+    test('bundled desktop and mobile: one source per rendition, each scoped to its own range', () => {
+        const { container } = renderSlide('/images/hero-01.webp', '/images/hero-01-mobile.webp');
+
+        const sources = [...container.querySelectorAll('picture source')];
+        expect(sources.map((source) => [source.getAttribute('srcset'), source.getAttribute('media')])).toEqual([
+            ['/images/hero-01-mobile.webp', MOBILE_MEDIA],
+            ['/images/hero-01.webp', DESKTOP_MEDIA],
+        ]);
+        expect(container.querySelector('picture img')).toHaveAttribute('src', '/images/hero-01.webp');
+    });
+
+    test('DIS desktop and mobile: each rendition keeps its own sources, scoped to its range', () => {
+        const { container } = renderSlide(disUrl('desktop'), disUrl('mobile'));
+
+        const sources = [...container.querySelectorAll('picture source')];
+        const mobile = sources.filter((source) => source.getAttribute('srcset')?.includes('mobile'));
+        const desktop = sources.filter((source) => source.getAttribute('srcset')?.includes('desktop'));
+
+        expect(mobile.length).toBeGreaterThan(0);
+        expect(mobile.every((source) => source.getAttribute('media')?.endsWith(MOBILE_MEDIA))).toBe(true);
+        expect(desktop.length).toBeGreaterThan(1);
+        expect(desktop.every((source) => source.getAttribute('media')?.endsWith(DESKTOP_MEDIA))).toBe(true);
+        expect(desktop.some((source) => source.getAttribute('srcset')?.includes('1536w'))).toBe(true);
+        expect(sources).toHaveLength(mobile.length + desktop.length);
+    });
+
+    test('DIS desktop and bundled mobile: renditions resolve independently', () => {
+        const { container } = renderSlide(disUrl('desktop'), '/images/hero-01-mobile.webp');
+
+        const mobile = container.querySelectorAll(`picture source[media="${MOBILE_MEDIA}"]`);
+        expect(mobile).toHaveLength(1);
+        expect(mobile[0]).toHaveAttribute('srcset', '/images/hero-01-mobile.webp');
+        const desktop = container.querySelectorAll(`picture source[media="${DESKTOP_MEDIA}"]`);
+        expect(desktop.length).toBeGreaterThan(0);
+        expect([...desktop].every((source) => source.getAttribute('srcset')?.includes('/dw/image/v2/'))).toBe(true);
     });
 });

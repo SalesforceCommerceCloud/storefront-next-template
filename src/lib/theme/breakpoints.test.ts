@@ -58,6 +58,30 @@ describe('theme breakpoints', () => {
 
         expect(() => minWidthQuery('toString')).toThrow(/--breakpoint-toString/);
     });
+
+    it('builds a max-width query that stops just below the breakpoint, so it never overlaps a min-width query', async () => {
+        vi.doMock('virtual:storefront-next/theme-breakpoints', () => ({
+            default: { sm: '640px', md: '48rem', tablet: '40em' },
+        }));
+        const { maxWidthBelowQuery } = await import('./breakpoints');
+
+        expect(maxWidthBelowQuery('sm')).toBe('(max-width: 639.98px)');
+        expect(maxWidthBelowQuery('md')).toBe('(max-width: 47.99875rem)');
+        expect(maxWidthBelowQuery('tablet')).toBe('(max-width: 39.99875em)');
+        expect(() => maxWidthBelowQuery('lg')).toThrow(/--breakpoint-lg/);
+    });
+
+    it('reports a breakpoint width in px, treating rem and em as 16px', async () => {
+        vi.doMock('virtual:storefront-next/theme-breakpoints', () => ({
+            default: { sm: '640px', md: '48rem', tablet: '40em' },
+        }));
+        const { breakpointWidthPx } = await import('./breakpoints');
+
+        expect(breakpointWidthPx('sm')).toBe(640);
+        expect(breakpointWidthPx('md')).toBe(768);
+        expect(breakpointWidthPx('tablet')).toBe(640);
+        expect(() => breakpointWidthPx('lg')).toThrow(/--breakpoint-lg/);
+    });
 });
 
 describe('warnUnknownBreakpoints', () => {

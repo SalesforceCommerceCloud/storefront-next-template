@@ -109,6 +109,11 @@ export interface HeroSlide {
     title: string;
     subtitle?: string;
     imageUrl: string;
+    /**
+     * Separate rendition of `imageUrl` for viewports below the `md` breakpoint, for art direction or to avoid
+     * shipping a large bundled image to phones. Served below the `md` breakpoint, with `imageUrl` from `md` up.
+     */
+    mobileImageUrl?: string;
     imageAlt?: string;
     ctaText?: string;
     ctaLink?: string;
@@ -335,7 +340,9 @@ export function HeroCarouselPlain({
                                   aria-hidden={index !== currentSlide}
                                   inert={index !== currentSlide ? true : undefined}>
                                   <HeroSlideContent
-                                      slide={image ? { ...slide, imageUrl: image.url } : slide}
+                                      slide={
+                                          image ? { ...slide, imageUrl: image.url, mobileImageUrl: undefined } : slide
+                                      }
                                       priority={index === 0}
                                   />
                               </CarouselItem>
@@ -566,7 +573,11 @@ const HeroSlideContent = React.memo(({ slide, priority }: { slide: HeroSlide; pr
     return (
         <div className="relative w-full h-full overflow-hidden">
             <DynamicImage
-                src={slide.imageUrl}
+                src={
+                    slide.mobileImageUrl
+                        ? [{ src: slide.mobileImageUrl }, { src: slide.imageUrl, breakpoint: 'md' }]
+                        : slide.imageUrl
+                }
                 alt={slide.imageAlt || slide.title || 'Hero Carousel'}
                 widths={HERO_IMAGE_WIDTHS}
                 // One full-width slide is visible per view (CarouselItem is basis-full), so slide 0 is what

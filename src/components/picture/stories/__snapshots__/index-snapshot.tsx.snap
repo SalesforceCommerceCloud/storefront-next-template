@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Picture stories snapshot > ArtDirected story renders and matches snapshot 1`] = `
+<picture>
+  <source
+    media="not all and (min-width: 768px)"
+    srcset="https://via.placeholder.com/400x300"
+  />
+  <source
+    media="(min-width: 768px)"
+    srcset="https://via.placeholder.com/800x300"
+  />
+  <img
+    alt="Art directed placeholder"
+    src="https://via.placeholder.com/800x300"
+  />
+</picture>
+`;
+
+exports[`Picture stories snapshot > WithoutSources story renders and matches snapshot 1`] = `
+<img
+  alt="Bare placeholder"
+  src="https://via.placeholder.com/400x300"
+/>
+`;

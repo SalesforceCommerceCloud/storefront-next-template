@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 import { type ElementType, type ImgHTMLAttributes, useMemo } from 'react';
-import { preload } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { cn, isServer, resolveAssetUrl } from '@/lib/utils';
+import { cn, resolveAssetUrl } from '@/lib/utils';
 import {
     type DynamicImageDimensions,
     replaceImageFormat,
     resolveDynamicImageAttributes,
 } from '@/lib/images/dynamic-image';
 import { useDynamicImageContext } from '@/providers/dynamic-image';
+import { Picture } from '@/components/picture';
+import { type ArtDirectedImageSource, scopeArtDirection, sortArtDirectedSources } from '@/lib/images/art-direction';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import { RegionDefinition } from '@/lib/decorators/region-definition';
@@ -40,7 +41,13 @@ import type { ComponentType } from '@/components/region';
 const EMPTY_STATE_PLACEHOLDER_SRC = '/images/content-placeholder.svg';
 
 interface DynamicImageProps {
-    src: string;
+    /**
+     * The image to render, or a set of images for art direction (a different crop or a smaller file per viewport).
+     * In a set, each entry serves viewports from its theme `breakpoint` name (e.g. `md`) up to the next entry's
+     * breakpoint, and the entry without a breakpoint serves the smallest viewports. Every image is resolved with the
+     * same `widths`/`heights` and DIS handling, and the largest one is the fallback `<img>`.
+     */
+    src: string | ArtDirectedImageSource[];
     alt?: string;
     /**
      * Image widths relative to the breakpoints. Supports multiple formats:
@@ -365,15 +372,17 @@ const DynamicImage = ({
 
     // Page Designer passes image-type attributes as objects — normalize to a plain string.
     // SFCC image objects can use several URL properties depending on source and context.
+    const artDirectedSources = useMemo(() => (Array.isArray(src) ? sortArtDirectedSources(src) : undefined), [src]);
+    const primarySrc = Array.isArray(src) ? artDirectedSources?.at(-1)?.src : src;
     const resolvedSrc =
-        src && typeof src === 'object'
-            ? ((src as Record<string, unknown>).absURL as string) ||
-              ((src as Record<string, unknown>).url as string) ||
-              ((src as Record<string, unknown>).disBaseLink as string) ||
-              ((src as Record<string, unknown>).link as string) ||
-              ((src as Record<string, unknown>).path as string) ||
+        primarySrc && typeof primarySrc === 'object'
+            ? ((primarySrc as Record<string, unknown>).absURL as string) ||
+              ((primarySrc as Record<string, unknown>).url as string) ||
+              ((primarySrc as Record<string, unknown>).disBaseLink as string) ||
+              ((primarySrc as Record<string, unknown>).link as string) ||
+              ((primarySrc as Record<string, unknown>).path as string) ||
               ''
-            : (src ?? '');
+            : (primarySrc ?? '');
 
     // Empty state (W-23729798): a freshly-dropped Image with no configured src. Rather than a
     // bespoke placeholder branch, we feed the shared image placeholder asset through the
@@ -429,25 +438,28 @@ const DynamicImage = ({
         hoverEffect,
     });
 
-    if (isServer() && effectivePriority === 'high') {
-        if (links.length > 0) {
-            links.forEach(({ type, media, sizes, srcSet, href }) => {
-                preload(href, {
-                    as: 'image',
-                    fetchPriority: 'high',
-                    imageSrcSet: srcSet,
-                    imageSizes: sizes,
-                    type,
-                    media,
-                });
-            });
-        } else if (effectiveImageProps.src) {
-            // No per-breakpoint links — the image has a single static variant (no widths/heights requested, a local
-            // bundled asset, or any image when DIS is disabled). Preload the one URL the <img> resolves to so an LCP
-            // hero still gets its <link rel="preload">, whether or not dimensions were supplied.
-            preload(effectiveImageProps.src, { as: 'image', fetchPriority: 'high' });
+    const artDirection = useMemo(() => {
+        if (!artDirectedSources || artDirectedSources.length < 2) {
+            return null;
         }
-    }
+        const lastIndex = artDirectedSources.length - 1;
+        return scopeArtDirection(
+            artDirectedSources.map((entry, index) => ({
+                breakpoint: entry.breakpoint,
+                ...(index === lastIndex
+                    ? { sources, links, src: effectiveImageProps.src }
+                    : resolveDynamicImageAttributes({
+                          src: entry.src,
+                          config,
+                          widths: parsedWidths,
+                          heights: parsedHeights,
+                      })),
+            }))
+        );
+    }, [artDirectedSources, config, parsedWidths, parsedHeights, sources, links, effectiveImageProps.src]);
+    const pictureSources = artDirection?.sources ?? sources;
+    const fallbackLinks = links.length > 0 ? links : effectiveImageProps.src ? [{ href: effectiveImageProps.src }] : [];
+    const preloadLinks = effectivePriority === 'high' ? (artDirection?.links ?? fallbackLinks) : undefined;
 
     return (
         <>
@@ -455,17 +467,9 @@ const DynamicImage = ({
                 {...(showEmptyState && { 'data-slot': 'empty-state' })}
                 className={cn(styleClasses, className)}
                 {...rest}>
-                {sources.length > 0 ? (
-                    <picture>
-                        {sources.map(({ type, srcSet, sizes, media }, idx) => (
-                            // oxlint-disable-next-line react/no-array-index-key
-                            <source key={idx} type={type} {...(media && { media })} sizes={sizes} srcSet={srcSet} />
-                        ))}
-                        <ImageComponent {...effectiveImageProps} />
-                    </picture>
-                ) : (
+                <Picture sources={pictureSources} preloadLinks={preloadLinks}>
                     <ImageComponent {...effectiveImageProps} />
-                )}
+                </Picture>
             </div>
         </>
     );

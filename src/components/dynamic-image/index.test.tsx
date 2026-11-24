@@ -16,6 +16,7 @@
 import { beforeEach, vi, type Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { mockConfig } from '@/test-utils/config';
+import { maxWidthBelowQuery, minWidthQuery } from '@/lib/theme/breakpoints';
 import { isServer } from '@/lib/utils';
 import { useDynamicImageContext } from '@/providers/dynamic-image';
 
@@ -1331,6 +1332,152 @@ describe('Dynamic Image Component', () => {
             render(<DynamicImage src="" alt="" {...({ 'data-testid': 'empty-wrapper' } as any)} />);
 
             expect(screen.getByTestId('empty-wrapper')).toHaveAttribute('data-slot', 'empty-state');
+        });
+    });
+
+    describe('art direction with an array src', () => {
+        const mobileDis = disSrc('mobile.jpg');
+        const desktopDis = disSrc('desktop.jpg');
+        const belowMd = maxWidthBelowQuery('md');
+        const fromMd = minWidthQuery('md');
+        const sourceMedia = (container: HTMLElement) =>
+            [...container.querySelectorAll('picture > source')].map((node) => node.getAttribute('media'));
+        const sourceSrcSets = (container: HTMLElement) =>
+            [...container.querySelectorAll('picture > source')].map((node) => node.getAttribute('srcset') ?? '');
+
+        test('scopes every source to the range its image serves, so no source is left without a media query', () => {
+            const { container } = render(
+                <DynamicImage
+                    src={[{ src: mobileDis }, { src: desktopDis, breakpoint: 'md' }]}
+                    alt="Hero"
+                    widths={['100vw']}
+                />
+            );
+
+            const media = sourceMedia(container);
+            const srcSets = sourceSrcSets(container);
+            expect(media.every((query) => !!query)).toBe(true);
+            media.forEach((query, index) => {
+                const serves = srcSets[index].includes('mobile') ? belowMd : fromMd;
+                expect(query).toContain(serves);
+            });
+            expect(srcSets.some((srcSet) => srcSet.includes('mobile'))).toBe(true);
+            expect(srcSets.some((srcSet) => srcSet.includes('desktop'))).toBe(true);
+        });
+
+        test('serves a bundled image as a single media-scoped source', () => {
+            const { container } = render(
+                <DynamicImage
+                    src={[{ src: '/images/hero-mobile.webp' }, { src: desktopDis, breakpoint: 'md' }]}
+                    alt="Hero"
+                    widths={['100vw']}
+                />
+            );
+
+            const mobileSources = [...container.querySelectorAll('picture > source')].filter(
+                (node) => node.getAttribute('srcset') === '/images/hero-mobile.webp'
+            );
+            expect(mobileSources).toHaveLength(1);
+            expect(mobileSources[0]).toHaveAttribute('media', belowMd);
+        });
+
+        test('keeps the largest image as the fallback img, even when it is not a DIS image', () => {
+            const { container } = render(
+                <DynamicImage
+                    src={[{ src: mobileDis }, { src: '/images/hero.webp', breakpoint: 'md' }]}
+                    alt="Hero"
+                    widths={['100vw']}
+                />
+            );
+
+            expect(container.querySelector('picture > img')).toHaveAttribute('src', '/images/hero.webp');
+            expect(
+                container.querySelector(`picture > source[srcset="/images/hero.webp"][media="${fromMd}"]`)
+            ).toBeInTheDocument();
+        });
+
+        test('gives a middle image both bounds, so each viewport matches exactly one image', () => {
+            const { container } = render(
+                <DynamicImage
+                    src={[
+                        { src: '/images/small.webp' },
+                        { src: '/images/medium.webp', breakpoint: 'md' },
+                        { src: '/images/large.webp', breakpoint: 'lg' },
+                    ]}
+                    alt="Hero"
+                />
+            );
+
+            const mediaFor = (name: string) =>
+                container.querySelector(`picture > source[srcset="/images/${name}.webp"]`)?.getAttribute('media');
+            expect(mediaFor('small')).toBe(maxWidthBelowQuery('md'));
+            expect(mediaFor('medium')).toBe(`${minWidthQuery('md')} and ${maxWidthBelowQuery('lg')}`);
+            expect(mediaFor('large')).toBe(minWidthQuery('lg'));
+        });
+
+        test('orders the images by breakpoint regardless of the order they are passed in', () => {
+            const ordered = render(
+                <DynamicImage
+                    src={[{ src: '/images/small.webp' }, { src: '/images/large.webp', breakpoint: 'md' }]}
+                    alt="Hero"
+                />
+            );
+            const orderedHtml = ordered.container.innerHTML;
+            ordered.unmount();
+
+            const reversed = render(
+                <DynamicImage
+                    src={[{ src: '/images/large.webp', breakpoint: 'md' }, { src: '/images/small.webp' }]}
+                    alt="Hero"
+                />
+            );
+
+            expect(reversed.container.innerHTML).toBe(orderedHtml);
+        });
+
+        test('renders a single-entry array like a plain string src', () => {
+            const plain = render(<DynamicImage src={desktopDis} alt="Hero" widths={['100vw']} />);
+            const plainHtml = plain.container.innerHTML;
+            plain.unmount();
+
+            const single = render(<DynamicImage src={[{ src: desktopDis }]} alt="Hero" widths={['100vw']} />);
+
+            expect(single.container.innerHTML).toBe(plainHtml);
+        });
+
+        test('fails loudly when an entry names a breakpoint the theme does not define', () => {
+            expect(() =>
+                render(
+                    <DynamicImage
+                        src={[{ src: '/images/a.webp' }, { src: '/images/b.webp', breakpoint: 'nope' }]}
+                        alt=""
+                    />
+                )
+            ).toThrow(/--breakpoint-nope/);
+        });
+
+        test('preloads each image only inside the range it serves, so only the painted image is fetched', () => {
+            (isServer as Mock).mockReturnValue(true);
+            render(
+                <DynamicImage
+                    src={[{ src: '/images/hero-mobile.webp' }, { src: desktopDis, breakpoint: 'md' }]}
+                    alt="Hero"
+                    widths={['100vw']}
+                    priority="high"
+                />
+            );
+
+            const preloads = preloadMock.mock.calls.map(([href, options]) => ({ href, media: options.media }));
+            expect(preloads.every(({ media }) => !!media)).toBe(true);
+            expect(preloads.filter(({ href }) => href === '/images/hero-mobile.webp')).toEqual([
+                { href: '/images/hero-mobile.webp', media: belowMd },
+            ]);
+            expect(
+                preloads
+                    .filter(({ href }) => href !== '/images/hero-mobile.webp')
+                    .every(({ media }) => media.includes(fromMd))
+            ).toBe(true);
+            (isServer as Mock).mockReturnValue(false);
         });
     });
 });

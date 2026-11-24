@@ -96,9 +96,12 @@ const homeScriptSizeLimit =
 // fashion 496543 B, cosmetic 500975 B, footwear 514425 B and grocery 498081 B. The PDP-only
 // increases below add 600–1000 B and retain 519–575 B headroom. Foundations keeps its passing
 // 496400 B ceiling; homepage/cart bytes, document budgets and performance scores are unchanged.
+// Art-directed DynamicImage `src` arrays add the source-scoping module to the shared product-view chunk
+// (CI, all seven runs: footwear 515112 B, foundations 496600 B, grocery 498627 B, fashion 497228 B). Those four
+// tiers rise by ~1.5 KB; cosmetic, furniture and luxury still pass and are untouched.
 const productScriptSizeLimit =
     vertical === 'footwear'
-        ? 515000
+        ? 516600
         : vertical === 'luxury'
           ? 501400
           : vertical === 'furniture'
@@ -106,10 +109,10 @@ const productScriptSizeLimit =
             : vertical === 'cosmetic'
               ? 501500
               : vertical === 'grocery'
-                ? 498600
+                ? 500100
                 : vertical === 'foundations'
-                  ? 496400
-                  : 497100;
+                  ? 498100
+                  : 498700;
 const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
 const cartScriptSizeLimit = vertical === 'footwear' ? 543000 : vertical === 'luxury' ? 541500 : 535000;
 /**

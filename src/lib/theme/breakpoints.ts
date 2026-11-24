@@ -23,17 +23,49 @@ import themeBreakpoints from 'virtual:storefront-next/theme-breakpoints';
  */
 export const breakpoints: Readonly<Record<string, string>> = themeBreakpoints;
 
+function declaredBreakpoint(name: string): string {
+    const value = Object.hasOwn(breakpoints, name) ? breakpoints[name] : undefined;
+    if (!value) {
+        throw new Error(`The theme does not define --breakpoint-${name}, but this code needs it.`);
+    }
+    return value;
+}
+
+/** Splits a declared breakpoint (`px`, `rem` or `em` length) into its number and unit. */
+function splitLength(value: string): { amount: number; unit: string } {
+    return { amount: parseFloat(value), unit: value.replace(/^[\d.]+/, '') };
+}
+
 /**
  * `(min-width: …)` media query for a named theme breakpoint.
  *
  * @throws When the theme does not define the breakpoint (e.g. removed via `--breakpoint-md: initial`).
  */
 export function minWidthQuery(name: string): string {
-    const value = Object.hasOwn(breakpoints, name) ? breakpoints[name] : undefined;
-    if (!value) {
-        throw new Error(`The theme does not define --breakpoint-${name}, but this code needs it.`);
-    }
-    return `(min-width: ${value})`;
+    return `(min-width: ${declaredBreakpoint(name)})`;
+}
+
+/**
+ * `(max-width: …)` media query matching every viewport narrower than a named theme breakpoint: the complement of
+ * {@link minWidthQuery}. It stops 0.02px short (the same step Bootstrap uses) so the two never both match at a
+ * fractional viewport width.
+ *
+ * @throws When the theme does not define the breakpoint.
+ */
+export function maxWidthBelowQuery(name: string): string {
+    const { amount, unit } = splitLength(declaredBreakpoint(name));
+    const step = unit === 'px' ? 0.02 : 0.02 / 16;
+    return `(max-width: ${Number((amount - step).toFixed(5))}${unit})`;
+}
+
+/**
+ * Width of a named theme breakpoint in px (`rem` and `em` count as 16px), for ordering breakpoints by size.
+ *
+ * @throws When the theme does not define the breakpoint.
+ */
+export function breakpointWidthPx(name: string): number {
+    const { amount, unit } = splitLength(declaredBreakpoint(name));
+    return unit === 'px' ? amount : amount * 16;
 }
 
 const logger = createLogger();

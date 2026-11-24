@@ -276,6 +276,25 @@ In practice, the PDP image gallery uses conditional priority to eagerly load the
 />
 ```
 
+## Art Direction with an Array `src`
+
+`src` on `<DynamicImage>` accepts either one image or an array of images, each tagged with the theme breakpoint (`sm`, `md`, `lg`, ...) it starts at. The entry without a `breakpoint` serves the smallest viewports, and the largest entry is the fallback `<img>`. Use it for a tighter crop on phones, or a smaller file instead of a large one.
+
+```tsx
+<DynamicImage
+  src={[{ src: mobileUrl }, { src: desktopUrl, breakpoint: 'md' }]}
+  widths={['100vw']}
+  priority="high"
+  alt=""
+/>
+```
+
+Each image resolves on its own, so DIS and non-DIS URLs can be mixed. Every `<source>` is scoped to the viewport range its image serves (`min-width` of its breakpoint, `max-width` just below the next one), built from the theme breakpoints, so the ranges never overlap and entries can be passed in any order. With `priority="high"` the server emits one preload per range, so each viewport fetches only its own image. An unknown breakpoint name throws. Entries are plain URL strings: Page Designer's image objects are only normalized for a single `src`. `HeroCarousel` slides use this through `mobileImageUrl`.
+
+## `<Picture>` Component
+
+`<Picture>` (`src/components/picture`) is the presentational base `<DynamicImage>` renders through: an ordered list of `<source>` entries with the image passed as `children`. It does no URL math, so any image component can be projected into it. With an empty `sources` list it renders the children alone. Pass `preloadLinks` to have it emit the server-side preloads for the LCP image.
+
 ## `DynamicImageProvider` Context
 
 The `DynamicImageProvider` is an optional React context that controls image priority and dimensions for nested `<DynamicImage>` components. It solves a practical problem: in deep component trees (e.g., product grid → product tile → product image), determining whether an image is above-the-fold requires knowledge the image component itself doesn't have. The provider bridges that gap by separating the *decision* about importance from the *registration* of individual images.
