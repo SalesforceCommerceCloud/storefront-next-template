@@ -36,6 +36,7 @@ import {
     authTokenInvalidApiContext,
     completedLoginRecoveryContext,
     getScapiApiName,
+    supersededCredentialsContext,
     uncertainBasketHandoffContext,
 } from '@/middlewares/auth.utils';
 import { correlationContext } from '@/lib/correlation';
@@ -596,6 +597,9 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
             failedCredential !== recovery.recoveredCredential
         )
             return;
+        // A loader still in flight with a token that recovery already replaced is expected to fail; flagging
+        // it would make the recovery rethrow even though its refresh succeeded.
+        if (failedCredential && context.get(supersededCredentialsContext).includes(failedCredential)) return;
         try {
             const authStorage = context.get(authStorageContext);
             if (authStorage && !authStorage.has('error')) {

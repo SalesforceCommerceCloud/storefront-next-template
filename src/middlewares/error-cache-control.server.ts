@@ -13,9 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { MiddlewareFunction } from 'react-router';
+import { createContext, type MiddlewareFunction } from 'react-router';
 
 const HEADER_CACHE_CONTROL = 'Cache-Control';
+
+/**
+ * Error statuses CloudFront caches by default (for 10 seconds) when the origin sends no `Cache-Control`.
+ * @see {@link https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HTTPStatusCodes.html#HTTPStatusCodes-cached-errors}
+ */
+const CDN_CACHED_ERROR_STATUSES = new Set([400, 403, 404, 405, 414, 416, 500, 501, 502, 503, 504]);
+
+/**
+ * Set to `true` by a middleware or loader just before it throws an error caused by this shopper's own request (for
+ * example, their cookies) rather than by a system failure. Shared caches key pages without cookies, so caching such an
+ * error would serve it to every shopper on the URL. The response is then sent with `no-store`, including on document
+ * requests.
+ */
+export const shopperSpecificErrorContext = createContext<boolean>(false);
 
 /**
  * Header React Router stamps on every single-fetch (`.data`) response via its internal `generateSingleFetchResponse`.
@@ -62,7 +76,16 @@ function handleDataRequest(response: Response): Response {
     return response;
 }
 
-function handle(request: Request, response: Response): Response {
+function handle(request: Request, response: Response, shopperSpecificError: boolean): Response {
+    // The shared cache key has no cookies, so a cached error that sets cookies would hand this shopper's session
+    // cookies (or their deletion) to every shopper on the URL. The same goes for an error caused by this shopper.
+    if (
+        CDN_CACHED_ERROR_STATUSES.has(response.status) &&
+        (shopperSpecificError || response.headers.has('Set-Cookie'))
+    ) {
+        response.headers.set(HEADER_CACHE_CONTROL, 'no-store');
+        return response;
+    }
     if (response.status >= 500 && response.status <= 504 && isDataRequest(request, response)) {
         return handleDataRequest(response);
     }
@@ -80,9 +103,20 @@ function handle(request: Request, response: Response): Response {
  *
  * The behavior is applied only to React Router single-fetch data interactions — the client-side navigations and
  * fetcher calls that hit `<route>.data` URLs and return a turbo-stream payload. Document (full-page HTML) responses are
- * left untouched, so CloudFront's default error caching still shields the document path. This keeps the backoff
- * behavior described below for the highest-volume entry point while preventing a stale cached error from sticking to an
- * in-session shopper's data fetches. See {@link isDataRequest} for how the two signals are detected.
+ * left untouched unless an exception below applies. This keeps the backoff behavior described below for error
+ * responses that set no cookies, while preventing a stale cached error from sticking to an in-session shopper's data
+ * fetches. See {@link isDataRequest} for how the two signals are detected.
+ *
+ * Exceptions, which get `no-store` on any request type and any status in {@link CDN_CACHED_ERROR_STATUSES}:
+ * - The response sets cookies. A shared cache would replay them to other shoppers (for example, one guest's session
+ *   cookies on a cached 404, or a full cookie clear on a cached 500).
+ * - The error is flagged with {@link shopperSpecificErrorContext}.
+ *
+ * The auth middleware sets the `__sfdc_usertype` cookie on nearly every response, so in practice almost every error
+ * that passes through this middleware is sent with `no-store`, including data 503s (no `max-age=2` backoff) and
+ * document errors (no default CDN error caching). This is deliberate: replaying a cookie-setting error to other
+ * shoppers is a session-sharing bug. Overload protection therefore has to come from elsewhere (SCAPI load shedding,
+ * MRT concurrency limits, the `sfdc_load` headers), not from CDN error caching.
  *
  * # Note / Warning
  *
@@ -100,6 +134,9 @@ function handle(request: Request, response: Response): Response {
  * Experiments have shown that sending the `Cache-Control` header alone is sufficient to prevent the caching of error
  * responses/pages. However, this contradicts AWS’s own documentation. It's therefore recommended to adjust the default
  * value for CloudFront's *Error Caching Minimum TTL* setting for status codes 500, 501, 502, 503, 504 in parallel.
+ * AWS documents that some error statuses ignore `no-store` while that TTL is positive. The session-sharing protection
+ * above depends on the distribution honoring the header, so set the minimum TTL to 0 for the statuses in
+ * {@link CDN_CACHED_ERROR_STATUSES}.
  *
  * # Placement
  *
@@ -111,7 +148,7 @@ function handle(request: Request, response: Response): Response {
  * @see {@link https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/custom-error-pages-expiration.html}
  * @see {@link https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HTTPStatusCodes.html#HTTPStatusCodes-cached-errors}
  */
-export const errorCacheControlMiddleware: MiddlewareFunction<Response> = async ({ request }, next) => {
+export const errorCacheControlMiddleware: MiddlewareFunction<Response> = async ({ request, context }, next) => {
     const response = await next();
-    return handle(request, response);
+    return handle(request, response, context.get(shopperSpecificErrorContext));
 };

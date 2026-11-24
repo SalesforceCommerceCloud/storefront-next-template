@@ -23,12 +23,15 @@ import {
     AUTH_TOKEN_INVALID_ERROR,
     authStorageContext,
     authTokenInvalidApiContext,
+    supersededCredentialsContext,
 } from '@/middlewares/auth.utils';
+import { fingerprintCredential } from '@/lib/auth/credential-fingerprint';
 // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
 import { authRecoveryReturnContext } from '@/lib/auth/auth-recovery.server';
 // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
 import { setRecoveryManifest } from '@/test-utils/__mocks__/compiled-routes';
 import { performanceTimerContext } from '@/middlewares/performance-metrics';
+import { shopperSpecificErrorContext } from '@/middlewares/error-cache-control.server';
 import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import type { AppConfig } from '@/types/config';
@@ -57,7 +60,7 @@ import authMiddleware, {
     authorizePasskeyRegistration,
     getSlasLocale,
 } from './auth.server';
-import type { ShopperLogin } from '@/scapi';
+import { ApiError, type ShopperLogin } from '@/scapi';
 
 const mockLogger = {
     error: vi.fn(),
@@ -3214,7 +3217,7 @@ describe('auth middleware (server)', () => {
                 const deletedCookies = [...serializeByCookie.keys()].filter(
                     (name) => name !== 'cc-auth-recover' && callsFor(name).some(isDelete)
                 );
-                return { ...result, guardWrites, guardWriteOptions, clearedGuard, deletedCookies };
+                return { ...result, guardWrites, guardWriteOptions, clearedGuard, deletedCookies, context };
             };
 
             const registeredTokenRejected =
@@ -3232,10 +3235,53 @@ describe('auth middleware (server)', () => {
                 const { response, guardWrites, clearedGuard } = await run(undefined);
                 expect(response?.status).toBe(307);
                 expect(response?.headers.get('Location')).toBe('https://example.com/test');
+                expect(response?.headers.get('Cache-Control')).toBe('no-store');
                 expect(guardWrites).toEqual(['1']);
                 expect(clearedGuard).toBe(false);
                 // Initial token setup plus the recovery refresh.
                 expect(mockAuth.refreshToken.mock.calls.length + mockAuth.loginAsGuest.mock.calls.length).toBe(2);
+            });
+
+            it('stage 0: marks the rejected access token as superseded before the recovery refresh runs', async () => {
+                let rejectedToken: unknown;
+                let supersededDuringRefresh: readonly string[] = [];
+                const { response } = await run(undefined, {
+                    next: (getStorage, context) => {
+                        rejectedToken = getStorage()?.get('accessToken');
+                        const refreshed = getMockAuthResponse(getMockTokenResponse());
+                        const recoveryRefresh = () => {
+                            // Loaders still in flight with the rejected token 401 while this refresh runs.
+                            supersededDuringRefresh = context.get(supersededCredentialsContext);
+                            return Promise.resolve(refreshed);
+                        };
+                        mockAuth.refreshToken.mockImplementation(recoveryRefresh);
+                        mockAuth.loginAsGuest.mockImplementation(recoveryRefresh);
+                        throw createAuthTokenInvalidError();
+                    },
+                });
+                expect(response?.status).toBe(307);
+                expect(typeof rejectedToken).toBe('string');
+                expect(supersededDuringRefresh).toEqual([
+                    await fingerprintCredential(`Bearer ${String(rejectedToken)}`),
+                ]);
+            });
+
+            it('stage 0: a registered shopper whose refresh and guest login both fail goes to login, not a 500', async () => {
+                const { response, error, guardWrites, deletedCookies } = await run(undefined, {
+                    next: (getStorage) => {
+                        getStorage()?.set('userType', 'registered');
+                        mockAuth.refreshToken.mockRejectedValue(new Error('SLAS 400: invalid refresh token'));
+                        mockAuth.loginAsGuest.mockRejectedValue(new Error('SLAS 409: Conflict'));
+                        throw createAuthTokenInvalidError();
+                    },
+                });
+                expect(error).toBeUndefined();
+                expect(response?.status).toBe(307);
+                expect(response?.headers.get('Location')).toBe('/login?returnUrl=%2Ftest&error=session_expired');
+                expect(response?.headers.get('x-sfnext-auth-recovery')).toBe('1');
+                expect(guardWrites).toEqual(['1']);
+                // No usable token is left: every auth cookie (including the old usid) is cleared so /login starts clean.
+                expect(deletedCookies).toEqual(expect.arrayContaining(['cc-nx', 'cc-nx-g', 'cc-at', 'usid']));
             });
 
             it('stage 1: destroys the session without a refresh, redirects to the same URL and sets guard 2', async () => {
@@ -3347,12 +3393,33 @@ describe('auth middleware (server)', () => {
             });
 
             it('stage 2: surfaces the error instead of redirecting again', async () => {
-                const { response, error, guardWrites, clearedGuard, deletedCookies } = await run('2');
+                const { response, error, guardWrites, clearedGuard, deletedCookies, context } = await run('2');
                 expect(response).toBeUndefined();
                 expect((error as Error).message).toBe('Access token is invalid or revoked');
                 expect(guardWrites).toEqual([]);
                 expect(clearedGuard).toBe(false);
                 expect(deletedCookies).toEqual([]);
+                // The error comes from this shopper's cookies, so it must not be cached for other shoppers.
+                expect(context.get(shopperSpecificErrorContext)).toBe(true);
+            });
+
+            it('stage 0: flags the error as shopper-specific when the refresh and guest login both fail', async () => {
+                const { response, error, context } = await run(undefined, {
+                    next: () => {
+                        mockAuth.refreshToken.mockRejectedValue(new Error('SLAS 400: invalid refresh token'));
+                        mockAuth.loginAsGuest.mockRejectedValue(new Error('SLAS 503'));
+                        throw createAuthTokenInvalidError();
+                    },
+                });
+                expect(response).toBeUndefined();
+                expect(error).toBeDefined();
+                expect(context.get(shopperSpecificErrorContext)).toBe(true);
+            });
+
+            it('stage 0: a successful recovery does not flag a shopper-specific error', async () => {
+                const { response, context } = await run(undefined);
+                expect(response?.status).toBe(307);
+                expect(context.get(shopperSpecificErrorContext)).toBe(false);
             });
 
             it('stage 0: the guard cookie expires after 30 seconds', async () => {
@@ -4159,6 +4226,60 @@ describe('auth middleware (server)', () => {
             );
         });
 
+        describe('guest login rejects the stored usid (SLAS 409)', () => {
+            const apiError = (status: number) =>
+                new ApiError({
+                    status,
+                    statusText: 'Error',
+                    headers: new Headers(),
+                    body: { type: 'Error', title: 'Error', detail: 'error' },
+                    rawBody: '{}',
+                    url: 'https://api.example.com/oauth2/token',
+                    method: 'POST',
+                });
+            const runColdStart = async () => {
+                const request = new Request('https://example.com/test');
+                const context = new RouterContextProvider();
+                const originalGet = context.get.bind(context);
+                vi.spyOn(context, 'get').mockImplementation((key) => {
+                    if (key === performanceTimerContext) return mockPerformanceTimer;
+                    if (key === appConfigContext) return mockConfig;
+                    return originalGet(key);
+                });
+                return (await authMiddleware(
+                    { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                    vi.fn().mockResolvedValue(new Response('OK'))
+                )) as Response;
+            };
+
+            it('starts a new guest session without the usid instead of failing', async () => {
+                mockParseAllCookies.mockReturnValue({ 'cc-nx-g': 'dead-guest-refresh', usid: 'stale-usid' });
+                mockAuth.refreshToken.mockRejectedValue(apiError(400));
+                mockAuth.loginAsGuest
+                    .mockRejectedValueOnce(apiError(409))
+                    .mockResolvedValueOnce(getMockAuthResponse(getMockTokenResponse()));
+
+                const response = await runColdStart();
+
+                expect(response.status).toBe(200);
+                expect(mockAuth.loginAsGuest).toHaveBeenCalledTimes(2);
+                expect(mockAuth.loginAsGuest).toHaveBeenNthCalledWith(1, { usid: 'stale-usid' });
+                expect(mockAuth.loginAsGuest).toHaveBeenNthCalledWith(2, { usid: undefined });
+            });
+
+            it.each([
+                ['a non-409 error with a usid', { usid: 'stale-usid' }, 503],
+                ['a 409 without a usid', {}, 409],
+            ])('does not retry on %s', async (_label, cookies, status) => {
+                mockParseAllCookies.mockReturnValue(cookies);
+                mockAuth.loginAsGuest.mockRejectedValue(apiError(status));
+
+                await runColdStart();
+
+                expect(mockAuth.loginAsGuest).toHaveBeenCalledTimes(1);
+            });
+        });
+
         it('should redirect registered shopper to login when refresh token fails and no guard is set', async () => {
             // Cold-start with a registered refresh cookie but no valid access token.
             // Refresh fails (SLAS 400) → middleware must redirect to /login?...&error=session_expired
@@ -4208,6 +4329,152 @@ describe('auth middleware (server)', () => {
             expect(location).toContain(encodeURIComponent('/en-US/checkout'));
             // Guard cookie must be set to prevent a redirect loop on the next request.
             expect(serializeCalls.some(([value]) => value === '1')).toBe(true);
+        });
+
+        it('should redirect registered shopper to login and clear auth cookies when refresh and guest login both fail', async () => {
+            // The guest-login fallback failing (e.g. SLAS 409 for the old usid) must not overwrite the
+            // session-expired sentinel and turn the login redirect into a 500.
+            mockParseAllCookies.mockReturnValue({ 'cc-nx': 'registered-refresh-token' });
+            mockAuth.refreshToken.mockRejectedValue(new Error('SLAS 400: invalid refresh token'));
+            mockAuth.loginAsGuest.mockRejectedValue(new Error('SLAS 409: Conflict'));
+
+            const request = new Request('https://example.com/en-US/checkout', {
+                headers: { Cookie: 'cc-nx=registered-refresh-token' },
+            });
+            const context = new RouterContextProvider();
+            const originalGet = context.get.bind(context);
+            vi.spyOn(context, 'get').mockImplementation((key) => {
+                if (key === performanceTimerContext) return mockPerformanceTimer;
+                if (key === appConfigContext) return mockConfig;
+                return originalGet(key);
+            });
+            const deletedCookies = new Set<string>();
+            mockCreateCookie.mockImplementation(((name: string) => ({
+                serialize: vi.fn().mockImplementation((value: string, options?: { expires?: unknown }) => {
+                    if (value === '' && options?.expires instanceof Date) deletedCookies.add(name);
+                    return Promise.resolve(`Set-Cookie: ${name}=mock`);
+                }),
+            })) as never);
+
+            const response = (await authMiddleware(
+                { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                vi.fn().mockResolvedValue(new Response('OK'))
+            )) as Response;
+
+            expect(response.status).toBe(307);
+            expect(response.headers.get('Location')).toBe(
+                `/login?returnUrl=${encodeURIComponent('/en-US/checkout')}&error=session_expired`
+            );
+            expect([...deletedCookies]).toEqual(expect.arrayContaining(['cc-nx', 'cc-nx-g', 'cc-at', 'usid']));
+        });
+
+        it('should not render the page when refresh and guest login both fail for a registered shopper', async () => {
+            mockParseAllCookies.mockReturnValue({ 'cc-nx': 'registered-refresh-token' });
+            mockAuth.refreshToken.mockRejectedValue(new Error('SLAS 400: invalid refresh token'));
+            mockAuth.loginAsGuest.mockRejectedValue(new Error('SLAS 409: Conflict'));
+            const request = new Request('https://example.com/en-US/checkout', {
+                headers: { Cookie: 'cc-nx=registered-refresh-token' },
+            });
+            const context = new RouterContextProvider();
+            const originalGet = context.get.bind(context);
+            vi.spyOn(context, 'get').mockImplementation((key) => {
+                if (key === performanceTimerContext) return mockPerformanceTimer;
+                if (key === appConfigContext) return mockConfig;
+                return originalGet(key);
+            });
+            const next = vi.fn().mockResolvedValue(new Response('OK'));
+
+            const response = (await authMiddleware(
+                { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                next
+            )) as Response;
+
+            expect(next).not.toHaveBeenCalled();
+            expect(response.status).toBe(307);
+        });
+
+        it('should not run a second recovery when next() throws token-invalid after refresh and guest login both failed', async () => {
+            mockParseAllCookies.mockReturnValue({ 'cc-nx': 'registered-refresh-token' });
+            mockAuth.refreshToken.mockRejectedValue(new Error('SLAS 400: invalid refresh token'));
+            mockAuth.loginAsGuest.mockRejectedValue(new Error('SLAS 409: Conflict'));
+            const request = new Request('https://example.com/en-US/checkout', {
+                headers: { Cookie: 'cc-nx=registered-refresh-token' },
+            });
+            const context = new RouterContextProvider();
+            const originalGet = context.get.bind(context);
+            vi.spyOn(context, 'get').mockImplementation((key) => {
+                if (key === performanceTimerContext) return mockPerformanceTimer;
+                if (key === appConfigContext) return mockConfig;
+                return originalGet(key);
+            });
+            const next = vi.fn().mockRejectedValue(createAuthTokenInvalidError());
+
+            const response = (await authMiddleware(
+                { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                next
+            )) as Response;
+
+            expect(next).not.toHaveBeenCalled();
+            expect(mockAuth.loginAsGuest).toHaveBeenCalledTimes(1);
+            expect(response.status).toBe(307);
+        });
+
+        it('should clear every auth cookie and not redirect when refresh and guest login both fail with the guard already set', async () => {
+            // The guard blocks a second login redirect (loop breaker). The failed guest fallback leaves no usable
+            // token, so the request must still clear all auth cookies; the next request then starts a clean guest.
+            mockParseAllCookies.mockReturnValue({ 'cc-nx': 'registered-refresh-token', 'cc-auth-recover': '1' });
+            mockAuth.refreshToken.mockRejectedValue(new Error('SLAS 400: invalid refresh token'));
+            mockAuth.loginAsGuest.mockRejectedValue(new Error('SLAS 409: Conflict'));
+
+            const request = new Request('https://example.com/en-US/checkout', {
+                headers: { Cookie: 'cc-nx=registered-refresh-token; cc-auth-recover=1' },
+            });
+            const context = new RouterContextProvider();
+            const originalGet = context.get.bind(context);
+            vi.spyOn(context, 'get').mockImplementation((key) => {
+                if (key === performanceTimerContext) return mockPerformanceTimer;
+                if (key === appConfigContext) return mockConfig;
+                return originalGet(key);
+            });
+            const deletedCookies = new Set<string>();
+            const writtenCookies = new Set<string>();
+            mockCreateCookie.mockImplementation(((name: string) => ({
+                serialize: vi.fn().mockImplementation((value: string, options?: { expires?: unknown }) => {
+                    if (value === '' && options?.expires instanceof Date) deletedCookies.add(name);
+                    else writtenCookies.add(name);
+                    return Promise.resolve(`Set-Cookie: ${name}=mock`);
+                }),
+            })) as never);
+
+            const response = (await authMiddleware(
+                { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                vi.fn().mockResolvedValue(new Response('OK'))
+            )) as Response;
+
+            // No second login redirect.
+            expect(response.headers.get('Location')).toBeNull();
+            expect(mockAuth.loginAsGuest).toHaveBeenCalledTimes(1);
+            expect([...deletedCookies]).toEqual(expect.arrayContaining(['cc-nx', 'cc-nx-g', 'cc-at', 'usid']));
+            // The guard is not renewed, so the next request is not trapped in a stage.
+            expect(writtenCookies.has('cc-auth-recover')).toBe(false);
+
+            // Next request: the browser now has no auth cookies, so a clean guest session starts.
+            mockParseAllCookies.mockReturnValue({});
+            mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(getMockTokenResponse()));
+            const nextContext = new RouterContextProvider();
+            const nextOriginalGet = nextContext.get.bind(nextContext);
+            vi.spyOn(nextContext, 'get').mockImplementation((key) => {
+                if (key === performanceTimerContext) return mockPerformanceTimer;
+                if (key === appConfigContext) return mockConfig;
+                return nextOriginalGet(key);
+            });
+            const nextRequest = new Request('https://example.com/en-US/checkout');
+            const nextResponse = (await authMiddleware(
+                { request: nextRequest, context: nextContext, params: {}, pattern: '/', url: new URL(nextRequest.url) },
+                vi.fn().mockResolvedValue(new Response('OK'))
+            )) as Response;
+            expect(nextResponse.status).toBe(200);
+            expect(mockAuth.loginAsGuest).toHaveBeenCalledTimes(2);
         });
 
         it('should fall through to guest login when registered refresh fails and guard is already set', async () => {

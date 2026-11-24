@@ -72,6 +72,12 @@ export const getScapiApiName = (url: string): string | null => {
         ? segments.slice(Math.max(0, organizationsIndex - 3), organizationsIndex).join('/')
         : null;
 };
+/**
+ * Fingerprints (see `fingerprintCredential`) of access tokens that token-invalidation recovery replaced
+ * during this request. A 401 for one of them comes from a loader that was still in flight, so it must not
+ * flag the request as token-invalid again and fail a recovery that succeeded.
+ */
+export const supersededCredentialsContext = createContext<readonly string[]>([]);
 // Explicit login completion is distinct from refresh/setup: its proof cannot be replayed.
 export const registeredLoginCompletedContext = createContext(false);
 export const completedLoginRecoveryContext = createContext<{

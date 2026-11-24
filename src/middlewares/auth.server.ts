@@ -57,6 +57,7 @@ import {
     AUTH_TOKEN_INVALID_ERROR,
     registeredLoginCompletedContext,
     completedLoginRecoveryContext,
+    supersededCredentialsContext,
     COOKIE_REFRESH_TOKEN_GUEST,
     COOKIE_REFRESH_TOKEN_REGISTERED,
     COOKIE_ACCESS_TOKEN,
@@ -80,6 +81,7 @@ import { buildUrlFromContext, stripMrtBasePathFromUrl } from '@/lib/url.server';
 import { getLogger } from '@/lib/logger.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { performanceTimerContext, PERFORMANCE_MARKS } from '@/middlewares/performance-metrics';
+import { shopperSpecificErrorContext } from '@/middlewares/error-cache-control.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { createCookie, getCookieConfig, getCookieNameWithSiteId, parseAllCookies } from '@/lib/cookie-utils.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
@@ -923,9 +925,17 @@ const retrieveAuthStorageData = async (
 
         // Use guest login operation and update storage/cache
         performanceTimer?.mark(PERFORMANCE_MARKS.authGuestLogin, 'start');
-        const tokenResponse = await loginGuestUser(context, {
-            usid: typeof usid === 'string' && usid.length ? usid : undefined,
-        });
+        let tokenResponse: AuthResponse;
+        try {
+            tokenResponse = await loginGuestUser(context, { usid: usid?.length ? usid : undefined });
+        } catch (error) {
+            // SLAS answers 409 when it will not issue a guest token for the stored usid (for example, one that
+            // belongs to a registered shopper). That session is unusable anyway, so start a new guest session
+            // instead of failing the request.
+            if (!(usid && error instanceof ApiError && error.status === 409)) throw error;
+            logger.warn('Auth: guest login rejected the stored usid, starting a new guest session');
+            tokenResponse = await loginGuestUser(context);
+        }
         performanceTimer?.mark(PERFORMANCE_MARKS.authGuestLogin, 'end');
         await updateStorageAndCache(context, storage, cache, tokenResponse);
         logger.info('Auth: guest session created');
@@ -934,6 +944,13 @@ const retrieveAuthStorageData = async (
         // Final fallback failed. If SLAS issued a structurally invalid token, mark with
         // the recovery sentinel so the post-handler check routes to handleAuthTokenInvalidation.
         logger.error('Auth: guest login failed', { error });
+        if (storage.get('error') === SESSION_EXPIRED_REDIRECT) {
+            // A registered shopper whose refresh failed must still reach the session_expired login, not a 500:
+            // keep the sentinel. With no usable token left, destroy the session so the redirect clears every
+            // auth cookie (including the old usid) and the login page starts a clean guest session.
+            storage.set('isDestroyed', true);
+            return 'guestLogin';
+        }
         storage.set(
             'error',
             isAuthTokenInvalidError(error) ? AUTH_TOKEN_INVALID_ERROR : t('errors:guestAccessTokenFailed')
@@ -1021,6 +1038,8 @@ const handleAuthTokenInvalidation = async ({
     // Guard against loops: if we already retried and destroyed the session, surface the error.
     if (authRecoveryStage === 2) {
         logger.error('Auth: token invalidation recovery blocked by guard', { error });
+        // This error comes from this shopper's cookies, so keep it out of the shared error-page cache.
+        context.set(shopperSpecificErrorContext, true);
         throw error;
     }
     // A previous refresh-and-redirect did not fix the session: start over from a destroyed session.
@@ -1117,6 +1136,16 @@ const handleAuthTokenInvalidation = async ({
             return { authRecoveryTriggered: true, response };
         }
     } else {
+        // Loaders that are still in flight with the rejected token will 401 while the refresh below runs.
+        // Mark that token as superseded so their 401s do not set the error again and fail a successful refresh.
+        const rejectedAccessToken = authStorage.get('accessToken');
+        if (typeof rejectedAccessToken === 'string' && rejectedAccessToken) {
+            context.set(supersededCredentialsContext, [
+                ...context.get(supersededCredentialsContext),
+                await fingerprintCredential(`Bearer ${rejectedAccessToken}`),
+            ]);
+        }
+
         // Clear stale error/access-token state so refresh/guest flow can run cleanly.
         resetRecoveryStorageState(authStorage);
 
@@ -1139,6 +1168,7 @@ const handleAuthTokenInvalidation = async ({
         // If recovery failed, rethrow so ErrorBoundary can handle it.
         if (authStorage.has('error')) {
             logger.error('Auth: token invalidation recovery failed', { error });
+            context.set(shopperSpecificErrorContext, true);
             throw error;
         }
     }
@@ -1172,8 +1202,8 @@ const handleAuthTokenInvalidation = async ({
             status: recoveryRedirect.status,
             headers: {
                 Location: recoveryRedirect.location,
-                // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
-                ...(recoveryDestination !== null || isPreferenceWrite ? { 'Cache-Control': 'no-store' } : {}),
+                // Always uncached: the redirect sets or clears this shopper's auth cookies, and a CDN must not replay it.
+                'Cache-Control': 'no-store',
                 // Observability only: marks recovery redirect in logs/debugging.
                 'x-sfnext-auth-recovery': destroySession ? 'session-cleared' : '1',
             },
@@ -1744,7 +1774,15 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
                 throw new AuthTokenInvalidError('SLAS access token isb claim is missing the customer ID (gcid/rcid)');
             }
         }
-        response = await next();
+        // Refresh and guest login both failed for a registered shopper: no token exists and the post-handler
+        // replaces the response with the login redirect. Skip the render so loaders do not call SCAPI without a
+        // token (or trigger a second recovery during a SLAS outage). With the guard set, no redirect is built, so render.
+        response =
+            authStorage.get('error') === SESSION_EXPIRED_REDIRECT &&
+            authStorage.has('isDestroyed') &&
+            !hasAuthRecoveryGuard
+                ? new Response(null)
+                : await next();
     } catch (error) {
         // Only handle auth-token invalidation; everything else should bubble.
         if (!isAuthTokenInvalidError(error)) {

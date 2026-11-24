@@ -16,7 +16,7 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
 import { createLoaderArgs, createTestContext } from '@/lib/test-utils';
-import { errorCacheControlMiddleware } from './error-cache-control.server';
+import { errorCacheControlMiddleware, shopperSpecificErrorContext } from './error-cache-control.server';
 
 /**
  * Header React Router stamps on every single-fetch (`.data`) response via its internal
@@ -281,6 +281,73 @@ describe('middlewares/error-cache-control.server.ts', () => {
             const result = await callMiddleware(DOCUMENT_REQUEST);
 
             expect(result.status).toBe(200);
+            expect(result.headers.has('Cache-Control')).toBe(false);
+        });
+    });
+
+    describe('error responses that set cookies', () => {
+        const withCookie = (status: number) => {
+            const response = new Response('Error', { status });
+            response.headers.append('Set-Cookie', 'cc-at=token; Path=/; HttpOnly');
+            return response;
+        };
+
+        it.each([
+            { kind: 'document', request: DOCUMENT_REQUEST, status: 404 },
+            { kind: 'document', request: DOCUMENT_REQUEST, status: 500 },
+            { kind: 'document', request: DOCUMENT_REQUEST, status: 503 },
+            { kind: 'data', request: DATA_REQUEST, status: 503 },
+            { kind: 'data', request: DATA_REQUEST, status: 403 },
+        ])('should set no-store on a $status $kind response with Set-Cookie', async ({ request, status }) => {
+            mockNext.mockResolvedValue(withCookie(status));
+
+            const result = await callMiddleware(request);
+
+            expect(result.headers.get('Cache-Control')).toBe('no-store');
+            expect(result.headers.getSetCookie()).toEqual(['cc-at=token; Path=/; HttpOnly']);
+        });
+
+        it.each([200, 302, 410])('should leave a %i document response with Set-Cookie untouched', async (status) => {
+            mockNext.mockResolvedValue(withCookie(status));
+
+            const result = await callMiddleware(DOCUMENT_REQUEST);
+
+            expect(result.headers.has('Cache-Control')).toBe(false);
+        });
+
+        it('should leave a 404 document response without Set-Cookie untouched', async () => {
+            mockNext.mockResolvedValue(new Response('Not Found', { status: 404 }));
+
+            const result = await callMiddleware(DOCUMENT_REQUEST);
+
+            expect(result.headers.has('Cache-Control')).toBe(false);
+        });
+    });
+
+    describe('shopper-specific errors', () => {
+        it.each([
+            { kind: 'document', request: DOCUMENT_REQUEST, status: 500 },
+            { kind: 'document', request: DOCUMENT_REQUEST, status: 503 },
+            { kind: 'data', request: DATA_REQUEST, status: 503 },
+        ])('should set no-store on a flagged $status $kind response', async ({ request, status }) => {
+            mockNext.mockImplementation(() => {
+                mockContext.set(shopperSpecificErrorContext, true);
+                return Promise.resolve(new Response('Server Error', { status }));
+            });
+
+            const result = await callMiddleware(request);
+
+            expect(result.headers.get('Cache-Control')).toBe('no-store');
+        });
+
+        it('should leave a flagged non-error document response untouched', async () => {
+            mockNext.mockImplementation(() => {
+                mockContext.set(shopperSpecificErrorContext, true);
+                return Promise.resolve(new Response('OK', { status: 200 }));
+            });
+
+            const result = await callMiddleware(DOCUMENT_REQUEST);
+
             expect(result.headers.has('Cache-Control')).toBe(false);
         });
     });

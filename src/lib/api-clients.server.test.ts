@@ -16,7 +16,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
-import { authContext, authStorageContext, authTokenInvalidApiContext } from '@/middlewares/auth.utils';
+import {
+    authContext,
+    authStorageContext,
+    authTokenInvalidApiContext,
+    supersededCredentialsContext,
+} from '@/middlewares/auth.utils';
+import { fingerprintCredential } from '@/lib/auth/credential-fingerprint';
 import type { SessionData } from '@/lib/api/types';
 import type { Logger } from '@/lib/logger';
 import { loggerContext } from '@/lib/logger.server';
@@ -487,6 +493,75 @@ describe('createApiClients', () => {
             expect(storage.get('error')).toBe('AUTH_TOKEN_INVALID');
             expect(mockContextProvider.get(authTokenInvalidApiContext)).toBe('checkout/shopper-baskets/v2');
         });
+
+        it('ignores a 401 for an access token that recovery already replaced, but not for another token', async () => {
+            const storage = new Map();
+            mockContextProvider.set(authStorageContext, storage as never);
+            mockContextProvider.set(supersededCredentialsContext, [await fingerprintCredential('Bearer old-token')]);
+            createApiClients(mockContextProvider);
+            const { onAuthTokenInvalid } = mockCreateCommerceApiClients.mock.calls[0][0] as {
+                onAuthTokenInvalid: (response: Response) => void;
+            };
+            const authMiddleware = scapiMocks.mockBuiltInUse.mock.calls[1][0] as {
+                onResponse: (args: { request: Request; response: Response }) => Promise<Response>;
+            };
+            const rejectedWith = async (token: string) => {
+                const response = new Response(null, { status: 401 });
+                await authMiddleware.onResponse({
+                    request: new Request('https://x.api.commercecloud.salesforce.com/search', {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
+                    response,
+                });
+                return response;
+            };
+
+            // A loader still in flight with the replaced token: expected, must not fail the recovery.
+            onAuthTokenInvalid(await rejectedWith('old-token'));
+            expect(storage.has('error')).toBe(false);
+
+            // The token in use now is rejected: a real failure.
+            onAuthTokenInvalid(await rejectedWith('new-token'));
+            expect(storage.get('error')).toBe('AUTH_TOKEN_INVALID');
+        });
+    });
+
+    it('does not fail a recovery whose refresh is still running when a late 401 for the old token arrives', async () => {
+        const storage = new Map();
+        mockContextProvider.set(authStorageContext, storage as never);
+        mockContextProvider.set(supersededCredentialsContext, []);
+        createApiClients(mockContextProvider);
+        const { onAuthTokenInvalid } = mockCreateCommerceApiClients.mock.calls[0][0] as {
+            onAuthTokenInvalid: (response: Response) => void;
+        };
+        const authMiddleware = scapiMocks.mockBuiltInUse.mock.calls[1][0] as {
+            onResponse: (args: { request: Request; response: Response }) => Promise<Response>;
+        };
+        const rejectedWith = async (token: string) => {
+            const response = new Response(null, { status: 401 });
+            await authMiddleware.onResponse({
+                request: new Request('https://x.api.commercecloud.salesforce.com/search', {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+                response,
+            });
+            return response;
+        };
+
+        // 1. The first loader to see the rejected token flags the request, which starts recovery.
+        const lateResponse = await rejectedWith('old-token');
+        onAuthTokenInvalid(await rejectedWith('old-token'));
+        expect(storage.get('error')).toBe('AUTH_TOKEN_INVALID');
+
+        // 2. Recovery marks the token as superseded and clears the error before it refreshes.
+        mockContextProvider.set(supersededCredentialsContext, [await fingerprintCredential('Bearer old-token')]);
+        storage.delete('error');
+
+        // 3. A second loader, still in flight with the old token, gets its 401 while the refresh runs.
+        onAuthTokenInvalid(lateResponse);
+
+        // The recovery's refresh can still succeed: nothing re-flagged the request.
+        expect(storage.has('error')).toBe(false);
     });
 
     describe('authentication middleware', () => {
