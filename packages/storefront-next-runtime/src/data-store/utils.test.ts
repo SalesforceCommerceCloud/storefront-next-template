@@ -18,8 +18,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { MiddlewareFunction, RouterContextProvider } from 'react-router';
 import { DataStore, DataStoreServiceError } from '@salesforce/mrt-utilities/middleware';
 import {
+    AlternateSourceValue,
     createDataStoreContext,
     createDataStoreMiddleware,
+    type DataStoreFallbackValue,
     createLazyDataStoreMiddleware,
     preferenceEnvelopeToMap,
     prefixWithSiteId,
@@ -464,6 +466,89 @@ describe('createDataStoreMiddleware', () => {
         } else {
             process.env.CI = originalCi;
         }
+    });
+
+    describe('fallbackValue callback', () => {
+        const preferencesContext = createDataStoreContext<Record<string, unknown>>();
+        let warnSpy: ReturnType<typeof vi.spyOn>;
+
+        beforeEach(() => {
+            warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        });
+
+        afterEach(() => {
+            warnSpy.mockRestore();
+        });
+
+        function setUnavailable(): void {
+            delete process.env.AWS_REGION;
+            delete process.env.MOBIFY_PROPERTY_ID;
+            delete process.env.DEPLOY_TARGET;
+        }
+
+        function setServiceError(): void {
+            DataStore._testDocumentClient = {
+                send: vi.fn().mockRejectedValue(new DataStoreServiceError('boom')),
+            } as unknown as typeof DataStore._testDocumentClient;
+            DataStore._testLogMRTError = vi.fn();
+        }
+
+        async function run(fallbackValue: DataStoreFallbackValue<Record<string, unknown>>) {
+            const middleware = createDataStoreMiddleware({
+                entryKey: 'site-preferences',
+                context: preferencesContext,
+                onUnavailable: 'fallback',
+                fallbackValue,
+            });
+            await middleware(
+                {
+                    request: new Request('https://example.com'),
+                    context,
+                    params: {},
+                    pattern: '',
+                    url: new URL('https://example.com'),
+                },
+                next as MiddlewareNext
+            );
+            return context.get(preferencesContext);
+        }
+
+        it('receives the unavailable reason and can resolve asynchronously', async () => {
+            setUnavailable();
+            const fallback = vi.fn().mockResolvedValue({ source: 'default' });
+
+            await expect(run(fallback)).resolves.toEqual({ source: 'default' });
+            expect(fallback).toHaveBeenCalledWith(context, 'unavailable');
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Using configured fallback value.'));
+        });
+
+        it('receives the service-error reason', async () => {
+            setServiceError();
+            const fallback = vi.fn().mockReturnValue({});
+
+            await run(fallback);
+
+            expect(fallback).toHaveBeenCalledWith(context, 'service-error');
+        });
+
+        it('uses an AlternateSourceValue as the value without a warning', async () => {
+            setUnavailable();
+
+            await expect(
+                run(() => Promise.resolve(new AlternateSourceValue({ source: 'alternate' })))
+            ).resolves.toEqual({
+                source: 'alternate',
+            });
+            expect(warnSpy).not.toHaveBeenCalled();
+        });
+
+        it('treats the entry as missing when the callback throws', async () => {
+            setUnavailable();
+
+            await expect(run(() => Promise.reject(new Error('down')))).resolves.toBeUndefined();
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('the fallback failed'));
+            expect(next).toHaveBeenCalledOnce();
+        });
     });
 });
 

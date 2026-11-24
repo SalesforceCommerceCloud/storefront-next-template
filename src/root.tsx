@@ -42,6 +42,7 @@ import { PageDesignerProvider, type PageUpdateMode } from '@salesforce/storefron
 import { createStorefrontStylesheetLink } from '@salesforce/storefront-next-runtime/design/react/preload';
 import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-next-runtime/design/mode';
 import { dataStoreMiddlewareLazy, sitesMiddlewareLazy } from '@salesforce/storefront-next-runtime/data-store';
+import { shopperConfigurationsLoaderMiddleware } from '@/middlewares/shopper-configurations-loader.server';
 import {
     buildUrl,
     SiteProvider,
@@ -183,6 +184,7 @@ export const middleware: MiddlewareFunction<Response>[] = [
     sitesConfigMiddleware,
     siteContextMiddleware, // Must run after appConfig, before i18next and currency
     ...dataStoreMiddlewareLazy,
+    shopperConfigurationsLoaderMiddleware, // Fallback source for dataStoreMiddlewareLazy preferences off Managed Runtime
     siteUrlConfigMiddleware, // Must run after siteContextMiddleware (entry key uses site id)
     i18nextMiddleware,
     pageDesignerResolutionMiddleware,

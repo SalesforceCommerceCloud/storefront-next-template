@@ -597,6 +597,33 @@ On by default. When on, live site data synced through the MRT Data Store replace
 
 The MRT Data Store includes the site named by `defaultSiteId`. If it doesn't, or the data store entry is unavailable or yields no usable sites, the storefront keeps serving the static `commerce.sites` and logs a warning rather than failing the request. See the "MRT Data Store Sites" section in [README-MULTI-SITE.md](./README-MULTI-SITE.md#mrt-data-store-sites) for the fallback rules and why the alias maps stay static.
 
+### Custom Preferences
+
+Read custom site and global preferences in a loader or action. Each getter resolves to an `id → value` map, or `null` if no preferences are available.
+
+```typescript
+import { getCustomGlobalPreferencesLazy, getSitePreferencesLazy } from '@salesforce/storefront-next-runtime/data-store';
+
+export async function loader({ context }: Route.LoaderArgs) {
+    const sitePreferences = await getSitePreferencesLazy(context);
+    return { minimumDeliveryValue: sitePreferences?.minimumDeliveryValue };
+}
+```
+
+On Managed Runtime, preferences come from the MRT Data Store. Production builds running elsewhere get them from the Shopper Configurations API instead. `pnpm dev` uses a local data store (see `SFNEXT_DATA_STORE_DEFAULTS`), so it doesn't use this fallback. The `app_storefrontnext_base` cartridge adds them to that response as `c_customSitePreferences` and `c_customGlobalPreferences`. The fallback needs:
+
+- The `app_storefrontnext_base` cartridge on the instance's cartridge path
+- `shopperConfigurationsLoaderMiddleware` in `src/root.tsx`, after `siteContextMiddleware` (included by default)
+
+The API is called only when a getter needs it, at most once per request. To reuse the preferences across requests, set `MRT_DATA_STORE_CACHE_ENABLED=true`. The cache is in memory, so it works outside Managed Runtime too. `MRT_DATA_STORE_CACHE_TTL` sets how long they are kept, in milliseconds (default `300000`).
+
+```bash
+# MRT_DATA_STORE_CACHE_ENABLED=true
+# MRT_DATA_STORE_CACHE_TTL=300000
+```
+
+If the call fails, or the response doesn't include the preferences, the getters resolve as if no preferences were set rather than failing the request. Setting `SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw` turns the fallback off: requests fail instead. `src/middlewares/shopper-configurations-loader.server.ts` is the only place that reads the cartridge's field names. If you rename them in your cartridge, update them there too.
+
 ### Per-Currency Shipping Method IDs
 
 Off by default. When on, pickup/BOPIS shipping-method detection recognizes **currency-suffixed** method IDs (e.g. `005-usd`, `005-gbp`) that match the site's **supported currencies** in addition to the base ID (`005`). Enable it for a vertical whose dataset ships one shipping method per currency with distinct IDs — the only representation SFCC's site import accepts for per-currency price tables (a repeated `method-id` clobbers on import). Leave it off for single-currency datasets, which keep the legacy exact-ID (`005`) behavior. When on, pickup detection checks if the method ID matches `005-{currency}` for any currency in the site's `supportedCurrencies` array.

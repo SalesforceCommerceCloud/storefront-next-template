@@ -17,12 +17,14 @@
 import type { RouterContextProvider } from 'react-router';
 import { getDataStoreLogger } from '../logger-context';
 import {
+    AlternateSourceValue,
     createDataStoreContext,
     createDataStoreMiddleware,
     createLazyDataStoreMiddleware,
     preferenceEnvelopeToMap,
     readLazyDataStoreEntry,
 } from '../utils';
+import { readShopperConfigurations } from './shopper-configurations';
 
 export type CustomGlobalPreferences = Record<string, unknown>;
 
@@ -97,11 +99,22 @@ export const customGlobalPreferencesMiddleware = createDataStoreMiddleware<Custo
  * read the value via {@link getCustomGlobalPreferencesLazy} pay for the data-store round trip.
  * Same entry key, fallback, and `SFNEXT_DATA_STORE_UNAVAILABLE_MODE` semantics as the eager
  * variant.
+ *
+ * When the data store is unavailable (for example, off Managed Runtime), reads the global preferences from
+ * Shopper Configurations instead, if the app registers a loader with `createShopperConfigurationsLoaderMiddleware`.
+ * Otherwise, or if that call fails or returns no `data` array, the fallback above applies. Like the fallback, this is
+ * skipped when `SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw`.
  */
 export const customGlobalPreferencesMiddlewareLazy = createLazyDataStoreMiddleware<CustomGlobalPreferences>({
     entryKey: DEFAULT_CUSTOM_GLOBAL_PREFERENCES_KEY,
     context: customGlobalPreferencesContext,
     onUnavailable: CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE,
-    fallbackValue: {},
+    fallbackValue: async (context, reason) => {
+        const envelope =
+            reason === 'unavailable' ? (await readShopperConfigurations(context))?.globalPreferences : undefined;
+        return envelope && Array.isArray(envelope.data)
+            ? new AlternateSourceValue(preferenceEnvelopeToMap(envelope))
+            : {};
+    },
     transform: preferenceEnvelopeToMap,
 });

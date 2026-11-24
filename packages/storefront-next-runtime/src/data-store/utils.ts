@@ -92,12 +92,39 @@ export type DataStoreMiddlewareOptions<T> = {
     /**
      * Value to populate the context with when `onUnavailable === 'fallback'` and the data
      * store fetch fails. Either a constant or a function that derives the value from the
-     * router context (useful for fallbacks that need request-scoped information). When
-     * omitted, the middleware leaves the context unset on failure (downstream consumers
-     * see the context's default value, typically `null`).
+     * router context and the failure reason (useful for fallbacks that need request-scoped
+     * information). When omitted, the middleware leaves the context unset on failure
+     * (downstream consumers see the context's default value, typically `null`).
+     *
+     * A function may be async and may read an alternate source, for example when the data store is `'unavailable'`
+     * because the app is not hosted on Managed Runtime. Wrap a value from an alternate source in
+     * {@link AlternateSourceValue} to use it as the entry's value without the fallback warning. A function that
+     * throws resolves to the missing state.
      */
-    fallbackValue?: T | ((context: Readonly<RouterContextProvider>) => T);
+    fallbackValue?: DataStoreFallbackValue<T>;
 };
+
+/**
+ * Why the data store could not serve an entry: `'unavailable'` when the data store is not configured
+ * (`DataStoreUnavailableError`, for example off Managed Runtime), `'service-error'` when a configured data store
+ * request fails (`DataStoreServiceError`).
+ */
+export type DataStoreFailureReason = 'unavailable' | 'service-error';
+
+export type DataStoreFallbackValue<T> = T | DataStoreFallbackFunction<T>;
+
+type DataStoreFallbackFunction<T> = (
+    context: Readonly<RouterContextProvider>,
+    reason: DataStoreFailureReason
+) => T | AlternateSourceValue<T> | Promise<T | AlternateSourceValue<T>>;
+
+/**
+ * Marks a {@link DataStoreMiddlewareOptions.fallbackValue} result that came from an alternate source rather than a
+ * static default. The value is used as the entry's value, and no fallback warning is logged.
+ */
+export class AlternateSourceValue<T> {
+    constructor(readonly value: T) {}
+}
 
 /**
  * Creates a typed React Router context for data store entries.
@@ -253,7 +280,7 @@ async function loadDataStoreEntry<T>(args: {
     context: Readonly<RouterContextProvider>;
     transform: (value: Record<string, unknown>) => T;
     onUnavailable: 'throw' | 'fallback';
-    fallbackValue: T | ((context: Readonly<RouterContextProvider>) => T) | undefined;
+    fallbackValue: DataStoreFallbackValue<T> | undefined;
 }): Promise<LoadResult<T>> {
     const tracer = getDataStoreTracer(args.context);
 
@@ -321,7 +348,7 @@ async function resolveDataStoreEntry<T>(
         context: Readonly<RouterContextProvider>;
         transform: (value: Record<string, unknown>) => T;
         onUnavailable: 'throw' | 'fallback';
-        fallbackValue: T | ((context: Readonly<RouterContextProvider>) => T) | undefined;
+        fallbackValue: DataStoreFallbackValue<T> | undefined;
     },
     span?: Span
 ): Promise<LoadResult<T>> {
@@ -364,7 +391,7 @@ async function resolveDataStoreEntry<T>(
             return { state: 'missing' };
         }
         if (error instanceof DataStoreUnavailableError || error instanceof DataStoreServiceError) {
-            return resolveDataStoreFallback({
+            return await resolveDataStoreFallback({
                 entryKey,
                 context,
                 error,
@@ -377,23 +404,42 @@ async function resolveDataStoreEntry<T>(
     }
 }
 
-function resolveDataStoreFallback<T>(args: {
+async function resolveDataStoreFallback<T>(args: {
     entryKey: string;
     context: Readonly<RouterContextProvider>;
     error: DataStoreUnavailableError | DataStoreServiceError;
     onUnavailable: 'throw' | 'fallback';
-    fallbackValue: T | ((context: Readonly<RouterContextProvider>) => T) | undefined;
+    fallbackValue: DataStoreFallbackValue<T> | undefined;
     logger: DataStoreLogger;
-}): LoadResult<T> {
+}): Promise<LoadResult<T>> {
     const { entryKey, context, error, onUnavailable, fallbackValue, logger } = args;
-    const reason = error instanceof DataStoreServiceError ? 'service error' : 'unavailable';
+    const failureReason: DataStoreFailureReason =
+        error instanceof DataStoreServiceError ? 'service-error' : 'unavailable';
+    const reason = failureReason === 'service-error' ? 'service error' : 'unavailable';
 
     if (onUnavailable === 'fallback') {
         if (typeof fallbackValue !== 'undefined') {
-            const resolved =
-                typeof fallbackValue === 'function'
-                    ? (fallbackValue as (ctx: Readonly<RouterContextProvider>) => T)(context)
-                    : fallbackValue;
+            let resolved: T | AlternateSourceValue<T>;
+            try {
+                resolved =
+                    typeof fallbackValue === 'function'
+                        ? await (fallbackValue as DataStoreFallbackFunction<T>)(context, failureReason)
+                        : fallbackValue;
+            } catch (fallbackError) {
+                logger.warn(
+                    `Data store ${reason} for '${entryKey}' and the fallback failed; treating entry as missing.`,
+                    {
+                        entryKey,
+                        reason,
+                        error: fallbackError,
+                    }
+                );
+                return { state: 'missing' };
+            }
+            if (resolved instanceof AlternateSourceValue) {
+                logger.debug(`Data store ${reason} for '${entryKey}'. Using alternate source.`, { entryKey, reason });
+                return { state: 'value', value: resolved.value };
+            }
             logger.warn(`Data store ${reason} for '${entryKey}'. Using configured fallback value.`, {
                 entryKey,
                 reason,

@@ -17,6 +17,7 @@
 import type { RouterContextProvider } from 'react-router';
 import { getDataStoreLogger } from '../logger-context';
 import {
+    AlternateSourceValue,
     createDataStoreContext,
     createDataStoreMiddleware,
     createLazyDataStoreMiddleware,
@@ -24,6 +25,7 @@ import {
     prefixWithSiteId,
     readLazyDataStoreEntry,
 } from '../utils';
+import { readShopperConfigurations } from './shopper-configurations';
 
 export type SitePreferences = Record<string, unknown>;
 
@@ -102,11 +104,22 @@ export const customSitePreferencesMiddleware = createDataStoreMiddleware<SitePre
  * fallback, and `SFNEXT_DATA_STORE_UNAVAILABLE_MODE` semantics as the eager variant.
  *
  * Must run after the site-context middleware (so the site id is available for the entry key).
+ *
+ * When the data store is unavailable (for example, off Managed Runtime), reads the site preferences from
+ * Shopper Configurations instead, if the app registers a loader with `createShopperConfigurationsLoaderMiddleware`.
+ * Otherwise, or if that call fails or returns no `data` array, the fallback above applies. Like the fallback, this is
+ * skipped when `SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw`.
  */
 export const customSitePreferencesMiddlewareLazy = createLazyDataStoreMiddleware<SitePreferences>({
     entryKey: SITE_PREFERENCES_ENTRY_KEY,
     context: sitePreferencesContext,
     onUnavailable: SITE_PREFERENCES_ON_UNAVAILABLE,
-    fallbackValue: {},
+    fallbackValue: async (context, reason) => {
+        const envelope =
+            reason === 'unavailable' ? (await readShopperConfigurations(context))?.sitePreferences : undefined;
+        return envelope && Array.isArray(envelope.data)
+            ? new AlternateSourceValue(preferenceEnvelopeToMap(envelope))
+            : {};
+    },
     transform: preferenceEnvelopeToMap,
 });

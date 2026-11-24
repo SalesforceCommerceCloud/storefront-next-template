@@ -26,11 +26,10 @@
  * assigned to the group. Like the MRT data store sync, no other attribute is filtered by name, so the group must only
  * hold values that are safe to make public.
  *
- * The response is public to any shopper token with the sfcc.shopper-configurations scope and cached per site, so
- * values are read once in the request locale and are not personalized. Exposed values are added as
- * c_customSitePreferences and c_customGlobalPreferences in the same shape the MRT data store sync writes:
- * { data: [{ groupId, id, value }] }. Like that sync, attributes with neither a value nor a default are omitted,
- * and image values are { path, absUrl, disBaseUrl, alt, title }.
+ * The response is public to any shopper token and cached per site, so values are read once in the request locale and
+ * are not personalized. Exposed values are added as c_customSitePreferences and c_customGlobalPreferences in the same
+ * shape the MRT data store sync writes: { data: [{ groupId, id, value }] }. Like that sync, attributes with neither a
+ * value nor a default are omitted, and image values are { path, absUrl, disBaseUrl, alt, title }.
  *
  * Extension point: dw.shop.shopper_configuration.modifyGETResponse
  */

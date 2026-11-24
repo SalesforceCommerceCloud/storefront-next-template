@@ -175,6 +175,25 @@ Entry values use the SCAPI preference-list envelope, one record per preference. 
 { "RefArch-custom-site-preferences": { "data": [{ "id": "feefoEnableReviews", "value": true, "groupId": "Storefront Configs" }], "total": 1 } }
 ```
 
+**Shopper Configurations Fallback:**
+
+When the MRT data store is unavailable (the MRT environment variables are missing), `getSitePreferencesLazy` and `getCustomGlobalPreferencesLazy` read custom preferences from the Shopper Configurations `getConfigurations` response through a loader your app registers. The read happens in the middlewares' `fallbackValue`, so it's skipped when `SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw`. Service errors, a failed call, or missing preferences return `{}` with the usual fallback warning.
+
+Your own `fallbackValue` callbacks receive the failure reason (`'unavailable'` or `'service-error'`) and may be async. Return `new AlternateSourceValue(value)` to use a value from another source without the fallback warning.
+
+Register the loader with your app's authenticated SCAPI clients, after the site-context middleware. It maps the response fields your cartridge adds to `sitePreferences` and `globalPreferences`, so the SDK doesn't depend on their names:
+
+```typescript
+import { createShopperConfigurationsLoaderMiddleware } from '@salesforce/storefront-next-runtime/data-store';
+
+export const shopperConfigurationsLoaderMiddleware = createShopperConfigurationsLoaderMiddleware(async (context) => {
+  const { data } = await createApiClients(context).shopperConfigurations.getConfigurations();
+  return { sitePreferences: data?.c_customSitePreferences, globalPreferences: data?.c_customGlobalPreferences };
+});
+```
+
+The call runs only when a getter needs the fallback, at most once per request. Set `MRT_DATA_STORE_CACHE_ENABLED=true` to reuse the preferences per site across requests. The data-store cache is in memory, so this works outside Managed Runtime too. Reads that happen before authentication get no token and return the fallback value.
+
 ### `/scapi/inventory` Physical Stock Check
 
 Exports `hasInventoryStock()` and the `InventoryRecord` type without SCAPI clients or cart quantity aggregation. The predicate checks orderability, physical stock and any supplied ATS against the requested quantity; it does not fetch stock or select an inventory list. The `/scapi` barrel continues to export the same helper.

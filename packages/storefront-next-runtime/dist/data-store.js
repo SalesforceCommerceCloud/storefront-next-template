@@ -330,6 +330,15 @@ function maybeLogStats(state, logger) {
 */
 const LOAD_ENTRY_SPAN_NAME = "sfnext.data_store.load";
 /**
+* Marks a {@link DataStoreMiddlewareOptions.fallbackValue} result that came from an alternate source rather than a
+* static default. The value is used as the entry's value, and no fallback warning is logged.
+*/
+var AlternateSourceValue = class {
+	constructor(value) {
+		this.value = value;
+	}
+};
+/**
 * Creates a typed React Router context for data store entries.
 *
 * Initializes the context with `null` so middleware can populate it during requests.
@@ -520,7 +529,7 @@ async function resolveDataStoreEntry(args, span) {
 			logger.debug(`Data store entry '${entryKey}' not found.`, { entryKey });
 			return { state: "missing" };
 		}
-		if (error instanceof DataStoreUnavailableError$1 || error instanceof DataStoreServiceError$1) return resolveDataStoreFallback({
+		if (error instanceof DataStoreUnavailableError$1 || error instanceof DataStoreServiceError$1) return await resolveDataStoreFallback({
 			entryKey,
 			context,
 			error,
@@ -531,12 +540,33 @@ async function resolveDataStoreEntry(args, span) {
 		throw error;
 	}
 }
-function resolveDataStoreFallback(args) {
+async function resolveDataStoreFallback(args) {
 	const { entryKey, context, error, onUnavailable, fallbackValue, logger } = args;
-	const reason = error instanceof DataStoreServiceError$1 ? "service error" : "unavailable";
+	const failureReason = error instanceof DataStoreServiceError$1 ? "service-error" : "unavailable";
+	const reason = failureReason === "service-error" ? "service error" : "unavailable";
 	if (onUnavailable === "fallback") {
 		if (typeof fallbackValue !== "undefined") {
-			const resolved = typeof fallbackValue === "function" ? fallbackValue(context) : fallbackValue;
+			let resolved;
+			try {
+				resolved = typeof fallbackValue === "function" ? await fallbackValue(context, failureReason) : fallbackValue;
+			} catch (fallbackError) {
+				logger.warn(`Data store ${reason} for '${entryKey}' and the fallback failed; treating entry as missing.`, {
+					entryKey,
+					reason,
+					error: fallbackError
+				});
+				return { state: "missing" };
+			}
+			if (resolved instanceof AlternateSourceValue) {
+				logger.debug(`Data store ${reason} for '${entryKey}'. Using alternate source.`, {
+					entryKey,
+					reason
+				});
+				return {
+					state: "value",
+					value: resolved.value
+				};
+			}
 			logger.warn(`Data store ${reason} for '${entryKey}'. Using configured fallback value.`, {
 				entryKey,
 				reason,
@@ -594,6 +624,83 @@ function prefixWithSiteId(suffix) {
 		if (!siteId) throw new Error("Site id not found. Ensure site context middleware runs before data-store middleware.");
 		return `${siteId}-${suffix}`;
 	};
+}
+
+//#endregion
+//#region src/data-store/middleware/shopper-configurations.ts
+/**
+* Holds the request's memoized Shopper Configurations loader, registered by
+* {@link createShopperConfigurationsLoaderMiddleware}. Read through {@link readShopperConfigurations}.
+*/
+const shopperConfigurationsLoaderContext = createContext(null);
+const SHOPPER_CONFIGURATIONS_CACHE_KEY = prefixWithSiteId("shopper-configurations");
+/**
+* Creates a middleware that registers a Shopper Configurations loader for the request. The data-store preference
+* getters use it as their source when the MRT data store is unavailable (for example, a storefront not hosted on
+* Managed Runtime). The loader is supplied by the app because the call needs the app's authenticated SCAPI clients.
+*
+* Nothing is fetched until a getter needs the fallback. The first call per request runs `load` and later calls share
+* its promise, so the site and global preference getters cost one request. Successful results are also stored in
+* the in-memory data-store cache under a site-scoped key, so warm instances skip the call until the TTL expires. The
+* cache does not depend on the MRT data store, so it applies when this fallback runs off Managed Runtime. The
+* preferences are not personalized, which makes them safe to share across shoppers.
+*
+* Reads happen in loaders and actions, after authentication has run. A middleware that reads preferences before the
+* app's auth middleware gets no token and falls back to the getters' default.
+*
+* Must run after the site-context middleware (the cache key uses the site id).
+*
+* @param load - Fetches Shopper Configurations and maps the response to {@link ShopperConfigurationsPreferences};
+*   may resolve to `null` when unavailable
+* @returns React Router middleware for server requests
+*
+* @env MRT_DATA_STORE_CACHE_ENABLED (optional): `'true'` caches responses across requests. Default: disabled.
+*   Example: `MRT_DATA_STORE_CACHE_ENABLED=true`.
+* @env MRT_DATA_STORE_CACHE_TTL (optional): cache TTL in milliseconds. Default: `300000`.
+*   Example: `MRT_DATA_STORE_CACHE_TTL=300000`.
+*/
+function createShopperConfigurationsLoaderMiddleware(load) {
+	return async ({ context }, next) => {
+		let pending;
+		context.set(shopperConfigurationsLoaderContext, () => {
+			pending ??= loadShopperConfigurations(context, load);
+			return pending;
+		});
+		return next();
+	};
+}
+async function loadShopperConfigurations(context, load) {
+	const logger = getDataStoreLogger(context);
+	const cacheKey = SHOPPER_CONFIGURATIONS_CACHE_KEY(context);
+	const cached = readDataStoreCache(cacheKey, logger);
+	if (cached?.value) return cached.value;
+	const preferences = await load(context) ?? null;
+	if (preferences && typeof preferences === "object") writeDataStoreCache(cacheKey, { value: preferences });
+	return preferences;
+}
+/**
+* Read the Shopper Configurations preferences through the loader registered by
+* {@link createShopperConfigurationsLoaderMiddleware}.
+*
+* Never throws: returns `null` when no loader is registered or the call fails, so callers fall back to their own
+* default.
+*
+* @param context - Router context provider
+* @returns The preferences, or `null` when unavailable
+*/
+async function readShopperConfigurations(context) {
+	const logger = getDataStoreLogger(context);
+	const loader = context.get(shopperConfigurationsLoaderContext);
+	if (typeof loader !== "function") {
+		logger.debug("No Shopper Configurations loader registered; skipping the data store fallback.");
+		return null;
+	}
+	try {
+		return await loader();
+	} catch (error) {
+		logger.warn("Shopper Configurations request failed; using the fallback value.", { error });
+		return null;
+	}
 }
 
 //#endregion
@@ -664,12 +771,20 @@ const customSitePreferencesMiddleware = createDataStoreMiddleware({
 * fallback, and `SFNEXT_DATA_STORE_UNAVAILABLE_MODE` semantics as the eager variant.
 *
 * Must run after the site-context middleware (so the site id is available for the entry key).
+*
+* When the data store is unavailable (for example, off Managed Runtime), reads the site preferences from
+* Shopper Configurations instead, if the app registers a loader with `createShopperConfigurationsLoaderMiddleware`.
+* Otherwise, or if that call fails or returns no `data` array, the fallback above applies. Like the fallback, this is
+* skipped when `SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw`.
 */
 const customSitePreferencesMiddlewareLazy = createLazyDataStoreMiddleware({
 	entryKey: SITE_PREFERENCES_ENTRY_KEY,
 	context: sitePreferencesContext,
 	onUnavailable: SITE_PREFERENCES_ON_UNAVAILABLE,
-	fallbackValue: {},
+	fallbackValue: async (context, reason) => {
+		const envelope = reason === "unavailable" ? (await readShopperConfigurations(context))?.sitePreferences : void 0;
+		return envelope && Array.isArray(envelope.data) ? new AlternateSourceValue(preferenceEnvelopeToMap(envelope)) : {};
+	},
 	transform: preferenceEnvelopeToMap
 });
 
@@ -736,12 +851,20 @@ const customGlobalPreferencesMiddleware = createDataStoreMiddleware({
 * read the value via {@link getCustomGlobalPreferencesLazy} pay for the data-store round trip.
 * Same entry key, fallback, and `SFNEXT_DATA_STORE_UNAVAILABLE_MODE` semantics as the eager
 * variant.
+*
+* When the data store is unavailable (for example, off Managed Runtime), reads the global preferences from
+* Shopper Configurations instead, if the app registers a loader with `createShopperConfigurationsLoaderMiddleware`.
+* Otherwise, or if that call fails or returns no `data` array, the fallback above applies. Like the fallback, this is
+* skipped when `SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw`.
 */
 const customGlobalPreferencesMiddlewareLazy = createLazyDataStoreMiddleware({
 	entryKey: DEFAULT_CUSTOM_GLOBAL_PREFERENCES_KEY,
 	context: customGlobalPreferencesContext,
 	onUnavailable: CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE,
-	fallbackValue: {},
+	fallbackValue: async (context, reason) => {
+		const envelope = reason === "unavailable" ? (await readShopperConfigurations(context))?.globalPreferences : void 0;
+		return envelope && Array.isArray(envelope.data) ? new AlternateSourceValue(preferenceEnvelopeToMap(envelope)) : {};
+	},
 	transform: preferenceEnvelopeToMap
 });
 
@@ -1028,5 +1151,5 @@ const dataStoreMiddlewareLazy = [
 ];
 
 //#endregion
-export { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, dataStoreTracerContext, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getDataStoreTracer, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry, sitesMiddlewareLazy };
+export { AlternateSourceValue, DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, createShopperConfigurationsLoaderMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, dataStoreTracerContext, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getDataStoreTracer, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry, readShopperConfigurations, shopperConfigurationsLoaderContext, sitesMiddlewareLazy };
 //# sourceMappingURL=data-store.js.map

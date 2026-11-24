@@ -1,5 +1,5 @@
 import { r as Site } from "./types.js";
-import * as react_router7 from "react-router";
+import * as react_router5 from "react-router";
 import { MiddlewareFunction, RouterContextProvider, createContext } from "react-router";
 import { Tracer } from "@opentelemetry/api";
 import { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError } from "@salesforce/mrt-utilities/data-store";
@@ -53,12 +53,33 @@ type DataStoreMiddlewareOptions<T> = {
   /**
    * Value to populate the context with when `onUnavailable === 'fallback'` and the data
    * store fetch fails. Either a constant or a function that derives the value from the
-   * router context (useful for fallbacks that need request-scoped information). When
-   * omitted, the middleware leaves the context unset on failure (downstream consumers
-   * see the context's default value, typically `null`).
+   * router context and the failure reason (useful for fallbacks that need request-scoped
+   * information). When omitted, the middleware leaves the context unset on failure
+   * (downstream consumers see the context's default value, typically `null`).
+   *
+   * A function may be async and may read an alternate source, for example when the data store is `'unavailable'`
+   * because the app is not hosted on Managed Runtime. Wrap a value from an alternate source in
+   * {@link AlternateSourceValue} to use it as the entry's value without the fallback warning. A function that
+   * throws resolves to the missing state.
    */
-  fallbackValue?: T | ((context: Readonly<RouterContextProvider>) => T);
+  fallbackValue?: DataStoreFallbackValue<T>;
 };
+/**
+ * Why the data store could not serve an entry: `'unavailable'` when the data store is not configured
+ * (`DataStoreUnavailableError`, for example off Managed Runtime), `'service-error'` when a configured data store
+ * request fails (`DataStoreServiceError`).
+ */
+type DataStoreFailureReason = 'unavailable' | 'service-error';
+type DataStoreFallbackValue<T> = T | DataStoreFallbackFunction<T>;
+type DataStoreFallbackFunction<T> = (context: Readonly<RouterContextProvider>, reason: DataStoreFailureReason) => T | AlternateSourceValue<T> | Promise<T | AlternateSourceValue<T>>;
+/**
+ * Marks a {@link DataStoreMiddlewareOptions.fallbackValue} result that came from an alternate source rather than a
+ * static default. The value is used as the entry's value, and no fallback warning is logged.
+ */
+declare class AlternateSourceValue<T> {
+  readonly value: T;
+  constructor(value: T);
+}
 /**
  * Creates a typed React Router context for data store entries.
  *
@@ -134,6 +155,19 @@ declare function readLazyDataStoreEntry<T>(context: Readonly<RouterContextProvid
  * @returns Data-store entry or null when missing/invalid shape
  */
 declare function getDataStoreEntry<TValue = unknown>(key: string): Promise<DataStoreEntry<TValue> | null>;
+/**
+ * The raw envelope shape returned by the SCAPI `getSiteCustomPreferenceList` endpoint.
+ * Both `customGlobalPreferences` and `customSitePreferences` store data in this format:
+ * one `{ id, value, groupId }` record per preference. MRT entries omit `total`.
+ */
+type RawPreferenceEnvelope = {
+  data: Array<{
+    id: string;
+    value: unknown;
+    groupId?: string;
+  }>;
+  total?: number;
+};
 //#endregion
 //#region src/data-store/logger-context.d.ts
 /**
@@ -163,7 +197,7 @@ interface DataStoreLogger {
  * Defaults to `null` (not `undefined`) because React Router's
  * `context.get()` throws when `defaultValue === undefined`.
  */
-declare const dataStoreLoggerContext: react_router7.RouterContext<DataStoreLogger | null>;
+declare const dataStoreLoggerContext: react_router5.RouterContext<DataStoreLogger | null>;
 /**
  * Read the data-store logger from router context, falling back to a
  * console-based default when nothing has been injected.
@@ -191,7 +225,7 @@ declare function getDataStoreLogger(context: Readonly<RouterContextProvider>): D
  * Defaults to `null` (not `undefined`) because React Router's `context.get()`
  * throws when `defaultValue === undefined`.
  */
-declare const dataStoreTracerContext: react_router7.RouterContext<Tracer | null>;
+declare const dataStoreTracerContext: react_router5.RouterContext<Tracer | null>;
 /**
  * Read the data-store tracer from router context, or `null` when nothing has
  * been injected. Callers treat `null` as "tracing disabled" and run the work
@@ -385,7 +419,63 @@ declare function getSitesFromDataStoreLazy(context: Readonly<RouterContextProvid
  * `SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw` to opt into fail-fast. The env var
  * is read once at module load.
  */
-declare const sitesMiddlewareLazy: react_router7.MiddlewareFunction<Response>;
+declare const sitesMiddlewareLazy: react_router5.MiddlewareFunction<Response>;
+//#endregion
+//#region src/data-store/middleware/shopper-configurations.d.ts
+/**
+ * Custom preferences read from the Shopper Configurations `getConfigurations` response. The app's loader maps its
+ * response fields to this shape, so the SDK doesn't depend on the field names the app's cartridge uses. Both
+ * properties use the same `{ data: [{ id, value, groupId }] }` envelope as the MRT data store entries.
+ */
+type ShopperConfigurationsPreferences = {
+  sitePreferences?: RawPreferenceEnvelope;
+  globalPreferences?: RawPreferenceEnvelope;
+};
+/** Fetches the custom preferences from Shopper Configurations for the current request's site. */
+type ShopperConfigurationsLoader = (context: Readonly<RouterContextProvider>) => Promise<ShopperConfigurationsPreferences | null | undefined>;
+type MemoizedShopperConfigurationsLoader = () => Promise<ShopperConfigurationsPreferences | null>;
+/**
+ * Holds the request's memoized Shopper Configurations loader, registered by
+ * {@link createShopperConfigurationsLoaderMiddleware}. Read through {@link readShopperConfigurations}.
+ */
+declare const shopperConfigurationsLoaderContext: react_router5.RouterContext<MemoizedShopperConfigurationsLoader | null>;
+/**
+ * Creates a middleware that registers a Shopper Configurations loader for the request. The data-store preference
+ * getters use it as their source when the MRT data store is unavailable (for example, a storefront not hosted on
+ * Managed Runtime). The loader is supplied by the app because the call needs the app's authenticated SCAPI clients.
+ *
+ * Nothing is fetched until a getter needs the fallback. The first call per request runs `load` and later calls share
+ * its promise, so the site and global preference getters cost one request. Successful results are also stored in
+ * the in-memory data-store cache under a site-scoped key, so warm instances skip the call until the TTL expires. The
+ * cache does not depend on the MRT data store, so it applies when this fallback runs off Managed Runtime. The
+ * preferences are not personalized, which makes them safe to share across shoppers.
+ *
+ * Reads happen in loaders and actions, after authentication has run. A middleware that reads preferences before the
+ * app's auth middleware gets no token and falls back to the getters' default.
+ *
+ * Must run after the site-context middleware (the cache key uses the site id).
+ *
+ * @param load - Fetches Shopper Configurations and maps the response to {@link ShopperConfigurationsPreferences};
+ *   may resolve to `null` when unavailable
+ * @returns React Router middleware for server requests
+ *
+ * @env MRT_DATA_STORE_CACHE_ENABLED (optional): `'true'` caches responses across requests. Default: disabled.
+ *   Example: `MRT_DATA_STORE_CACHE_ENABLED=true`.
+ * @env MRT_DATA_STORE_CACHE_TTL (optional): cache TTL in milliseconds. Default: `300000`.
+ *   Example: `MRT_DATA_STORE_CACHE_TTL=300000`.
+ */
+declare function createShopperConfigurationsLoaderMiddleware(load: ShopperConfigurationsLoader): MiddlewareFunction<Response>;
+/**
+ * Read the Shopper Configurations preferences through the loader registered by
+ * {@link createShopperConfigurationsLoaderMiddleware}.
+ *
+ * Never throws: returns `null` when no loader is registered or the call fails, so callers fall back to their own
+ * default.
+ *
+ * @param context - Router context provider
+ * @returns The preferences, or `null` when unavailable
+ */
+declare function readShopperConfigurations(context: Readonly<RouterContextProvider>): Promise<ShopperConfigurationsPreferences | null>;
 //#endregion
 //#region src/data-store/index.d.ts
 /**
@@ -394,13 +484,13 @@ declare const sitesMiddlewareLazy: react_router7.MiddlewareFunction<Response>;
  * routes that never read the values. The lazy bundle defers the site/global/login reads until a
  * consumer actually reads them.
  */
-declare const dataStoreMiddleware: react_router7.MiddlewareFunction<Response>[];
+declare const dataStoreMiddleware: react_router5.MiddlewareFunction<Response>[];
 /**
  * Preferred data-store middleware bundle. All four preferences are registered lazily — each
  * DynamoDB read fires only when a loader reads the value via the matching `get*Lazy` accessor,
  * so no request pays for an entry it never reads.
  */
-declare const dataStoreMiddlewareLazy: react_router7.MiddlewareFunction<Response>[];
+declare const dataStoreMiddlewareLazy: react_router5.MiddlewareFunction<Response>[];
 //#endregion
-export { type CustomGlobalPreferences, type DalSite, DataStore, type DataStoreContextKey, type DataStoreEntry, type DataStoreEntryKey, type DataStoreLogger, type DataStoreMiddlewareOptions, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, type GcpPreferences, type LoginPreferences, type SitePreferences, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, dataStoreTracerContext, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getDataStoreTracer, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry, sitesMiddlewareLazy };
+export { AlternateSourceValue, type CustomGlobalPreferences, type DalSite, DataStore, type DataStoreContextKey, type DataStoreEntry, type DataStoreEntryKey, type DataStoreFailureReason, type DataStoreFallbackValue, type DataStoreLogger, type DataStoreMiddlewareOptions, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, type GcpPreferences, type LoginPreferences, type ShopperConfigurationsLoader, type ShopperConfigurationsPreferences, type SitePreferences, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, createShopperConfigurationsLoaderMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, dataStoreTracerContext, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getDataStoreTracer, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry, readShopperConfigurations, shopperConfigurationsLoaderContext, sitesMiddlewareLazy };
 //# sourceMappingURL=data-store.d.ts.map

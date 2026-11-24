@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export { createDataStoreMiddleware } from './utils';
+export { AlternateSourceValue, createDataStoreMiddleware } from './utils';
 export { createLazyDataStoreMiddleware, readLazyDataStoreEntry } from './utils';
 export { createDataStoreContext } from './utils';
 export { getDataStoreEntry } from './utils';
@@ -24,7 +24,7 @@ export { dataStoreTracerContext, getDataStoreTracer } from './tracer-context';
 export { getSitePreferences, getSitePreferencesLazy } from './middleware/custom-site-preferences';
 export { getCustomGlobalPreferences, getCustomGlobalPreferencesLazy } from './middleware/custom-global-preferences';
 export { getGcpApiKey, getGcpPreferences, getGcpApiKeyLazy, getGcpPreferencesLazy } from './middleware/gcp-preferences';
-export type { DataStoreMiddlewareOptions } from './utils';
+export type { DataStoreFailureReason, DataStoreFallbackValue, DataStoreMiddlewareOptions } from './utils';
 export type { SitePreferences } from './middleware/custom-site-preferences';
 export type { DataStoreContextKey, DataStoreEntryKey } from './utils';
 export type { DataStoreEntry } from './utils';
@@ -33,6 +33,15 @@ export { getLoginPreferences, getLoginPreferencesLazy } from './middleware/login
 export type { LoginPreferences } from './middleware/login-preferences';
 export type { GcpPreferences } from './middleware/gcp-preferences';
 export { getSitesFromDataStoreLazy, sitesMiddlewareLazy } from './middleware/sites';
+export {
+    createShopperConfigurationsLoaderMiddleware,
+    readShopperConfigurations,
+    shopperConfigurationsLoaderContext,
+} from './middleware/shopper-configurations';
+export type {
+    ShopperConfigurationsLoader,
+    ShopperConfigurationsPreferences,
+} from './middleware/shopper-configurations';
 export type { DalSite } from './middleware/sites';
 export { DataStore } from '@salesforce/mrt-utilities/data-store';
 export {
