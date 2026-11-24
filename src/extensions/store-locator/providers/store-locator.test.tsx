@@ -389,4 +389,22 @@ describe('streamed selected store', () => {
         expect(await new Response(stream).text()).toContain('Shell');
         expect(errors).not.toHaveBeenCalled();
     });
+
+    it.each([
+        { selection: null, promptVisible: true },
+        { selection: { id: 'saved-store' }, promptVisible: false },
+    ])('renders the $promptVisible prompt state in the first HTML frame', async ({ selection, promptVisible }) => {
+        const resolution = Promise.resolve<SelectedStoreResolution>({ selectedStoreInfo: selection, error: null });
+        await resolution;
+        const stream = await renderToReadableStream(
+            <MemoryRouter initialEntries={['/']}>
+                <StoreLocatorProvider selectedStoreResolution={resolution}>
+                    <HomeStorePrompt />
+                </StoreLocatorProvider>
+            </MemoryRouter>
+        );
+        const html = await new Response(stream).text();
+        expect(html.includes('data-home-store-prompt')).toBe(promptVisible);
+        expect(html).not.toContain('h-36');
+    });
 });

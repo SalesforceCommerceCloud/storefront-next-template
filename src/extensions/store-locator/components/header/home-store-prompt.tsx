@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { stripPathPrefix, useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { SelectedStoreBoundary, useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
 import type { SelectedStoreInfo } from '@/extensions/store-locator/stores/store-locator-store';
 import {
@@ -46,6 +47,7 @@ export default function HomeStorePrompt(): ReactElement | null {
     // registers the configured site/locale prefix as the storefront home route.
     const pathWithoutPrefix = stripPathPrefix({ pathname, prefix: config.url?.prefix ?? '' });
     const isHomeRoute = pathname === '/' || (config.url?.prefix !== '/' && pathWithoutPrefix === '');
+    const headerOffsetClassName = 'mt-[var(--store-prompt-offset,0px)]';
 
     useLayoutEffect(() => {
         try {
@@ -80,7 +82,8 @@ export default function HomeStorePrompt(): ReactElement | null {
         selection ? null : (
             <section
                 aria-labelledby="store-locator-home-prompt-heading"
-                className="border-b border-border bg-muted text-foreground"
+                className={cn('border-b border-border bg-muted text-foreground', headerOffsetClassName)}
+                data-home-store-prompt
                 data-testid="store-locator-home-prompt">
                 <div className="section-container flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
