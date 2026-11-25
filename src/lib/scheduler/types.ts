@@ -78,7 +78,7 @@ export interface BookingInput {
     /** Shopper email the confirmation is sent to. */
     email: string;
     /**
-     * Shopper external id, carried on `ServiceAppointment.ExternalId__c`.
+     * Shopper external id, carried on `ServiceAppointment.b2cCustomerId__c`.
      * MUST be derived from the authenticated session (SCAPI customer id), never from client input.
      */
     shopperExternalId: string;
@@ -91,6 +91,16 @@ export interface BookingInput {
     /** Advisor external id (matches ServiceResource.ExternalId__c on Core). When provided, books a specific
      *  advisor. When absent, the BFF auto-selects the first active Primary resource for the territory. */
     advisorId?: string;
+    /**
+     * Shopper first name from B2C profile. Written to `SN_FirstName__c` (EncryptedText) on the SA
+     * for email personalization. The field is UI-masked; Shield Platform Encryption must be
+     * explicitly configured for true at-rest encryption.
+     */
+    firstName?: string;
+    /** Shopper last name from B2C profile. Written to `SN_LastName__c` on the SA. Same caveat as firstName. */
+    lastName?: string;
+    /** Storefront locale at booking time (e.g. en_US). Drives locale-specific email template selection. */
+    locale?: string;
 }
 
 export interface AvailableSlot {

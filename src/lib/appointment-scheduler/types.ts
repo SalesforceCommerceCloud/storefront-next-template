@@ -126,6 +126,19 @@ export interface AppointmentBookingInput {
     workTypeId?: string;
     /** Salesforce record Id (or ExternalId__c) of the ServiceTerritory. Falls back to config territoryId. */
     territoryId?: string;
+    /**
+     * Shopper first name from B2C profile. Written to `SN_FirstName__c` (EncryptedText) on the SA
+     * for email personalization. The field is UI-masked (`*****`); Shield Platform Encryption must
+     * be explicitly configured on the org for true at-rest encryption.
+     */
+    firstName?: string;
+    /**
+     * Shopper last name from B2C profile. Written to `SN_LastName__c` (EncryptedText) on the SA
+     * for email personalization. Same encryption caveat as `firstName`.
+     */
+    lastName?: string;
+    /** Storefront locale at booking time (e.g. en_US). Drives locale-specific email template selection. */
+    locale?: string;
 }
 
 /**

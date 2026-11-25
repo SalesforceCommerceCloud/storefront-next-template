@@ -196,6 +196,9 @@ export function createScapiAppointmentProvider(
                         subject: input.subject,
                         ...(input.workTypeId ? { workTypeId: input.workTypeId } : {}),
                         ...(input.territoryId ? { territoryId: input.territoryId } : {}),
+                        // firstName, lastName, locale are intentionally NOT forwarded via SCAPI —
+                        // the CAP cartridge (Appointment.js) reads them directly from the DW session
+                        // server-side. This avoids sending PII over the SCAPI wire unnecessarily.
                     },
                 });
 

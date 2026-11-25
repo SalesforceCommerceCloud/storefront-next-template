@@ -212,8 +212,33 @@ describe('scheduler.server', () => {
             const saCall = fetchImpl.mock.calls[3];
             expect(saCall[0]).toBe('https://acme.my.salesforce.com/services/data/v64.0/sobjects/ServiceAppointment');
             const saBody = JSON.parse(saCall[1].body as string);
-            expect(saBody.ExternalId__c).toBe('cust-abc');
+            expect(saBody.b2cCustomerId__c).toBe('cust-abc');
             expect(saBody.Status).toBe('Scheduled');
+            // PII fields default to empty string when not provided
+            expect(saBody.SN_FirstName__c).toBe('');
+            expect(saBody.SN_LastName__c).toBe('');
+            expect(saBody.SN_Locale__c).toBe('');
+        });
+
+        it('writes SN_FirstName__c, SN_LastName__c, SN_Locale__c to the SA body when provided', async () => {
+            const fetchImpl = vi
+                .fn()
+                .mockResolvedValueOnce(tokenOk())
+                .mockResolvedValueOnce(membersOk)
+                .mockResolvedValueOnce(noBusyAdvisors)
+                .mockResolvedValueOnce(mockResponse({ status: 201, json: { id: 'sa-1' } }))
+                .mockResolvedValueOnce(mockResponse({ status: 201, json: { id: 'ar-1' } }));
+
+            await bookAppointment(
+                core,
+                { ...booking, firstName: 'Jane', lastName: 'Smith', locale: 'en_GB' },
+                { fetchImpl }
+            );
+
+            const saBody = JSON.parse(fetchImpl.mock.calls[3][1].body as string);
+            expect(saBody.SN_FirstName__c).toBe('Jane');
+            expect(saBody.SN_LastName__c).toBe('Smith');
+            expect(saBody.SN_Locale__c).toBe('en_GB');
         });
 
         it('still succeeds when resource assignment fails (appointment exists, slot not consumed)', async () => {

@@ -19,6 +19,7 @@ import { getAppointmentProvider } from '@/lib/appointment-scheduler/get-provider
 import { getAuth as getAuthServer } from '@/middlewares/auth.server';
 import { getLogger } from '@/lib/logger.server';
 import { getCurrentCustomer } from '@/lib/api/customer.server';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 
 /**
  * Result of the appointment-book action.
@@ -44,7 +45,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * - `scapi` (default): calls the Appointment Commerce App (CAP) via SCAPI
  * - `bff`: storefront Node → Salesforce Core org directly (OAuth 2.0 client-credentials)
  *
- * The shopper external id (`shopperExternalId`, carried on `ServiceAppointment.ExternalId__c`) is
+ * The shopper external id (`shopperExternalId`, carried on `ServiceAppointment.b2cCustomerId__c`) is
  * derived here from the authenticated SLAS session — never trusted from the browser. The Core-side
  * record-triggered Flow emails the confirmation.
  *
@@ -66,7 +67,7 @@ export async function action({
 
     // shopperExternalId is derived from the registered session, never from the request body.
     // Guests are rejected — a durable registered identity is required so the ServiceAppointment
-    // can be correlated back to the shopper in Core (via ExternalId__c).
+    // can be correlated back to the shopper in Core (via b2cCustomerId__c).
     const session = getAuthServer(context);
     if (session.userType !== 'registered' || !session.customerId) {
         logger.warn('AppointmentBook: guest session denied', {
@@ -78,6 +79,18 @@ export async function action({
     }
 
     const customer = await getCurrentCustomer(context).catch(() => null);
+    // Truncate to 80 chars — SN_FirstName__c / SN_LastName__c are EncryptedText(80).
+    // An overlong profile name would cause the SA insert to fail and block the booking.
+    const firstName = (customer?.firstName ?? '').slice(0, 80);
+    const lastName = (customer?.lastName ?? '').slice(0, 80);
+
+    // Locale: read from site context (not params — /resource/** routes have no URL prefix).
+    // replaceAll handles multi-segment locales (e.g. zh-Hans-CN → zh_Hans_CN).
+    const rawLocale = context.get(siteContext)?.locale?.id ?? '';
+    const normalizedLocale = rawLocale.replaceAll('-', '_');
+    // Validate before forwarding — locale is concatenated into a Core Apex SOQL DeveloperName.
+    const LOCALE_RE = /^[a-z]{2}_[A-Z]{2}$/;
+    const locale = LOCALE_RE.test(normalizedLocale) ? normalizedLocale : '';
 
     let schedStartTime: string;
     let schedEndTime: string;
@@ -145,6 +158,9 @@ export async function action({
             subject,
             workTypeId,
             territoryId,
+            firstName,
+            lastName,
+            locale,
         });
 
         if (result.success) {
