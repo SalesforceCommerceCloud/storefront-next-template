@@ -81,25 +81,54 @@ describe('DesignRegion - parentId resolution', () => {
         vi.clearAllMocks();
     });
 
-    it('uses contentLinkUuid as parentId when the parent component has one', () => {
+    it('uses the parent component UUID and derived child UUIDs for region targeting', () => {
         mockUseComponentContext.mockReturnValue({
             componentId: 'backend-id',
             contentLinkUuid: 'content-link-uuid',
+            uuid: 'parent-path',
         });
 
-        render(<DesignRegion {...regionProps} />);
+        render(
+            <DesignRegion
+                {...regionProps}
+                designMetadata={{
+                    id: 'column_1',
+                    contentLinkUuids: ['raw-link-a', 'raw-link-b'],
+                    componentIds: ['component-a', 'component-b'],
+                }}
+            />
+        );
 
         expect(mockUseNodeToTargetStore).toHaveBeenCalledWith(
-            expect.objectContaining({ parentId: 'content-link-uuid' })
+            expect.objectContaining({
+                parentId: 'parent-path',
+                componentUuids: ['parent-path|raw-link-a', 'parent-path|raw-link-b'],
+                contentLinkUuids: ['raw-link-a', 'raw-link-b'],
+            })
         );
     });
 
-    it('sets parentId to undefined when there is no parent component context', () => {
+    it('uses ordered raw content-link UUIDs when there is no parent component context', () => {
         mockUseComponentContext.mockReturnValue(null);
 
-        render(<DesignRegion {...regionProps} />);
+        render(
+            <DesignRegion
+                {...regionProps}
+                designMetadata={{
+                    id: 'column_1',
+                    contentLinkUuids: ['raw-link-a', 'raw-link-b'],
+                    componentIds: ['different-component-a', 'different-component-b'],
+                }}
+            />
+        );
 
-        expect(mockUseNodeToTargetStore).toHaveBeenCalledWith(expect.objectContaining({ parentId: undefined }));
+        expect(mockUseNodeToTargetStore).toHaveBeenCalledWith(
+            expect.objectContaining({
+                parentId: undefined,
+                componentUuids: ['raw-link-a', 'raw-link-b'],
+                contentLinkUuids: ['raw-link-a', 'raw-link-b'],
+            })
+        );
     });
 });
 

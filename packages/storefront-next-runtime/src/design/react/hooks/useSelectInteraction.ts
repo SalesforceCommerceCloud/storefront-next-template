@@ -17,8 +17,8 @@ import { useInteraction } from './useInteraction';
 import { useMemoObject } from './useMemoObject';
 
 export interface SelectInteraction {
-    selectedContentLinkUuid: string;
-    setSelectedComponent: (contentLinkUuid: string) => void;
+    selectedComponentUuid: string;
+    setSelectedComponent: (componentUuid: string) => void;
 }
 
 /**
@@ -28,16 +28,16 @@ export interface SelectInteraction {
  * @returns Selection state and interaction methods
  */
 export function useSelectInteraction({
-    contentLinkMap,
+    componentByUuid,
 }: {
-    contentLinkMap: Record<string, string>;
+    componentByUuid: Record<string, { componentId: string; contentLinkUuid: string }>;
 }): SelectInteraction {
-    const { state: selectedContentLinkUuid, setSelectedComponent } = useInteraction({
+    const { state: selectedComponentUuid, setSelectedComponent } = useInteraction({
         initialState: '',
         eventHandlers: {
             ComponentSelected: {
                 handler: (event, setState) => {
-                    setState(event.contentLinkUuid);
+                    setState(event.componentUuid);
                 },
             },
             ComponentDeselected: {
@@ -47,18 +47,20 @@ export function useSelectInteraction({
             },
         },
         actions: (_state, setState, clientApi) => ({
-            setSelectedComponent: (contentLinkUuid: string) => {
-                setState(contentLinkUuid);
+            setSelectedComponent: (componentUuid: string) => {
+                setState(componentUuid);
+                const component = componentByUuid[componentUuid];
                 clientApi?.selectComponent({
-                    componentId: contentLinkMap[contentLinkUuid] ?? '',
-                    contentLinkUuid,
+                    componentId: component?.componentId ?? '',
+                    contentLinkUuid: component?.contentLinkUuid ?? '',
+                    componentUuid,
                 });
             },
         }),
     });
 
     return useMemoObject({
-        selectedContentLinkUuid,
+        selectedComponentUuid,
         setSelectedComponent,
     });
 }

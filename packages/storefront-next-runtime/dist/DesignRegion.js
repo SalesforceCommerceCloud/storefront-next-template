@@ -40,11 +40,15 @@ function DesignRegion(props) {
 	const labels = useLabels();
 	const showFrame = Boolean(id && isCurrentDropTarget);
 	const isEmbedded = useIsWithinEmbeddedSubtree();
-	const { contentLinkUuid: parentContentLinkUuid } = useComponentContext() ?? {};
+	const { uuid: parentComponentUuid } = useComponentContext() ?? {};
+	const componentUuids = React.useMemo(() => contentLinkUuids.map((contentLinkUuid) => parentComponentUuid ? `${parentComponentUuid}|${contentLinkUuid}` : contentLinkUuid), [contentLinkUuids, parentComponentUuid]);
 	useNodeToTargetStore({
 		type: "region",
 		nodeRef,
-		parentId: parentContentLinkUuid,
+		parentId: parentComponentUuid,
+		componentId: "",
+		componentUuid: parentComponentUuid ?? "",
+		componentUuids,
 		contentLinkUuids,
 		regionId: id,
 		componentTypeInclusions,

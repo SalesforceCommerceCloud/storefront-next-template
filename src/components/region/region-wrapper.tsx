@@ -74,7 +74,7 @@ export function RegionWrapper({ region, children, className, designMetadata, ...
                 region={region}
                 designMetadata={{
                     id: region.id,
-                    contentLinkUuids: region?.components?.map((cmp) => cmp.contentLinkUuid ?? cmp.id) || [],
+                    contentLinkUuids: region?.components?.map((cmp) => cmp.contentLinkUuid || cmp.id) || [],
                     componentTypeExclusions: designMetadata?.componentTypeExclusions || [],
                     componentTypeInclusions: designMetadata?.componentTypeInclusions || [],
                 }}

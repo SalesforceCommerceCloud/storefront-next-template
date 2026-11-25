@@ -10,14 +10,14 @@ import React, { useCallback, useRef } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 
 //#region src/design/react/hooks/useComponentDecoratorClasses.ts
-function useComponentDecoratorClasses({ contentLinkUuid, isFragment, isLocalized }) {
-	const isSelected = useDesignSelector((s) => s.selectedContentLinkUuid === contentLinkUuid);
-	const isHoveredContentLink = useDesignSelector((s) => s.hoveredContentLinkUuid === contentLinkUuid);
-	const isHovered = useDesignSelector((s) => isHoveredContentLink && !s.dragState.isDragging);
+function useComponentDecoratorClasses({ componentUuid, isFragment, isLocalized }) {
+	const isSelected = useDesignSelector((s) => s.selectedComponentUuid === componentUuid);
+	const isHoveredComponent = useDesignSelector((s) => s.hoveredComponentUuid === componentUuid);
+	const isHovered = useDesignSelector((s) => isHoveredComponent && !s.dragState.isDragging);
 	const showFrame = useDesignSelector((s) => (isSelected || isHovered) && !s.dragState.isDragging);
-	const isSourceContentLinkUuid = useDesignSelector((s) => s.dragState.sourceContentLinkUuid === contentLinkUuid);
-	const isMoving = useDesignSelector((s) => s.dragState.isDragging && isSourceContentLinkUuid);
-	const isDropTarget = useDesignSelector((s) => s.dragState.currentDropTarget?.contentLinkUuid === contentLinkUuid);
+	const isSourceComponentUuid = useDesignSelector((s) => s.dragState.sourceComponentUuid === componentUuid);
+	const isMoving = useDesignSelector((s) => s.dragState.isDragging && isSourceComponentUuid);
+	const isDropTarget = useDesignSelector((s) => s.dragState.currentDropTarget?.componentUuid === componentUuid);
 	const dropTargetClass = useDesignSelector((s) => {
 		const insertType = s.dragState.currentDropTarget?.insertType;
 		if (isDropTarget && insertType?.axis && insertType?.type) return `pd-design__drop-target__${insertType.axis}-${insertType.type}`;
@@ -38,16 +38,16 @@ function useComponentDecoratorClasses({ contentLinkUuid, isFragment, isLocalized
 //#endregion
 //#region src/design/react/hooks/useFocusedComponentHandler.ts
 /**
-* Focuses a component when the focused component id matches the content link UUID.
-* @param contentLinkUuid - The content link UUID of the component.
+* Focuses a component when the focused component UUID matches its tree-path UUID.
+* @param componentUuid - The generated tree-path UUID of the component instance.
 * @param nodeRef - The ref object to the node to focus.
 * @param disabled - When true, the handler is inert. Embedded instances are not
 *   editable by the host, so they must never be focused / scrolled into view;
 *   the decorator passes its `isEmbedded` here to enforce that.
 */
-function useFocusedComponentHandler(contentLinkUuid, nodeRef, disabled) {
+function useFocusedComponentHandler(componentUuid, nodeRef, disabled) {
 	const focusComponent = useDesignSelector((s) => s.focusComponent);
-	const isFocused = useDesignSelector((s) => s.focusedContentLinkUuid === contentLinkUuid);
+	const isFocused = useDesignSelector((s) => s.focusedComponentUuid === componentUuid);
 	React.useEffect(() => {
 		if (!disabled && isFocused && nodeRef.current) focusComponent(nodeRef.current);
 	}, [
@@ -123,6 +123,14 @@ function useComponentVisibility(componentId, isVisible) {
 }
 
 //#endregion
+//#region src/design/react/hooks/useComponentUuid.ts
+function useComponentUuid(componentId, contentLinkUuid) {
+	const { uuid: parentUuid } = useComponentContext() ?? {};
+	const id = contentLinkUuid || componentId;
+	return parentUuid ? `${parentUuid}|${id}` : id;
+}
+
+//#endregion
 //#region src/design/react/components/DesignComponent.tsx
 function DesignComponent(props) {
 	const { designMetadata, children,...componentProps } = props;
@@ -136,34 +144,37 @@ function DesignComponent(props) {
 	const dragRef = useRef(null);
 	const { regionId } = useRegionContext() ?? {};
 	const { componentId: parentComponentId } = useComponentContext() ?? {};
+	const componentUuid = useComponentUuid(componentId, contentLinkUuid);
 	const nodeToTargetMap = useDesignSelector((s) => s.nodeToTargetMap);
-	const isSelectedContentLinkUuid = useDesignSelector((s) => s.selectedContentLinkUuid === contentLinkUuid);
-	const isHoveredContentLinkUuid = useDesignSelector((s) => s.hoveredContentLinkUuid === contentLinkUuid);
+	const isSelectedComponentUuid = useDesignSelector((s) => s.selectedComponentUuid === componentUuid);
+	const isHoveredComponentUuid = useDesignSelector((s) => s.hoveredComponentUuid === componentUuid);
 	const setSelectedComponent = useDesignSelector((s) => s.setSelectedComponent);
 	const setHoveredComponent = useDesignSelector((s) => s.setHoveredComponent);
 	const startComponentMove = useDesignSelector((s) => s.startComponentMove);
-	const setPendingDragContentLinkUuid = useDesignSelector((s) => s.setPendingDragContentLinkUuid);
-	const isPendingDrag = useDesignSelector((s) => s.dragState.pendingDragContentLinkUuid === contentLinkUuid);
-	const showFrame = useDesignSelector((s) => (isSelectedContentLinkUuid || isHoveredContentLinkUuid) && !s.dragState.isDragging);
-	const isDraggingSourceContentLinkUuid = useDesignSelector((s) => s.dragState.sourceContentLinkUuid === contentLinkUuid);
-	const registerContentLink = useDesignSelector((s) => s.registerContentLink);
+	const setPendingDragComponentUuid = useDesignSelector((s) => s.setPendingDragComponentUuid);
+	const isPendingDrag = useDesignSelector((s) => s.dragState.pendingDragComponentUuid === componentUuid);
+	const showFrame = useDesignSelector((s) => (isSelectedComponentUuid || isHoveredComponentUuid) && !s.dragState.isDragging);
+	const isDraggingSourceComponentUuid = useDesignSelector((s) => s.dragState.sourceComponentUuid === componentUuid);
+	const registerComponentUuid = useDesignSelector((s) => s.registerComponentUuid);
 	const isEmbedded = useIsWithinEmbeddedSubtree();
 	const isRoot = useIsRootComponent();
 	React.useEffect(() => {
-		if (contentLinkUuid && componentId && !isEmbedded) registerContentLink(contentLinkUuid, componentId);
+		if (componentId && !isEmbedded) registerComponentUuid(componentUuid, componentId, contentLinkUuid);
 	}, [
 		componentId,
+		componentUuid,
 		contentLinkUuid,
-		registerContentLink,
+		registerComponentUuid,
 		isEmbedded
 	]);
-	useFocusedComponentHandler(contentLinkUuid, dragRef, isEmbedded);
+	useFocusedComponentHandler(componentUuid, dragRef, isEmbedded);
 	useNodeToTargetStore({
 		type: "component",
 		nodeRef: dragRef,
 		parentId: parentComponentId,
 		regionId,
 		componentId,
+		componentUuid,
 		contentLinkUuid,
 		disabled: isEmbedded
 	});
@@ -173,7 +184,7 @@ function DesignComponent(props) {
 			x,
 			y,
 			filter: (entry) => entry.type === "component"
-		})[0]?.contentLinkUuid ?? null);
+		})[0]?.componentUuid ?? null);
 	}, [setHoveredComponent, discoverComponents]);
 	const handleMouseMove = useThrottledCallback((event) => {
 		event.stopPropagation();
@@ -185,39 +196,42 @@ function DesignComponent(props) {
 	}, [findAndSetHoveredComponent]);
 	const handleClick = useCallback((e) => {
 		e.stopPropagation();
-		setSelectedComponent(contentLinkUuid ?? "");
-	}, [setSelectedComponent, contentLinkUuid]);
+		setSelectedComponent(componentUuid);
+	}, [setSelectedComponent, componentUuid]);
 	const isDraggable = Boolean(componentId && regionId && componentType?.id);
 	const classes = useComponentDecoratorClasses({
-		contentLinkUuid,
+		componentUuid,
 		isLocalized,
 		isFragment: Boolean(isFragment)
 	});
 	const context = React.useMemo(() => ({
 		componentId: id,
 		name,
-		contentLinkUuid
+		contentLinkUuid,
+		uuid: componentUuid
 	}), [
 		id,
 		name,
-		contentLinkUuid
+		contentLinkUuid,
+		componentUuid
 	]);
 	const handleDragOver = React.useCallback((event) => {
-		if (!isDraggingSourceContentLinkUuid) event.preventDefault();
-	}, [isDraggingSourceContentLinkUuid]);
+		if (!isDraggingSourceComponentUuid) event.preventDefault();
+	}, [isDraggingSourceComponentUuid]);
 	const handleMouseDown = React.useCallback((event) => {
-		if (contentLinkUuid) {
+		if (componentUuid) {
 			event.stopPropagation();
-			setPendingDragContentLinkUuid(contentLinkUuid);
+			setPendingDragComponentUuid(componentUuid);
 		}
-	}, [contentLinkUuid, setPendingDragContentLinkUuid]);
+	}, [componentUuid, setPendingDragComponentUuid]);
 	const handleDragStart = React.useCallback((event) => {
 		event.stopPropagation();
-		if (componentId && regionId && componentType?.id) startComponentMove(componentId, regionId, componentType.id, contentLinkUuid);
+		if (componentId && regionId && componentType?.id) startComponentMove(componentId, regionId, componentType.id, componentUuid, contentLinkUuid);
 	}, [
 		componentId,
 		regionId,
 		componentType?.id,
+		componentUuid,
 		contentLinkUuid,
 		startComponentMove
 	]);
@@ -242,6 +256,7 @@ function DesignComponent(props) {
 			showFrame,
 			componentId,
 			contentLinkUuid,
+			componentUuid,
 			localized: isLocalized,
 			isFragment: Boolean(isFragment),
 			name: componentName,

@@ -167,6 +167,12 @@ describe('design/react/ComponentDecorator', () => {
 
                     await waitFor(() => {
                         expect(hostSpy).toHaveBeenCalledWith(expect.objectContaining({ componentId: 'test-1' }));
+                        expect(hostSpy).toHaveBeenCalledWith(
+                            expect.objectContaining({
+                                componentUuid: 'test-parent|test-1-uuid',
+                                contentLinkUuid: 'test-1-uuid',
+                            })
+                        );
                     });
                 });
 
@@ -226,6 +232,8 @@ describe('design/react/ComponentDecorator', () => {
                         expect(event).toEqual(
                             expect.objectContaining({
                                 componentId: 'test-1',
+                                componentUuid: 'test-parent|test-1-uuid',
+                                contentLinkUuid: 'test-1-uuid',
                             })
                         );
                         resolve();
@@ -329,6 +337,8 @@ describe('design/react/ComponentDecorator', () => {
                     expect(hostSpy).toHaveBeenCalledWith(
                         expect.objectContaining({
                             componentId: 'test-1',
+                            componentUuid: 'test-parent|test-1-uuid',
+                            contentLinkUuid: 'test-1-uuid',
                             sourceComponentId: 'test-parent',
                             sourceRegionId: 'test-region',
                         })
@@ -344,7 +354,11 @@ describe('design/react/ComponentDecorator', () => {
                 scrollSpy = vi.fn();
                 testBed.afterRender(({ element, host }) => {
                     element.scrollIntoView = scrollSpy;
-                    host.focusComponent({ componentId: 'test-1', contentLinkUuid: 'test-1-uuid' });
+                    host.focusComponent({
+                        componentId: 'test-1',
+                        contentLinkUuid: 'test-1-uuid',
+                        componentUuid: 'test-parent|test-1-uuid',
+                    });
                 });
             });
 

@@ -22,6 +22,7 @@ import { useNodeToTargetStore } from '../hooks/useNodeToTargetStore';
 import { useComponentVisibility } from '../hooks/useComponentVisibility';
 import { EmbeddedSubtreeProvider } from '../core/EmbeddedSubtreeContext';
 import { RootComponentProvider } from '../core/RootComponentContext';
+import { ComponentContext } from '../core/ComponentContext';
 import type { DesignComponentProps } from '../core/component.types';
 import type { DesignState } from '../context/DesignStateContext';
 
@@ -94,24 +95,25 @@ vi.mock('../core/RegionContext', () => ({
 }));
 
 const mockSetSelectedComponent = vi.fn();
+const mockRegisterComponentUuid = vi.fn();
 // DesignComponent reads state via useDesignSelector; run the real selector
 // against a fake state so the test drives selection + drag state directly.
 vi.mock('../hooks/useDesignSelector', () => ({
     useDesignSelector: (selector: (state: DesignState) => unknown) =>
         selector({
             nodeToTargetMap: new Map(),
-            selectedContentLinkUuid: null,
-            hoveredContentLinkUuid: null,
+            selectedComponentUuid: null,
+            hoveredComponentUuid: null,
             setSelectedComponent: mockSetSelectedComponent,
             setHoveredComponent: vi.fn(),
             startComponentMove: vi.fn(),
-            setPendingDragContentLinkUuid: vi.fn(),
+            setPendingDragComponentUuid: vi.fn(),
             dragState: {
-                pendingDragContentLinkUuid: null,
+                pendingDragComponentUuid: null,
                 isDragging: false,
-                sourceContentLinkUuid: null,
+                sourceComponentUuid: null,
             },
-            registerContentLink: vi.fn(),
+            registerComponentUuid: mockRegisterComponentUuid,
         } as unknown as DesignState),
 }));
 
@@ -249,6 +251,164 @@ describe('DesignComponent - root component', () => {
         const frame = getByTestId('design-frame');
         expect(frame.getAttribute('data-is-deletable')).toBe('true');
         expect(frame.getAttribute('data-is-moveable')).toBe('true');
+    });
+});
+
+describe('DesignComponent - instance UUID identity', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    afterEach(() => {
+        cleanup();
+    });
+
+    it('selects duplicate metadata by parent path and content-link UUID', () => {
+        const duplicateProps: DesignComponentProps<Record<string, unknown>> = {
+            designMetadata: {
+                id: 'duplicate',
+                contentLinkUuid: 'shared-content-link',
+                isFragment: false,
+                isVisible: true,
+                isLocalized: true,
+            },
+            children: () => <div>Duplicate</div>,
+        };
+
+        const { getAllByTestId } = render(
+            <>
+                <ComponentContext.Provider value={{ componentId: 'parent-a', uuid: 'parent-a' }}>
+                    <DesignComponent {...duplicateProps} />
+                </ComponentContext.Provider>
+                <ComponentContext.Provider value={{ componentId: 'parent-b', uuid: 'parent-b' }}>
+                    <DesignComponent {...duplicateProps} />
+                </ComponentContext.Provider>
+            </>
+        );
+
+        const instances = getAllByTestId('design-component-duplicate');
+        instances[0].click();
+        instances[1].click();
+
+        expect(mockSetSelectedComponent).toHaveBeenNthCalledWith(1, 'parent-a|shared-content-link');
+        expect(mockSetSelectedComponent).toHaveBeenNthCalledWith(2, 'parent-b|shared-content-link');
+    });
+
+    it('distinguishes components with the same backend id by their content-link UUID', () => {
+        const duplicateIdProps = (contentLinkUuid: string): DesignComponentProps<Record<string, unknown>> => ({
+            designMetadata: {
+                id: 'duplicate',
+                contentLinkUuid,
+                isFragment: false,
+                isVisible: true,
+                isLocalized: true,
+            },
+            children: () => <div>Duplicate</div>,
+        });
+
+        const { getAllByTestId } = render(
+            <ComponentContext.Provider value={{ componentId: 'parent', uuid: 'parent-path' }}>
+                <>
+                    <DesignComponent {...duplicateIdProps('content-link-a')} />
+                    <DesignComponent {...duplicateIdProps('content-link-b')} />
+                </>
+            </ComponentContext.Provider>
+        );
+
+        const instances = getAllByTestId('design-component-duplicate');
+        instances[0].click();
+        instances[1].click();
+
+        expect(mockSetSelectedComponent).toHaveBeenNthCalledWith(1, 'parent-path|content-link-a');
+        expect(mockSetSelectedComponent).toHaveBeenNthCalledWith(2, 'parent-path|content-link-b');
+        expect(mockRegisterComponentUuid).toHaveBeenCalledWith(
+            'parent-path|content-link-a',
+            'duplicate',
+            'content-link-a'
+        );
+        expect(mockRegisterComponentUuid).toHaveBeenCalledWith(
+            'parent-path|content-link-b',
+            'duplicate',
+            'content-link-b'
+        );
+    });
+
+    it('selects a root component with no raw content-link UUID', () => {
+        const rootWithoutContentLink: DesignComponentProps<Record<string, unknown>> = {
+            designMetadata: {
+                id: 'root-without-content-link',
+                isFragment: false,
+                isVisible: true,
+                isLocalized: true,
+            },
+            children: () => <div>Root</div>,
+        };
+
+        const { getByTestId } = render(<DesignComponent {...rootWithoutContentLink} />);
+        getByTestId('design-component-root-without-content-link').click();
+
+        expect(mockSetSelectedComponent).toHaveBeenCalledWith('root-without-content-link');
+    });
+
+    it('uses the backend component id when a nested component has no content-link UUID', () => {
+        const nestedComponentWithoutContentLink: DesignComponentProps<Record<string, unknown>> = {
+            designMetadata: {
+                id: 'child-without-content-link',
+                isFragment: false,
+                isVisible: true,
+                isLocalized: true,
+            },
+            children: () => <div>Child</div>,
+        };
+
+        const { getByTestId } = render(
+            <ComponentContext.Provider value={{ componentId: 'parent', uuid: 'parent-path' }}>
+                <DesignComponent {...nestedComponentWithoutContentLink} />
+            </ComponentContext.Provider>
+        );
+        getByTestId('design-component-child-without-content-link').click();
+
+        expect(mockSetSelectedComponent).toHaveBeenCalledWith('parent-path|child-without-content-link');
+    });
+
+    it.each([
+        { name: 'root', parentUuid: undefined, expectedUuid: 'empty-content-link' },
+        { name: 'nested', parentUuid: 'parent-path', expectedUuid: 'parent-path|empty-content-link' },
+    ])('uses the derived $name identity but preserves an empty raw content-link UUID', ({
+        parentUuid,
+        expectedUuid,
+    }) => {
+        const props: DesignComponentProps<Record<string, unknown>> = {
+            designMetadata: {
+                id: 'empty-content-link',
+                contentLinkUuid: '',
+                isFragment: false,
+                isVisible: true,
+                isLocalized: true,
+            },
+            children: () => <div>Component</div>,
+        };
+        const component = <DesignComponent {...props} />;
+        const tree = parentUuid ? (
+            <ComponentContext.Provider value={{ componentId: 'parent', uuid: parentUuid }}>
+                {component}
+            </ComponentContext.Provider>
+        ) : (
+            component
+        );
+
+        const { getByTestId } = render(tree);
+        getByTestId('design-component-empty-content-link').click();
+
+        expect(mockSetSelectedComponent).toHaveBeenCalledWith(expectedUuid);
+        expect(mockRegisterComponentUuid).toHaveBeenCalledWith(expectedUuid, 'empty-content-link', '');
+        expect(mockUseNodeToTargetStore).toHaveBeenCalledWith(
+            expect.objectContaining({
+                componentId: 'empty-content-link',
+                componentUuid: expectedUuid,
+                contentLinkUuid: '',
+            })
+        );
     });
 });
 

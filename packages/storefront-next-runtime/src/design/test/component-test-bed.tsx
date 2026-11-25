@@ -76,7 +76,11 @@ export function createComponentTestBed<TState extends Record<string, unknown>>(s
             component: React.FC<React.PropsWithChildren>,
             {
                 props = {},
-                regionMetadata = { id: 'test-region', contentLinkUuids: ['test-1-uuid', 'test-2-uuid', 'test-3-uuid'] },
+                regionMetadata = {
+                    id: 'test-region',
+                    contentLinkUuids: ['test-1-uuid', 'test-2-uuid', 'test-3-uuid'],
+                    componentIds: ['test-1', 'test-2', 'test-3'],
+                },
                 waitForHost = true,
                 configFactory,
             }: {
@@ -152,7 +156,7 @@ export function createComponentTestBed<TState extends Record<string, unknown>>(s
             const result = tlRender(
                 <PageDesignerProvider clientId="test1" targetOrigin="*">
                     <PageDesignerPageMetadataProvider page={TEST_PAGE}>
-                        <ComponentContext.Provider value={{ componentId: 'test-parent' }}>
+                        <ComponentContext.Provider value={{ componentId: 'test-parent', uuid: 'test-parent' }}>
                             <DecoratedRegion designMetadata={regionMetadata as RegionDesignMetadata}>
                                 <DecoratedComponent {...(props as unknown as ComponentDecoratorProps<object>)}>
                                     Test Content

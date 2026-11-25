@@ -35,6 +35,7 @@ function Harness({ disabled }: { disabled?: boolean }) {
         nodeRef: ref,
         componentId: 'comp-1',
         contentLinkUuid: 'clu-1',
+        componentUuid: 'parent|comp-1',
         regionId: 'region-1',
         disabled,
     });
@@ -55,7 +56,11 @@ describe('useNodeToTargetStore', () => {
         const node = getByTestId('target');
 
         expect(nodeToTargetMap.has(node)).toBe(true);
-        expect(nodeToTargetMap.get(node)).toMatchObject({ componentId: 'comp-1', contentLinkUuid: 'clu-1' });
+        expect(nodeToTargetMap.get(node)).toMatchObject({
+            componentId: 'comp-1',
+            contentLinkUuid: 'clu-1',
+            componentUuid: 'parent|comp-1',
+        });
     });
 
     it('does not register the node when disabled', () => {

@@ -15,7 +15,7 @@
  */
 import type { StoryObj } from '@storybook/react-vite';
 import React from 'react';
-import { expect, waitFor, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import {
     PageDesignerProvider,
     PageDesignerPageMetadataProvider,
@@ -27,6 +27,7 @@ import type { HostApi, HostToClientConfiguration } from '@salesforce/storefront-
 import { ConfigProvider, useConfig } from '@salesforce/storefront-next-runtime/config';
 import { PageDesignerInit } from '@/page-designer-init';
 import { PageDesignerHostProvider } from '@/test-utils/page-designer-host-provider';
+import { createPageDesignerHostMetadata } from '@/test-utils/page-designer-configuration';
 import { RegionWrapper } from '@/components/region/region-wrapper';
 import { Region, type ComponentType } from '@/components/region';
 import { registry } from '@/lib/page-designer/registry';
@@ -745,6 +746,25 @@ const pageFactories = {
 type PageFactoryKey = keyof typeof pageFactories;
 
 /**
+ * One page object per factory and localization flag. Story renders and the
+ * host configuration share these references so neither rebuilds the tree on
+ * an unrelated re-render.
+ */
+const storyPages = new Map<string, ShopperExperience.schemas['Page']>();
+
+function storyPage(factory: PageFactoryKey, localized: boolean): ShopperExperience.schemas['Page'] {
+    const key = `${factory}:${localized}`;
+    const cached = storyPages.get(key);
+    if (cached) {
+        return cached;
+    }
+
+    const page = pageFactories[factory](localized);
+    storyPages.set(key, page);
+    return page;
+}
+
+/**
  * Recursively renders a component, including any nested regions it may contain.
  */
 function ComponentRenderer({ component, depth = 0 }: { component: ComponentType; depth?: number }) {
@@ -994,18 +1014,39 @@ function LivePropertyPanel({ componentIds }: { componentIds: string[] }) {
 }
 
 /**
- * Empty host configuration the test host acknowledges on connect. Stories seed
- * their own page through `<Region page={...}>`, so the connect-time config
- * carries no `page` — `pageDesignerConfig.page` stays undefined and `<Region>`
+ * Connect-time host configuration. Stories seed their own page through
+ * `<Region page={...}>`, so this config carries component and type metadata
+ * but no `page` — `pageDesignerConfig.page` stays undefined and `<Region>`
  * falls through to its `page` prop. The LivePageSwitching story later pushes a
- * populated config (with `page`) via `host.setClientConfiguration(...)`.
+ * populated config (metadata and `page` together) via `host.setClientConfiguration(...)`.
+ *
+ * Built once per factory and localization flag. A new object on every render
+ * would change the host provider's `configuration` prop and reconnect the host.
  */
-const EMPTY_HOST_CONFIGURATION: HostToClientConfiguration = {
-    components: {},
-    componentTypes: {},
-    labels: {},
-    regions: {},
-};
+const hostConfigurations = new Map<string, HostToClientConfiguration>();
+
+function hostConfigurationForPage(
+    cacheKey: string,
+    page: ShopperExperience.schemas['Page']
+): HostToClientConfiguration {
+    const cached = hostConfigurations.get(cacheKey);
+    if (cached) {
+        return cached;
+    }
+
+    // No `page`: the rendered story still owns the initial page prop.
+    const configuration: HostToClientConfiguration = {
+        ...createPageDesignerHostMetadata(page),
+        labels: {},
+        regions: {},
+    };
+    hostConfigurations.set(cacheKey, configuration);
+    return configuration;
+}
+
+function hostConfigurationFor(factory: PageFactoryKey, localized: boolean): HostToClientConfiguration {
+    return hostConfigurationForPage(`${factory}:${localized}`, storyPage(factory, localized));
+}
 
 /**
  * Decorator component that sets URL search param for mode detection.
@@ -1020,10 +1061,12 @@ function ModeDecorator({
     Story,
     mode,
     pageUpdateMode = 'server',
+    configuration,
 }: {
     Story: React.ComponentType;
     mode: DesignMode;
     pageUpdateMode?: PageUpdateMode;
+    configuration: HostToClientConfiguration;
 }) {
     const [currentMode, setCurrentMode] = React.useState<string | null>(null);
 
@@ -1058,7 +1101,7 @@ function ModeDecorator({
             pageUpdateMode={pageUpdateMode}
             clientLogger={clientLogger}>
             <PageDesignerInit />
-            <PageDesignerHostProvider expose={true} logEvents={true} configuration={EMPTY_HOST_CONFIGURATION} />
+            <PageDesignerHostProvider expose={true} logEvents={true} configuration={configuration} />
             <Story />
         </PageDesignerProvider>
     );
@@ -1145,15 +1188,37 @@ Use the \`designMode\` parameter to control the mode:
                 defaultValue: { summary: 'true' },
             },
         },
+        hostConfiguration: {
+            table: { disable: true },
+        },
     },
     decorators: [
         (
             Story: React.ComponentType,
-            context: { args?: { designMode?: DesignMode; pageUpdateMode?: PageUpdateMode } }
+            context: {
+                args?: {
+                    designMode?: DesignMode;
+                    pageUpdateMode?: PageUpdateMode;
+                    pageFactory?: PageFactoryKey;
+                    componentLocalized?: boolean;
+                    hostConfiguration?: HostToClientConfiguration;
+                };
+            }
         ) => {
             const mode = (context.args?.designMode as DesignMode) || 'design';
             const pageUpdateMode = context.args?.pageUpdateMode ?? 'server';
-            return <ModeDecorator Story={Story} mode={mode} pageUpdateMode={pageUpdateMode} />;
+            const pageFactory = context.args?.pageFactory ?? 'default';
+            const componentLocalized = context.args?.componentLocalized ?? true;
+            return (
+                <ModeDecorator
+                    Story={Story}
+                    mode={mode}
+                    pageUpdateMode={pageUpdateMode}
+                    configuration={
+                        context.args?.hostConfiguration ?? hostConfigurationFor(pageFactory, componentLocalized)
+                    }
+                />
+            );
         },
     ],
     tags: ['autodocs', 'skip-a11y'],
@@ -1164,26 +1229,42 @@ type StoryArgs = {
     designMode?: DesignMode;
     pageUpdateMode?: PageUpdateMode;
     pageFactory?: PageFactoryKey;
+    /** Stable connect-time metadata. Omit `page`; the story still seeds it. */
+    hostConfiguration?: HostToClientConfiguration;
     title?: string;
     description?: string;
     componentLocalized?: boolean;
 };
-type Story = Omit<StoryObj<typeof meta>, 'args' | 'render'> & {
+type Story = Omit<StoryObj<StoryArgs>, 'args' | 'render'> & {
     args?: StoryArgs;
     render?: (args: StoryArgs) => React.JSX.Element;
 };
 
 export const Default: Story = {
+    tags: ['interaction'],
     args: {
         designMode: 'design',
         pageFactory: 'default',
         title: 'Design Layer Storybook Demo',
         componentLocalized: true,
     },
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        const component = await canvas.findByTestId('design-component-header-1');
+
+        // The host configuration maps header-1 to the banner type, which is
+        // what lets the design layer treat the component as draggable.
+        await waitFor(() => {
+            expect(component).toHaveAttribute('data-component-type', 'banner');
+        });
+        await expect(component).not.toHaveAttribute('draggable', 'true');
+
+        await userEvent.pointer({ keys: '[MouseLeft>]', target: component });
+        await expect(component).toHaveAttribute('draggable', 'true');
+        await userEvent.pointer({ keys: '[/MouseLeft]' });
+    },
     render: (args: StoryArgs) => {
-        const pageData = pageFactories[(args.pageFactory as PageFactoryKey) || 'default'](
-            args.componentLocalized ?? true
-        );
+        const pageData = storyPage((args.pageFactory as PageFactoryKey) || 'default', args.componentLocalized ?? true);
         return (
             <DesignLayerStory
                 pageData={pageData}
@@ -1203,9 +1284,7 @@ export const WithEmptyRegions: Story = {
         componentLocalized: true,
     },
     render: (args: StoryArgs) => {
-        const pageData = pageFactories[(args.pageFactory as PageFactoryKey) || 'empty'](
-            args.componentLocalized ?? true
-        );
+        const pageData = storyPage((args.pageFactory as PageFactoryKey) || 'empty', args.componentLocalized ?? true);
         return (
             <DesignLayerStory
                 pageData={pageData}
@@ -1225,7 +1304,8 @@ export const SingleRegion: Story = {
         componentLocalized: true,
     },
     render: (args: StoryArgs) => {
-        const pageData = pageFactories[(args.pageFactory as PageFactoryKey) || 'singleRegion'](
+        const pageData = storyPage(
+            (args.pageFactory as PageFactoryKey) || 'singleRegion',
             args.componentLocalized ?? true
         );
         return (
@@ -1247,7 +1327,8 @@ export const MultipleRegionsWithMultipleComponents: Story = {
         componentLocalized: true,
     },
     render: (args: StoryArgs) => {
-        const pageData = pageFactories[(args.pageFactory as PageFactoryKey) || 'multipleRegions'](
+        const pageData = storyPage(
+            (args.pageFactory as PageFactoryKey) || 'multipleRegions',
             args.componentLocalized ?? true
         );
         return (
@@ -1271,7 +1352,8 @@ export const EditMode: Story = {
     },
     render: (args: any) => {
         const storyArgs = args as StoryArgs;
-        const pageData = pageFactories[(storyArgs.pageFactory as PageFactoryKey) || 'default'](
+        const pageData = storyPage(
+            (storyArgs.pageFactory as PageFactoryKey) || 'default',
             storyArgs.componentLocalized ?? true
         );
         return (
@@ -1302,7 +1384,8 @@ export const PreviewMode: Story = {
     },
     render: (args: any) => {
         const storyArgs = args as StoryArgs;
-        const pageData = pageFactories[(storyArgs.pageFactory as PageFactoryKey) || 'default'](
+        const pageData = storyPage(
+            (storyArgs.pageFactory as PageFactoryKey) || 'default',
             storyArgs.componentLocalized ?? true
         );
         return (
@@ -1332,7 +1415,8 @@ export const NestedRegions: Story = {
         componentLocalized: true,
     },
     render: (args: StoryArgs) => {
-        const pageData = pageFactories[(args.pageFactory as PageFactoryKey) || 'nestedRegions'](
+        const pageData = storyPage(
+            (args.pageFactory as PageFactoryKey) || 'nestedRegions',
             args.componentLocalized ?? true
         );
         return (
@@ -1361,7 +1445,8 @@ export const NoMode: Story = {
     },
     render: (args: any) => {
         const storyArgs = args as StoryArgs;
-        const pageData = pageFactories[(storyArgs.pageFactory as PageFactoryKey) || 'default'](
+        const pageData = storyPage(
+            (storyArgs.pageFactory as PageFactoryKey) || 'default',
             storyArgs.componentLocalized ?? true
         );
         return (
@@ -1384,7 +1469,7 @@ export const NoMode: Story = {
 /**
  * Component ids of the default page, offered as targets for the live editor.
  */
-const defaultPageComponentIds = collectComponentIds(pageFactories.default(true));
+const defaultPageComponentIds = collectComponentIds(storyPage('default', true));
 
 export const LivePropertyEditing: Story = {
     args: {
@@ -1394,9 +1479,15 @@ export const LivePropertyEditing: Story = {
         description:
             'Edit a component’s properties live from the in-canvas panel and watch only its subtree re-render. Pick a target component, then type a new title or description — the values are pushed to the test host, which emits ComponentPropertiesChanged to the client. The per-component "renders: N" badge shows that only the edited component re-renders while its siblings stay put. The panel owns its own state, so typing never re-renders the page tree.',
         componentLocalized: true,
+        // The canvas and editor targets are the default page. Pin its metadata
+        // so an inherited pageFactory arg cannot describe a different page.
+        hostConfiguration: hostConfigurationFor('default', true),
+    },
+    argTypes: {
+        pageFactory: { table: { disable: true } },
     },
     render: (args: StoryArgs) => {
-        const pageData = pageFactories.default(args.componentLocalized ?? true);
+        const pageData = storyPage('default', args.componentLocalized ?? true);
         return (
             <ShowRenderCountContext.Provider value={true}>
                 <div style={{ padding: '2rem 2rem 0', maxWidth: '1200px', margin: '0 auto' }}>
@@ -1501,15 +1592,22 @@ const livePreviewLayouts = {
 type LivePreviewLayoutKey = keyof typeof livePreviewLayouts;
 
 /**
+ * Layout A metadata for the initial connect. Built once and without `page`,
+ * matching the page `<Region>` renders before the first switch.
+ */
+const livePreviewLayoutAConfiguration = hostConfigurationForPage('live-preview:A', livePreviewLayouts.A.page);
+
+/**
  * In-canvas control that pushes a whole new page layout to the client.
  *
  * Mirrors the LivePropertyEditing flow: it grabs the test host exposed on
  * `window.PageDesignerHost` (via `PageDesignerHostProvider expose={true}` in
- * `ModeDecorator`) and calls `setClientConfiguration({ ...config, page })`. That
- * emits the isomorphic `ClientConfigurationChanged` event; in
- * `pageUpdateMode='client'` the SDK's `DesignContext` swaps the new configuration
- * (page included) into `pageDesignerConfig`, and every `<Region>` re-reads it —
- * no route change, no reload, no new loader data.
+ * `ModeDecorator`) and calls `setClientConfiguration` with the next page and
+ * that page's component and type metadata. That emits the isomorphic
+ * `ClientConfigurationChanged` event; in `pageUpdateMode='client'` the SDK's
+ * `DesignContext` swaps the new configuration (page included) into
+ * `pageDesignerConfig`, and every `<Region>` re-reads it — no route change,
+ * no reload, no new loader data.
  */
 function LivePageSwitcher({
     activeLayout,
@@ -1528,9 +1626,12 @@ function LivePageSwitcher({
         if (!host) {
             return;
         }
+        const page = livePreviewLayouts[nextLayout].page;
         host.setClientConfiguration({
-            ...EMPTY_HOST_CONFIGURATION,
-            page: livePreviewLayouts[nextLayout].page,
+            ...createPageDesignerHostMetadata(page),
+            labels: {},
+            regions: {},
+            page,
         });
         onSwitch(nextLayout);
     };
@@ -1627,20 +1728,28 @@ export const LivePageSwitching: Story = {
     args: {
         designMode: 'design',
         pageUpdateMode: 'client',
+        hostConfiguration: livePreviewLayoutAConfiguration,
     },
     render: () => <LivePageSwitchingStory />,
     parameters: {
         docs: {
             description: {
-                story: 'Renders a page through the real `<Region>` component and switches to a different page layout without a route change. Clicking "Switch layout" calls `host.setClientConfiguration({ ...config, page })` on the exposed test host, which emits the isomorphic `ClientConfigurationChanged` event. Because `PageDesignerProvider` runs with `pageUpdateMode="client"`, the SDK swaps the new configuration (page included) into `pageDesignerConfig` and every `<Region>` re-reads it in place — the loader never re-runs.',
+                story: 'Renders a page through the real `<Region>` component and switches to a different page layout without a route change. Clicking "Switch layout" calls `host.setClientConfiguration` with the next page and its component and type metadata, which emits the isomorphic `ClientConfigurationChanged` event. Because `PageDesignerProvider` runs with `pageUpdateMode="client"`, the SDK swaps the new configuration (page included) into `pageDesignerConfig` and every `<Region>` re-reads it in place — the loader never re-runs.',
             },
         },
     },
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
 
-        // Layout A is seeded on first render.
-        await expect(await canvas.findByText('Hero Banner')).toBeInTheDocument();
+        // Layout A is seeded on first render, with its type resolved before any switch.
+        const hero = await canvas.findByText('Hero Banner');
+        await expect(hero).toBeInTheDocument();
+        await waitFor(() => {
+            expect(canvas.getByTestId('design-component-layout-a-card-0')).toHaveAttribute(
+                'data-component-type',
+                'StoryPreview.card'
+            );
+        });
         await expect(canvas.getByTestId('active-layout-label')).toHaveTextContent('Layout A — Landing');
 
         // Switching pushes Layout B through ClientConfigurationChanged; the Region
@@ -1648,7 +1757,7 @@ export const LivePageSwitching: Story = {
         canvas.getByTestId('switch-layout-button').click();
 
         await waitFor(async () => {
-            await expect(canvas.getByText('Sale Countdown')).toBeInTheDocument();
+            await expect(canvas.getByRole('heading', { name: 'Sale Countdown', level: 3 })).toBeInTheDocument();
         });
         await expect(canvas.queryByText('Hero Banner')).not.toBeInTheDocument();
         await expect(canvas.getByTestId('active-layout-label')).toHaveTextContent('Layout B — Promotion');

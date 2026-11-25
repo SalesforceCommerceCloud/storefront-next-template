@@ -30,6 +30,7 @@ import { useComponentProps } from '../hooks/useComponentProps';
 import { useDesignSelector } from '../hooks/useDesignSelector';
 import { useIsRootComponent, RootComponentResetProvider } from '../core/RootComponentContext';
 import { useComponentVisibility } from '../hooks/useComponentVisibility';
+import { useComponentUuid } from '../hooks/useComponentUuid';
 
 export function DesignComponent(props: DesignComponentProps<Record<string, unknown>>): React.JSX.Element {
     const { designMetadata, children, ...componentProps } = props;
@@ -51,22 +52,21 @@ export function DesignComponent(props: DesignComponentProps<Record<string, unkno
     const dragRef = useRef<HTMLDivElement>(null);
     const { regionId } = useRegionContext() ?? {};
     const { componentId: parentComponentId } = useComponentContext() ?? {};
+    const componentUuid = useComponentUuid(componentId, contentLinkUuid);
 
     const nodeToTargetMap = useDesignSelector((s) => s.nodeToTargetMap);
-    const isSelectedContentLinkUuid = useDesignSelector((s) => s.selectedContentLinkUuid === contentLinkUuid);
-    const isHoveredContentLinkUuid = useDesignSelector((s) => s.hoveredContentLinkUuid === contentLinkUuid);
+    const isSelectedComponentUuid = useDesignSelector((s) => s.selectedComponentUuid === componentUuid);
+    const isHoveredComponentUuid = useDesignSelector((s) => s.hoveredComponentUuid === componentUuid);
     const setSelectedComponent = useDesignSelector((s) => s.setSelectedComponent);
     const setHoveredComponent = useDesignSelector((s) => s.setHoveredComponent);
     const startComponentMove = useDesignSelector((s) => s.startComponentMove);
-    const setPendingDragContentLinkUuid = useDesignSelector((s) => s.setPendingDragContentLinkUuid);
-    const isPendingDrag = useDesignSelector((s) => s.dragState.pendingDragContentLinkUuid === contentLinkUuid);
+    const setPendingDragComponentUuid = useDesignSelector((s) => s.setPendingDragComponentUuid);
+    const isPendingDrag = useDesignSelector((s) => s.dragState.pendingDragComponentUuid === componentUuid);
     const showFrame = useDesignSelector(
-        (s) => (isSelectedContentLinkUuid || isHoveredContentLinkUuid) && !s.dragState.isDragging
+        (s) => (isSelectedComponentUuid || isHoveredComponentUuid) && !s.dragState.isDragging
     );
-    const isDraggingSourceContentLinkUuid = useDesignSelector(
-        (s) => s.dragState.sourceContentLinkUuid === contentLinkUuid
-    );
-    const registerContentLink = useDesignSelector((s) => s.registerContentLink);
+    const isDraggingSourceComponentUuid = useDesignSelector((s) => s.dragState.sourceComponentUuid === componentUuid);
+    const registerComponentUuid = useDesignSelector((s) => s.registerComponentUuid);
     // Embedded content-block (ECB) children can't be resolved by the host for
     // select / delete / move, so we render them as static, non-interactive
     // content. The embedded owner declares the subtree via the provider, keyed
@@ -85,18 +85,19 @@ export function DesignComponent(props: DesignComponentProps<Record<string, unkno
     // (Registration is additive with no unregister, so this only ever withholds
     // the link — it cannot remove one added while isEmbedded was still false.)
     React.useEffect(() => {
-        if (contentLinkUuid && componentId && !isEmbedded) {
-            registerContentLink(contentLinkUuid, componentId);
+        if (componentId && !isEmbedded) {
+            registerComponentUuid(componentUuid, componentId, contentLinkUuid);
         }
-    }, [componentId, contentLinkUuid, registerContentLink, isEmbedded]);
+    }, [componentId, componentUuid, contentLinkUuid, registerComponentUuid, isEmbedded]);
 
-    useFocusedComponentHandler(contentLinkUuid, dragRef, isEmbedded);
+    useFocusedComponentHandler(componentUuid, dragRef, isEmbedded);
     useNodeToTargetStore({
         type: 'component',
         nodeRef: dragRef,
         parentId: parentComponentId,
         regionId,
         componentId,
+        componentUuid,
         contentLinkUuid,
         disabled: isEmbedded,
     });
@@ -118,7 +119,7 @@ export function DesignComponent(props: DesignComponentProps<Record<string, unkno
                 filter: (entry) => entry.type === 'component',
             });
 
-            setHoveredComponent(components[0]?.contentLinkUuid ?? null);
+            setHoveredComponent(components[0]?.componentUuid ?? null);
         },
         [setHoveredComponent, discoverComponents]
     );
@@ -143,22 +144,22 @@ export function DesignComponent(props: DesignComponentProps<Record<string, unkno
     const handleClick = useCallback(
         (e: React.MouseEvent) => {
             e.stopPropagation();
-            setSelectedComponent(contentLinkUuid ?? '');
+            setSelectedComponent(componentUuid);
         },
-        [setSelectedComponent, contentLinkUuid]
+        [setSelectedComponent, componentUuid]
     );
 
     const isDraggable = Boolean(componentId && regionId && componentType?.id);
 
     const classes = useComponentDecoratorClasses({
-        contentLinkUuid,
+        componentUuid,
         isLocalized,
         isFragment: Boolean(isFragment),
     });
 
     const context = React.useMemo<ComponentContextType>(
-        () => ({ componentId: id, name, contentLinkUuid }),
-        [id, name, contentLinkUuid]
+        () => ({ componentId: id, name, contentLinkUuid, uuid: componentUuid }),
+        [id, name, contentLinkUuid, componentUuid]
     );
 
     // Makes the component a drop target.
@@ -167,12 +168,12 @@ export function DesignComponent(props: DesignComponentProps<Record<string, unkno
             // Don't prevent propagation here.
             // We depend on the global listener to handle the drag over event.
             // If we are moving a component, don't let it be droppable on itself.
-            // Compare by contentLinkUuid to handle duplicate components correctly.
-            if (!isDraggingSourceContentLinkUuid) {
+            // Compare by component UUID to distinguish repeated component metadata.
+            if (!isDraggingSourceComponentUuid) {
                 event.preventDefault();
             }
         },
-        [isDraggingSourceContentLinkUuid]
+        [isDraggingSourceComponentUuid]
     );
 
     // When dragging, we don't consider the component as dragging until the drag start event
@@ -184,12 +185,12 @@ export function DesignComponent(props: DesignComponentProps<Record<string, unkno
     // This is why it is split up into two events.
     const handleMouseDown = React.useCallback(
         (event: React.MouseEvent) => {
-            if (contentLinkUuid) {
+            if (componentUuid) {
                 event.stopPropagation();
-                setPendingDragContentLinkUuid(contentLinkUuid);
+                setPendingDragComponentUuid(componentUuid);
             }
         },
-        [contentLinkUuid, setPendingDragContentLinkUuid]
+        [componentUuid, setPendingDragComponentUuid]
     );
 
     const handleDragStart = React.useCallback(
@@ -197,10 +198,10 @@ export function DesignComponent(props: DesignComponentProps<Record<string, unkno
             event.stopPropagation();
 
             if (componentId && regionId && componentType?.id) {
-                startComponentMove(componentId, regionId, componentType.id, contentLinkUuid);
+                startComponentMove(componentId, regionId, componentType.id, componentUuid, contentLinkUuid);
             }
         },
-        [componentId, regionId, componentType?.id, contentLinkUuid, startComponentMove]
+        [componentId, regionId, componentType?.id, componentUuid, contentLinkUuid, startComponentMove]
     );
 
     // Don't render anything if the components is hidden via visibility rules.
@@ -239,6 +240,7 @@ export function DesignComponent(props: DesignComponentProps<Record<string, unkno
                 showFrame={showFrame}
                 componentId={componentId}
                 contentLinkUuid={contentLinkUuid}
+                componentUuid={componentUuid}
                 localized={isLocalized}
                 isFragment={Boolean(isFragment)}
                 name={componentName}

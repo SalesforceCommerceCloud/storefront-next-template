@@ -31,6 +31,18 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 type AnyFunction = (...args: unknown[]) => unknown;
 
+const testComponentSelection = {
+    componentId: 'test-component',
+    contentLinkUuid: 'test-component-uuid',
+    componentUuid: 'parent|test-component',
+};
+
+const testComponentSelection2 = {
+    componentId: 'test-component-2',
+    contentLinkUuid: 'test-component-2-uuid',
+    componentUuid: 'parent|test-component-2',
+};
+
 function makeHostConnectionPromise(
     host: HostApi,
     {
@@ -167,6 +179,7 @@ describe('Messaging API', () => {
                 client.selectComponent({
                     componentId: 'test-component' as string,
                     contentLinkUuid: 'test-component-uuid',
+                    componentUuid: 'parent|test-component',
                 });
                 expect(clientWindow.dispatchEvent).not.toHaveBeenCalledWith(
                     'message',
@@ -243,7 +256,7 @@ describe('Messaging API', () => {
                     const spy = vi.fn();
 
                     client.on('ComponentSelected', spy);
-                    host.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                    host.selectComponent(testComponentSelection);
                     expect(spy).toHaveBeenCalledTimes(1);
                 });
             });
@@ -263,7 +276,7 @@ describe('Messaging API', () => {
                     const spy = vi.fn();
 
                     host.on('ComponentSelected', spy);
-                    client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                    client.selectComponent(testComponentSelection);
                     expect(spy).toHaveBeenCalledTimes(1);
                 });
             });
@@ -287,8 +300,8 @@ describe('Messaging API', () => {
             const hostPromise = makeHostConnectionPromise(host, { configFactory: () => promise });
             const clientPromise = makeClientConnectionPromise();
 
-            client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
-            client.selectComponent({ componentId: 'test-component-2', contentLinkUuid: 'test-component-2-uuid' });
+            client.selectComponent(testComponentSelection);
+            client.selectComponent(testComponentSelection2);
 
             host.on('ComponentSelected', spy);
 
@@ -380,6 +393,7 @@ describe('Messaging API', () => {
                             eventType: 'ComponentSelected',
                             componentId: 'test-component',
                             contentLinkUuid: 'test-component-uuid',
+                            componentUuid: 'parent|test-component',
                             meta: {
                                 source: 'client',
                                 clientId: 'test-client',
@@ -389,7 +403,7 @@ describe('Messaging API', () => {
                         });
                         resolve();
                     });
-                    client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                    client.selectComponent(testComponentSelection);
                 });
             });
         });
@@ -402,6 +416,7 @@ describe('Messaging API', () => {
                             eventType: 'ComponentSelected',
                             componentId: 'test-component',
                             contentLinkUuid: 'test-component-uuid',
+                            componentUuid: 'parent|test-component',
                             meta: {
                                 source: 'host',
                                 clientId: 'test-client',
@@ -411,7 +426,7 @@ describe('Messaging API', () => {
                         });
                         resolve();
                     });
-                    host.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                    host.selectComponent(testComponentSelection);
                 });
             });
         });
@@ -423,12 +438,12 @@ describe('Messaging API', () => {
                     callCount += 1;
                 });
 
-                host.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                host.selectComponent(testComponentSelection);
                 expect(callCount).toBe(1);
-                host.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                host.selectComponent(testComponentSelection);
                 expect(callCount).toBe(2);
                 unsubscribe();
-                host.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                host.selectComponent(testComponentSelection);
                 expect(callCount).toBe(2);
             });
         });
@@ -440,11 +455,11 @@ describe('Messaging API', () => {
 
                 host.on('ComponentSelected', spy);
                 client.on('ComponentSelected', clientSpy);
-                host.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                host.selectComponent(testComponentSelection);
                 expect(clientSpy).toHaveBeenCalledTimes(1);
                 expect(spy).not.toHaveBeenCalled();
 
-                client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                client.selectComponent(testComponentSelection);
                 expect(clientSpy).toHaveBeenCalledTimes(1);
                 expect(spy).toHaveBeenCalledTimes(1);
             });
@@ -452,9 +467,7 @@ describe('Messaging API', () => {
 
         describe('when there are no event listeners for an event', () => {
             it('should not error on the remote connection', () => {
-                expect(() =>
-                    client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' })
-                ).not.toThrow();
+                expect(() => client.selectComponent(testComponentSelection)).not.toThrow();
             });
         });
 
@@ -489,7 +502,7 @@ describe('Messaging API', () => {
 
                 host.on('ComponentSelected', spy1);
                 host.on('ComponentSelected', spy2);
-                client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                client.selectComponent(testComponentSelection);
                 expect(spy1).toHaveBeenCalledTimes(1);
                 expect(spy2).toHaveBeenCalledTimes(1);
             });
@@ -501,17 +514,17 @@ describe('Messaging API', () => {
 
                     const unsub1 = host.on('ComponentSelected', spy1);
                     const unsub2 = host.on('ComponentSelected', spy2);
-                    client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                    client.selectComponent(testComponentSelection);
                     expect(spy1).toHaveBeenCalledTimes(1);
                     expect(spy2).toHaveBeenCalledTimes(1);
 
                     unsub1();
-                    client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                    client.selectComponent(testComponentSelection);
                     expect(spy1).toHaveBeenCalledTimes(1);
                     expect(spy2).toHaveBeenCalledTimes(2);
 
                     unsub2();
-                    client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                    client.selectComponent(testComponentSelection);
                     expect(spy1).toHaveBeenCalledTimes(1);
                     expect(spy2).toHaveBeenCalledTimes(2);
                 });
@@ -522,11 +535,11 @@ describe('Messaging API', () => {
                     const spy1 = vi.fn();
                     const unsub1 = host.on('ComponentSelected', spy1);
 
-                    client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                    client.selectComponent(testComponentSelection);
                     expect(spy1).toHaveBeenCalledTimes(1);
 
                     unsub1();
-                    client.selectComponent({ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' });
+                    client.selectComponent(testComponentSelection);
                     expect(spy1).toHaveBeenCalledTimes(1);
 
                     expect(() => unsub1()).not.toThrow();
@@ -537,14 +550,14 @@ describe('Messaging API', () => {
         describe.each`
             method                         | eventName                   | payload
             ${'addComponentToRegion'}      | ${'ComponentAddedToRegion'} | ${{ componentId: 'test-component', componentType: 'test-specifier', componentProperties: { test: 'value' }, targetComponentId: 'target-component', targetRegionId: 'test-region' }}
-            ${'moveComponentToRegion'}     | ${'ComponentMovedToRegion'} | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', targetComponentId: 'target-component', targetRegionId: 'target-region', sourceRegionId: 'source-region', sourceComponentId: 'source-component' }}
+            ${'moveComponentToRegion'}     | ${'ComponentMovedToRegion'} | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component', targetComponentId: 'target-component', targetRegionId: 'target-region', sourceRegionId: 'source-region', sourceComponentId: 'source-component' }}
             ${'notifyClientReady'}         | ${'ClientReady'}            | ${{ clientId: 'test-client' }}
             ${'startComponentDrag'}        | ${'ComponentDragStarted'}   | ${{ componentId: 'test-component', x: 100, y: 200 }}
-            ${'hoverInToComponent'}        | ${'ComponentHoveredIn'}     | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' }}
-            ${'hoverOutOfComponent'}       | ${'ComponentHoveredOut'}    | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' }}
-            ${'selectComponent'}           | ${'ComponentSelected'}      | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' }}
-            ${'deselectComponent'}         | ${'ComponentDeselected'}    | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' }}
-            ${'deleteComponent'}           | ${'ComponentDeleted'}       | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', sourceComponentId: 'source-component', sourceRegionId: 'source-region' }}
+            ${'hoverInToComponent'}        | ${'ComponentHoveredIn'}     | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component' }}
+            ${'hoverOutOfComponent'}       | ${'ComponentHoveredOut'}    | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component' }}
+            ${'selectComponent'}           | ${'ComponentSelected'}      | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component' }}
+            ${'deselectComponent'}         | ${'ComponentDeselected'}    | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component' }}
+            ${'deleteComponent'}           | ${'ComponentDeleted'}       | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component', sourceComponentId: 'source-component', sourceRegionId: 'source-region' }}
             ${'notifyWindowScrollChanged'} | ${'WindowScrollChanged'}    | ${{ scrollX: 100, scrollY: 200 }}
             ${'notifyError'}               | ${'Error'}                  | ${{ message: 'Test error message', code: 'TEST_ERROR' }}
             ${'notifyClientRouteChanged'}  | ${'ClientRouteChanged'}     | ${{ url: 'https://storefront.example.com/product/abc' }}
@@ -584,13 +597,13 @@ describe('Messaging API', () => {
         describe.each`
             method                             | eventName                       | payload
             ${'addComponentToRegion'}          | ${'ComponentAddedToRegion'}     | ${{ componentId: 'test-component', componentType: 'test-specifier', componentProperties: { test: 'value' }, targetComponentId: 'target-component', targetRegionId: 'test-region' }}
-            ${'moveComponentToRegion'}         | ${'ComponentMovedToRegion'}     | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', targetComponentId: 'target-component', targetRegionId: 'target-region', sourceRegionId: 'source-region', sourceComponentId: 'source-component' }}
+            ${'moveComponentToRegion'}         | ${'ComponentMovedToRegion'}     | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component', targetComponentId: 'target-component', targetRegionId: 'target-region', sourceRegionId: 'source-region', sourceComponentId: 'source-component' }}
             ${'startComponentDrag'}            | ${'ComponentDragStarted'}       | ${{ componentId: 'test-component', x: 100, y: 200 }}
-            ${'hoverInToComponent'}            | ${'ComponentHoveredIn'}         | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' }}
-            ${'hoverOutOfComponent'}           | ${'ComponentHoveredOut'}        | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' }}
-            ${'selectComponent'}               | ${'ComponentSelected'}          | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' }}
-            ${'deselectComponent'}             | ${'ComponentDeselected'}        | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid' }}
-            ${'deleteComponent'}               | ${'ComponentDeleted'}           | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', sourceComponentId: 'source-component', sourceRegionId: 'source-region' }}
+            ${'hoverInToComponent'}            | ${'ComponentHoveredIn'}         | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component' }}
+            ${'hoverOutOfComponent'}           | ${'ComponentHoveredOut'}        | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component' }}
+            ${'selectComponent'}               | ${'ComponentSelected'}          | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component' }}
+            ${'deselectComponent'}             | ${'ComponentDeselected'}        | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component' }}
+            ${'deleteComponent'}               | ${'ComponentDeleted'}           | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', componentUuid: 'parent|test-component', sourceComponentId: 'source-component', sourceRegionId: 'source-region' }}
             ${'forwardKeyPress'}               | ${'HostKeyPressed'}             | ${{ key: 'ArrowUp' }}
             ${'notifyClientWindowDragDropped'} | ${'ClientWindowDragDropped'}    | ${{ componentId: 'test-component', x: 100, y: 200 }}
             ${'notifyClientWindowDragEntered'} | ${'ClientWindowDragEntered'}    | ${{ componentId: 'test-component', x: 100, y: 200 }}

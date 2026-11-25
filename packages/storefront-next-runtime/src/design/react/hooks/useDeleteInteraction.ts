@@ -22,11 +22,11 @@ export interface DeleteInteraction {
 }
 
 export function useDeleteInteraction({
-    selectedContentLinkUuid,
+    selectedComponentUuid,
     setSelectedComponent,
 }: {
-    selectedContentLinkUuid: string | null;
-    setSelectedComponent: (contentLinkUuid: string) => void;
+    selectedComponentUuid: string | null;
+    setSelectedComponent: (componentUuid: string) => void;
 }): DeleteInteraction {
     const { deleteComponent } = useInteraction({
         initialState: null,
@@ -36,7 +36,7 @@ export function useDeleteInteraction({
                 clientApi?.deleteComponent(event);
 
                 // When a component is deleted, we want to make sure it's no longer selected.
-                if (selectedContentLinkUuid === event.contentLinkUuid) {
+                if (selectedComponentUuid === event.componentUuid) {
                     setSelectedComponent('');
                 }
             },

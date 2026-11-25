@@ -4,7 +4,7 @@ import React from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 
 //#region src/design/react/hooks/useNodeToTargetStore.ts
-function useNodeToTargetStore({ parentId, componentId, contentLinkUuid, regionId, nodeRef, type, contentLinkUuids, componentTypeInclusions, componentTypeExclusions, disabled = false }) {
+function useNodeToTargetStore({ parentId, componentId, contentLinkUuid, regionId, nodeRef, type, componentUuid, componentUuids, contentLinkUuids, componentTypeInclusions, componentTypeExclusions, disabled = false }) {
 	const nodeToTargetMap = useDesignSelector((s) => s.nodeToTargetMap);
 	React.useEffect(() => {
 		const node = nodeRef.current;
@@ -19,12 +19,16 @@ function useNodeToTargetStore({ parentId, componentId, contentLinkUuid, regionId
 			contentLinkUuid,
 			regionId,
 			type,
+			componentUuid,
+			componentUuids,
 			contentLinkUuids,
 			componentTypeInclusions,
 			componentTypeExclusions
 		});
 	}, [
 		nodeRef,
+		componentUuid,
+		componentUuids,
 		parentId,
 		componentId,
 		contentLinkUuid,
@@ -154,7 +158,7 @@ const DesignOverlay = () => {
 
 //#endregion
 //#region src/design/react/components/DesignFrame.tsx
-const DesignFrame = ({ componentId, children, name, parentId, regionId, contentLinkUuid, localized = false, isFragment = false, showFrame = false, showToolbox = true, isMoveable = true, isDeletable = true, className }) => {
+const DesignFrame = ({ componentId, children, name, parentId, regionId, contentLinkUuid, componentUuid, localized = false, isFragment = false, showFrame = false, showToolbox = true, isMoveable = true, isDeletable = true, className }) => {
 	const componentType = useComponentType(componentId ?? "");
 	const deleteComponent = useDesignSelector((s) => s.deleteComponent);
 	const labels = useLabels();
@@ -171,6 +175,7 @@ const DesignFrame = ({ componentId, children, name, parentId, regionId, contentL
 		if (componentId) deleteComponent({
 			componentId,
 			contentLinkUuid: contentLinkUuid ?? "",
+			componentUuid: componentUuid ?? "",
 			sourceComponentId: parentId ?? "",
 			sourceRegionId: regionId ?? ""
 		});
@@ -178,6 +183,7 @@ const DesignFrame = ({ componentId, children, name, parentId, regionId, contentL
 		deleteComponent,
 		componentId,
 		contentLinkUuid,
+		componentUuid,
 		parentId,
 		regionId
 	]);

@@ -44,6 +44,11 @@ interface RegionDesignMetadata {
    */
   contentLinkUuids?: string[];
   /**
+   * A list of component ids in rendered order. Design mode combines these with
+   * the owning component UUID to identify child instances.
+   */
+  componentIds?: string[];
+  /**
    * A list of allowed component types in this region.
    */
   componentTypeInclusions?: string[];

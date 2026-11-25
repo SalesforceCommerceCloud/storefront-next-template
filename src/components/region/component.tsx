@@ -139,10 +139,8 @@ export const Component = memo(function Component({ component, className, regionI
         isVisible: Boolean(component.visible),
         isLocalized: Boolean(component.localized),
         id: component.id,
-        // In content block editor a standalone block has no contentLinkUuid.
-        // Fall back to the component id so selection/hover identity is never the empty
-        // string, which would otherwise collide with the '' default and render the block
-        // permanently selected. Matches the `?? id` fallback used in region-wrapper/index.
+        // Keep an explicitly empty content-link UUID unchanged; DesignComponent derives its
+        // interaction identity from the component id when the content-link UUID is empty.
         contentLinkUuid: component.contentLinkUuid ?? component.id,
     };
 

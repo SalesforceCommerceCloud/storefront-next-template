@@ -17,7 +17,7 @@ import { useInteraction } from './useInteraction';
 import { useMemoObject } from './useMemoObject';
 
 export interface HoverInteraction {
-    hoveredContentLinkUuid: string | null;
+    hoveredComponentUuid: string | null;
     setHoveredComponent: (componentUuid: string | null) => void;
 }
 
@@ -27,12 +27,16 @@ export interface HoverInteraction {
  *
  * @returns Hover state and interaction methods
  */
-export function useHoverInteraction({ contentLinkMap }: { contentLinkMap: Record<string, string> }): HoverInteraction {
-    const { state: hoveredContentLinkUuid, setHoveredComponent } = useInteraction({
+export function useHoverInteraction({
+    componentByUuid,
+}: {
+    componentByUuid: Record<string, { componentId: string; contentLinkUuid: string }>;
+}): HoverInteraction {
+    const { state: hoveredComponentUuid, setHoveredComponent } = useInteraction({
         initialState: null as string | null,
         eventHandlers: {
             ComponentHoveredIn: {
-                handler: (event, setState) => setState(event.contentLinkUuid),
+                handler: (event, setState) => setState(event.componentUuid),
             },
             ComponentHoveredOut: {
                 handler: (_, setState) => setState(null),
@@ -41,16 +45,20 @@ export function useHoverInteraction({ contentLinkMap }: { contentLinkMap: Record
         actions: (state, setState, clientApi) => ({
             setHoveredComponent: (componentUuid: string | null) => {
                 if (state && componentUuid !== state) {
+                    const component = componentByUuid[state];
                     clientApi?.hoverOutOfComponent({
-                        componentId: contentLinkMap[state] ?? state,
-                        contentLinkUuid: state,
+                        componentId: component?.componentId ?? '',
+                        contentLinkUuid: component?.contentLinkUuid ?? '',
+                        componentUuid: state,
                     });
                 }
 
                 if (componentUuid && componentUuid !== state) {
+                    const component = componentByUuid[componentUuid];
                     clientApi?.hoverInToComponent({
-                        componentId: contentLinkMap[componentUuid] ?? null,
-                        contentLinkUuid: componentUuid,
+                        componentId: component?.componentId ?? '',
+                        contentLinkUuid: component?.contentLinkUuid ?? '',
+                        componentUuid,
                     });
                 }
 
@@ -60,7 +68,7 @@ export function useHoverInteraction({ contentLinkMap }: { contentLinkMap: Record
     });
 
     return useMemoObject({
-        hoveredContentLinkUuid,
+        hoveredComponentUuid,
         setHoveredComponent,
     });
 }

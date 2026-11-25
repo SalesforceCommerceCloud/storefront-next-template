@@ -44,9 +44,17 @@ const decoratedCalls: DecoratedProps[] = [];
 
 import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 
-const makeRegion = (id: string | undefined, compIds: string[]): ShopperExperience.schemas['Region'] => ({
+const makeRegion = (
+    id: string | undefined,
+    compIds: string[],
+    contentLinkUuids: (string | undefined)[] = []
+): ShopperExperience.schemas['Region'] => ({
     id: id as string,
-    components: compIds.map((c) => ({ id: c, typeId: 'commerce_assets.productTile' })),
+    components: compIds.map((c, index) => ({
+        id: c,
+        ...(contentLinkUuids[index] === undefined ? {} : { contentLinkUuid: contentLinkUuids[index] }),
+        typeId: 'commerce_assets.productTile',
+    })),
 });
 
 describe('RegionWrapper', () => {
@@ -107,8 +115,37 @@ describe('RegionWrapper', () => {
         const last = decoratedCalls[decoratedCalls.length - 1];
         expect(last.region.id).toEqual('r2');
         expect(last.designMetadata?.contentLinkUuids).toEqual(['x1', 'x2']);
+        expect(last.designMetadata).not.toHaveProperty('componentIds');
         expect(last.designMetadata?.componentTypeInclusions).toEqual([]);
         expect(last.designMetadata?.componentTypeExclusions).toEqual([]);
+    });
+
+    test('prefers explicit content-link UUIDs and falls back to component ids in region metadata', () => {
+        vi.mocked(usePageDesignerMode).mockReturnValue({ isDesignMode: true, isPreviewMode: false });
+        const region = makeRegion('r3', ['backend-id', 'fallback-id'], ['explicit-content-link', undefined]);
+
+        render(<RegionWrapper region={region}>child</RegionWrapper>);
+
+        expect(decoratedCalls.at(-1)?.designMetadata?.contentLinkUuids).toEqual([
+            'explicit-content-link',
+            'fallback-id',
+        ]);
+        expect(decoratedCalls.at(-1)?.designMetadata).not.toHaveProperty('componentIds');
+    });
+
+    test('uses component ids for empty and omitted content-link UUIDs without changing raw region metadata', () => {
+        vi.mocked(usePageDesignerMode).mockReturnValue({ isDesignMode: true, isPreviewMode: false });
+        const region = makeRegion('r4', ['component-a', 'component-b', 'component-c'], ['link-b', '', undefined]);
+
+        render(<RegionWrapper region={region}>child</RegionWrapper>);
+
+        expect(decoratedCalls.at(-1)?.designMetadata?.contentLinkUuids).toEqual([
+            'link-b',
+            'component-b',
+            'component-c',
+        ]);
+        expect(region.components?.map((component) => component.contentLinkUuid)).toEqual(['link-b', '', undefined]);
+        expect(decoratedCalls.at(-1)?.designMetadata).not.toHaveProperty('componentIds');
     });
 
     test('passes through custom inclusion/exclusion lists', () => {

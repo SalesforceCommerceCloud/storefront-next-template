@@ -20,27 +20,27 @@ import { useFocusedComponentHandler } from './useFocusedComponentHandler';
 import type { DesignState } from '../context/DesignStateContext';
 
 const mockFocusComponent = vi.fn();
-let mockFocusedContentLinkUuid: string | null = null;
+let mockFocusedComponentUuid: string | null = null;
 
 // The hook reads state via useDesignSelector; run the real selector against a
 // fake state so the test controls the focused uuid and focus action directly.
 vi.mock('./useDesignSelector', () => ({
     useDesignSelector: (selector: (state: DesignState) => unknown) =>
         selector({
-            focusedContentLinkUuid: mockFocusedContentLinkUuid,
+            focusedComponentUuid: mockFocusedComponentUuid,
             focusComponent: mockFocusComponent,
         } as unknown as DesignState),
 }));
 
-function Harness({ contentLinkUuid, disabled = false }: { contentLinkUuid: string; disabled?: boolean }) {
+function Harness({ componentUuid, disabled = false }: { componentUuid: string; disabled?: boolean }) {
     const ref = React.useRef<HTMLDivElement>(null);
-    useFocusedComponentHandler(contentLinkUuid, ref, disabled);
+    useFocusedComponentHandler(componentUuid, ref, disabled);
     return <div ref={ref} data-testid="target" />;
 }
 
 describe('useFocusedComponentHandler', () => {
     beforeEach(() => {
-        mockFocusedContentLinkUuid = null;
+        mockFocusedComponentUuid = null;
     });
 
     afterEach(() => {
@@ -49,20 +49,20 @@ describe('useFocusedComponentHandler', () => {
     });
 
     it('focuses the node when the focused uuid matches and it is not disabled', () => {
-        mockFocusedContentLinkUuid = 'clu-1';
-        render(<Harness contentLinkUuid="clu-1" />);
+        mockFocusedComponentUuid = 'parent-a|duplicate';
+        render(<Harness componentUuid="parent-a|duplicate" />);
         expect(mockFocusComponent).toHaveBeenCalledTimes(1);
     });
 
     it('does not focus when the focused uuid does not match', () => {
-        mockFocusedContentLinkUuid = 'other-uuid';
-        render(<Harness contentLinkUuid="clu-1" />);
+        mockFocusedComponentUuid = 'parent-b|duplicate';
+        render(<Harness componentUuid="parent-a|duplicate" />);
         expect(mockFocusComponent).not.toHaveBeenCalled();
     });
 
     it('does not focus a matching uuid when disabled (embedded instance)', () => {
-        mockFocusedContentLinkUuid = 'clu-1';
-        render(<Harness contentLinkUuid="clu-1" disabled />);
+        mockFocusedComponentUuid = 'parent-a|duplicate';
+        render(<Harness componentUuid="parent-a|duplicate" disabled />);
         expect(mockFocusComponent).not.toHaveBeenCalled();
     });
 });

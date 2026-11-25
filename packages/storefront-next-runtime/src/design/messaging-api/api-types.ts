@@ -231,7 +231,8 @@ export interface IsomorphicApi {
      *
      * @param event - The component move event containing the component and region information
      * @param event.componentId - The ID of the component to move
-     * @param event.targetComponentId - The ID of the component where the component is being moved to
+     * @param event.componentUuid - The tree-path UUID of the rendered component instance to move
+     * @param event.targetComponentId - The tree-path UUID of the component where the component is being moved to
      * @param event.targetRegionId - The ID of the region that the component is being moved to
      * @stability development
      *
@@ -239,10 +240,13 @@ export interface IsomorphicApi {
      * ```typescript
      * api.moveComponentToRegion({
      *   componentId: 'component-123',
-     *   targetComponentId: 'parent-component',
-     *   targetRegionId: 'content-region'
-     *   sourceRegionId: 'source-content-region'
-     *   sourceComponentId: 'source-component'
+     *   contentLinkUuid: 'raw-content-link',
+     *   componentUuid: 'source-parent|component-123',
+     *   targetComponentId: 'target-parent',
+     *   targetRegionId: 'content-region',
+     *   sourceRegionId: 'source-content-region',
+     *   sourceComponentId: 'source-component',
+     *   insertComponentId: 'target-parent|next-component'
      * });
      * ```
      * @see {Domain.ComponentMovedToRegionEvent}
@@ -253,12 +257,15 @@ export interface IsomorphicApi {
      *
      * @param event - The component hover event containing the component ID
      * @param event.componentId - The ID of the component being hovered over
+     * @param event.componentUuid - The tree-path UUID of the rendered component instance
      * @stability development
      *
      * @example
      * ```typescript
      * api.hoverInToComponent({
-     *   componentId: 'component-123'
+     *   componentId: 'component-123',
+     *   contentLinkUuid: 'raw-content-link',
+     *   componentUuid: 'parent-component|component-123'
      * });
      * ```
      */
@@ -269,12 +276,15 @@ export interface IsomorphicApi {
      *
      * @param event - The component hover exit event containing the component ID
      * @param event.componentId - The ID of the component that was hovered over
+     * @param event.componentUuid - The tree-path UUID of the rendered component instance
      * @stability development
      *
      * @example
      * ```typescript
      * api.hoverOutOfComponent({
-     *   componentId: 'component-123'
+     *   componentId: 'component-123',
+     *   contentLinkUuid: 'raw-content-link',
+     *   componentUuid: 'parent-component|component-123'
      * });
      * ```
      */
@@ -285,12 +295,15 @@ export interface IsomorphicApi {
      *
      * @param event - The component selection event containing the component ID
      * @param event.componentId - The ID of the component that was selected
+     * @param event.componentUuid - The tree-path UUID of the rendered component instance
      * @stability development
      *
      * @example
      * ```typescript
      * api.selectComponent({
-     *   componentId: 'component-123'
+     *   componentId: 'component-123',
+     *   contentLinkUuid: 'raw-content-link',
+     *   componentUuid: 'parent-component|component-123'
      * });
      * ```
      */
@@ -301,12 +314,15 @@ export interface IsomorphicApi {
      *
      * @param event - The component deselection event containing the component ID
      * @param event.componentId - The ID of the component that was deselected
+     * @param event.componentUuid - The tree-path UUID of the rendered component instance
      * @stability development
      *
      * @example
      * ```typescript
      * api.deselectComponent({
-     *   componentId: 'component-123'
+     *   componentId: 'component-123',
+     *   contentLinkUuid: 'raw-content-link',
+     *   componentUuid: 'parent-component|component-123'
      * });
      * ```
      */
@@ -337,6 +353,7 @@ export interface IsomorphicApi {
      *
      * @param event - The component deletion event containing the component ID
      * @param event.componentId - The ID of the component that was deleted
+     * @param event.componentUuid - The tree-path UUID of the rendered component instance
      * @param event.sourceComponentId - The ID of the component that the component was deleted from
      * @param event.sourceRegionId - The ID of the region that the component was deleted from
      * @stability development
@@ -345,6 +362,8 @@ export interface IsomorphicApi {
      * ```typescript
      * api.deleteComponent({
      *   componentId: 'component-123',
+     *   contentLinkUuid: 'raw-content-link',
+     *   componentUuid: 'parent-component|component-123',
      *   sourceComponentId: 'parent-component',
      *   sourceRegionId: 'content-region'
      * });
@@ -733,7 +752,17 @@ export interface HostApi extends IsomorphicApi {
      *
      * @param event - The component focus event containing the component ID
      * @param event.componentId - The ID of the component that was focused
+     * @param event.componentUuid - The tree-path UUID of the rendered component instance
      * @stability development
+     *
+     * @example
+     * ```typescript
+     * api.focusComponent({
+     *   componentId: 'component-123',
+     *   contentLinkUuid: 'raw-content-link',
+     *   componentUuid: 'parent-component|component-123'
+     * });
+     * ```
      */
     focusComponent(event: EventPayload<Domain.ComponentFocusedEvent>): void;
     /**

@@ -17,20 +17,20 @@ import React from 'react';
 import { useDesignSelector } from './useDesignSelector';
 
 /**
- * Focuses a component when the focused component id matches the content link UUID.
- * @param contentLinkUuid - The content link UUID of the component.
+ * Focuses a component when the focused component UUID matches its tree-path UUID.
+ * @param componentUuid - The generated tree-path UUID of the component instance.
  * @param nodeRef - The ref object to the node to focus.
  * @param disabled - When true, the handler is inert. Embedded instances are not
  *   editable by the host, so they must never be focused / scrolled into view;
  *   the decorator passes its `isEmbedded` here to enforce that.
  */
 export function useFocusedComponentHandler(
-    contentLinkUuid: string,
+    componentUuid: string,
     nodeRef: React.RefObject<Element | null>,
     disabled: boolean
 ): void {
     const focusComponent = useDesignSelector((s) => s.focusComponent);
-    const isFocused = useDesignSelector((s) => s.focusedContentLinkUuid === contentLinkUuid);
+    const isFocused = useDesignSelector((s) => s.focusedComponentUuid === componentUuid);
 
     React.useEffect(() => {
         if (!disabled && isFocused && nodeRef.current) {

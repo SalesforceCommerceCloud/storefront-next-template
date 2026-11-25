@@ -44,6 +44,13 @@ interface WithContentLinkUuid {
     contentLinkUuid: string;
 }
 
+interface WithComponentUuid {
+    /**
+     * The generated tree-path UUID that identifies this rendered component instance.
+     */
+    componentUuid: string;
+}
+
 interface WithComponentType {
     /**
      * The component type that the event is related to.
@@ -460,7 +467,7 @@ export interface ComponentPropertiesChangedEvent<TProps extends Record<string, u
  * @target client
  * @group Events
  */
-export interface ComponentFocusedEvent extends WithBaseEvent, WithComponentId, WithContentLinkUuid {
+export interface ComponentFocusedEvent extends WithBaseEvent, WithComponentId, WithContentLinkUuid, WithComponentUuid {
     eventType: 'ComponentFocused';
 }
 /**
@@ -521,7 +528,11 @@ export interface WindowScrollChangedEvent extends WithBaseEvent {
  * @target isomorphic
  * @group Events
  */
-export interface ComponentMovedToRegionEvent extends WithBaseEvent, WithComponentId, WithContentLinkUuid {
+export interface ComponentMovedToRegionEvent
+    extends WithBaseEvent,
+        WithComponentId,
+        WithContentLinkUuid,
+        WithComponentUuid {
     eventType: 'ComponentMovedToRegion';
     /**
      * The id of the component that comes before the insert component.
@@ -558,7 +569,11 @@ export interface ComponentMovedToRegionEvent extends WithBaseEvent, WithComponen
  * @target isomorphic
  * @group Events
  */
-export interface ComponentHoveredInEvent extends WithBaseEvent, WithComponentId, WithContentLinkUuid {
+export interface ComponentHoveredInEvent
+    extends WithBaseEvent,
+        WithComponentId,
+        WithContentLinkUuid,
+        WithComponentUuid {
     eventType: 'ComponentHoveredIn';
 }
 /**
@@ -566,7 +581,11 @@ export interface ComponentHoveredInEvent extends WithBaseEvent, WithComponentId,
  * @target isomorphic
  * @group Events
  */
-export interface ComponentHoveredOutEvent extends WithBaseEvent, WithComponentId, WithContentLinkUuid {
+export interface ComponentHoveredOutEvent
+    extends WithBaseEvent,
+        WithComponentId,
+        WithContentLinkUuid,
+        WithComponentUuid {
     eventType: 'ComponentHoveredOut';
 }
 /**
@@ -574,7 +593,7 @@ export interface ComponentHoveredOutEvent extends WithBaseEvent, WithComponentId
  * @target isomorphic
  * @group Events
  */
-export interface ComponentSelectedEvent extends WithBaseEvent, WithComponentId, WithContentLinkUuid {
+export interface ComponentSelectedEvent extends WithBaseEvent, WithComponentId, WithContentLinkUuid, WithComponentUuid {
     eventType: 'ComponentSelected';
 }
 /**
@@ -582,7 +601,11 @@ export interface ComponentSelectedEvent extends WithBaseEvent, WithComponentId, 
  * @target isomorphic
  * @group Events
  */
-export interface ComponentDeselectedEvent extends WithBaseEvent, WithComponentId, WithContentLinkUuid {
+export interface ComponentDeselectedEvent
+    extends WithBaseEvent,
+        WithComponentId,
+        WithContentLinkUuid,
+        WithComponentUuid {
     eventType: 'ComponentDeselected';
 }
 /**
@@ -590,7 +613,7 @@ export interface ComponentDeselectedEvent extends WithBaseEvent, WithComponentId
  * @target isomorphic
  * @group Events
  */
-export interface ComponentDeletedEvent extends WithBaseEvent, WithComponentId, WithContentLinkUuid {
+export interface ComponentDeletedEvent extends WithBaseEvent, WithComponentId, WithContentLinkUuid, WithComponentUuid {
     eventType: 'ComponentDeleted';
     /**
      * The id of the component that the component was deleted from.

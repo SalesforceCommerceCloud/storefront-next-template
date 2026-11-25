@@ -32,44 +32,57 @@ export interface NodeToTargetMapEntry {
     contentLinkUuid?: string;
     regionId: string;
     contentLinkUuids: string[];
+    componentUuids: string[];
+    componentUuid: string;
     componentTypeInclusions?: string[];
     componentTypeExclusions?: string[];
 }
 
 export interface DesignState extends DragInteraction, ScrollInteraction, ComponentUpdateInteraction {
-    selectedContentLinkUuid: string | null;
-    hoveredContentLinkUuid: string | null;
-    setSelectedComponent: (contentLinkUuid: string) => void;
+    selectedComponentUuid: string | null;
+    hoveredComponentUuid: string | null;
+    setSelectedComponent: (componentUuid: string) => void;
     setHoveredComponent: (componentUuid: string | null) => void;
     deleteComponent: (event: EventPayload<ComponentDeletedEvent>) => void;
     focusComponent: (node: Element) => void;
-    focusedContentLinkUuid: string | null;
+    focusedComponentUuid: string | null;
     nodeToTargetMap: WeakMap<Element, NodeToTargetMapEntry>;
     /**
-     * Maps contentLinkUuid to componentId for all mounted DesignComponent instances.
+     * Maps generated component UUIDs to raw component metadata for mounted DesignComponent instances.
      * Should only be used in interactions and not functional components as it is populated after components are rendered.
      */
-    contentLinkMap: Record<string, string>;
-    registerContentLink: (contentLinkUuid: string, componentId: string) => void;
+    componentByUuid: Record<string, { componentId: string; contentLinkUuid: string }>;
+    registerComponentUuid: (componentUuid: string, componentId: string, contentLinkUuid: string) => void;
 }
 
 // oxlint-disable-next-line react-refresh/only-export-components
 export const DesignStateContext = React.createContext<DesignState>(null as unknown as DesignState);
 
 export const DesignStateProvider = ({ children }: { children: React.ReactNode }): React.JSX.Element => {
-    const [contentLinkMap, setContentLinkMap] = React.useState<Record<string, string>>({});
+    const [componentByUuid, setComponentByUuid] = React.useState<
+        Record<string, { componentId: string; contentLinkUuid: string }>
+    >({});
 
-    const registerContentLink = React.useCallback((contentLinkUuid: string, componentId: string) => {
-        setContentLinkMap((prev) => {
-            if (prev[contentLinkUuid] === componentId) return prev;
-            return { ...prev, [contentLinkUuid]: componentId };
-        });
-    }, []);
+    const registerComponentUuid = React.useCallback(
+        (componentUuid: string, componentId: string, contentLinkUuid: string) => {
+            setComponentByUuid((prev) => {
+                const component = { componentId, contentLinkUuid };
+                if (
+                    prev[componentUuid]?.componentId === componentId &&
+                    prev[componentUuid]?.contentLinkUuid === contentLinkUuid
+                ) {
+                    return prev;
+                }
+                return { ...prev, [componentUuid]: component };
+            });
+        },
+        []
+    );
 
-    const selectInteraction = useSelectInteraction({ contentLinkMap });
-    const hoverInteraction = useHoverInteraction({ contentLinkMap });
+    const selectInteraction = useSelectInteraction({ componentByUuid });
+    const hoverInteraction = useHoverInteraction({ componentByUuid });
     const deleteInteraction = useDeleteInteraction({
-        selectedContentLinkUuid: selectInteraction.selectedContentLinkUuid,
+        selectedComponentUuid: selectInteraction.selectedComponentUuid,
         setSelectedComponent: selectInteraction.setSelectedComponent,
     });
     const focusInteraction = useFocusInteraction({
@@ -90,8 +103,8 @@ export const DesignStateProvider = ({ children }: { children: React.ReactNode })
             ...scrollInteraction,
             ...componentUpdateInteraction,
             nodeToTargetMap,
-            contentLinkMap,
-            registerContentLink,
+            componentByUuid,
+            registerComponentUuid,
         }),
         [
             deleteInteraction,
@@ -102,8 +115,8 @@ export const DesignStateProvider = ({ children }: { children: React.ReactNode })
             nodeToTargetMap,
             scrollInteraction,
             componentUpdateInteraction,
-            contentLinkMap,
-            registerContentLink,
+            componentByUuid,
+            registerComponentUuid,
         ]
     );
 

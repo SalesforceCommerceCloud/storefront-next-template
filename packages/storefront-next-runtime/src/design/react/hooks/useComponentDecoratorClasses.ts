@@ -16,21 +16,21 @@
 import { useDesignSelector } from './useDesignSelector';
 
 export function useComponentDecoratorClasses({
-    contentLinkUuid,
+    componentUuid,
     isFragment,
     isLocalized,
 }: {
-    contentLinkUuid: string;
+    componentUuid: string;
     isFragment: boolean;
     isLocalized: boolean;
 }): string {
-    const isSelected = useDesignSelector((s) => s.selectedContentLinkUuid === contentLinkUuid);
-    const isHoveredContentLink = useDesignSelector((s) => s.hoveredContentLinkUuid === contentLinkUuid);
-    const isHovered = useDesignSelector((s) => isHoveredContentLink && !s.dragState.isDragging);
+    const isSelected = useDesignSelector((s) => s.selectedComponentUuid === componentUuid);
+    const isHoveredComponent = useDesignSelector((s) => s.hoveredComponentUuid === componentUuid);
+    const isHovered = useDesignSelector((s) => isHoveredComponent && !s.dragState.isDragging);
     const showFrame = useDesignSelector((s) => (isSelected || isHovered) && !s.dragState.isDragging);
-    const isSourceContentLinkUuid = useDesignSelector((s) => s.dragState.sourceContentLinkUuid === contentLinkUuid);
-    const isMoving = useDesignSelector((s) => s.dragState.isDragging && isSourceContentLinkUuid);
-    const isDropTarget = useDesignSelector((s) => s.dragState.currentDropTarget?.contentLinkUuid === contentLinkUuid);
+    const isSourceComponentUuid = useDesignSelector((s) => s.dragState.sourceComponentUuid === componentUuid);
+    const isMoving = useDesignSelector((s) => s.dragState.isDragging && isSourceComponentUuid);
+    const isDropTarget = useDesignSelector((s) => s.dragState.currentDropTarget?.componentUuid === componentUuid);
     const dropTargetClass = useDesignSelector((s) => {
         const insertType = s.dragState.currentDropTarget?.insertType;
 
