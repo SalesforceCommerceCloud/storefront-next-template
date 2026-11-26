@@ -33,14 +33,15 @@ import { resolveContentRoute } from '@/lib/seo/url-resolution.server';
 import { buildUrlFromContext } from '@/lib/url.server';
 import { findLegacyRoute } from '@/middlewares/legacy-routes';
 import { createContentUrl } from '@/route-paths';
+import { resolveSeoDescription } from '@/utils/seo-description.server';
 
 export { shouldRevalidate } from '@/lib/revalidation/routes/content';
 
 type ContentAsset = ShopperExperience.schemas['Content'];
 
 export type StandaloneContentPageData =
-    | { type: 'content'; content: ContentAsset; pageUrl: string }
-    | { type: 'page'; page: PageWithComponentData; pageUrl: string };
+    | { type: 'content'; content: ContentAsset; pageUrl: string; seoDescription?: string }
+    | { type: 'page'; page: PageWithComponentData; pageUrl: string; seoDescription?: string };
 
 function notFound(): never {
     throw new Response('Not Found', { status: 404 });
@@ -94,24 +95,36 @@ export async function loader(args: LoaderFunctionArgs): Promise<StandaloneConten
     const pageUrl = buildSeoPageUrl(context, requestUrl);
     try {
         if (resolution.type === 'content') {
-            return { type: 'content', content: await fetchContent(context, resolution.resourceId), pageUrl };
+            const content = await fetchContent(context, resolution.resourceId);
+            // Authored copy can contain HTML, so resolve the meta description to plain text here, server-side.
+            const seoDescription = resolveSeoDescription([content.pageDescription, content.description]);
+            return { type: 'content', content, pageUrl, seoDescription };
         }
 
         const page = await fetchPageFromLoader(args, { pageId: resolution.resourceId });
-        return { type: 'page', page: attachComponentData(args, page), pageUrl };
+        const seoDescription = resolveSeoDescription([page.pageDescription, page.description]);
+        return { type: 'page', page: attachComponentData(args, page), pageUrl, seoDescription };
     } catch (error) {
         if (isNotFound(error)) notFound();
         throw error;
     }
 }
 
-function StandardContentPage({ content, pageUrl }: { content: ContentAsset; pageUrl: string }) {
+function StandardContentPage({
+    content,
+    pageUrl,
+    seoDescription,
+}: {
+    content: ContentAsset;
+    pageUrl: string;
+    seoDescription?: string;
+}) {
     const body = typeof content.c_body === 'string' ? content.c_body : '';
     return (
         <article className="container mx-auto max-w-4xl px-4 py-8">
             <SeoMeta
                 title={content.pageTitle ?? content.name}
-                description={content.pageDescription ?? content.description}
+                description={seoDescription}
                 openGraph={{ type: 'article', url: pageUrl }}
             />
             <link rel="canonical" href={pageUrl} />
@@ -121,13 +134,21 @@ function StandardContentPage({ content, pageUrl }: { content: ContentAsset; page
     );
 }
 
-function PageDesignerPage({ page, pageUrl }: { page: PageWithComponentData; pageUrl: string }) {
+function PageDesignerPage({
+    page,
+    pageUrl,
+    seoDescription,
+}: {
+    page: PageWithComponentData;
+    pageUrl: string;
+    seoDescription?: string;
+}) {
     const criticalRegionId = (page.data as { criticalRegionId?: unknown } | undefined)?.criticalRegionId;
     return (
         <div className="container mx-auto px-4 py-8">
             <SeoMeta
                 title={page.pageTitle ?? page.name}
-                description={page.pageDescription ?? page.description}
+                description={seoDescription}
                 openGraph={{ type: 'website', url: pageUrl }}
             />
             <link rel="canonical" href={pageUrl} />
@@ -147,8 +168,16 @@ function PageDesignerPage({ page, pageUrl }: { page: PageWithComponentData; page
 
 export default function StandaloneContentPage({ loaderData }: { loaderData: StandaloneContentPageData }) {
     return loaderData.type === 'content' ? (
-        <StandardContentPage content={loaderData.content} pageUrl={loaderData.pageUrl} />
+        <StandardContentPage
+            content={loaderData.content}
+            pageUrl={loaderData.pageUrl}
+            seoDescription={loaderData.seoDescription}
+        />
     ) : (
-        <PageDesignerPage page={loaderData.page} pageUrl={loaderData.pageUrl} />
+        <PageDesignerPage
+            page={loaderData.page}
+            pageUrl={loaderData.pageUrl}
+            seoDescription={loaderData.seoDescription}
+        />
     );
 }

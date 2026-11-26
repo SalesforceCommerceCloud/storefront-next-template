@@ -53,7 +53,9 @@ import CategoryBanner from '@/components/category-banner';
 import CategoryBannerSkeleton from '@/components/category-banner/skeleton';
 import { JsonLd } from '@/components/json-ld';
 import { SeoMeta } from '@/components/seo-meta';
+import { resolveSeoDescription } from '@/utils/seo-description.server';
 import { useTranslation } from 'react-i18next';
+import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { UITarget } from '@/targets/ui-target';
 import { generateCategorySchema } from '@/utils/category-schema';
 import { getAppOrigin } from '@/lib/origin';
@@ -105,6 +107,8 @@ type CategoryPageData = {
     page: Awaited<ReturnType<typeof fetchPageWithComponentData>>;
     categoryId: string;
     pageUrl: string;
+    /** Plain-text meta description, resolved in the loader so the HTML parser stays server-side. */
+    seoDescription?: string;
     refine: string[];
     currency: string;
     inventoryStore?: string;
@@ -362,6 +366,18 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
             return null;
         });
 
+    // Merchant copy can contain authored HTML, so resolve the meta description to plain text here,
+    // falling back to generated copy when the category has none.
+    const { t } = getTranslation(context);
+    const seoDescription = resolveSeoDescription([
+        categoryData.pageDescription,
+        categoryData.description,
+        t('common:seoDescriptionFallback', {
+            name: categoryData.name || categoryData.id,
+            siteName: t('common:defaultSiteName'),
+        }),
+    ]);
+
     return {
         category: categoryData,
         searchResultCritical,
@@ -369,6 +385,7 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
         page: await pagePromise,
         categoryId,
         pageUrl,
+        seoDescription,
         refine: effectiveRefine,
         inventoryStore: config.features?.localInventory?.enabled
             ? (getLocalInventoryContext(context)?.storeId ?? '')
@@ -430,6 +447,7 @@ export default function CategoryPage({
         page,
         categoryId,
         pageUrl,
+        seoDescription,
         refine,
         locale,
         currency,
@@ -760,7 +778,7 @@ export default function CategoryPage({
         <>
             <SeoMeta
                 title={category.name || category.id}
-                description={category.pageDescription || category.description}
+                description={seoDescription}
                 openGraph={{
                     type: 'website',
                     url: pageUrl,

@@ -121,6 +121,31 @@ describe('standalone content route loader', () => {
         expect(getUrlMapping).not.toHaveBeenCalled();
     });
 
+    it('resolves a content asset meta description to plain text', async () => {
+        vi.mocked(fetchContent).mockResolvedValue({
+            id: 'about',
+            name: 'About us',
+            description: '<p>Our story &amp; values</p>',
+        });
+
+        const result = await loader(args('/global/en/cms/content/company/about') as never);
+
+        expect(result).toMatchObject({ type: 'content', seoDescription: 'Our story & values' });
+    });
+
+    it('prefers the page description and resolves a Page Designer description to plain text', async () => {
+        vi.mocked(fetchPageFromLoader).mockResolvedValue({
+            id: 'spring',
+            regions: [],
+            pageDescription: '<b>Spring</b> sale',
+            description: 'Ignored',
+        } as never);
+
+        const result = await loader(args('/global/en/cms/page/campaigns/spring') as never);
+
+        expect(result).toMatchObject({ type: 'page', seoDescription: 'Spring sale' });
+    });
+
     it('stops before SCAPI and fallback when runtime config assigns the prefix to legacy', async () => {
         appConfig.hybrid.legacyRoutes = ['/cms/*'];
 

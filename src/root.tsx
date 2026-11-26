@@ -164,7 +164,16 @@ export const links: Route.LinksFunction = () => {
     ];
 };
 
-export const meta: Route.MetaFunction = ({ loaderData }) => {
+/** Error statuses that mean the URL itself should not be indexed. */
+const NOINDEX_ERROR_STATUSES: ReadonlySet<number> = new Set([403, 404, 410]);
+
+export const meta: Route.MetaFunction = ({ loaderData, error }) => {
+    // A missing, forbidden or gone URL must not be indexed or advertise itself as canonical, so these
+    // errors drop the request-derived canonical/hreflang tags. Transient statuses (401, 429) and 5xx keep
+    // the default metadata: a rate limit, expired session or outage shouldn't tell crawlers to deindex the page.
+    if (isRouteErrorResponse(error) && NOINDEX_ERROR_STATUSES.has(error.status)) {
+        return [{ name: 'robots', content: 'noindex,nofollow' }];
+    }
     return loaderData?.seoMeta ?? [];
 };
 

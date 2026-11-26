@@ -158,7 +158,7 @@ For an ecommerce storefront, these tags are especially useful because:
 |---------|------|
 | Title | `<title>` |
 | Description | `<meta name="description">` |
-| Robots | `<meta name="robots" content="noindex">` when `noIndex` is true |
+| Robots | `<meta name="robots" content="noindex">` when `noIndex` is true; `noindex,nofollow` when `noFollow` is also set |
 | Open Graph | `og:title`, `og:description`, `og:type`, `og:url`, `og:image`, `og:site_name` |
 | X Card / Twitter Card | `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image` |
 
@@ -187,11 +187,25 @@ import { SeoMeta } from '@/components/seo-meta';
 |------|------|---------|-------------|
 | `title` | `string` | — | Page title. By default it renders as `{title} \| {siteName}`. If omitted, the site name alone is used. |
 | `rawTitle` | `boolean` | `false` | Render `title` exactly as given, with no ` \| {siteName}` suffix. See [Title Modes](#title-modes) below. |
-| `description` | `string` | — | Meta description. Also reused for Open Graph and X Card description tags when those are rendered. |
+| `description` | `string` | — | Meta description, rendered as given. Pass plain text; see [Catalog Descriptions](#catalog-descriptions). Also reused for Open Graph and X Card description tags when those are rendered. |
 | `noIndex` | `boolean` | `false` | Adds `<meta name="robots" content="noindex">`. |
+| `noFollow` | `boolean` | `false` | With `noIndex`, renders `noindex,nofollow` instead. Ignored without `noIndex`. |
 | `siteName` | `string` | `t('common:defaultSiteName')` | Override the site name used in the title suffix and `og:site_name`. |
 | `twitter` | `object` | — | X Card metadata (`cardType`, `image`). The `twitter:` meta tag prefix is part of the Card spec and is still used by X. |
 | `openGraph` | `object` | — | Open Graph metadata (`type`, `url`, `image`) for social sharing. When provided without `twitter`, X Card tags are auto-derived from the Open Graph values. |
+
+### Catalog Descriptions
+
+Product short descriptions are Commerce Cloud markup and can contain HTML. Resolve them to plain text in the loader with `resolveSeoDescription` from `@/utils/seo-description.server`, which keeps the HTML parser out of the client bundle. It takes a value or an ordered list of candidates, returns the first with readable text, strips tags, decodes entities, and truncates to 160 characters.
+
+```tsx
+// loader
+const seoDescription = resolveSeoDescription([product.pageDescription, product.shortDescription, fallback]);
+return { product, seoDescription };
+
+// component
+<SeoMeta title={product.name} description={loaderData.seoDescription} />
+```
 
 ### Title Modes
 
@@ -350,23 +364,24 @@ export default function MyNewPage() {
 | Route | Title | Description | Open Graph / Twitter | noIndex |
 |-------|-------|-------------|----------------------|---------|
 | `/` (Home) | Store name (raw) | Welcome message | Yes | — |
-| `/c/*` or configured category prefix | Category name | Category page/general description | Yes | — |
-| `/p/*` or configured product prefix | Product name | Product page/short description | Yes | — |
+| `/c/*` or configured category prefix | Category name | Page description → description → generated fallback | Yes | — |
+| `/p/*` or configured product prefix | Product name | Page description → short description → generated fallback | Yes | — |
 | Configured `/{content-prefix}/{content|page}/*` | Content or page name | Content description | Yes | — |
 | `/search` | Search query | Result count + query | Yes | — |
 | `/about-us` | About Us | Store mission description | Yes | — |
 | `/login` | Sign In | Sign in prompt | Yes | — |
-| `/cart` | Cart | Cart review prompt | Yes | — |
+| `/cart` | Cart | Cart review prompt | Yes | `noindex,nofollow` (route `meta`; canonical and hreflang dropped) |
 | `/signup` | Sign Up | Account creation prompt | Yes | — |
 | `/checkout` | Checkout | — | No | Yes |
 | `/order-confirmation/:orderNo` | Order Confirmation | — | No | Yes |
 | `/account/*` (all sub-pages) | Page-specific title | — | No | Yes |
+| 403, 404 and 410 error pages | Error title | — | No | `noindex,nofollow` (root `meta`; canonical and hreflang dropped) |
 
-**Note on search and cart indexability:** The template indexes `/search` and `/cart` by default. Some storefronts prefer to add `noIndex` to internal search results (to avoid thin/duplicate content) and to the cart page (session-specific content). Evaluate whether these pages provide value as search landing pages for your store and add noIndex if they do not.
+**Note on search indexability:** The template indexes `/search` by default. Some storefronts add `noIndex` to internal search results to avoid thin or duplicate content. 5xx error pages stay indexable so a temporary outage doesn't deindex the URL.
 
 ### Why Some Pages Use `noIndex`
 
-Pages behind authentication (account, wishlist, orders) and transactional pages (checkout, order confirmation) use `noIndex` because:
+Pages behind authentication (account, wishlist, orders) and transactional pages (cart, checkout, order confirmation) use `noIndex` because:
 
 - **Account pages aren't useful landing pages for search**: Crawlers trying to visit account, wishlist, or order pages will usually be redirected to the login page instead of seeing the actual account content.
 - **Checkout pages are often empty without shopper state**: A crawler visiting checkout without an active basket will usually see an empty or unusable checkout experience, which is not helpful in search results.

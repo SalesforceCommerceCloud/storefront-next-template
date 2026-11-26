@@ -258,7 +258,23 @@ module.exports = {
                         'render-blocking-resources': ['warn', { maxNumericValue: 0 }],
                         'categories:performance': ['error', { minScore: 0.64, aggregationMethod: 'median' }],
                         'categories:accessibility': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
-                        'categories:seo': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
+                        // The cart is intentionally `noindex,nofollow` (shopper-specific, transactional). Lighthouse
+                        // weights `is-crawlable` so that failing it always fails the SEO category, so the category
+                        // score can't be asserted on a noindex page. Turn off the category and `is-crawlable` (LHCI
+                        // can only assert a minimum score, so the noindex itself is covered by the `_app.cart` route
+                        // test) and hold the remaining page-level SEO audits to a full score.
+                        // `robots-txt` is site-level and covered by the other URLs. Apply the same block to any
+                        // other page that must stay out of search (account, checkout).
+                        'categories:seo': 'off',
+                        'is-crawlable': 'off',
+                        'document-title': ['error', { minScore: 1 }],
+                        'meta-description': ['error', { minScore: 1 }],
+                        'http-status-code': ['error', { minScore: 1 }],
+                        'link-text': ['error', { minScore: 1 }],
+                        'crawlable-anchors': ['error', { minScore: 1 }],
+                        'image-alt': ['error', { minScore: 1 }],
+                        hreflang: ['error', { minScore: 1 }],
+                        canonical: ['error', { minScore: 1 }],
                         'categories:best-practices': ['error', { minScore: 0.7, aggregationMethod: 'median' }],
                         // Slightly above the baseline (`template-retail-rsc-app`: 420000) to absorb the
                         // ~2KB overhead from cart-route imports going through `@salesforce/storefront-ui`

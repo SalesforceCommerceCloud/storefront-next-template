@@ -19,7 +19,7 @@ import { createTestContext } from '@/lib/test-utils';
 import { type PropsWithChildren } from 'react';
 import { preinit } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { createRoutesStub, RouterContextProvider } from 'react-router';
+import { createRoutesStub, RouterContextProvider, UNSAFE_ErrorResponseImpl } from 'react-router';
 import type { PublicSessionData } from '@/lib/api/types';
 import { trustedAgentContext } from '@/lib/auth/trusted-agent/session.server';
 import { PAGE_DESIGNER_STYLESHEET_PRECEDENCE } from '@salesforce/storefront-next-runtime/design/react/preload';
@@ -1429,10 +1429,11 @@ describe('root.tsx', () => {
     });
 
     describe('meta function', () => {
-        function buildMetaArgs(loaderData: any) {
+        function buildMetaArgs(loaderData: any, error?: unknown) {
             return {
                 data: loaderData,
                 loaderData,
+                error,
                 location: { pathname: '/', search: '', hash: '', state: null, key: 'default' },
                 matches: [] as any,
                 params: {},
@@ -1453,6 +1454,23 @@ describe('root.tsx', () => {
         it('returns empty array when seoMeta is not in loaderData', () => {
             const result = meta(buildMetaArgs({}));
             expect(result).toEqual([]);
+        });
+
+        it.each([403, 404, 410])('returns noindex,nofollow without canonical/hreflang for a %i error', (status) => {
+            const seoMeta = [{ tagName: 'link', rel: 'canonical', href: 'https://example.com/missing' }];
+            const result = meta(buildMetaArgs({ seoMeta }, new UNSAFE_ErrorResponseImpl(status, 'Error', null)));
+            expect(result).toEqual([{ name: 'robots', content: 'noindex,nofollow' }]);
+        });
+
+        it.each([400, 401, 429, 500, 503])('keeps seoMeta and stays indexable for a %i error', (status) => {
+            const seoMeta = [{ tagName: 'link', rel: 'canonical', href: 'https://example.com/' }];
+            const result = meta(buildMetaArgs({ seoMeta }, new UNSAFE_ErrorResponseImpl(status, 'Error', null)));
+            expect(result).toEqual(seoMeta);
+        });
+
+        it('keeps seoMeta for a thrown non-response error', () => {
+            const seoMeta = [{ tagName: 'link', rel: 'canonical', href: 'https://example.com/' }];
+            expect(meta(buildMetaArgs({ seoMeta }, new Error('boom')))).toEqual(seoMeta);
         });
     });
 });

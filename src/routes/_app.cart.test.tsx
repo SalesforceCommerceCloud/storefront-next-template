@@ -85,7 +85,9 @@ vi.mock('@/components/cart/cart-load-error', () => ({
 }));
 
 vi.mock('@/components/seo-meta', () => ({
-    SeoMeta: () => <div data-testid="seo-meta" />,
+    SeoMeta: ({ noIndex, noFollow }: { noIndex?: boolean; noFollow?: boolean }) => (
+        <div data-testid="seo-meta" data-no-index={String(!!noIndex)} data-no-follow={String(!!noFollow)} />
+    ),
 }));
 
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
@@ -141,6 +143,23 @@ describe('Cart route component', () => {
         vi.clearAllMocks();
         // Reset to the canonical default — the gating test mutates this.
         uiConfig.pages.cart.showRecommendations = true;
+    });
+
+    describe('SEO', () => {
+        test('marks the cart noindex,nofollow', async () => {
+            await renderCartRoute({
+                cartMayAlsoLikePromise: Promise.resolve(null),
+                cartRecentlyViewedPromise: Promise.resolve(null),
+            });
+            const seoMeta = await screen.findByTestId('seo-meta');
+            expect(seoMeta).toHaveAttribute('data-no-index', 'true');
+            expect(seoMeta).toHaveAttribute('data-no-follow', 'true');
+        });
+
+        test('replaces the inherited canonical and hreflang links', async () => {
+            const { meta } = await import('./_app.cart');
+            expect(meta({} as Parameters<typeof meta>[0])).toEqual([]);
+        });
     });
 
     describe('Recommendations skeleton fallback', () => {

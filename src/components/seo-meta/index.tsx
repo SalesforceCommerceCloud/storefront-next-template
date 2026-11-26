@@ -35,10 +35,15 @@ export interface SeoMetaProps {
      * full control (e.g., the homepage: `<SeoMeta rawTitle title="Store Name" />`).
      */
     rawTitle?: boolean;
-    /** Meta description. */
+    /**
+     * Meta description, rendered as given. Pass plain text: for catalog or CMS copy that may contain
+     * HTML, build it in the loader with `resolveSeoDescription` from `@/utils/seo-description.server`.
+     */
     description?: string;
     /** When true, renders `<meta name="robots" content="noindex">` to prevent search engine indexing. */
     noIndex?: boolean;
+    /** With `noIndex`, renders `noindex,nofollow` so crawlers also don't follow links on the page. Ignored without `noIndex`. */
+    noFollow?: boolean;
     /** Override the default site name used in the title suffix. Defaults to the localized `common:defaultSiteName` translation. */
     siteName?: string;
     /** X (formerly Twitter) Card metadata. Omit to skip Card tags entirely (unless `openGraph` is set, in which case Card tags are auto-derived). The `twitter:` meta tag prefix is part of the Card spec and is still used by X. */
@@ -90,9 +95,26 @@ export interface SeoMetaProps {
  * // Auth-protected page — no indexing
  * // Renders: <title>Order History | NextGen PWA Kit Store</title>
  * <SeoMeta title="Order History" noIndex />
+ *
+ * // Transactional page — no indexing, no link following
+ * // Renders: <meta name="robots" content="noindex,nofollow">
+ * <SeoMeta title="Cart" noIndex noFollow />
+ *
+ * // Catalog copy may contain HTML — convert it in the loader, then pass the plain text
+ * // loader: seoDescription: resolveSeoDescription([product.pageDescription, product.shortDescription])
+ * <SeoMeta description={loaderData.seoDescription} />
  * ```
  */
-export function SeoMeta({ title, rawTitle, description, noIndex, twitter, openGraph, siteName }: SeoMetaProps) {
+export function SeoMeta({
+    title,
+    rawTitle,
+    description,
+    noIndex,
+    noFollow,
+    twitter,
+    openGraph,
+    siteName,
+}: SeoMetaProps) {
     const { t } = useTranslation('common');
     const resolvedSiteName = siteName ?? t(DEFAULT_SITE_NAME_KEY);
     const fullTitle = title ? (rawTitle ? title : `${title} | ${resolvedSiteName}`) : resolvedSiteName;
@@ -106,7 +128,7 @@ export function SeoMeta({ title, rawTitle, description, noIndex, twitter, openGr
         <>
             <title>{fullTitle}</title>
             {description && <meta name="description" content={description} />}
-            {noIndex && <meta name="robots" content="noindex" />}
+            {noIndex && <meta name="robots" content={noFollow ? 'noindex,nofollow' : 'noindex'} />}
             {openGraph && (
                 <>
                     <meta property="og:title" content={socialTitle} />

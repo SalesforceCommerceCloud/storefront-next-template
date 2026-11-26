@@ -650,6 +650,25 @@ describe('Product Detail Route', () => {
             expect(result).toBe(true);
         });
 
+        test('renders the loader-resolved meta description', async () => {
+            vi.mocked(isProductSet).mockReturnValue(false);
+            vi.mocked(isProductBundle).mockReturnValue(false);
+            const { default: ProductPage } = await import('./_app.p.$');
+            renderProductPage(ProductPage, {
+                product: mockProduct,
+                page: mockPage,
+                pageKey: 'test-product-123',
+                pageUrl: 'http://localhost/product/test',
+                seoDescription: 'Plain loader copy',
+                productSchema: Promise.resolve(null),
+                ...mockExtensionLoaderData,
+            });
+            expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
+                'content',
+                'Plain loader copy'
+            );
+        });
+
         test('should handle product without shortDescription', async () => {
             vi.mocked(isProductSet).mockReturnValue(false);
             vi.mocked(isProductBundle).mockReturnValue(false);
@@ -944,6 +963,31 @@ describe('Product Detail Route loader', () => {
         const options = vi.mocked(fetchProductById).mock.calls[0]?.[2];
         expect(options?.expand).not.toContain('slug');
         expect(fetchAvailabilityByIds).toHaveBeenCalledExactlyOnceWith(mockContext, ['test-product-123']);
+    });
+
+    describe('meta description', () => {
+        async function loadDescription(product: Partial<ShopperProducts.schemas['Product']>) {
+            vi.mocked(fetchProductById).mockResolvedValue({ ...mockProduct, ...product });
+            const result = await loader(
+                createLoaderArgs('https://example.com/global/en-US/p/test-product-123', noSeoContext)
+            );
+            return result.seoDescription;
+        }
+
+        test('prefers the merchant page description, as plain text', async () => {
+            expect(await loadDescription({ pageDescription: '<p>Page &amp; SEO copy</p>' })).toBe('Page & SEO copy');
+        });
+
+        test('falls back to the short description when the page description has no text', async () => {
+            expect(await loadDescription({ pageDescription: '<p> </p>', shortDescription: '<b>Short</b> copy' })).toBe(
+                'Short copy'
+            );
+        });
+
+        test('falls back to generated copy when the product has no descriptions', async () => {
+            const description = await loadDescription({ pageDescription: undefined, shortDescription: undefined });
+            expect(description).toContain(mockProduct.name);
+        });
     });
 
     test('requests the product slug when SEO routes are enabled', async () => {

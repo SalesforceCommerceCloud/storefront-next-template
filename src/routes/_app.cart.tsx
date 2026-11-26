@@ -81,6 +81,12 @@ export const handle = {
 };
 
 /**
+ * Replaces root's request-derived canonical and hreflang links: the cart is `noindex`, so it must not
+ * also advertise itself as a canonical URL. `SeoMeta` below renders the title, description and robots tags.
+ */
+export const meta: Route.MetaFunction = () => [];
+
+/**
  * Data structure returned by the cart loader.
  *
  * `basketDataPromise` is a single deferred promise: when any of basket, products, promotions,
@@ -307,6 +313,9 @@ export default function Cart(): ReactElement {
                 description={t('meta.description', {
                     defaultValue: 'Review the items in your shopping cart and continue to checkout.',
                 })}
+                // The cart is shopper-specific and transactional, so it's never a search landing page.
+                noIndex
+                noFollow
                 openGraph={{ type: 'website', url: pageData.pageUrl }}
             />
             <Suspense fallback={basketLoadingFallback}>

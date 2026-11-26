@@ -35,6 +35,7 @@ const meta: Meta<typeof SeoMeta> = {
         rawTitle: { control: 'boolean', description: 'Render `title` verbatim, without the site-name suffix.' },
         description: { control: 'text', description: 'Meta description.' },
         noIndex: { control: 'boolean', description: 'Emit `<meta name="robots" content="noindex">`.' },
+        noFollow: { control: 'boolean', description: 'With `noIndex`, emit `noindex,nofollow` instead.' },
         siteName: {
             control: 'text',
             description: 'Override the title-suffix site name (defaults to the localized site name).',

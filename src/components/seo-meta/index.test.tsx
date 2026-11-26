@@ -73,6 +73,16 @@ describe('SeoMeta', () => {
             expect(meta).toHaveAttribute('content', 'noindex');
         });
 
+        test('renders robots noindex,nofollow when noFollow is also set', () => {
+            render(<SeoMeta title="Cart" noIndex noFollow />);
+            expect(getMeta('robots')).toHaveAttribute('content', 'noindex,nofollow');
+        });
+
+        test('ignores noFollow without noIndex', () => {
+            render(<SeoMeta title="Page" noFollow />);
+            expect(getMeta('robots')).not.toBeInTheDocument();
+        });
+
         test('does not render robots meta when noIndex is not set', () => {
             render(<SeoMeta title="Public Page" />);
             expect(getMeta('robots')).not.toBeInTheDocument();

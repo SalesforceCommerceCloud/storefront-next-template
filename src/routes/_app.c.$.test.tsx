@@ -374,6 +374,33 @@ describe('CategoryPage', () => {
     });
 
     describe('loader', () => {
+        describe('meta description', () => {
+            async function loadDescription(category: Partial<ShopperProducts.schemas['Category']>) {
+                vi.mocked(fetchCategory).mockResolvedValue({ ...mockCategory, ...category });
+                const result = await loader(createLoaderArgs('https://example.com/c/electronics'));
+                return result.seoDescription;
+            }
+
+            test('prefers the page description, as plain text', async () => {
+                expect(await loadDescription({ pageDescription: '<p>TVs &amp; audio</p>' })).toBe('TVs & audio');
+            });
+
+            test('falls back to the category description', async () => {
+                expect(await loadDescription({ pageDescription: '', description: 'All <em>electronics</em>' })).toBe(
+                    'All electronics'
+                );
+            });
+
+            test('falls back to generated copy when the category has no descriptions', async () => {
+                const description = await loadDescription({
+                    name: 'Electronics',
+                    pageDescription: undefined,
+                    description: undefined,
+                });
+                expect(description).toContain('Electronics');
+            });
+        });
+
         test('should fetch category data and search results with correct parameters', async () => {
             const args = createLoaderArgs('https://example.com/c/electronics');
 
@@ -1284,6 +1311,38 @@ describe('CategoryPage', () => {
     });
 
     describe('CategoryPage Component', () => {
+        test('renders the loader-resolved meta description', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: { ...createMockPage(), componentData: {} },
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                seoDescription: 'Plain loader copy',
+                initialFiltersOpen: false,
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+            render(
+                <MemoryRouter initialEntries={['/c/electronics']}>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+            await waitFor(() => {
+                expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
+                    'content',
+                    'Plain loader copy'
+                );
+            });
+        });
+
         test('should apply initialFiltersOpen from loader data', async () => {
             const openLoaderData: CategoryPageData = {
                 category: mockCategory,
