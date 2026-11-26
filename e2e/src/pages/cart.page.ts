@@ -593,6 +593,31 @@ class CartPage {
     }
 
     /**
+     * Locator for toasts whose text contains the given message.
+     */
+    toastWithText(message: string) {
+        return locate('[data-sonner-toast]').withText(message).as(`Toast: ${message}`);
+    }
+
+    /**
+     * Locator for error toasts. The promo form shows the server's message for a rejected code,
+     * so tests match on the toast type instead of its wording.
+     */
+    errorToast() {
+        return locate('[data-sonner-toast][data-type=error]').as('Error Toast');
+    }
+
+    /**
+     * Wait for the toast, hold for `settleSeconds` so any replay can surface, then count matching toasts.
+     * Toasts last 5s, so the settle window must stay below that.
+     */
+    async countToastsAfterSettle(toast: CodeceptJS.LocatorOrString, settleSeconds: number = 2): Promise<number> {
+        I.waitForElement(toast, 15);
+        I.wait(settleSeconds);
+        return I.grabNumberOfVisibleElements(toast);
+    }
+
+    /**
      * Locator for an applied coupon badge by its code text.
      */
     appliedCouponBadge(code: string) {

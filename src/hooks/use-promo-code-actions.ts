@@ -55,18 +55,18 @@ export function usePromoCodeActions(basketId?: string) {
 
     /**
      * Applies a promo code to the current basket.
+     * Does nothing while a previous apply is submitting or revalidating.
      *
      * @param code - The promo code string to apply
      * @throws Error if no basket ID is provided
-     * @throws Error if a concurrent submission is already in progress
      */
     const applyPromoCode = (code: string) => {
         if (!basketId) {
             throw new Error(t('errors:noBasketFound'));
         }
 
-        // Prevent concurrent calls
-        if (applyFetcher.state === FETCHER_STATES.SUBMITTING) {
+        // Ignore new calls until the previous response has settled, including its revalidation
+        if (applyFetcher.state !== FETCHER_STATES.IDLE) {
             return;
         }
 
@@ -83,18 +83,18 @@ export function usePromoCodeActions(basketId?: string) {
 
     /**
      * Removes a promo code from the current basket.
+     * Does nothing while a previous remove is submitting or revalidating.
      *
      * @param couponItemId - The ID of the coupon item to remove
      * @throws Error if no basket ID is provided
-     * @throws Error if a concurrent submission is already in progress
      */
     const removePromoCode = (couponItemId: string) => {
         if (!basketId) {
             throw new Error(t('errors:noBasketFound'));
         }
 
-        // Prevent concurrent calls
-        if (removeFetcher.state === FETCHER_STATES.SUBMITTING) {
+        // Ignore new calls until the previous response has settled, including its revalidation
+        if (removeFetcher.state !== FETCHER_STATES.IDLE) {
             return;
         }
 

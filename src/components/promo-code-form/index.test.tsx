@@ -24,11 +24,24 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import { mockLocale, mockSiteObject } from '@/test-utils/config';
 import { resourceRoutes } from '@/route-paths';
+import { toast as sonnerToast } from 'sonner';
 
 // Mock only useBasketUpdater so the publish-back can be asserted; the rest of the provider is unused by this subtree.
 const mockUpdateBasket = vi.fn();
+// Bumping the generation hands out a new updater identity, which re-runs any effect that lists it as a dependency.
+let updaterGeneration = 0;
+const updaters = new Map<number, (...args: unknown[]) => void>();
+const newUpdaterIdentity = () => {
+    updaterGeneration += 1;
+};
 vi.mock('@/providers/basket', () => ({
-    useBasketUpdater: () => mockUpdateBasket,
+    useBasketUpdater: () => {
+        if (updaterGeneration === 0) return mockUpdateBasket;
+        if (!updaters.has(updaterGeneration)) {
+            updaters.set(updaterGeneration, (...args: unknown[]) => mockUpdateBasket(...args));
+        }
+        return updaters.get(updaterGeneration);
+    },
 }));
 
 const { t } = getTranslation();
@@ -53,10 +66,13 @@ const renderWithFetcherActions = ({
     basket = { basketId: 'test-basket-id' },
     addAction,
     removeAction,
+    cartLoader,
 }: {
     basket?: BasketFixture;
     addAction?: (args: ActionFunctionArgs) => unknown | Promise<unknown>;
     removeAction?: (args: ActionFunctionArgs) => unknown | Promise<unknown>;
+    /** Loader for the cart route; a pending promise holds the fetcher in `loading` after the action settles. */
+    cartLoader?: () => unknown | Promise<unknown>;
 } = {}) => {
     // Drive `basket` through an external store so a test can update it on the
     // already-mounted component (via the returned `setBasket`). Recreating the
@@ -84,6 +100,7 @@ const renderWithFetcherActions = ({
     const routes: RouteObject[] = [
         {
             path: '/cart',
+            ...(cartLoader ? { loader: cartLoader } : {}),
             element: (
                 <SiteProvider
                     site={mockSiteObject}
@@ -127,6 +144,10 @@ const findToast = async (text: string) =>
         return toast;
     });
 
+/** Count Sonner toast emissions carrying `text`, so a replay counts even before it renders. */
+const countToasts = (text: string) =>
+    [...toastSuccess.mock.calls, ...toastError.mock.calls].filter(([message]) => message === text).length;
+
 /**
  * Returns a controllable promise so a test can hold an action in `submitting`
  * state, assert intermediate UI, then resolve.
@@ -141,13 +162,20 @@ const deferred = <T,>() => {
     return { promise, resolve, reject };
 };
 
+const toastSuccess = vi.spyOn(sonnerToast, 'success');
+const toastError = vi.spyOn(sonnerToast, 'error');
+
 describe('PromoCodeForm', () => {
     beforeEach(() => {
         mockUpdateBasket.mockClear();
+        toastSuccess.mockClear();
+        toastError.mockClear();
     });
 
     afterEach(() => {
         mockUpdateBasket.mockClear();
+        updaterGeneration = 0;
+        updaters.clear();
     });
 
     test('renders accordion with promo code title', () => {
@@ -517,6 +545,133 @@ describe('PromoCodeForm', () => {
             await user.click(screen.getByRole('button', { name: new RegExp(`^${t('cart:promoCode.remove')}\\s`) }));
 
             expect(await findToast(t('cart:promoCode.removeErrorMessage'))).toBeInTheDocument();
+        });
+    });
+
+    describe('one toast per server response (W-24752433)', () => {
+        const applyCode = async (user: ReturnType<typeof userEvent.setup>, code = 'SAVE20') => {
+            await user.type(screen.getByPlaceholderText(t('cart:promoCode.placeholder')), code);
+            await user.click(screen.getByRole('button', { name: t('cart:promoCode.apply') }));
+        };
+
+        test('does not replay the apply success toast when the component re-renders with new callbacks', async () => {
+            const user = userEvent.setup();
+            const responseBasket = { basketId: 'test-basket-id', lastModified: '2026-06-24T10:00:00.000Z' };
+            const { setBasket } = renderWithFetcherActions({
+                addAction: () => ({ success: true, basket: responseBasket }),
+            });
+
+            await applyCode(user);
+            await findToast(t('cart:promoCode.successMessage'));
+
+            newUpdaterIdentity();
+            setBasket({ basketId: 'test-basket-id' });
+            newUpdaterIdentity();
+            setBasket({ basketId: 'test-basket-id' });
+
+            expect(countToasts(t('cart:promoCode.successMessage'))).toBe(1);
+            // A replay would also re-publish the basket.
+            expect(mockUpdateBasket).toHaveBeenCalledOnce();
+        });
+
+        test('does not replay the apply error toast when the component re-renders with new callbacks', async () => {
+            const user = userEvent.setup();
+            const { setBasket } = renderWithFetcherActions({ addAction: () => ({ success: false }) });
+
+            await applyCode(user, 'INVALID');
+            await findToast(t('cart:promoCode.errorMessage'));
+
+            newUpdaterIdentity();
+            setBasket({ basketId: 'test-basket-id' });
+
+            expect(countToasts(t('cart:promoCode.errorMessage'))).toBe(1);
+        });
+
+        test('shows one toast for each separate apply response', async () => {
+            const user = userEvent.setup();
+            renderWithFetcherActions({ addAction: () => ({ success: false }) });
+
+            await applyCode(user, 'INVALID');
+            await findToast(t('cart:promoCode.errorMessage'));
+            // Apply re-enables once the first response has fully settled.
+            const applyButton = await screen.findByRole('button', { name: t('cart:promoCode.apply') });
+            await waitFor(() => expect(applyButton).toBeEnabled());
+            await user.click(applyButton);
+
+            await waitFor(() => expect(countToasts(t('cart:promoCode.errorMessage'))).toBe(2));
+        });
+
+        test('ignores a second apply while the first response is still revalidating', async () => {
+            const user = userEvent.setup();
+            const addAction = vi.fn(() => ({ success: false }));
+            const reload = deferred<null>();
+            let loads = 0;
+            renderWithFetcherActions({
+                addAction,
+                // The first load is the initial render; later loads are post-action revalidations held open.
+                cartLoader: () => (loads++ === 0 ? null : reload.promise),
+            });
+
+            await screen.findByPlaceholderText(t('cart:promoCode.placeholder'));
+            await applyCode(user, 'INVALID');
+            await findToast(t('cart:promoCode.errorMessage'));
+
+            // The action has answered but the cart loader is still revalidating.
+            expect(screen.getByRole('button', { name: t('cart:promoCode.applying') })).toBeDisabled();
+            await user.type(screen.getByPlaceholderText(t('cart:promoCode.placeholder')), '{Enter}');
+            await act(async () => {
+                reload.resolve(null);
+                await reload.promise;
+            });
+
+            expect(addAction).toHaveBeenCalledOnce();
+            expect(countToasts(t('cart:promoCode.errorMessage'))).toBe(1);
+        });
+
+        test('does not replay the remove success toast when the row re-renders with new callbacks', async () => {
+            const user = userEvent.setup();
+            const responseBasket = { basketId: 'test-basket-id', lastModified: '2026-06-24T10:00:00.000Z' };
+            const basket = {
+                basketId: 'test-basket-id',
+                couponItems: [{ couponItemId: 'ci-1', code: '5TIES', statusCode: 'applied' as const }],
+            };
+            const { setBasket } = renderWithFetcherActions({
+                basket,
+                removeAction: () => ({ success: true, basket: responseBasket }),
+            });
+
+            await user.click(screen.getByRole('button', { name: new RegExp(`^${t('cart:promoCode.remove')}\\s`) }));
+            await findToast(t('cart:promoCode.removeSuccessMessage'));
+
+            newUpdaterIdentity();
+            setBasket({ ...basket });
+            newUpdaterIdentity();
+            setBasket({ ...basket });
+
+            expect(countToasts(t('cart:promoCode.removeSuccessMessage'))).toBe(1);
+            expect(mockUpdateBasket).toHaveBeenCalledOnce();
+        });
+
+        test('does not replay the remove toast when the row re-renders with new callbacks', async () => {
+            const user = userEvent.setup();
+            const basket = {
+                basketId: 'test-basket-id',
+                couponItems: [{ couponItemId: 'ci-1', code: '5TIES', statusCode: 'applied' as const }],
+            };
+            const { setBasket } = renderWithFetcherActions({
+                basket,
+                removeAction: () => ({ success: false, error: { code: 'OPERATION_FAILED', message: 'oops' } }),
+            });
+
+            await user.click(screen.getByRole('button', { name: new RegExp(`^${t('cart:promoCode.remove')}\\s`) }));
+            await findToast(t('cart:promoCode.removeErrorMessage'));
+
+            newUpdaterIdentity();
+            setBasket({ ...basket });
+            newUpdaterIdentity();
+            setBasket({ ...basket });
+
+            expect(countToasts(t('cart:promoCode.removeErrorMessage'))).toBe(1);
         });
     });
 

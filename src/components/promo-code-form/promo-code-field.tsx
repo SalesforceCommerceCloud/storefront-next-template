@@ -46,9 +46,9 @@ export function PromoCodeFields({ form, applyFetcher }: PromoCodeFieldsProps) {
                             <Button
                                 type="submit"
                                 variant="secondary"
-                                disabled={applyFetcher.state === FETCHER_STATES.SUBMITTING}
+                                disabled={applyFetcher.state !== FETCHER_STATES.IDLE}
                                 className="cursor-pointer px-4">
-                                {applyFetcher.state === FETCHER_STATES.SUBMITTING
+                                {applyFetcher.state !== FETCHER_STATES.IDLE
                                     ? t('promoCode.applying')
                                     : t('promoCode.apply')}
                             </Button>

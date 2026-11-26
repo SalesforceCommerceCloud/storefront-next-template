@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -92,17 +92,19 @@ export const PromoCodeForm = ({ basket }: PromoCodeFormProps) => {
     // the input can't change which code the clear-on-applied effect is waiting on.
     const [failedCode, setFailedCode] = useState<string | null>(null);
 
+    // Last apply response handled. The effect below also re-runs when `t` or `updateBasket` change identity,
+    // so it handles each response object once instead of replaying its toast.
+    const handledApplyRef = useRef(applyFetcher.data);
+
     /**
-     * Handles the response from the promo code application API call.
+     * Handles the response from the promo code application API call, once per response.
      *
-     * This effect monitors the applyFetcher.data for changes and processes the response:
-     * - On success: resets the form, closes the accordion, and shows success toast
-     * - On error: sets form error state and shows error toast
-     *
-     * @dependencies applyFetcher.data, form
+     * - On success: resets the form and shows a success toast
+     * - On error: sets form error state and shows an error toast
      */
     useEffect(() => {
-        if (applyFetcher.data) {
+        if (applyFetcher.data && applyFetcher.data !== handledApplyRef.current) {
+            handledApplyRef.current = applyFetcher.data;
             if (applyFetcher.data.success) {
                 // Publish the new revision so useBasket() consumers stay in sync, matching the other basket
                 // mutation handlers. Dedups by `lastModified`. Shape-safe: no basket read or mutation sets
@@ -246,9 +248,12 @@ export const AppliedCouponRow = ({ item, basketId, currency, priceAdjustments }:
     const { addToast } = useToast();
     const updateBasket = useBasketUpdater();
     const isRemoving = removeFetcher.state !== FETCHER_STATES.IDLE;
+    // Handle each remove response once, so a re-run of the effect can't replay its toast.
+    const handledRemoveRef = useRef(removeFetcher.data);
 
     useEffect(() => {
-        if (removeFetcher.data) {
+        if (removeFetcher.data && removeFetcher.data !== handledRemoveRef.current) {
+            handledRemoveRef.current = removeFetcher.data;
             if (removeFetcher.data.success) {
                 // Publish the new revision so useBasket() consumers stay in sync, matching the other basket
                 // mutation handlers. Dedups by `lastModified`. Shape-safe: no basket read or mutation sets
