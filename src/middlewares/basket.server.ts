@@ -26,6 +26,8 @@ import { trustedAgentContext } from '@/lib/auth/trusted-agent/session.server';
 import { getAuth } from '@/middlewares/auth.server';
 import { resolveRegisteredBasket } from '@/lib/auth/trusted-agent/basket.server';
 import { uncertainBasketHandoffContext } from '@/middlewares/auth.utils';
+import type { BasketRefreshResult } from '@/lib/basket/refresh';
+import { resourceRoutes } from '@/route-paths';
 
 // Types
 type Basket = ShopperBasketsV2.schemas['Basket'];
@@ -94,6 +96,9 @@ export type BasketMetadata = {
     lookupBasketId?: string;
     /** Guest snapshot retired by an authentication change; restored only when a basket handoff stays unverified. */
     retainedSnapshot?: BasketSnapshot | null;
+    /** Background reads publish this cookie on the client only after race checks. */
+    serializeSnapshot?: (snapshot: BasketSnapshot | null, basket?: Basket) => Promise<string>;
+    skipSnapshotCookie?: boolean;
 };
 
 // Constants
@@ -312,6 +317,12 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
 
     return async ({ request, context }, next) => {
         const logger = getLogger(context);
+        // Establish read-only policy before assisted discovery or configurable eager hydration.
+        // Resource/data requests may include a site prefix and React Router's .data suffix.
+        const backgroundRefresh = new URL(request.url).pathname
+            .replace(/\.data$/, '')
+            .replace(/\/$/, '')
+            .endsWith(resourceRoutes.basketRefresh);
 
         // Resolve currency: explicit config override → siteContext (set by site-context middleware)
         const currency = configCurrency ?? context.get(siteContext)?.currency ?? '';
@@ -354,7 +365,7 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
             maxAge: undefined,
         });
         let recordNoBasket = false;
-        if (assisted && !snapshot && auth?.customerId) {
+        if (!backgroundRefresh && assisted && !snapshot && auth?.customerId) {
             // Mutations always look up: the shopper may have created a basket elsewhere since the marker was set, and an
             // add-to-cart that skipped the lookup would create a second basket.
             const isRead = request.method === 'GET' || request.method === 'HEAD';
@@ -399,19 +410,36 @@ export const createBasketMiddleware = (config: BasketMiddlewareConfig = {}): Mid
             calculateSnapshot: calculateBasketSnapshot,
             currency,
             basketMarkedForDeletion: Boolean(assisted && cookiePresent && !snapshot),
+            skipSnapshotCookie: backgroundRefresh,
             ...(assisted && { assisted: true, allowCreation: request.method !== 'GET' && request.method !== 'HEAD' }),
         });
+        const basketMetadata = context.get(basketMetadataContext);
+        if (basketMetadata) {
+            basketMetadata.serializeSnapshot = (nextSnapshot, nextBasket) =>
+                basketCookie.serialize(nextSnapshot ?? '', {
+                    expires: nextBasket
+                        ? getBasketExpiryDate(nextBasket, {
+                              userType: nextBasket.customerInfo?.customerNo ? 'registered' : 'guest',
+                              cookieDurationGuest,
+                              cookieDurationRegistered,
+                          })
+                        : new Date(0),
+                });
+        }
         if (basket) updateBasketResource(context, basket);
 
         // If the mode is eager we'll load the basket into the context. WARNING: If mode is eager, as long as there is a
         // valid basket id, it will be fetched from the API. This will add a non-trivial amount to total request time.
-        if (mode === 'eager' && (!assisted || snapshot)) {
+        if (!backgroundRefresh && mode === 'eager' && (!assisted || snapshot)) {
             logger.debug('Basket: eager mode, loading basket');
             await getBasket(context, { ensureBasket: true });
         }
 
         // Call the next middleware.
         const response = await next();
+        // The refresh route deliberately returns cookie text in its body. Letting an obsolete
+        // read emit Set-Cookie would regress the badge even when the client rejects the payload.
+        if (context.get(basketMetadataContext)?.skipSnapshotCookie) return response;
         if (context.get(basketHandoffWarningContext)) {
             response.headers.append(
                 'Set-Cookie',
@@ -598,6 +626,44 @@ export const getBasket = async (
         throw normalizedError;
     }
 };
+
+/**
+ * Read an existing basket without creation, currency updates, or automatic snapshot cookie writes.
+ * SCAPI authorizes the cookie's basket hint with the request's current credentials.
+ */
+export async function refreshBasket(context: Readonly<RouterContextProvider>): Promise<BasketRefreshResult> {
+    const metadata = context.get(basketMetadataContext);
+    if (!metadata?.serializeSnapshot) throw new BasketContextError();
+    metadata.skipSnapshotCookie = true;
+    if (context.get(uncertainBasketHandoffContext)) return { success: false };
+    const basketId = context.get(basketResourceContext)?.snapshot?.basketId;
+    if (!basketId) return { success: true, basketId: null, basket: null, snapshot: null, cookie: null };
+
+    let basket: Basket | undefined;
+    try {
+        ({ data: basket } = await createApiClients(context).shopperBasketsV2.getBasket({
+            params: { path: { basketId }, query: { expand: ['approaching_discounts'] } },
+        }));
+        if (basket?.basketId !== basketId) return { success: false };
+    } catch (error) {
+        const status = new NormalizedApiError(error).status;
+        if (status !== 404 && status !== 410) {
+            getLogger(context).debug('Basket: background refresh failed', { status });
+            return { success: false };
+        }
+    }
+    // An authentication transition invalidates the request resource while the read is pending.
+    if (context.get(basketResourceContext)?.snapshot?.basketId !== basketId) return { success: false };
+    const snapshot = basket ? createSnapshot(basket, { calculateSnapshot: metadata.calculateSnapshot }) : null;
+    if (snapshot && metadata.assisted) snapshot.authContextVersion = getAuth(context)?.authGeneration;
+    return {
+        success: true,
+        basketId,
+        basket: basket ?? null,
+        snapshot,
+        cookie: await metadata.serializeSnapshot(snapshot, basket),
+    };
+}
 
 /**
  * Returns the cached basket snapshot for the current request.

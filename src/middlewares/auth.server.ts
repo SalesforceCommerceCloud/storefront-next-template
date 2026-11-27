@@ -75,7 +75,7 @@ import {
     authTokenInvalidApiContext,
     type AuthRecoveryStage,
 } from '@/middlewares/auth.utils';
-import { isAbsoluteURL } from '@/lib/utils';
+import { isAbsoluteURL, getBasePath } from '@/lib/utils';
 import { getAppOrigin } from '@/lib/origin';
 import { buildUrlFromContext, stripMrtBasePathFromUrl } from '@/lib/url.server';
 import { getLogger } from '@/lib/logger.server';
@@ -118,15 +118,51 @@ import {
  */
 const SESSION_EXPIRED_REDIRECT = '__session_expired_redirect__';
 
+function isBasketRefreshRequest(request: Request): boolean {
+    return new URL(request.url).pathname
+        .replace(/\.data$/, '')
+        .replace(/\/+$/, '')
+        .endsWith('/resource/basket-refresh');
+}
+
+/** Background basket reads recover to their same-origin document, never to a data endpoint. */
+function getBasketRefreshReturn(request: Request): string {
+    const basePath = getBasePath();
+    const fallback = `${basePath}/`;
+    const { sameOriginReferer } = getRecoveryRequestTarget(request);
+    if (
+        !sameOriginReferer ||
+        (basePath && sameOriginReferer.pathname !== basePath && !sameOriginReferer.pathname.startsWith(`${basePath}/`))
+    )
+        return fallback;
+    try {
+        const decoded = decodeURIComponent(sameOriginReferer.pathname);
+        if (
+            decoded.startsWith('//') ||
+            decoded.includes('\\') ||
+            [...decoded].some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127) ||
+            /\/(action|resource)(\/|$)/i.test(decoded) ||
+            /\.data$/i.test(decoded)
+        )
+            return fallback;
+        return sameOriginReferer.pathname + sameOriginReferer.search;
+    } catch {
+        return fallback;
+    }
+}
+
 /**
  * Where to send a registered shopper whose session expired, and with which redirect status.
- * GET/HEAD return to the requested page (site/locale prefix kept, MRT base path removed because
- * `buildUrlFromContext` applies it). Any other method came from an action or resource endpoint that
+ * GET/HEAD return to the requested page; background basket reads use the same-origin document Referer.
+ * Site/locale prefixes are kept and the MRT base path is removed because
+ * `buildUrlFromContext` applies it. Any other method came from an action or resource endpoint that
  * is not a page, so go to the root and use 303 so the browser follows with GET instead of replaying
  * the request body against the login route.
  */
 function getSessionExpiredReturn(request: Request): { path: string; status: 303 | 307 } {
     if (request.method === 'GET' || request.method === 'HEAD') {
+        if (isBasketRefreshRequest(request))
+            return { path: stripMrtBasePathFromUrl(getBasketRefreshReturn(request)), status: 307 };
         return { path: stripMrtBasePathFromUrl(new URL(request.url).pathname), status: 307 };
     }
     return { path: '/', status: 303 };
@@ -1048,7 +1084,11 @@ const handleAuthTokenInvalidation = async ({
     // For action-only routes (no component), redirecting back to request.url leaves the browser on a blank
     // page: return to the same-origin Referer (the page that submitted the action) instead.
     const { isActionRoute, sameOriginReferer } = getRecoveryRequestTarget(request);
-    const referer = isActionRoute && sameOriginReferer ? sameOriginReferer.href : null;
+    const referer = isBasketRefreshRequest(request)
+        ? new URL(getBasketRefreshReturn(request), request.url).href
+        : isActionRoute && sameOriginReferer
+          ? sameOriginReferer.href
+          : null;
     const redirectingToReferer = referer !== null;
 
     // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR

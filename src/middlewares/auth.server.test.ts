@@ -3242,6 +3242,23 @@ describe('auth middleware (server)', () => {
                 expect(mockAuth.refreshToken.mock.calls.length + mockAuth.loginAsGuest.mock.calls.length).toBe(2);
             });
 
+            it.each([
+                undefined,
+                'https://evil.example/p/product',
+                'https://example.com/shop/resource/basket-refresh',
+                'https://example.com/another-app/p/product',
+            ])('keeps successful refresh recovery inside the deployment with fallback Referer %s', async (referer) => {
+                vi.mocked(getBasePath).mockReturnValue('/shop');
+                try {
+                    const { response } = await run(undefined, {
+                        url: 'https://example.com/shop/en-US/resource/basket-refresh.data',
+                        headers: referer ? { Referer: referer } : {},
+                    });
+                    expect(response?.headers.get('Location')).toBe('https://example.com/shop/');
+                } finally {
+                    vi.mocked(getBasePath).mockImplementation(realGetBasePath);
+                }
+            });
             it('stage 0: marks the rejected access token as superseded before the recovery refresh runs', async () => {
                 let rejectedToken: unknown;
                 let supersededDuringRefresh: readonly string[] = [];
@@ -3976,7 +3993,7 @@ describe('auth middleware (server)', () => {
             type Via = 'invalidation' | 'sentinel';
             const via: Via[] = ['invalidation', 'sentinel'];
 
-            async function expire(path: string, method: string, mode: Via): Promise<Response> {
+            async function expire(path: string, method: string, mode: Via, referer?: string): Promise<Response> {
                 // A registered access token that the handler later reports as rejected (401), so the
                 // middleware recovers; the registered refresh then fails.
                 mockParseAllCookies.mockReturnValue(
@@ -3990,7 +4007,10 @@ describe('auth middleware (server)', () => {
                 mockAuth.refreshToken.mockRejectedValue(new Error('SLAS 400: invalid refresh token'));
                 mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(getMockTokenResponse()));
 
-                const request = new Request(`https://example.com${path}`, { method });
+                const request = new Request(`https://example.com${path}`, {
+                    method,
+                    headers: referer ? { Referer: referer } : {},
+                });
                 const context = new RouterContextProvider();
                 const originalGet = context.get.bind(context);
                 vi.spyOn(context, 'get').mockImplementation((key) => {
@@ -4016,6 +4036,39 @@ describe('auth middleware (server)', () => {
                 return new URL(location, 'https://example.com').searchParams.get('returnUrl');
             }
 
+            it.each(via)('returns basket refresh recovery to the originating PDP (%s)', async (mode) => {
+                const response = await expire(
+                    '/RefArchGlobal/en-GB/resource/basket-refresh.data',
+                    'GET',
+                    mode,
+                    'https://example.com/RefArchGlobal/en-GB/p/necklace?pid=sku'
+                );
+                expect(returnUrlOf(response)).toBe('/RefArchGlobal/en-GB/p/necklace?pid=sku');
+            });
+            it.each([
+                undefined,
+                'https://other.example/p/product',
+                'https://example.com/resource/basket-refresh',
+                'https://example.com/en-US/resource/basket-refresh.data',
+                'https://example.com/%2f%2fevil.example/',
+            ])('falls back to a page for unsafe/missing refresh Referer %s', async (referer) => {
+                const response = await expire('/resource/basket-refresh', 'GET', 'sentinel', referer);
+                expect(returnUrlOf(response)).toBe('/');
+            });
+            it.each(via)('strips the deployment basename from the background login destination (%s)', async (mode) => {
+                vi.mocked(getBasePath).mockReturnValue('/shop');
+                try {
+                    const response = await expire(
+                        '/shop/en-US/resource/basket-refresh.data',
+                        'GET',
+                        mode,
+                        'https://example.com/shop/en-US/p/necklace?pid=sku'
+                    );
+                    expect(returnUrlOf(response)).toBe('/en-US/p/necklace?pid=sku');
+                } finally {
+                    vi.mocked(getBasePath).mockImplementation(realGetBasePath);
+                }
+            });
             it.each(via)('returns a GET to the requested page with 307 (%s)', async (mode) => {
                 const response = await expire('/en-US/checkout?step=2', 'GET', mode);
                 expect(response.status).toBe(307);

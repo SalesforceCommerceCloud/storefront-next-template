@@ -7,6 +7,8 @@
 
 The hybrid proxy lets you run Storefront Next and SFRA side-by-side in local development without any visible redirects. The Vite dev server silently proxies requests that belong to SFRA, so you can navigate between Storefront Next pages and SFRA pages at `http://localhost:5173` as if they were a single site.
 
+When hybrid mode is enabled, Storefront Next refreshes an existing basket on client entry and tab/browser return, updating the cart badge without opening the mini-cart. A missing basket snapshot does not create a basket. Changes made elsewhere while the tab stays continuously active are picked up on the next return.
+
 ## Features
 
 **Side-by-side local development**

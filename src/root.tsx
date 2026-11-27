@@ -106,6 +106,7 @@ import { BasketHandoffWarning } from '@/components/cart/basket-handoff-warning';
 // Providers
 import AuthProvider from '@/providers/auth';
 import BasketProvider, { BasketCookieReconciler } from '@/providers/basket';
+import { HybridBasketReconciler } from '@/hooks/use-hybrid-basket-refresh';
 import { ComposeProviders } from '@/providers/compose-providers';
 import { CorrelationProvider } from '@/providers/correlation';
 import { PasskeyRegistrationProvider } from '@/providers/passkey-registration';
@@ -949,6 +950,7 @@ export default function App({
             )}
             {!assisted && <AuthActionExecutor />}
             <BasketCookieReconciler />
+            {hybridEnabled && <HybridBasketReconciler />}
             <CartMutationToastWatcher />
             <BasketHandoffWarning />
             {passkeyEnabled && !assisted && <PasskeyRegistrationTrigger />}

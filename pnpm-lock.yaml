@@ -476,7 +476,7 @@ importers:
         version: 5.0.0
       '@h4ad/serverless-adapter':
         specifier: 4.4.0
-        version: 4.4.0(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
+        version: 4.4.0(@types/aws-lambda@8.10.159)(@types/body-parser@2.2.0)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
       '@hono/node-server':
         specifier: 2.1.6
         version: 2.1.6(hono@4.13.16)
@@ -750,7 +750,7 @@ importers:
         version: 1.10.0
       '@salesforce/mrt-utilities':
         specifier: 0.3.4
-        version: 0.3.4(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
+        version: 0.3.4(@types/aws-lambda@8.10.159)(@types/body-parser@2.2.0)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
       jiti:
         specifier: ^2.6.1
         version: 2.7.0
@@ -4266,8 +4266,8 @@ packages:
   '@types/babel__traverse@7.28.0':
     resolution: {integrity: sha512-8PvcXf70gTDZBgt9ptxJ8elBeBjcLOAcOtoO/mPJjtji1+CdGbHgm77om1GrsPxsiE+uXIpNSK64UYaIwQXd4Q==}
 
-  '@types/body-parser@1.19.6':
-    resolution: {integrity: sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g==}
+  '@types/body-parser@2.2.0':
+    resolution: {integrity: sha512-2xqOfKcCjEVvPzOqRa3Db4+CzY45+urO0ib+EvtV5G8z2SRhjVsEI8C6fXZjd0gLEszk27Z3UTpSgTI5Nh5QTg==}
 
   '@types/chai@4.3.20':
     resolution: {integrity: sha512-/pC9HAB5I/xMlc5FP77qjCnI16ChlJfW0tGa0IUcFn38VJrTV6DeZ60NU5KZBtaOZqjdpwTWohz5HU1RrhiYxQ==}
@@ -9698,14 +9698,14 @@ packages:
   tldts-core@6.1.86:
     resolution: {integrity: sha512-Je6p7pkk+KMzMv2XXKmAE3McmolOQFdxkKw0R8EYNr7sELW46JqnNeTX8ybPiQgvg1ymCoF8LXs5fzFaZvJPTA==}
 
-  tldts-core@7.5.5:
-    resolution: {integrity: sha512-rEJz/8cJFY/bdF354gl14yxavbrIbvM+FcbkYVQ6CSCMQTJdUFUIm39TTWSiGPvcpQh7/F6qHrD3SkwwdgtDCw==}
+  tldts-core@7.6.0:
+    resolution: {integrity: sha512-0By9U6fw2hNzfJAbBMuo1bsX/OyVlsj0wjGyMPV50RZKoLCRwXBOX0FQqgZDaMo2WjjaEW/ZGyVXicLUFTmXqQ==}
 
   tldts-icann@6.1.86:
     resolution: {integrity: sha512-NFxmRT2lAEMcCOBgeZ0NuM0zsK/xgmNajnY6n4S1mwAKocft2s2ise1O3nQxrH3c+uY6hgHUV9GGNVp7tUE4Sg==}
 
-  tldts-icann@7.5.5:
-    resolution: {integrity: sha512-B5ayzgkdJ7MDN15K3zxpbe/+YCTcZUBwYDAuc9z+pRXncHJXBG/RoduEEHa4Qb/MKk1kJETkchk8S/eaKHOH7w==}
+  tldts-icann@7.6.0:
+    resolution: {integrity: sha512-75/KooQ3wrVRqIS59WtGsPpm7H7/MQqDZmY30WAjk9IR9C6/SOa4TQqHKlO3LLk+w4tj2ZngVmxdgnijD2FIGw==}
 
   tldts@6.1.86:
     resolution: {integrity: sha512-WMi/OQ2axVTf/ykqCQgXiIct+mSQDFdH2fkwhPwgEwvJ1kSzZRiinb0zF2Xb8u4+OqPChmyI6MEu4EezNJz+FQ==}
@@ -11374,9 +11374,9 @@ snapshots:
     dependencies:
       tslib: 2.9.1
 
-  '@h4ad/serverless-adapter@4.4.0(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)':
+  '@h4ad/serverless-adapter@4.4.0(@types/aws-lambda@8.10.159)(@types/body-parser@2.2.0)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)':
     dependencies:
-      '@types/body-parser': 1.19.6
+      '@types/body-parser': 2.2.0
       '@types/cors': 2.8.19
     optionalDependencies:
       '@types/aws-lambda': 8.10.159
@@ -13710,12 +13710,12 @@ snapshots:
       react-text-truncate: 0.19.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       warning: 4.0.3
 
-  '@salesforce/mrt-utilities@0.3.4(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)':
+  '@salesforce/mrt-utilities@0.3.4(@types/aws-lambda@8.10.159)(@types/body-parser@2.2.0)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)':
     dependencies:
       '@aws-sdk/client-cloudwatch': 3.1049.0
       '@aws-sdk/client-dynamodb': 3.1049.0
       '@aws-sdk/lib-dynamodb': 3.1049.0(@aws-sdk/client-dynamodb@3.1049.0)
-      '@h4ad/serverless-adapter': 4.4.0(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
+      '@h4ad/serverless-adapter': 4.4.0(@types/aws-lambda@8.10.159)(@types/body-parser@2.2.0)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.4.0)(express@5.3.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
       change-case: 5.4.4
       compressible: 2.0.18
       express: 5.3.0
@@ -14302,7 +14302,7 @@ snapshots:
     dependencies:
       '@babel/types': 7.28.4
 
-  '@types/body-parser@1.19.6':
+  '@types/body-parser@2.2.0':
     dependencies:
       '@types/connect': 3.4.38
       '@types/node': 24.3.0
@@ -14352,7 +14352,7 @@ snapshots:
 
   '@types/express@5.0.6':
     dependencies:
-      '@types/body-parser': 1.19.6
+      '@types/body-parser': 2.2.0
       '@types/express-serve-static-core': 5.1.3
       '@types/serve-static': 2.2.0
 
@@ -18278,7 +18278,7 @@ snapshots:
       robots-parser: 3.1.1
       speedline-core: 1.4.3
       third-party-web: 0.30.0
-      tldts-icann: 7.5.5
+      tldts-icann: 7.6.0
       web-features: 3.47.0
       ws: 7.5.14
       yargs: 17.7.3
@@ -20766,15 +20766,15 @@ snapshots:
 
   tldts-core@6.1.86: {}
 
-  tldts-core@7.5.5: {}
+  tldts-core@7.6.0: {}
 
   tldts-icann@6.1.86:
     dependencies:
       tldts-core: 6.1.86
 
-  tldts-icann@7.5.5:
+  tldts-icann@7.6.0:
     dependencies:
-      tldts-core: 7.5.5
+      tldts-core: 7.6.0
 
   tldts@6.1.86:
     dependencies:
@@ -20782,7 +20782,7 @@ snapshots:
 
   tldts@7.4.18:
     dependencies:
-      tldts-core: 7.5.5
+      tldts-core: 7.6.0
 
   tmp@0.2.7: {}
 

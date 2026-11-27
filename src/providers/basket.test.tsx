@@ -28,6 +28,7 @@ import BasketProvider, {
     useBasketReset,
     useBasketSnapshot,
     useBasketUpdater,
+    useBasketRefreshPublisher,
 } from './basket';
 import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
 import { useBasketItemState } from '@/hooks/use-basket-item-state';
@@ -1769,5 +1770,59 @@ describe('BasketProvider hooks', () => {
             </BasketProvider>
         );
         await waitFor(() => expect(mockFetcher.load).toHaveBeenCalledTimes(1));
+    });
+});
+
+describe('external basket refresh publication', () => {
+    it('replaces a stale cookie and preserves server-calculated snapshot metadata', () => {
+        const initial = { basketId: 'b1', totalItemCount: 1, uniqueProductCount: 1, lastModified: '1' };
+        document.cookie = `__sfdc_basket=${btoa(JSON.stringify(initial))}; Path=/`;
+        const snapshot = { ...initial, totalItemCount: 2, lastModified: '2', customCount: 42 };
+        const { result } = renderHook(
+            () => ({ publish: useBasketRefreshPublisher(), snapshot: useBasketSnapshot(), basket: useBasket() }),
+            { wrapper: ({ children }) => <BasketProvider snapshot={initial}>{children}</BasketProvider> }
+        );
+        act(() =>
+            result.current.publish?.({
+                success: true,
+                basketId: 'b1',
+                basket: { basketId: 'b1', lastModified: '2', productItems: [{ quantity: 2 }] },
+                snapshot,
+                cookie: `__sfdc_basket=${btoa(JSON.stringify(snapshot))}; Path=/`,
+            })
+        );
+        expect(result.current.snapshot).toEqual(snapshot);
+        expect(result.current.basket?.productItems?.[0]?.quantity).toBe(2);
+        act(() =>
+            result.current.publish?.({
+                success: true,
+                basketId: 'b1',
+                basket: { basketId: 'b1', lastModified: '1' },
+                snapshot: initial,
+                cookie: `__sfdc_basket=${btoa(JSON.stringify(initial))}; Path=/`,
+            })
+        );
+        expect(result.current.snapshot?.totalItemCount).toBe(2);
+        document.cookie = '__sfdc_basket=; Max-Age=0; Path=/';
+    });
+    it('clears the full basket and cookie after confirmed absence', () => {
+        const initial = { basketId: 'b1', totalItemCount: 1, uniqueProductCount: 1, lastModified: '1' };
+        document.cookie = `__sfdc_basket=${btoa(JSON.stringify(initial))}; Path=/`;
+        const { result } = renderHook(
+            () => ({ publish: useBasketRefreshPublisher(), snapshot: useBasketSnapshot(), basket: useBasket() }),
+            { wrapper: ({ children }) => <BasketProvider snapshot={initial}>{children}</BasketProvider> }
+        );
+        act(() =>
+            result.current.publish?.({
+                success: true,
+                basketId: 'b1',
+                basket: null,
+                snapshot: null,
+                cookie: '__sfdc_basket=; Max-Age=0; Path=/',
+            })
+        );
+        expect(result.current.snapshot).toBeNull();
+        expect(result.current.basket).toBeUndefined();
+        expect(document.cookie).not.toContain('__sfdc_basket=');
     });
 });

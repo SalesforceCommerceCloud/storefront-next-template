@@ -31,6 +31,7 @@ import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
 import { useScapiFetcherEffect } from '@/hooks/use-scapi-fetcher-effect';
 import { BasketItemStateProvider } from '@/providers/basket-item-state';
 import { parseBasketCookie } from '@/lib/basket/cookie';
+import type { BasketRefreshResult } from '@/lib/basket/refresh';
 
 // Cookie changes are not observable via an event; the store returns a noop unsubscribe and relies on existing
 // re-render triggers (updater callbacks on mutations) to refresh. useSyncExternalStore guarantees SSR (null) and
@@ -81,6 +82,7 @@ const BasketContext = createContext<BasketProviderValue>({
 });
 
 type BasketUpdater = {
+    publishRefresh: (result: BasketRefreshResult) => void;
     setBasket: (next: BasketProviderValue | ((prev: BasketProviderValue | undefined) => BasketProviderValue)) => void;
     /**
      * Imperatively load the full basket. Safe to call from anywhere — the provider owns the underlying SCAPI fetcher
@@ -231,6 +233,9 @@ const BasketProvider = (
             error: null,
         };
     });
+
+    const stateRef = useRef(state);
+    stateRef.current = state;
 
     const setBasket = useCallback(
         (next: BasketProviderValue | ((prev: BasketProviderValue | undefined) => BasketProviderValue)) => {
@@ -401,9 +406,29 @@ const BasketProvider = (
         },
     });
 
+    const publishRefresh = useCallback(
+        (result: BasketRefreshResult) => {
+            if (!result.success || !result.cookie) return;
+            const previous = stateRef.current?.current;
+            const next = result.basket;
+            if (
+                previous?.basketId === next?.basketId &&
+                previous?.lastModified &&
+                next?.lastModified &&
+                previous.lastModified > next.lastModified
+            )
+                return;
+            // This is intentionally outside a React state updater: strict-mode updater replay must
+            // never repeat a cookie side effect. The coordinator has checked context and mutation races.
+            document.cookie = result.cookie;
+            setBasket({ current: next ?? undefined, snapshot: result.snapshot, hydrated: true, error: null });
+        },
+        [setBasket]
+    );
+
     const updaterValue = useMemo(
-        () => ({ setBasket, loadBasket, reconcileBasket }),
-        [setBasket, loadBasket, reconcileBasket]
+        () => ({ setBasket, loadBasket, reconcileBasket, publishRefresh }),
+        [setBasket, loadBasket, reconcileBasket, publishRefresh]
     );
 
     return (
@@ -622,5 +647,11 @@ export const useBasketReset = (): (() => void) => {
         });
     }, [updater]);
 };
+
+/** Publish an accepted external revision and its server-calculated snapshot together. */
+// oxlint-disable-next-line react-refresh/only-export-components
+export function useBasketRefreshPublisher() {
+    return useContext(BasketUpdaterContext)?.publishRefresh;
+}
 
 export default BasketProvider;

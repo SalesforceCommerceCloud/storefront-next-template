@@ -34,6 +34,7 @@ import createBasketMiddleware, {
     getBasketSnapshot,
     updateBasketResource,
     type BasketSnapshot,
+    refreshBasket,
 } from './basket.server';
 
 // SCAPI ApiError fixture for hydration-failure tests. The middleware's missing-basket gate
@@ -1212,5 +1213,60 @@ describe('basket.server middleware', () => {
         const setCookie = response.headers.get('Set-Cookie');
         expect(setCookie).toContain('__sfdc_basket=');
         expect(setCookie).not.toContain('Expires=Thu, 01 Jan 1970');
+    });
+});
+
+describe('background refresh cookie response isolation', () => {
+    test.each(['eager', 'assisted'])('skips pre-loader commerce work in %s mode', async (mode) => {
+        vi.mocked(createApiClients).mockClear();
+        const ctx = createTestContext();
+        const original = { basketId: 'b1', totalItemCount: 1, uniqueProductCount: 1, authContextVersion: 'old' };
+        if (mode === 'assisted') {
+            ctx.set(trustedAgentContext, { lifecycle: { mode: 'active' }, lifecycleRoute: false } as never);
+            vi.mocked(getAuth).mockReturnValue({ customerId: 'represented', authGeneration: 'new' });
+        }
+        const read = vi.fn().mockResolvedValue({ data: { basketId: 'b1', productItems: [] } });
+        vi.mocked(createApiClients).mockReturnValue({ shopperBasketsV2: { getBasket: read } } as never);
+        const request = new Request('https://example.com/RefArchGlobal/en-GB/resource/basket-refresh.data', {
+            headers: { Cookie: `__sfdc_basket=${btoa(JSON.stringify(original))}` },
+        });
+        let result: Awaited<ReturnType<typeof refreshBasket>> | undefined;
+        const response = await createBasketMiddleware({ mode: 'eager' })(
+            { request, context: ctx, params: {}, unstable_pattern: '/resource/basket-refresh' } as never,
+            async () => {
+                expect(createApiClients).not.toHaveBeenCalled();
+                result = await refreshBasket(ctx);
+                return new Response('ok');
+            }
+        );
+        if (!response) throw new Error('Expected a middleware response');
+        expect(response.headers.get('Set-Cookie')).toBeNull();
+        expect(read).toHaveBeenCalledTimes(mode === 'assisted' ? 0 : 1);
+        expect(result).toMatchObject({ success: true });
+    });
+
+    test('returns the calculated cookie without applying it to the HTTP response', async () => {
+        const ctx = createTestContext();
+        const original = { basketId: 'b1', totalItemCount: 1, uniqueProductCount: 1, lastModified: 'old' };
+        const basket = { basketId: 'b1', productItems: [{ quantity: 2 }], lastModified: '2026-11-26T12:00:00Z' };
+        vi.mocked(createApiClients).mockReturnValue({
+            shopperBasketsV2: { getBasket: vi.fn().mockResolvedValue({ data: basket }) },
+        } as never);
+        const request = new Request('https://example.com/resource/basket-refresh', {
+            headers: { Cookie: `__sfdc_basket=${btoa(JSON.stringify(original))}` },
+        });
+        const middleware = createBasketMiddleware({ calculateBasketSnapshot: () => ({ custom: 'kept' }) });
+        let result: Awaited<ReturnType<typeof refreshBasket>> | undefined;
+        const response = await middleware(
+            { request, context: ctx, params: {}, unstable_pattern: '/resource/basket-refresh' } as never,
+            async () => {
+                result = await refreshBasket(ctx);
+                return new Response('ok');
+            }
+        );
+        if (!response) throw new Error('Expected a middleware response');
+        expect(response.headers.get('Set-Cookie')).toBeNull();
+        expect(result).toMatchObject({ success: true, snapshot: { totalItemCount: 2, custom: 'kept' } });
+        if (result?.success) expect(result.cookie).toContain('__sfdc_basket=');
     });
 });
