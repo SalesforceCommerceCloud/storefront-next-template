@@ -4,7 +4,7 @@
 * Reads from MRT_ENV_BASE_PATH environment variable.
 *
 * The base path is used for CDN routing to the correct MRT environment.
-* It is prepended to all URLs: page routes, /mobify/bundle/ assets, and /mobify/proxy/api.
+* It is prepended to page routes and /mobify/bundle/ assets.
 *
 * Validation rules:
 * - Must be a single path segment starting with '/'

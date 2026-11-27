@@ -19,7 +19,6 @@ import { createServer as createViteServer } from 'vite';
 import { createServer, initBasePathEnv } from '../server/index';
 import { loadProjectConfig } from '../server/config';
 import { printServerInfo, printServerConfig, printShutdownMessage } from '../utils/logger';
-import { getCommerceCloudApiUrl } from '../utils/paths';
 import { getWorkspaceHmrConfig } from '../plugins/workspace';
 
 export interface DevOptions {
@@ -123,7 +122,6 @@ export async function dev(options: DevOptions = {}): Promise<void> {
     const app = await createServer({
         mode: 'development',
         projectDirectory: projectDir,
-        config,
         port,
         vite,
     });
@@ -137,11 +135,8 @@ export async function dev(options: DevOptions = {}): Promise<void> {
         printServerConfig({
             mode: 'development',
             port,
-            enableProxy: true,
             enableStaticServing: false,
             enableCompression: false,
-            proxyPath: config.commerce.api.proxy,
-            proxyHost: getCommerceCloudApiUrl(config.commerce.api.shortCode, config.commerce.api.proxyHost),
             shortCode: config.commerce.api.shortCode,
             organizationId: config.commerce.api.organizationId,
             clientId: config.commerce.api.clientId,

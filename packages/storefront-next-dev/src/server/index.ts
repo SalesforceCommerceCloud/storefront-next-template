@@ -20,10 +20,8 @@ import type { ViteDevServer } from 'vite';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { loadConfigFromEnv, type ServerConfig } from './config';
 import { loadRuntimeConfig } from '../config';
 import { importTypescript } from './ts-import';
-import { createCommerceProxyMiddleware } from './middleware/proxy';
 import { createStaticMiddleware } from './middleware/static';
 import { createCompressionMiddleware } from './middleware/compression';
 import { createLoggingMiddleware } from './middleware/logging';
@@ -59,9 +57,6 @@ export interface ServerOptions extends Partial<ServerModeFeatures> {
 
     /** Project root directory (optional, defaults to process.cwd()) */
     projectDirectory?: string;
-
-    /** Server configuration (optional, will load from env vars if not provided) */
-    config?: ServerConfig;
 
     /** Server port (optional, for logging) */
     port?: number;
@@ -99,11 +94,9 @@ export async function createServer(options: ServerOptions): Promise<Express> {
     const {
         mode,
         projectDirectory = process.cwd(),
-        config: providedConfig,
         vite,
         build,
         streaming = false,
-        enableProxy = ServerModeFeatureMap[mode].enableProxy,
         enableStaticServing = ServerModeFeatureMap[mode].enableStaticServing,
         enableCompression = ServerModeFeatureMap[mode].enableCompression,
         enableLogging = ServerModeFeatureMap[mode].enableLogging,
@@ -117,10 +110,6 @@ export async function createServer(options: ServerOptions): Promise<Express> {
     if ((mode === 'preview' || mode === 'production') && !build) {
         throw new Error('React Router server build is required for preview/production mode');
     }
-
-    // Use provided config or load from environment variables
-    // TODO: move the config implementation from the template to the SDK.
-    const config = providedConfig ?? loadConfigFromEnv();
 
     // Load bundle ID from environment
     const bundleId = process.env.BUNDLE_ID ?? DEFAULT_BUNDLE_ID;
@@ -197,10 +186,6 @@ export async function createServer(options: ServerOptions): Promise<Express> {
     if (mode === 'development' && vite) {
         // In development, Vite middleware handles HMR, transforms, and proxy
         app.use(vite.middlewares);
-    }
-
-    if (enableProxy) {
-        app.use(config.commerce.api.proxy, createCommerceProxyMiddleware(config));
     }
 
     // In dev/preview, redirect non-prefixed page requests to the prefixed path.

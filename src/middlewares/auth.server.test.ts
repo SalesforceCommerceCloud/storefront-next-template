@@ -131,7 +131,6 @@ vi.mock('@/middlewares/performance-metrics', () => ({
     PERFORMANCE_MARKS: {
         authRefreshAccessToken: 'authRefreshAccessToken',
         authLoginGuestUser: 'authLoginGuestUser',
-        authLoginGuestUserPrivate: 'authLoginGuestUserPrivate',
         authLoginRegisteredUser: 'authLoginRegisteredUser',
         authAuthorizePasswordless: 'authAuthorizePasswordless',
         authGetPasswordResetToken: 'authGetPasswordResetToken',
@@ -204,7 +203,6 @@ function createAuthTokenInvalidError() {
 
 function mockContext(
     data: AuthStorageData = {},
-    isSlasPrivate = false,
     siteCtx?: SiteContext
 ): {
     provider: RouterContextProvider;
@@ -219,9 +217,6 @@ function mockContext(
     // Create mock app config
     // Use structuredClone to create a deep copy of the mockConfig object to prevent test pollution
     const appConfig: AppConfig = structuredClone(mockConfig);
-
-    // Override commerce.api.privateKeyEnabled after cloning
-    appConfig.commerce.api.privateKeyEnabled = isSlasPrivate;
 
     // Mock provider.get to return storage, performance timer, site context, or appConfig based on context key
     vi.spyOn(provider, 'get').mockImplementation((key) => {
@@ -286,7 +281,7 @@ function getMockRegisteredAuthData(): AuthData {
 
 describe('getSlasLocale', () => {
     test('falls back from a regionless commerce locale to the selected site default', () => {
-        const { provider } = mockContext({}, false, {
+        const { provider } = mockContext({}, {
             site: { ...mockAltSiteObject, defaultLocale: 'en-US' },
             locale: { id: 'default', preferredCurrency: 'USD' },
             currency: 'USD',
@@ -720,7 +715,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should include client secret when SLAS is private', async () => {
-            const { provider } = mockContext({}, true);
+            const { provider } = mockContext({});
             const mockTokenResponse = getMockTokenResponse();
             const refreshToken = 'refresh-token-456';
 
@@ -874,7 +869,6 @@ describe('auth middleware (server)', () => {
             expect(result).toEqual({ ...mockTokenResponse, dwsid: 'guest-dwsid' });
             expect(mockLogger.debug).toHaveBeenCalledWith('Auth: loginGuestUser starting', {
                 hasUsid: false,
-                isSlasPrivate: false,
             });
             expect(mockLogger.debug).toHaveBeenCalledWith('Auth: loginGuestUser succeeded');
         });
@@ -894,8 +888,8 @@ describe('auth middleware (server)', () => {
             expect(result).toEqual({ ...mockTokenResponse, dwsid: undefined });
         });
 
-        it('should use loginGuestUserPrivate when SLAS is private', async () => {
-            const { provider } = mockContext({}, true);
+        it('should record guest login timing when delegating to the SDK', async () => {
+            const { provider } = mockContext({});
             const mockTokenResponse = getMockTokenResponse();
 
             mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
@@ -907,6 +901,8 @@ describe('auth middleware (server)', () => {
                 usid: undefined,
             });
             expect(result).toEqual({ ...mockTokenResponse, dwsid: undefined });
+            expect(mockPerformanceTimer.mark).toHaveBeenCalledWith('authLoginGuestUser', 'start');
+            expect(mockPerformanceTimer.mark).toHaveBeenCalledWith('authLoginGuestUser', 'end');
         });
 
         it('should handle guest login failure', async () => {
@@ -976,7 +972,7 @@ describe('auth middleware (server)', () => {
             const authData = getMockRegisteredAuthData();
             // Remove trackingConsent so dnt is not included by default
             delete authData.trackingConsent;
-            const { provider } = mockContext(authData, true);
+            const { provider } = mockContext(authData);
             const mockTokenResponse = getMockTokenResponse();
             const email = 'test@example.com';
             const password = 'password123';
@@ -1645,7 +1641,7 @@ describe('auth middleware (server)', () => {
 
     describe('getPasswordResetToken', () => {
         it('uses the resolved commerce locale when requesting a password reset token', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
 
             mockAuth.password.requestReset.mockResolvedValue(undefined);
@@ -1667,7 +1663,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should request password reset token with private SLAS and include authorization header', async () => {
-            const { provider } = mockContext({}, true);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
 
             mockAuth.password.requestReset.mockResolvedValue(undefined);
@@ -1684,7 +1680,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should request password reset token with callback mode', async () => {
-            const { provider, appConfig } = mockContext({}, false);
+            const { provider, appConfig } = mockContext({});
             appConfig.features.resetPassword.mode = 'callback';
             const email = 'test@example.com';
 
@@ -1701,7 +1697,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should handle absolute callback URI', async () => {
-            const { provider, appConfig } = mockContext({}, false);
+            const { provider, appConfig } = mockContext({});
             appConfig.features.resetPassword.callbackUri = 'https://custom-domain.com/reset';
             const email = 'test@example.com';
 
@@ -1718,7 +1714,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should handle undefined callback URI', async () => {
-            const { provider, appConfig } = mockContext({}, false);
+            const { provider, appConfig } = mockContext({});
             delete appConfig.features.resetPassword.callbackUri;
             const email = 'test@example.com';
 
@@ -1735,7 +1731,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should handle relative callback URI and prepend app origin', async () => {
-            const { provider, appConfig } = mockContext({}, false);
+            const { provider, appConfig } = mockContext({});
             appConfig.features.resetPassword.callbackUri = '/reset-password';
             const email = 'test@example.com';
 
@@ -1752,7 +1748,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should handle password reset token request failure', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
             const mockError = new Error('Failed to send reset email');
 
@@ -1765,7 +1761,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should call performance timer even on failure', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
             const mockError = new Error('Failed to send reset email');
 
@@ -1780,7 +1776,7 @@ describe('auth middleware (server)', () => {
 
     describe('requestOtp', () => {
         it('uses the resolved commerce locale when requesting an OTP', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
 
             mockAuth.otp.request.mockResolvedValue(undefined);
@@ -1801,7 +1797,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should use mode from config', async () => {
-            const { provider, appConfig } = mockContext({}, false);
+            const { provider, appConfig } = mockContext({});
             appConfig.features.otpRequest.mode = 'callback';
 
             mockAuth.otp.request.mockResolvedValue(undefined);
@@ -1816,7 +1812,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should pass callbackUri to SLAS', async () => {
-            const { provider, appConfig } = mockContext({}, false);
+            const { provider, appConfig } = mockContext({});
             appConfig.features.otpRequest.callbackUri = 'https://custom-domain.com/otp-callback';
 
             mockAuth.otp.request.mockResolvedValue(undefined);
@@ -1829,7 +1825,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should omit callbackUri when not configured', async () => {
-            const { provider, appConfig } = mockContext({}, false);
+            const { provider, appConfig } = mockContext({});
             delete appConfig.features.otpRequest.callbackUri;
 
             mockAuth.otp.request.mockResolvedValue(undefined);
@@ -1842,7 +1838,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should handle OTP request failure and still call performance timer', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const mockError = new Error('OTP service unavailable');
 
             mockAuth.otp.request.mockRejectedValue(mockError);
@@ -1860,7 +1856,7 @@ describe('auth middleware (server)', () => {
 
     describe('verifyOtp', () => {
         it('should verify OTP successfully', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
 
             mockAuth.otp.verify.mockResolvedValue(undefined);
 
@@ -1878,7 +1874,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should handle OTP verification failure and still call performance timer', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const mockError = new Error('Invalid OTP');
 
             mockAuth.otp.verify.mockRejectedValue(mockError);
@@ -1896,7 +1892,7 @@ describe('auth middleware (server)', () => {
 
     describe('resetPasswordWithToken', () => {
         it('should reset password successfully with public SLAS', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
             const token = 'reset-token-123';
             const newPassword = 'NewSecurePassword123!';
@@ -1919,7 +1915,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should reset password with private SLAS and include authorization header', async () => {
-            const { provider } = mockContext({}, true);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
             const token = 'reset-token-123';
             const newPassword = 'NewSecurePassword123!';
@@ -1937,7 +1933,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should encode client credentials correctly for private SLAS', async () => {
-            const { provider } = mockContext({}, true);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
             const token = 'reset-token-123';
             const newPassword = 'NewSecurePassword123!';
@@ -1955,7 +1951,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should handle password reset failure with invalid token', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
             const token = 'invalid-token';
             const newPassword = 'NewSecurePassword123!';
@@ -1972,7 +1968,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should handle password reset failure due to weak password', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
             const token = 'reset-token-123';
             const newPassword = 'weak';
@@ -1986,7 +1982,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should call performance timer even on failure', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const email = 'test@example.com';
             const token = 'reset-token-123';
             const newPassword = 'NewSecurePassword123!';
@@ -2001,7 +1997,7 @@ describe('auth middleware (server)', () => {
         });
 
         it('should handle all parameters correctly', async () => {
-            const { provider } = mockContext({}, false);
+            const { provider } = mockContext({});
             const email = 'user+test@example.com'; // Email with special chars
             const token = 'token-with-special-chars_123==';
             const newPassword = 'P@ssw0rd!2024#Complex';

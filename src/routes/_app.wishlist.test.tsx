@@ -86,7 +86,6 @@ describe('_app.wishlist loader', () => {
             },
             commerce: {
                 api: {
-                    proxy: '/mobify/proxy/api',
                     organizationId: 'test-org-id',
                     siteId: 'test-site-id',
                 },

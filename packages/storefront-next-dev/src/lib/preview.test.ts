@@ -46,7 +46,6 @@ const mockConfig: ServerConfig = {
             shortCode: 'test-short-code',
             organizationId: 'test-org-id',
             clientId: 'test-client-id',
-            proxy: '/mobify/proxy/api',
         },
     },
 };
@@ -158,7 +157,6 @@ describe('preview command', () => {
             expect(mockCreateServer).toHaveBeenCalledWith({
                 mode: 'preview',
                 projectDirectory: expect.any(String),
-                config: mockConfig,
                 port: 3000,
                 build: mockBuild,
             });
@@ -173,11 +171,8 @@ describe('preview command', () => {
             expect(mockPrintServerConfig).toHaveBeenCalledWith({
                 mode: 'preview',
                 port: 3000,
-                enableProxy: true,
                 enableStaticServing: true,
                 enableCompression: true,
-                proxyPath: '/mobify/proxy/api',
-                proxyHost: 'https://test-short-code.api.commercecloud.salesforce.com',
                 shortCode: 'test-short-code',
                 organizationId: 'test-org-id',
                 clientId: 'test-client-id',
@@ -193,7 +188,6 @@ describe('preview command', () => {
             expect(mockCreateServer).toHaveBeenCalledWith({
                 mode: 'preview',
                 projectDirectory: expect.any(String),
-                config: mockConfig,
                 port: 8080,
                 build: mockBuild,
             });
@@ -220,12 +214,11 @@ describe('preview command', () => {
             expect(mockCreateServer).toHaveBeenCalled();
             const serverCall = (
                 mockCreateServer.mock.calls[0] as unknown as [
-                    { mode: string; projectDirectory: string; config: ServerConfig; port: number; build: ServerBuild },
+                    { mode: string; projectDirectory: string; port: number; build: ServerBuild },
                 ]
             )[0];
             expect(serverCall.mode).toBe('preview');
             expect(pathsEqual(serverCall.projectDirectory, customDir)).toBe(true);
-            expect(serverCall.config).toEqual(mockConfig);
             expect(serverCall.port).toBe(3000);
             expect(serverCall.build).toBe(mockBuild);
 

@@ -46,7 +46,6 @@ describe('server config', () => {
             process.env.PUBLIC__app__commerce__api__shortCode = 'test-short-code';
             process.env.PUBLIC__app__commerce__api__organizationId = 'test-org-id';
             process.env.PUBLIC__app__commerce__api__clientId = 'test-client-id';
-            process.env.PUBLIC__app__commerce__api__proxy = '/custom/proxy';
 
             const config = loadConfigFromEnv();
 
@@ -56,22 +55,21 @@ describe('server config', () => {
                         shortCode: 'test-short-code',
                         organizationId: 'test-org-id',
                         clientId: 'test-client-id',
-                        proxy: '/custom/proxy',
                     },
                 },
             });
         });
 
-        it('should use default proxy value when not provided', () => {
+        it('should ignore the retired proxy environment variable', () => {
             process.env.PUBLIC__app__commerce__api__shortCode = 'test-short-code';
             process.env.PUBLIC__app__commerce__api__organizationId = 'test-org-id';
             process.env.PUBLIC__app__commerce__api__clientId = 'test-client-id';
 
-            delete process.env.PUBLIC__app__commerce__api__proxy;
+            process.env.PUBLIC__app__commerce__api__proxy = '/legacy/proxy';
 
             const config = loadConfigFromEnv();
 
-            expect(config.commerce.api.proxy).toBe('/mobify/proxy/api');
+            expect(config.commerce.api).not.toHaveProperty('proxy');
         });
 
         it('should include proxyHost when SCAPI_PROXY_HOST is set', () => {
@@ -168,8 +166,6 @@ describe('server config', () => {
                         shortCode: 'config-short-code',
                         organizationId: 'config-org-id',
                         clientId: 'config-client-id',
-
-                        proxy: '/config/proxy',
                     },
                 },
             });
@@ -183,7 +179,7 @@ describe('server config', () => {
             );
         });
 
-        it('should use default proxy when not provided in config', async () => {
+        it('should load API configuration without a proxy setting', async () => {
             mockExistsSync.mockReturnValue(true);
             mockImportTypescript.mockResolvedValue({
                 default: {
@@ -201,7 +197,7 @@ describe('server config', () => {
 
             const config = await loadProjectConfig('/test/project');
 
-            expect(config.commerce.api.proxy).toBe('/mobify/proxy/api');
+            expect(config.commerce.api).not.toHaveProperty('proxy');
         });
 
         it('should throw error when config.server.ts is missing commerce.api', async () => {

@@ -61,9 +61,7 @@ vi.mock('@/middlewares/auth.utils', async (importOriginal) => ({
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({
     getConfig: vi.fn(() => ({
         commerce: {
-            api: {
-                privateKeyEnabled: false,
-            },
+            api: {},
         },
     })),
 }));
@@ -116,7 +114,7 @@ describe('Social Login', () => {
         mockAuthSocial.exchangeCode.mockReset();
         // default config
         cfg.getConfig.mockReturnValue({
-            commerce: { api: { privateKeyEnabled: false, callback: '/callback' } },
+            commerce: { api: { callback: '/callback' } },
         } as any);
         // default auth session
         auth.getAuth.mockReturnValue({ usid: 'session-usid', codeVerifier: 'stored-code-verifier' } as any);
@@ -162,9 +160,9 @@ describe('Social Login', () => {
             expect(mockAuthSocial.getAuthorizationUrl).not.toHaveBeenCalled();
         });
 
-        it('passes explicit redirectURI and privateClient=true when configured', async () => {
+        it('passes an explicit redirectURI to the SDK', async () => {
             cfg.getConfig.mockReturnValue({
-                commerce: { api: { privateKeyEnabled: true, callback: '/callback' } },
+                commerce: { api: { callback: '/callback' } },
             } as any);
             mockAuthSocial.getAuthorizationUrl.mockResolvedValue({ url: 'x', codeVerifier: 'y' });
 
@@ -222,9 +220,9 @@ describe('Social Login', () => {
             expect(result).toEqual({ success: true });
         });
 
-        it('includes clientSecret when privateKeyEnabled=true', async () => {
+        it('delegates code exchange to the SDK when a SLAS secret is configured', async () => {
             cfg.getConfig.mockReturnValue({
-                commerce: { api: { privateKeyEnabled: true, callback: '/callback' } },
+                commerce: { api: { callback: '/callback' } },
             } as any);
             (process as any).env.COMMERCE_API_SLAS_SECRET = 'super-secret';
             mockAuthSocial.exchangeCode.mockResolvedValue(getMockAuthResponse({ accessToken: 'at' }));
@@ -396,7 +394,6 @@ describe('handleSocialLoginCallback', () => {
         mockGetConfig.mockReturnValue({
             commerce: {
                 api: {
-                    privateKeyEnabled: false,
                     callback: '/callback',
                 },
             },
@@ -515,9 +512,7 @@ describe('handleSocialLoginCallback', () => {
         it('should use config callbackUri for redirectURI construction', async () => {
             mockGetConfig.mockReturnValue({
                 commerce: {
-                    api: {
-                        privateKeyEnabled: false,
-                    },
+                    api: {},
                 },
                 features: {
                     socialLogin: {

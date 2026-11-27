@@ -76,9 +76,7 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 
 | Variable | Default | Effect |
 |---|---|---|
-| `PUBLIC__app__commerce__api__proxy` | `/mobify/proxy/api` | SCAPI proxy path |
 | `PUBLIC__app__commerce__api__callback` | `/callback` | OAuth callback path |
-| `PUBLIC__app__commerce__api__privateKeyEnabled` | `false` | Use private SLAS client |
 | `PUBLIC__app__hybrid__enabled` | `false` | Hybrid PWA mode |
 | `PUBLIC__app__auth__otpLength` | `6` | OTP length (6 or 8) |
 | `PUBLIC__app__features__passwordlessLogin__mode` | `email` | `email` \| `callback` |

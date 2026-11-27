@@ -1,9 +1,9 @@
 import "../package.js";
 import { i as printShutdownMessage, n as printServerConfig, r as printServerInfo } from "../logger.js";
 import "../logger2.js";
-import "../ts-import.js";
-import { i as loadProjectConfig, n as initBasePathEnv, r as getCommerceCloudApiUrl, t as createServer$2 } from "../server.js";
 import "../config.js";
+import "../ts-import.js";
+import { n as initBasePathEnv, r as loadProjectConfig, t as createServer$2 } from "../server.js";
 import { i as commonFlags } from "../flags.js";
 import { Command, Flags } from "@oclif/core";
 import path from "path";
@@ -108,7 +108,6 @@ async function dev(options = {}) {
 	const app = await createServer$2({
 		mode: "development",
 		projectDirectory: projectDir,
-		config,
 		port,
 		vite
 	});
@@ -118,11 +117,8 @@ async function dev(options = {}) {
 		printServerConfig({
 			mode: "development",
 			port,
-			enableProxy: true,
 			enableStaticServing: false,
 			enableCompression: false,
-			proxyPath: config.commerce.api.proxy,
-			proxyHost: getCommerceCloudApiUrl(config.commerce.api.shortCode, config.commerce.api.proxyHost),
 			shortCode: config.commerce.api.shortCode,
 			organizationId: config.commerce.api.organizationId,
 			clientId: config.commerce.api.clientId

@@ -65,7 +65,6 @@ const mockConfig: ServerConfig = {
             shortCode: 'test-short-code',
             organizationId: 'test-org-id',
             clientId: 'test-client-id',
-            proxy: '/mobify/proxy/api',
         },
     },
 };
@@ -133,7 +132,6 @@ describe('dev command', () => {
             expect(mockCreateServer).toHaveBeenCalledWith({
                 mode: 'development',
                 projectDirectory: expect.any(String),
-                config: mockConfig,
                 port: 5173,
                 vite: mockViteServer,
             });
@@ -156,11 +154,8 @@ describe('dev command', () => {
             expect(mockPrintServerConfig).toHaveBeenCalledWith({
                 mode: 'development',
                 port: 5173,
-                enableProxy: true,
                 enableStaticServing: false,
                 enableCompression: false,
-                proxyPath: '/mobify/proxy/api',
-                proxyHost: 'https://test-short-code.api.commercecloud.salesforce.com',
                 shortCode: 'test-short-code',
                 organizationId: 'test-org-id',
                 clientId: 'test-client-id',
@@ -175,7 +170,6 @@ describe('dev command', () => {
             expect(mockCreateServer).toHaveBeenCalledWith({
                 mode: 'development',
                 projectDirectory: expect.any(String),
-                config: mockConfig,
                 port: 3000,
                 vite: mockViteServer,
             });
@@ -203,12 +197,11 @@ describe('dev command', () => {
             expect(mockCreateServer).toHaveBeenCalled();
             const serverCall = (
                 mockCreateServer.mock.calls[0] as unknown as [
-                    { mode: string; projectDirectory: string; config: ServerConfig; port: number; vite: ViteDevServer },
+                    { mode: string; projectDirectory: string; port: number; vite: ViteDevServer },
                 ]
             )[0];
             expect(serverCall.mode).toBe('development');
             expect(pathsEqual(serverCall.projectDirectory, customDir)).toBe(true);
-            expect(serverCall.config).toEqual(mockConfig);
             expect(serverCall.port).toBe(5173);
             expect(serverCall.vite).toBe(mockViteServer);
         });

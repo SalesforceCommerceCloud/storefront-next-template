@@ -17,7 +17,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
 import type { ServerBuild } from 'react-router';
 import type { ViteDevServer, DevEnvironment } from 'vite';
-import type { ServerConfig } from './config';
 
 // Mock modules with factory functions
 vi.mock('express', () => {
@@ -44,10 +43,6 @@ vi.mock('./config', () => ({
 vi.mock('../utils/paths', () => ({
     getBundlePath: vi.fn(),
     getBasePath: vi.fn().mockReturnValue(''),
-}));
-
-vi.mock('./middleware/proxy', () => ({
-    createCommerceProxyMiddleware: vi.fn(),
 }));
 
 vi.mock('./middleware/static', () => ({
@@ -98,7 +93,6 @@ const express = (await import('express')).default;
 const { createRequestHandler } = await import('@react-router/express');
 const { loadConfigFromEnv } = await import('./config');
 const { getBundlePath, getBasePath } = await import('../utils/paths');
-const { createCommerceProxyMiddleware } = await import('./middleware/proxy');
 const { createStaticMiddleware } = await import('./middleware/static');
 const { createCompressionMiddleware } = await import('./middleware/compression');
 const { createLoggingMiddleware } = await import('./middleware/logging');
@@ -117,18 +111,6 @@ describe('server/index', () => {
         all: ReturnType<typeof vi.fn>;
     };
 
-    const mockConfig: ServerConfig = {
-        commerce: {
-            api: {
-                shortCode: 'test-short-code',
-                organizationId: 'test-org-id',
-                clientId: 'test-client-id',
-
-                proxy: '/api/commerce',
-            },
-        },
-    };
-
     const mockBuild: ServerBuild = {
         assets: { version: '1', entry: { module: 'entry.js', imports: [] }, routes: {} },
         assetsBuildDirectory: '/build/client',
@@ -145,9 +127,7 @@ describe('server/index', () => {
         // Get the mock express app instance
         mockExpressApp = express() as unknown as typeof mockExpressApp;
 
-        vi.mocked(loadConfigFromEnv).mockReturnValue(mockConfig);
         vi.mocked(getBundlePath).mockReturnValue('/bundles/test-bundle');
-        vi.mocked(createCommerceProxyMiddleware).mockReturnValue(vi.fn() as any);
         vi.mocked(createStaticMiddleware).mockReturnValue(vi.fn() as any);
         vi.mocked(createCompressionMiddleware).mockReturnValue(vi.fn() as any);
         vi.mocked(createLoggingMiddleware).mockReturnValue(vi.fn() as any);
@@ -216,37 +196,7 @@ describe('server/index', () => {
                 expect(mockExpressApp.disable).toHaveBeenCalledWith('x-powered-by');
                 expect(mockExpressApp.set).toHaveBeenCalledWith('trust proxy', true);
                 expect(mockExpressApp.use).toHaveBeenCalledWith(mockVite.middlewares);
-                expect(vi.mocked(loadConfigFromEnv)).toHaveBeenCalled();
-            });
-
-            it('should use provided config instead of loading from env', async () => {
-                const mockVite = {
-                    middlewares: vi.fn(),
-                    environments: {},
-                } as unknown as ViteDevServer;
-
-                const customConfig: ServerConfig = {
-                    commerce: {
-                        api: {
-                            shortCode: 'custom-short-code',
-                            organizationId: 'custom-org-id',
-                            clientId: 'custom-client-id',
-                            proxy: '/custom/api',
-                        },
-                    },
-                };
-
-                const options: ServerOptions = {
-                    mode: 'development',
-                    projectDirectory: '/test/project',
-                    vite: mockVite,
-                    config: customConfig,
-                };
-
-                await createServer(options);
-
                 expect(vi.mocked(loadConfigFromEnv)).not.toHaveBeenCalled();
-                expect(vi.mocked(createCommerceProxyMiddleware)).toHaveBeenCalledWith(customConfig);
             });
 
             it('should apply host header middleware', async () => {
@@ -332,26 +282,22 @@ describe('server/index', () => {
                 expect(mockExpressApp.use).toHaveBeenCalledWith(mockCompressionMiddleware);
             });
 
-            it('should apply proxy middleware when enableProxy is true', async () => {
+            it.each(['development', 'preview'] as const)('should not mount a SCAPI proxy in %s', async (mode) => {
                 const mockVite = {
                     middlewares: vi.fn(),
                     environments: {},
                 } as unknown as ViteDevServer;
 
-                const mockProxyMiddleware = vi.fn() as any;
-                vi.mocked(createCommerceProxyMiddleware).mockReturnValue(mockProxyMiddleware);
-
                 const options: ServerOptions = {
-                    mode: 'development',
+                    mode,
                     projectDirectory: '/test/project',
                     vite: mockVite,
-                    enableProxy: true,
+                    build: mockBuild,
                 };
 
                 await createServer(options);
 
-                expect(vi.mocked(createCommerceProxyMiddleware)).toHaveBeenCalledWith(mockConfig);
-                expect(mockExpressApp.use).toHaveBeenCalledWith('/api/commerce', mockProxyMiddleware);
+                expect(mockExpressApp.use).not.toHaveBeenCalledWith('/mobify/proxy/api', expect.anything());
             });
 
             it('should register redirect middleware when base path is configured', async () => {
@@ -456,7 +402,6 @@ describe('server/index', () => {
                 expect(vi.mocked(createLoggingMiddleware)).toHaveBeenCalled();
                 expect(vi.mocked(createCompressionMiddleware)).toHaveBeenCalled();
                 expect(vi.mocked(createStaticMiddleware)).toHaveBeenCalledWith('local', '/test/project');
-                expect(vi.mocked(createCommerceProxyMiddleware)).toHaveBeenCalledWith(mockConfig);
             });
 
             it('should use BUNDLE_ID from environment', async () => {
@@ -532,12 +477,10 @@ describe('server/index', () => {
                 expect(app).toBe(mockExpressApp);
                 expect(mockExpressApp.disable).toHaveBeenCalledWith('x-powered-by');
                 expect(mockExpressApp.set).toHaveBeenCalledWith('trust proxy', true);
-                // Production mode has compression and logging enabled by default, but not static serving or proxy
+                // Production mode has compression and logging enabled by default, but not static serving.
                 expect(vi.mocked(createLoggingMiddleware)).toHaveBeenCalled();
                 expect(vi.mocked(createCompressionMiddleware)).toHaveBeenCalled();
                 expect(vi.mocked(createStaticMiddleware)).not.toHaveBeenCalled();
-                // Proxy is disabled in production mode by default
-                expect(vi.mocked(createCommerceProxyMiddleware)).not.toHaveBeenCalled();
             });
 
             it('should respect explicit feature overrides in production mode', async () => {

@@ -7,7 +7,7 @@ Email verification confirms shopper identity using a one-time passcode (OTP). Wh
 Before enabling email verification:
 
 1. Configure a SLAS private client with passwordless login enabled. See [Configure a SLAS Private Client](https://developer.salesforce.com/docs/commerce/commerce-api/guide/slas-passwordless-login.html#configure-a-slas-private-client).
-2. In `config.server.ts`, set `commerce.api.privateKeyEnabled: true`. If `false`, passwordless login is disabled at runtime regardless of the site preference.
+2. Set the server-only `COMMERCE_API_SLAS_SECRET` environment variable to the SLAS private client secret. The SDK selects private-client authentication from this secret.
 3. Enable **Enable Loginid Updates for SCAPI** (must be requested via Salesforce support). This allows shoppers to update their login email via SCAPI — required for the Change Email flow.
 4. In **Merchant Tools > Site Preferences > Storefront Login Preferences**, turn on **Enable Email Verification**.
 

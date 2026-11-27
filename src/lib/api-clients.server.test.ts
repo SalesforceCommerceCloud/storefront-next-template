@@ -212,6 +212,25 @@ describe('createApiClients', () => {
     });
 
     describe('client creation', () => {
+        it.each([
+            undefined,
+            'test-private-secret',
+        ])('passes the SLAS secret through without a private-client flag (%s)', (clientSecret) => {
+            vi.stubGlobal('window', undefined);
+            vi.stubEnv('COMMERCE_API_SLAS_SECRET', clientSecret);
+            vi.stubEnv('SCAPI_PROXY_HOST', undefined);
+
+            createApiClients(mockContextProvider);
+
+            expect(mockCreateCommerceApiClients).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    baseUrl: 'https://kv7kzm78.api.commercecloud.salesforce.com',
+                    redirectUri: 'https://example.com/callback',
+                    clientSecret,
+                })
+            );
+        });
+
         it('should create commerce API clients', () => {
             const clients = createApiClients(mockContextProvider);
             expect(clients).toBeDefined();

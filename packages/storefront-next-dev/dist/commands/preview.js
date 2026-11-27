@@ -1,9 +1,9 @@
 import "../package.js";
 import { i as printShutdownMessage, n as printServerConfig, r as printServerInfo, t as logger } from "../logger.js";
 import "../logger2.js";
-import "../ts-import.js";
-import { i as loadProjectConfig, n as initBasePathEnv, r as getCommerceCloudApiUrl, t as createServer } from "../server.js";
 import "../config.js";
+import "../ts-import.js";
+import { n as initBasePathEnv, r as loadProjectConfig, t as createServer } from "../server.js";
 import { i as commonFlags } from "../flags.js";
 import { Command, Flags } from "@oclif/core";
 import { execSync } from "child_process";
@@ -50,7 +50,6 @@ async function preview(options = {}) {
 	const server = (await createServer({
 		mode: "preview",
 		projectDirectory: projectDir,
-		config,
 		port,
 		build
 	})).listen(port, () => {
@@ -58,11 +57,8 @@ async function preview(options = {}) {
 		printServerConfig({
 			mode: "preview",
 			port,
-			enableProxy: true,
 			enableStaticServing: true,
 			enableCompression: true,
-			proxyPath: config.commerce.api.proxy,
-			proxyHost: getCommerceCloudApiUrl(config.commerce.api.shortCode),
 			shortCode: config.commerce.api.shortCode,
 			organizationId: config.commerce.api.organizationId,
 			clientId: config.commerce.api.clientId

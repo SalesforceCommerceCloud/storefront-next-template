@@ -99,7 +99,6 @@ describe('fetchProductsForWishlist', () => {
             },
             commerce: {
                 api: {
-                    proxy: '/mobify/proxy/api',
                     organizationId: 'test-org-id',
                     siteId: 'test-site-id',
                 },
@@ -593,7 +592,6 @@ describe('account.wishlist loaders', () => {
             },
             commerce: {
                 api: {
-                    proxy: '/mobify/proxy/api',
                     organizationId: 'test-org-id',
                     siteId: 'test-site-id',
                 },

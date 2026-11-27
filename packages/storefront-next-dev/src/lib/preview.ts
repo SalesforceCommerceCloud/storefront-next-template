@@ -22,7 +22,6 @@ import { createServer, initBasePathEnv } from '../server/index';
 import { loadProjectConfig } from '../server/config';
 import { logger } from '../logger';
 import { printServerInfo, printServerConfig, printShutdownMessage } from '../utils/logger';
-import { getCommerceCloudApiUrl } from '../utils/paths';
 
 export interface ServeOptions {
     projectDirectory?: string;
@@ -92,7 +91,6 @@ export async function preview(options: ServeOptions = {}): Promise<void> {
     const app = await createServer({
         mode: 'preview',
         projectDirectory: projectDir,
-        config,
         port,
         build,
     });
@@ -105,11 +103,8 @@ export async function preview(options: ServeOptions = {}): Promise<void> {
         printServerConfig({
             mode: 'preview',
             port,
-            enableProxy: true,
             enableStaticServing: true,
             enableCompression: true,
-            proxyPath: config.commerce.api.proxy,
-            proxyHost: getCommerceCloudApiUrl(config.commerce.api.shortCode),
             shortCode: config.commerce.api.shortCode,
             organizationId: config.commerce.api.organizationId,
             clientId: config.commerce.api.clientId,

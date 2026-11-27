@@ -205,7 +205,6 @@ describe('WishlistListItem', () => {
         mockGetConfig.mockReturnValue({
             commerce: {
                 api: {
-                    proxy: '/mobify/proxy/api',
                     organizationId: 'test-org',
                     siteId: 'test-site',
                 },

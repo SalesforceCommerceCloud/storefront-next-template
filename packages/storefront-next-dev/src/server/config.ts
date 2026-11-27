@@ -26,7 +26,6 @@ export interface ServerConfig {
             shortCode: string;
             organizationId: string;
             clientId: string;
-            proxy: string;
             proxyHost?: string;
         };
     };
@@ -44,7 +43,6 @@ export function loadConfigFromEnv(): ServerConfig {
     const shortCode = process.env.PUBLIC__app__commerce__api__shortCode;
     const organizationId = process.env.PUBLIC__app__commerce__api__organizationId;
     const clientId = process.env.PUBLIC__app__commerce__api__clientId;
-    const proxy = process.env.PUBLIC__app__commerce__api__proxy || '/mobify/proxy/api';
     const proxyHost = process.env.SCAPI_PROXY_HOST;
 
     if (!shortCode && !proxyHost) {
@@ -74,7 +72,6 @@ export function loadConfigFromEnv(): ServerConfig {
                 shortCode: shortCode || '',
                 organizationId,
                 clientId,
-                proxy,
                 proxyHost,
             },
         },
@@ -107,7 +104,6 @@ export async function loadProjectConfig(projectDirectory: string): Promise<Serve
                         shortCode?: string;
                         organizationId?: string;
                         clientId?: string;
-                        proxy?: string;
                     };
                 };
             };
@@ -147,7 +143,6 @@ export async function loadProjectConfig(projectDirectory: string): Promise<Serve
                 shortCode: api.shortCode || '',
                 organizationId: api.organizationId,
                 clientId: api.clientId,
-                proxy: api.proxy || '/mobify/proxy/api',
                 proxyHost,
             },
         },

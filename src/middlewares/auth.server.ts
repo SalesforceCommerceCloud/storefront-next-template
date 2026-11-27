@@ -265,16 +265,11 @@ export async function loginGuestUser(
     const logger = getLogger(context);
     const clients = createApiClients(context);
     const performanceTimer = context.get(performanceTimerContext);
-    const appConfig = getConfig(context);
-    const isSlasPrivate = appConfig.commerce.api.privateKeyEnabled;
-    const performanceName = isSlasPrivate
-        ? PERFORMANCE_MARKS.authLoginGuestUserPrivate
-        : PERFORMANCE_MARKS.authLoginGuestUser;
+    const performanceName = PERFORMANCE_MARKS.authLoginGuestUser;
     performanceTimer?.mark(performanceName, 'start');
 
     logger.debug('Auth: loginGuestUser starting', {
         hasUsid: !!options?.usid,
-        isSlasPrivate,
     });
 
     try {

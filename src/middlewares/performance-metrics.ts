@@ -54,7 +54,6 @@ export const PERFORMANCE_MARKS = {
     // Auth-related marks
     authRefreshAccessToken: 'auth.refreshAccessToken',
     authLoginGuestUser: 'auth.loginGuestUser',
-    authLoginGuestUserPrivate: 'auth.loginGuestUserPrivate',
     authLoginRegisteredUser: 'auth.loginRegisteredUser',
     authRefreshToken: 'auth.refreshToken',
     authGuestLogin: 'auth.guestLogin',

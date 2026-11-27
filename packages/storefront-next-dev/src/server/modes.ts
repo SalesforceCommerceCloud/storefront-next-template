@@ -19,9 +19,6 @@ export type ServerMode = 'development' | 'preview' | 'production';
  * Feature flags for each server mode
  */
 export interface ServerModeFeatures {
-    /** Enable Commerce API proxy middleware to forward /mobify/proxy/api requests to SCAPI */
-    enableProxy: boolean;
-
     /** Enable static file serving from build/client directory */
     enableStaticServing: boolean;
 
@@ -40,21 +37,18 @@ export interface ServerModeFeatures {
  */
 export const ServerModeFeatureMap: Record<ServerMode, ServerModeFeatures> = {
     development: {
-        enableProxy: true,
         enableStaticServing: false,
         enableCompression: false,
         enableLogging: true,
         enableAssetUrlPatching: false,
     },
     preview: {
-        enableProxy: true,
         enableStaticServing: true,
         enableCompression: true,
         enableLogging: true,
         enableAssetUrlPatching: true,
     },
     production: {
-        enableProxy: false,
         enableStaticServing: false,
         enableCompression: true,
         enableLogging: true,

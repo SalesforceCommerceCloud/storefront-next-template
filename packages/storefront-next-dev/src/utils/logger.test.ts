@@ -359,34 +359,30 @@ describe('logger utils', () => {
     });
 
     describe('printServerConfig', () => {
-        it('should print proxy configuration when enabled', () => {
+        it('should print commerce API configuration', () => {
             printServerConfig({
                 mode: 'development',
                 port: 5173,
-                enableProxy: true,
                 enableStaticServing: false,
                 enableCompression: false,
-                proxyPath: '/mobify/proxy/api',
-                proxyHost: 'https://test.api.commercecloud.salesforce.com',
                 shortCode: 'test-sc',
                 organizationId: 'org-123',
                 clientId: 'client-456',
             });
 
-            expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Proxy:'));
+            expect(mockConsoleLog).not.toHaveBeenCalledWith(expect.stringContaining('Proxy:'));
             expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('test-sc'));
             expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('org-123'));
             expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('client-456'));
         });
 
-        it('should print disabled proxy when not enabled', () => {
+        it('should omit proxy configuration when no API settings are provided', () => {
             printServerConfig({
                 mode: 'development',
                 port: 5173,
-                enableProxy: false,
             });
 
-            expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('disabled'));
+            expect(mockConsoleLog).not.toHaveBeenCalledWith(expect.stringContaining('Proxy:'));
         });
 
         it('should print static serving when enabled', () => {
@@ -449,9 +445,6 @@ describe('logger utils', () => {
             printServerConfig({
                 mode: 'development',
                 port: 5173,
-                enableProxy: true,
-                proxyPath: '/mobify/proxy/api',
-                proxyHost: 'https://test.api.commercecloud.salesforce.com',
                 shortCode: 'test-sc',
             });
 

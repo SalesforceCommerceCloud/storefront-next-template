@@ -135,7 +135,6 @@ describe('Product Route Loaders', () => {
                 organizationId: 'test-org',
                 siteId: 'test-site',
                 clientId: 'test-client-id',
-                proxy: '/api/commerce',
             },
         },
         sitePreferences: {

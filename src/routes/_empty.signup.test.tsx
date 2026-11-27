@@ -163,7 +163,7 @@ describe('signup route', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockGetConfig.mockReturnValue({
-            commerce: { api: { privateKeyEnabled: false } },
+            commerce: { api: {} },
             features: { passwordlessLogin: { mode: 'email' } },
             auth: { otpLength: 6 },
         } as any);

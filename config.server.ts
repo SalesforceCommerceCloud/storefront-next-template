@@ -150,12 +150,10 @@ export default defineConfig<Config>(
                     organizationId: '',
                     shortCode: '',
                     // Optional API settings
-                    proxy: '/mobify/proxy/api',
                     // OAuth2 redirect_uri sent to SLAS — must match what's registered in SLAS Admin.
                     // Not a storefront route; token exchange happens server-side with redirect: 'manual'.
                     callback: '/callback',
                     notifyClientId: 'cdaa0bde-f866-4bf9-941a-e0fe5076db42',
-                    privateKeyEnabled: false,
                     registeredRefreshTokenExpirySeconds: undefined,
                     guestRefreshTokenExpirySeconds: undefined,
                 },

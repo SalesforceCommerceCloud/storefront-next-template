@@ -172,9 +172,7 @@ export type AppConfig = {
             clientId: string;
             organizationId: string;
             shortCode: string;
-            proxy?: string;
             callback?: string;
-            privateKeyEnabled?: boolean;
             registeredRefreshTokenExpirySeconds?: number;
             guestRefreshTokenExpirySeconds?: number;
             /**

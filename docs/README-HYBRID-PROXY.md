@@ -229,7 +229,7 @@ These paths are never proxied to SFCC regardless of routing rules:
 - `/@*`, `/__*` — Vite virtual modules and dev server internals
 - `/src/*`, `/node_modules/*` — Source files served by Vite
 - `*.data` — React Router data requests
-- `/mobify/*` — SCAPI proxy paths (handled by React Router)
+- `/mobify/*` — MRT assets and reserved paths (handled by the storefront server)
 - Static asset extensions (`.js`, `.css`, `.png`, `.woff2`, etc.)
 
 SFRA static assets (`/on/demandware.static/*`, `/on/demandware.store/*`) are always proxied to SFCC and cannot be overridden.

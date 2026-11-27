@@ -137,17 +137,16 @@ function printServerInfo(mode, port, startTime, projectDir) {
 	console.log();
 }
 /**
-* Print server configuration details (proxy, static, etc.)
+* Print server configuration details (commerce API, static serving, and compression).
 */
 function printServerConfig(config) {
-	const { port, enableProxy, enableStaticServing, enableCompression, proxyPath, proxyHost, shortCode, organizationId, clientId } = config;
+	const { port, enableStaticServing, enableCompression, shortCode, organizationId, clientId } = config;
 	console.log(`  ${chalk.bold("Environment Configuration:")}`);
-	if (enableProxy && proxyPath && proxyHost && shortCode) {
-		console.log(`    ${chalk.green("✓")} ${chalk.bold("Proxy:")} ${chalk.cyan(`localhost:${port}${proxyPath}`)} ${chalk.dim("→")} ${chalk.cyan(proxyHost)}`);
+	if (shortCode) {
 		console.log(`      ${chalk.dim("Short Code:      ")}${chalk.dim(shortCode)}`);
 		if (organizationId) console.log(`      ${chalk.dim("Organization ID: ")}${chalk.dim(organizationId)}`);
 		if (clientId) console.log(`      ${chalk.dim("Client ID:       ")}${chalk.dim(clientId)}`);
-	} else console.log(`    ${chalk.bold("Proxy:           ")} ${chalk.dim("disabled")}`);
+	}
 	if (enableStaticServing) console.log(`    ${chalk.bold("Static:          ")} ${chalk.dim("enabled")}`);
 	if (enableCompression) console.log(`    ${chalk.bold("Compression:     ")} ${chalk.dim("enabled")}`);
 	const localUrl = `http://localhost:${port}`;

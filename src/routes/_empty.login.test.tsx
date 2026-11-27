@@ -182,9 +182,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
                 },
             },
             commerce: {
-                api: {
-                    privateKeyEnabled: false,
-                },
+                api: {},
             },
         })),
     };
@@ -1023,7 +1021,7 @@ describe('Login Route', () => {
                     socialLogin: { enabled: true, callbackUri: '/social-callback', providers: ['Apple', 'Google'] },
                     passkey: { enabled: false },
                 },
-                commerce: { api: { privateKeyEnabled: false } },
+                commerce: { api: {} },
             } as any);
 
             mockGetAuth.mockReturnValue({
@@ -1506,7 +1504,7 @@ describe('Login Route', () => {
             mockAuthorizeIDP.mockResolvedValue({
                 success: true,
                 redirectUrl:
-                    'http://localhost:5173/mobify/proxy/api/shopper/auth/v1/organizations/test/oauth2/authorize',
+                    'https://test.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/test/oauth2/authorize',
             });
 
             const formData = new URLSearchParams();

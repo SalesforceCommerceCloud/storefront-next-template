@@ -191,38 +191,22 @@ export function printServerInfo(mode: ServerMode, port: number, startTime: numbe
 }
 
 /**
- * Print server configuration details (proxy, static, etc.)
+ * Print server configuration details (commerce API, static serving, and compression).
  */
 export function printServerConfig(config: {
     mode: ServerMode;
     port: number;
-    enableProxy?: boolean;
     enableStaticServing?: boolean;
     enableCompression?: boolean;
-    proxyPath?: string;
-    proxyHost?: string;
     shortCode?: string;
     organizationId?: string;
     clientId?: string;
 }): void {
-    const {
-        port,
-        enableProxy,
-        enableStaticServing,
-        enableCompression,
-        proxyPath,
-        proxyHost,
-        shortCode,
-        organizationId,
-        clientId,
-    } = config;
+    const { port, enableStaticServing, enableCompression, shortCode, organizationId, clientId } = config;
 
     console.log(`  ${chalk.bold('Environment Configuration:')}`);
 
-    if (enableProxy && proxyPath && proxyHost && shortCode) {
-        console.log(
-            `    ${chalk.green('✓')} ${chalk.bold('Proxy:')} ${chalk.cyan(`localhost:${port}${proxyPath}`)} ${chalk.dim('→')} ${chalk.cyan(proxyHost)}`
-        );
+    if (shortCode) {
         console.log(`      ${chalk.dim('Short Code:      ')}${chalk.dim(shortCode)}`);
         if (organizationId) {
             console.log(`      ${chalk.dim('Organization ID: ')}${chalk.dim(organizationId)}`);
@@ -230,8 +214,6 @@ export function printServerConfig(config: {
         if (clientId) {
             console.log(`      ${chalk.dim('Client ID:       ')}${chalk.dim(clientId)}`);
         }
-    } else {
-        console.log(`    ${chalk.bold('Proxy:           ')} ${chalk.dim('disabled')}`);
     }
 
     if (enableStaticServing) {

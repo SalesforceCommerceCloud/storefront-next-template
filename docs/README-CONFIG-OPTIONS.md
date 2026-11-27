@@ -507,27 +507,11 @@ PUBLIC__app__commerce__api__shortCode="kv7kzm78"
 
 ---
 
-### commerce.api.proxy
-
-Type: `string` Optional | Default: `'/mobify/proxy/api'`
-
-The path for proxying API requests. Using a proxy helps avoid CORS issues and keeps your API credentials secure.
-
----
-
 ### commerce.api.callback
 
 Type: `string` Optional | Default: `'/callback'`
 
 The callback URL path for OAuth flows and authentication redirects.
-
----
-
-### commerce.api.privateKeyEnabled
-
-Type: `boolean` Optional | Default: `false`
-
-Enable this setting to use a private client for SLAS authentication. When enabled, you must configure a private API client.
 
 ---
 

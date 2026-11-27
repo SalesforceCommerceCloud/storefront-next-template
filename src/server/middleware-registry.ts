@@ -23,7 +23,7 @@ import type { RequestHandler } from 'express';
  * the `middleware` and `clientMiddleware` exports in `root.tsx`.
  *
  * Extensions can add Express middlewares here; the framework applies them in order
- * before the commerce proxy and the React Router SSR handler.
+ * before the React Router SSR handler.
  *
  * Note: This file and the middleware modules it imports are loaded only at server startup.
  * Restart the dev server to pick up edits to this file or to any of the imported middleware

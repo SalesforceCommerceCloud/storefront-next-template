@@ -1,6 +1,6 @@
 import { t as logger } from "./logger.js";
-import { t as importTypescript } from "./ts-import.js";
 import { c as loadRuntimeConfig } from "./config.js";
+import { t as importTypescript } from "./ts-import.js";
 import path from "path";
 import chalk from "chalk";
 import express from "express";
@@ -8,7 +8,6 @@ import { createRequestHandler } from "@react-router/express";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { createProxyMiddleware } from "http-proxy-middleware";
 import compression from "compression";
 import zlib from "node:zlib";
 import morgan from "morgan";
@@ -22,76 +21,13 @@ import { Resource } from "@opentelemetry/resources";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { UndiciInstrumentation } from "@opentelemetry/instrumentation-undici";
 
-//#region src/server/config.ts
-/**
-* This is a temporary function before we move the config implementation from
-* the template to the SDK.
-*
-* @ TODO: Remove this function after we move the config implementation from
-* the template to the SDK.
-*
-*/
-function loadConfigFromEnv() {
-	const shortCode = process.env.PUBLIC__app__commerce__api__shortCode;
-	const organizationId = process.env.PUBLIC__app__commerce__api__organizationId;
-	const clientId = process.env.PUBLIC__app__commerce__api__clientId;
-	const proxy = process.env.PUBLIC__app__commerce__api__proxy || "/mobify/proxy/api";
-	const proxyHost = process.env.SCAPI_PROXY_HOST;
-	if (!shortCode && !proxyHost) throw new Error("Missing PUBLIC__app__commerce__api__shortCode environment variable.\nPlease set it in your .env file or environment.");
-	if (!organizationId) throw new Error("Missing PUBLIC__app__commerce__api__organizationId environment variable.\nPlease set it in your .env file or environment.");
-	if (!clientId) throw new Error("Missing PUBLIC__app__commerce__api__clientId environment variable.\nPlease set it in your .env file or environment.");
-	return { commerce: { api: {
-		shortCode: shortCode || "",
-		organizationId,
-		clientId,
-		proxy,
-		proxyHost
-	} } };
-}
-/**
-* Load storefront-next project configuration from config.server.ts.
-* Requires projectDirectory to be provided.
-*
-* @param projectDirectory - Project directory to load config.server.ts from
-* @throws Error if config.server.ts is not found or invalid
-*/
-async function loadProjectConfig(projectDirectory) {
-	const configPath = resolve(projectDirectory, "config.server.ts");
-	const tsconfigPath = resolve(projectDirectory, "tsconfig.json");
-	if (!existsSync(configPath)) throw new Error(`config.server.ts not found at ${configPath}.\nPlease ensure config.server.ts exists in your project root.`);
-	const config = (await importTypescript(configPath, {
-		projectDirectory,
-		tsconfigPath
-	})).default;
-	if (!config?.app?.commerce?.api) throw new Error("Invalid config.server.ts: missing app.commerce.api configuration.\nPlease ensure your config.server.ts has the commerce API configuration.");
-	const api = config.app.commerce.api;
-	const proxyHost = process.env.SCAPI_PROXY_HOST;
-	if (!api.shortCode && !proxyHost) throw new Error("Missing shortCode in config.server.ts commerce.api configuration");
-	if (!api.organizationId) throw new Error("Missing organizationId in config.server.ts commerce.api configuration");
-	if (!api.clientId) throw new Error("Missing clientId in config.server.ts commerce.api configuration");
-	return { commerce: { api: {
-		shortCode: api.shortCode || "",
-		organizationId: api.organizationId,
-		clientId: api.clientId,
-		proxy: api.proxy || "/mobify/proxy/api",
-		proxyHost
-	} } };
-}
-
-//#endregion
 //#region src/utils/paths.ts
-/**
-* Get the Commerce Cloud API URL from a short code
-*/
-function getCommerceCloudApiUrl(shortCode, proxyHost) {
-	return proxyHost || `https://${shortCode}.api.commercecloud.salesforce.com`;
-}
 /**
 * Get the configurable base path for the application.
 * Reads from MRT_ENV_BASE_PATH environment variable.
 *
 * The base path is used for CDN routing to the correct MRT environment.
-* It is prepended to all URLs: page routes, /mobify/bundle/ assets, and /mobify/proxy/api.
+* It is prepended to page routes and /mobify/bundle/ assets.
 *
 * Validation rules:
 * - Must be a single path segment starting with '/'
@@ -122,20 +58,6 @@ function getBasePath() {
 */
 function getBundlePath(bundleId) {
 	return `${getBasePath()}/mobify/bundle/${bundleId}/client/`;
-}
-
-//#endregion
-//#region src/server/middleware/proxy.ts
-/**
-* Create proxy middleware for Commerce Cloud API
-* Proxies requests from /mobify/proxy/api to the Commerce Cloud API
-*/
-function createCommerceProxyMiddleware(config) {
-	return createProxyMiddleware({
-		target: getCommerceCloudApiUrl(config.commerce.api.shortCode, config.commerce.api.proxyHost),
-		changeOrigin: true,
-		secure: !config.commerce.api.proxyHost
-	});
 }
 
 //#endregion
@@ -328,21 +250,18 @@ function patchReactRouterBuild(build, bundleId) {
 */
 const ServerModeFeatureMap = {
 	development: {
-		enableProxy: true,
 		enableStaticServing: false,
 		enableCompression: false,
 		enableLogging: true,
 		enableAssetUrlPatching: false
 	},
 	preview: {
-		enableProxy: true,
 		enableStaticServing: true,
 		enableCompression: true,
 		enableLogging: true,
 		enableAssetUrlPatching: true
 	},
 	production: {
-		enableProxy: false,
 		enableStaticServing: false,
 		enableCompression: true,
 		enableLogging: true,
@@ -700,6 +619,37 @@ function createHealthCheckHandler(options) {
 }
 
 //#endregion
+//#region src/server/config.ts
+/**
+* Load storefront-next project configuration from config.server.ts.
+* Requires projectDirectory to be provided.
+*
+* @param projectDirectory - Project directory to load config.server.ts from
+* @throws Error if config.server.ts is not found or invalid
+*/
+async function loadProjectConfig(projectDirectory) {
+	const configPath = resolve(projectDirectory, "config.server.ts");
+	const tsconfigPath = resolve(projectDirectory, "tsconfig.json");
+	if (!existsSync(configPath)) throw new Error(`config.server.ts not found at ${configPath}.\nPlease ensure config.server.ts exists in your project root.`);
+	const config = (await importTypescript(configPath, {
+		projectDirectory,
+		tsconfigPath
+	})).default;
+	if (!config?.app?.commerce?.api) throw new Error("Invalid config.server.ts: missing app.commerce.api configuration.\nPlease ensure your config.server.ts has the commerce API configuration.");
+	const api = config.app.commerce.api;
+	const proxyHost = process.env.SCAPI_PROXY_HOST;
+	if (!api.shortCode && !proxyHost) throw new Error("Missing shortCode in config.server.ts commerce.api configuration");
+	if (!api.organizationId) throw new Error("Missing organizationId in config.server.ts commerce.api configuration");
+	if (!api.clientId) throw new Error("Missing clientId in config.server.ts commerce.api configuration");
+	return { commerce: { api: {
+		shortCode: api.shortCode || "",
+		organizationId: api.organizationId,
+		clientId: api.clientId,
+		proxyHost
+	} } };
+}
+
+//#endregion
 //#region src/server/index.ts
 /** Relative path to the middleware registry TypeScript source (development). Must match appDirectory + server dir + filename used by buildMiddlewareRegistry plugin. */
 const RELATIVE_MIDDLEWARE_REGISTRY_SOURCE = "src/server/middleware-registry.ts";
@@ -729,10 +679,9 @@ async function initBasePathEnv(projectDirectory) {
 * Create a unified Express server for development, preview, or production mode
 */
 async function createServer(options) {
-	const { mode, projectDirectory = process.cwd(), config: providedConfig, vite, build, streaming = false, enableProxy = ServerModeFeatureMap[mode].enableProxy, enableStaticServing = ServerModeFeatureMap[mode].enableStaticServing, enableCompression = ServerModeFeatureMap[mode].enableCompression, enableLogging = ServerModeFeatureMap[mode].enableLogging, enableAssetUrlPatching = ServerModeFeatureMap[mode].enableAssetUrlPatching } = options;
+	const { mode, projectDirectory = process.cwd(), vite, build, streaming = false, enableStaticServing = ServerModeFeatureMap[mode].enableStaticServing, enableCompression = ServerModeFeatureMap[mode].enableCompression, enableLogging = ServerModeFeatureMap[mode].enableLogging, enableAssetUrlPatching = ServerModeFeatureMap[mode].enableAssetUrlPatching } = options;
 	if (mode === "development" && !vite) throw new Error("Vite dev server instance is required for development mode");
 	if ((mode === "preview" || mode === "production") && !build) throw new Error("React Router server build is required for preview/production mode");
-	const config = providedConfig ?? loadConfigFromEnv();
 	const bundleId = process.env.BUNDLE_ID ?? DEFAULT_BUNDLE_ID;
 	const app = express();
 	app.disable("x-powered-by");
@@ -765,7 +714,6 @@ async function createServer(options) {
 		app.use(entry.handler);
 	});
 	if (mode === "development" && vite) app.use(vite.middlewares);
-	if (enableProxy) app.use(config.commerce.api.proxy, createCommerceProxyMiddleware(config));
 	const basePath = getBasePath();
 	if (basePath) app.use((req, res, next) => {
 		if (req.path.startsWith(`${basePath}/`) || req.path === basePath) return next();
@@ -811,4 +759,4 @@ async function createSSRHandler(mode, bundleId, vite, build, enableAssetUrlPatch
 }
 
 //#endregion
-export { loadProjectConfig as i, initBasePathEnv as n, getCommerceCloudApiUrl as r, createServer as t };
+export { initBasePathEnv as n, loadProjectConfig as r, createServer as t };

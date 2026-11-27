@@ -81,16 +81,9 @@ This is handled by:
 - **Client-side**: The `<Scripts>` component injects `window._BUNDLE_PATH` which includes the base path
 - **Preview mode**: `patchReactRouterBuild()` rewrites asset paths and sets `basename` on the build
 
-#### SCAPI Proxy
+#### SCAPI Requests
 
-The SCAPI proxy is only used in development and preview mode (disabled in production). It is mounted at its configured path without the base path prefix (e.g., `/mobify/proxy/api`):
-
-| Environment | Proxy path |
-|---|---|
-| Dev / Preview | `/mobify/proxy/api` (no base path) |
-| Production (MRT) | Proxy disabled — SCAPI calls go directly to the API |
-
-The server-side SCAPI client always calls the proxy at `config.commerce.api.proxy` directly, so the base path is not involved.
+Server-side SCAPI requests target the Commerce API directly, independently of the storefront base path.
 
 #### Resource Routes
 
