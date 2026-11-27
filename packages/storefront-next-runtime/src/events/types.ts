@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-import type { ShopperBasketsV1, ShopperBasketsV2, ShopperProducts, ShopperSearch } from '../scapi-client';
+import type {
+    ShopperBasketsV1,
+    ShopperBasketsV2,
+    ShopperOrders,
+    ShopperProducts,
+    ShopperSearch,
+} from '../scapi-client';
 
 // Union types to support both V1 and V2 basket APIs
 type BasketProductItem = ShopperBasketsV1.schemas['ProductItem'] | ShopperBasketsV2.schemas['ProductItem'];
@@ -199,6 +205,18 @@ export interface WishlistItemMergedEvent extends BaseEvent {
     productId: string;
 }
 
+/** Order successfully placed — fires once on the order confirmation page */
+export interface OrderPlacedEvent extends BaseEvent {
+    eventType: 'order_placed';
+    order: ShopperOrders.schemas['Order'];
+    products: Array<{
+        productId: string;
+        quantity: number;
+        price: number;
+        productName?: string;
+    }>;
+}
+
 /** Summary of guest wishlist merge operation on login */
 export interface WishlistMergedEvent extends BaseEvent {
     eventType: 'wishlist_merged';
@@ -252,6 +270,7 @@ export type AnalyticsEvent =
     | WishlistViewedEvent
     | WishlistItemMergedEvent
     | WishlistMergedEvent
+    | OrderPlacedEvent
     | AnalyticsEventExtensions[keyof AnalyticsEventExtensions];
 
 /**

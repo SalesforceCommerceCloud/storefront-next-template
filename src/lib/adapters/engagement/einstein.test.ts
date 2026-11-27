@@ -86,6 +86,7 @@ const mockConfig: EinsteinConfig = {
         wishlist_viewed: true,
         wishlist_item_merged: true,
         wishlist_merged: true,
+        order_placed: false,
     },
 };
 

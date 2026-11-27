@@ -289,7 +289,7 @@ importers:
         version: 4.1.11(vitest@4.1.11)
       chromatic:
         specifier: ^18.0.1
-        version: 18.15.2
+        version: 18.15.3
       compression:
         specifier: 1.8.2
         version: 1.8.2
@@ -4299,8 +4299,8 @@ packages:
   '@types/doctrine@0.0.9':
     resolution: {integrity: sha512-eOIHzCUSH7SMfonMG1LsC2f8vxBFtho6NGBznK41R84YzPuvSBzrhEps33IsQiOW9+VL6NQ9DbjQJznk/S4uRA==}
 
-  '@types/estree@1.0.10':
-    resolution: {integrity: sha512-lTyOMnOcmRBzdCv6/4zUZCrEhV0xrqQiUZBZtVcbmLHBXKLnN8q89v/wKRF/Q0HbwVsqbIG3o5HDoFl9sduM+g==}
+  '@types/estree@1.0.11':
+    resolution: {integrity: sha512-YBdNe5JcjYR0sPhJW1QIeRCmI11YhYvaRuGCs9+WCeTTb+Yhb2BE2XMe5/wAqF10FK5g3+q1PDhQABfT7aX0gg==}
 
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
@@ -5273,8 +5273,8 @@ packages:
       '@chromatic-com/playwright':
         optional: true
 
-  chromatic@18.15.2:
-    resolution: {integrity: sha512-SF7uJYvfsGS4QqVlv53B9RUVcN608h7TZOsFiD1RNk/rAcJ9ZCu2f2y5azNp76g3VuePw826bU1hB7WWroFKpQ==}
+  chromatic@18.15.3:
+    resolution: {integrity: sha512-y5RaLkJb/4/pa7hX21kIY10498n6FuYkI8f1TlESAomzJsIa8joFIB+23RBtAIYOKxHb/1WmoJSQ89yrSnzn6A==}
     engines: {node: '>=22.0.0'}
     hasBin: true
     peerDependencies:
@@ -5964,8 +5964,8 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.493:
-    resolution: {integrity: sha512-/Wto2sKd0EpepzMqwSP2il2TNc+rnBDF6k1poCvhRKpaSSD4sLGRBE+FydqHs2QwcW9cXKLVDqnauzJy1oByYw==}
+  electron-to-chromium@1.5.494:
+    resolution: {integrity: sha512-Tph7ohL4Xc0ft3DXElYEIVTmPI3H0MtPCTdgtz5AwWGZG6q+vMiT3IzJ3RJX/HJQ8pYzeimQyvi6SsBTOS0nyQ==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -9675,8 +9675,8 @@ packages:
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
 
-  tinyexec@1.3.1:
-    resolution: {integrity: sha512-GCvB3aoys96IuDFBMcTB46JOR6mdMtAToqwiW8JlWhsoh1mhHi/xn9ss/Dg7N555GiJyEt2qzoG/NHCwM6h1EA==}
+  tinyexec@1.4.0:
+    resolution: {integrity: sha512-PV6lIcJQh57aFeJDwx16JNHmgFRh5xguzallrDW1qe8nAghYgr5MKz2K5k7wEyV/ygZhdnIAP8+HZSarHPBCsg==}
     engines: {node: '>=18'}
 
   tinyglobby@0.2.17:
@@ -13503,7 +13503,7 @@ snapshots:
 
   '@rollup/pluginutils@5.5.1(rollup@4.62.2)':
     dependencies:
-      '@types/estree': 1.0.10
+      '@types/estree': 1.0.11
       estree-walker: 2.0.2
       picomatch: 4.0.4
     optionalDependencies:
@@ -14339,7 +14339,7 @@ snapshots:
 
   '@types/doctrine@0.0.9': {}
 
-  '@types/estree@1.0.10': {}
+  '@types/estree@1.0.11': {}
 
   '@types/estree@1.0.9': {}
 
@@ -15170,7 +15170,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.39
       caniuse-lite: 1.0.30001828
-      electron-to-chromium: 1.5.493
+      electron-to-chromium: 1.5.494
       node-releases: 2.0.65
       update-browserslist-db: 1.4.0(browserslist@4.29.6)
 
@@ -15393,7 +15393,7 @@ snapshots:
 
   chromatic@12.2.0: {}
 
-  chromatic@18.15.2:
+  chromatic@18.15.3:
     dependencies:
       semver: 7.8.6
 
@@ -16170,7 +16170,7 @@ snapshots:
 
   ejs@6.0.1: {}
 
-  electron-to-chromium@1.5.493: {}
+  electron-to-chromium@1.5.494: {}
 
   embla-carousel-react@8.6.0(react@19.2.3):
     dependencies:
@@ -16328,7 +16328,7 @@ snapshots:
 
   estree-walker@3.0.3:
     dependencies:
-      '@types/estree': 1.0.10
+      '@types/estree': 1.0.11
 
   esutils@2.0.3: {}
 
@@ -20751,7 +20751,7 @@ snapshots:
 
   tinybench@2.9.0: {}
 
-  tinyexec@1.3.1: {}
+  tinyexec@1.4.0: {}
 
   tinyglobby@0.2.17:
     dependencies:
@@ -20899,7 +20899,7 @@ snapshots:
       rolldown: 1.0.0-beta.45(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
       rolldown-plugin-dts: 0.17.8(rolldown@1.0.0-beta.45(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3))(typescript@5.9.2)
       semver: 7.8.6
-      tinyexec: 1.3.1
+      tinyexec: 1.4.0
       tinyglobby: 0.2.17
       tree-kill: 1.2.2
       unconfig: 7.5.0
@@ -21188,7 +21188,7 @@ snapshots:
       picomatch: 4.0.4
       std-env: 4.3.0
       tinybench: 2.9.0
-      tinyexec: 1.3.1
+      tinyexec: 1.4.0
       tinyglobby: 0.2.17
       tinyrainbow: 3.2.0
       vite: 7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.51.4)(tsx@4.23.15)(yaml@2.9.0)

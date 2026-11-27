@@ -110,6 +110,7 @@ const mockConfig: Data360Config = {
         wishlist_viewed: false,
         wishlist_item_merged: false,
         wishlist_merged: false,
+        order_placed: false,
     },
 };
 

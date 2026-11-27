@@ -70,6 +70,12 @@ vi.mock('@/extensions/bopis/lib/api/stores.server', () => ({
 }));
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
+vi.mock('@/hooks/use-analytics', () => ({
+    useAnalytics: () => ({
+        trackOrderPlaced: vi.fn().mockResolvedValue(true),
+    }),
+}));
+
 import { fetchOrderWithProducts } from '@/lib/api/order.server';
 import { destroyBasket } from '@/middlewares/basket.server';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS

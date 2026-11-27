@@ -48,6 +48,7 @@ import OrderSkeleton from '@/components/order-skeleton';
 import { SeoMeta } from '@/components/seo-meta';
 import { useTranslation } from 'react-i18next';
 import { toImageUrl } from '@/lib/images/dynamic-image';
+import { useAnalytics } from '@/hooks/use-analytics';
 import { getLogger } from '@/lib/logger.server';
 import { getLoginPreferences } from '@/lib/login-preferences.server';
 import { isRegisteredCustomer } from '@/lib/api/customer.server';
@@ -308,6 +309,50 @@ function OrderConfirmationContent({
     useEffect(() => {
         resetBasket();
     }, [resetBasket]);
+
+    // Track the order_placed analytics event once per order.
+    // sessionStorage survives page refreshes so the event fires exactly once per order per tab session.
+    // An in-memory ref serves as a dedup fallback when storage is blocked by browser policy.
+    const { trackOrderPlaced } = useAnalytics();
+    const trackedOrders = useRef(new Set<string>());
+    useEffect(() => {
+        const key = `order_tracked_${order.orderNo}`;
+        if (trackedOrders.current.has(key)) return;
+
+        let alreadyTracked = false;
+        try {
+            alreadyTracked = !!sessionStorage.getItem(key);
+        } catch {
+            // Browser policy blocks storage access — fall back to in-memory tracking
+        }
+        if (alreadyTracked) return;
+
+        // In-memory guard against concurrent effect runs
+        trackedOrders.current.add(key);
+
+        const products = (order.productItems ?? []).map((item) => ({
+            productId: item.productId ?? '',
+            quantity: item.quantity ?? 1,
+            price: item.priceAfterItemDiscount ?? item.price ?? item.basePrice ?? 0,
+            productName: item.productName,
+        }));
+
+        void (async () => {
+            const tracked = await trackOrderPlaced({ order, products });
+            if (tracked) {
+                // Persist only after a successful handoff so consent grant can retry
+                try {
+                    sessionStorage.setItem(key, '1');
+                } catch {
+                    // Storage blocked or quota exceeded — in-memory dedup remains active
+                }
+            } else {
+                // Consent was unknown or declined — allow the effect to retry when
+                // consent is later granted and this effect reruns
+                trackedOrders.current.delete(key);
+            }
+        })();
+    }, [order, trackOrderPlaced]);
 
     return (
         <div

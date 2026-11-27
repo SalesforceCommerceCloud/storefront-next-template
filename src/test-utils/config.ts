@@ -308,6 +308,7 @@ export const mockBuildConfig: Config = {
                         wishlist_viewed: true,
                         wishlist_item_merged: true,
                         wishlist_merged: true,
+                        order_placed: false,
                     },
                 },
                 data360: {
@@ -335,6 +336,7 @@ export const mockBuildConfig: Config = {
                         wishlist_viewed: false,
                         wishlist_item_merged: false,
                         wishlist_merged: false,
+                        order_placed: false,
                     },
                 },
                 activeData: {
@@ -362,6 +364,7 @@ export const mockBuildConfig: Config = {
                         wishlist_viewed: false,
                         wishlist_item_merged: false,
                         wishlist_merged: false,
+                        order_placed: false,
                     },
                 },
             },

@@ -17,7 +17,7 @@ import { useRef, useEffect, useLayoutEffect } from 'react';
 import { useLocation } from 'react-router';
 import { useAuth } from '@/providers/auth';
 import type { SessionData } from '@/lib/api/types';
-import type { ShopperBasketsV2, ShopperProducts, ShopperSearch } from '@/scapi';
+import type { ShopperBasketsV2, ShopperOrders, ShopperProducts, ShopperSearch } from '@/scapi';
 import {
     createEvent,
     getEventMediator,
@@ -213,6 +213,7 @@ export const useAnalytics = () => {
             trackWishlistViewed: (_signal?: AbortSignal) => Promise.resolve(false),
             trackWishlistItemMerged: () => {},
             trackWishlistMerged: () => {},
+            trackOrderPlaced: () => {},
         };
         /* oxlint-enable @typescript-eslint/no-empty-function */
     }
@@ -601,6 +602,19 @@ export const useAnalytics = () => {
         );
     };
 
+    /**
+     * Track a successfully placed order
+     */
+    const trackOrderPlaced = async (data: {
+        order: ShopperOrders.schemas['Order'];
+        products: Array<{ productId: string; quantity: number; price: number; productName?: string }>;
+    }) => {
+        return trackEvent(getAuthPromise, appConfig, consentPreferences, siteInfo, getCurrency, 'order_placed', {
+            order: data.order,
+            products: data.products,
+        });
+    };
+
     return {
         consentKey,
         trackViewPage,
@@ -621,5 +635,6 @@ export const useAnalytics = () => {
         trackWishlistViewed,
         trackWishlistItemMerged,
         trackWishlistMerged,
+        trackOrderPlaced,
     };
 };

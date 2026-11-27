@@ -44,6 +44,7 @@ const einsteinEventToEndpointMap: Record<AnalyticsEvent['eventType'], string> = 
     wishlist_viewed: 'wishlistViewed',
     wishlist_item_merged: 'wishlistItemMerged',
     wishlist_merged: 'wishlistMerged',
+    order_placed: 'orderPlaced',
 };
 
 export type EinsteinActivity = {
@@ -312,6 +313,14 @@ function convertEventToEinsteinActivity(event: AnalyticsEvent, realm: string, is
                 mergedProductIds: event.mergedProductIds,
                 skippedProductIds: event.skippedProductIds,
                 failedProductIds: event.failedProductIds,
+            };
+
+        case 'order_placed':
+            return {
+                ...baseActivity,
+                orderNo: event.order.orderNo,
+                orderTotal: event.order.orderTotal,
+                products: event.products,
             };
 
         default:

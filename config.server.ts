@@ -682,6 +682,8 @@ export default defineConfig<Config>(
                             wishlist_viewed: true,
                             wishlist_item_merged: true,
                             wishlist_merged: true,
+                            // NOTE: order_placed is disabled while its impact on Einstein reports and dashboards is being evaluated.
+                            order_placed: false,
                         },
                     },
                     data360: {
@@ -714,6 +716,7 @@ export default defineConfig<Config>(
                             wishlist_viewed: false,
                             wishlist_item_merged: false,
                             wishlist_merged: false,
+                            order_placed: false,
                         },
                     },
                     activeData: {
@@ -741,6 +744,7 @@ export default defineConfig<Config>(
                             wishlist_viewed: false,
                             wishlist_item_merged: false,
                             wishlist_merged: false,
+                            order_placed: false,
                         },
                     },
                 },
