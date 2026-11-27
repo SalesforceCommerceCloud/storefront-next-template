@@ -258,6 +258,10 @@ export type AppConfig = {
                 host: string;
                 siteUUID: string;
             };
+            tiktokAds: EngagementAdapterConfig & {
+                enabled: boolean;
+                pixelId: string;
+            };
             [key: string]: EngagementAdapterConfig;
         };
         analytics: {

@@ -20,6 +20,7 @@ import { resolveShopperAgentConfig } from '@/components/cimulate';
 import { createCimulateCspContributor } from './csp-contributors/cimulate.js';
 import { createEmbeddedAgentCspContributor } from './csp-contributors/embedded-agent.js';
 import { createData360CspContributor } from './csp-contributors/data360.js';
+import { createTikTokAdsCspContributor } from './csp-contributors/tiktok-ads.js';
 import { createTrustedAgentCspContributor } from './csp-contributors/trusted-agent.js';
 import { getScapiBaseUrl } from '@/lib/utils';
 // Imported via the `@/` alias (not a sibling-relative path) so a brand can override this contributor:
@@ -45,6 +46,7 @@ export const securityHeadersMiddleware: MiddlewareFunction<Response> = async (ar
             createCimulateCspContributor(resolveShopperAgentConfig(config)),
             createEmbeddedAgentCspContributor(config.commerce?.embeddedAgent),
             createData360CspContributor(config.engagement?.adapters?.data360),
+            createTikTokAdsCspContributor(config.engagement?.adapters?.tiktokAds),
             createOpenStreetMapCspContributor(),
             createTrustedAgentCspContributor(config.features?.trustedAgent, () =>
                 getScapiBaseUrl(config.commerce.api.shortCode)

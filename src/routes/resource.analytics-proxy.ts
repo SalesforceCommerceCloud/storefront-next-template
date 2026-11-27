@@ -45,14 +45,12 @@ function rewriteCookieDomain(setCookieValue: string, ecomHostname: string, appHo
 }
 
 async function proxyAnalytics({ request, context }: Route.LoaderArgs | Route.ActionArgs) {
-    let cookieHeader: string | undefined;
     try {
         const auth = getAuth(context);
         if (auth.authMode === 'trusted-agent')
             return new Response(null, { status: 204, headers: { 'Cache-Control': 'private, no-store' } });
-        if (auth.dwsid) cookieHeader = `dwsid=${auth.dwsid}`;
     } catch {
-        // Auth middleware not initialized — proceed without dwsid.
+        // Auth middleware not initialized
     }
     const logger = getLogger(context);
     const url = new URL(request.url);
@@ -87,6 +85,33 @@ async function proxyAnalytics({ request, context }: Route.LoaderArgs | Route.Act
             expectedHostname: parsedHost.hostname,
         });
         return new Response('Target URL does not match configured Active Data host', { status: 403 });
+    }
+
+    let cookieHeader: string | undefined;
+
+    try {
+        const auth = getAuth(context);
+        const cookieParts: string[] = [];
+        if (auth.dwsid) {
+            cookieParts.push(`dwsid=${auth.dwsid}`);
+        }
+
+        // Forward TikTok tracking cookies to ECOM for server-side ad attribution.
+        // _ttp (TikTok browser ID) and ttclid (TikTok Click ID) are set by the
+        // TikTok pixel SDK on the storefront domain. ECOM's TikTokAdsServerTrackingManager
+        // reads them for Events API dedup and attribution — same as SiteGenesis/SFRA,
+        // where ECOM reads them directly because pages are server-rendered on the ECOM domain.
+        const incomingCookies = request.headers.get('cookie') ?? '';
+        const ttpMatch = incomingCookies.match(/(?:^|;\s*)_ttp=([^;]+)/);
+        const ttclidMatch = incomingCookies.match(/(?:^|;\s*)ttclid=([^;]+)/);
+        if (ttpMatch) cookieParts.push(`_ttp=${ttpMatch[1]}`);
+        if (ttclidMatch) cookieParts.push(`ttclid=${ttclidMatch[1]}`);
+
+        if (cookieParts.length > 0) {
+            cookieHeader = cookieParts.join('; ');
+        }
+    } catch {
+        // Auth middleware not initialized — proceed without dwsid
     }
 
     try {

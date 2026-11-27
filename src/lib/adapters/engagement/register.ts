@@ -18,6 +18,7 @@ import { createEinsteinAdapter } from './einstein';
 import { addAdapter } from './store';
 import { createActiveDataAdapter } from './active-data';
 import { createData360Adapter } from './data360';
+import { createTikTokAdsClientAdapter } from './tiktok-ads-client';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger();
@@ -88,6 +89,21 @@ export function initializeEngagementAdapters(appConfig: AppConfig): void {
             );
         } catch (error) {
             logger.warn('Failed to initialize Active Data adapter', { error });
+        }
+    }
+
+    if (engagementAdapterConfigs?.tiktokAds?.enabled) {
+        try {
+            addAdapter(
+                'tiktokAds',
+                createTikTokAdsClientAdapter({
+                    pixelId: engagementAdapterConfigs.tiktokAds.pixelId || '',
+                    consentCategory: engagementAdapterConfigs.tiktokAds.consentCategory,
+                    eventToggles: engagementAdapterConfigs.tiktokAds.eventToggles || {},
+                })
+            );
+        } catch (error) {
+            logger.warn('Failed to initialize TikTok Ads adapter', { error });
         }
     }
 }

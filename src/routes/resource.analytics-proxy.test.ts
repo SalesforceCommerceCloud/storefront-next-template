@@ -39,10 +39,11 @@ const mockGetAuth = vi.mocked(getAuth);
 const ACTIVE_DATA_HOST = 'https://zzrf-001.dx.commercecloud.salesforce.com';
 const ANALYTICS_URL = `${ACTIVE_DATA_HOST}/on/demandware.store/Sites-${mockAltSiteObject.id}-Site/${mockAltSiteObject.defaultLocale}/__Analytics-Start?dwac=0.123`;
 
-function createArgs(method: string, targetUrl?: string) {
+function createArgs(method: string, targetUrl?: string, cookie?: string) {
     const params = targetUrl ? `?url=${encodeURIComponent(targetUrl)}` : '';
+    const headers: HeadersInit = cookie ? { cookie } : {};
     return {
-        request: new Request(`http://localhost${resourceRoutes.analyticsProxy}${params}`, { method }),
+        request: new Request(`http://localhost${resourceRoutes.analyticsProxy}${params}`, { method, headers }),
         url: new URL(`http://localhost${resourceRoutes.analyticsProxy}${params}`),
         params: {},
         context: new RouterContextProvider(),
@@ -165,5 +166,38 @@ describe('resource.analytics-proxy', () => {
         const response = await loader(createArgs('GET', ANALYTICS_URL));
 
         expect(response.status).toBe(502);
+    });
+
+    it('should forward _ttp and ttclid cookies alongside dwsid', async () => {
+        await loader(createArgs('GET', ANALYTICS_URL, 'dwsid=existing-dwsid; _ttp=abc123; ttclid=xyz789'));
+
+        expect(fetch).toHaveBeenCalledWith(
+            ANALYTICS_URL,
+            expect.objectContaining({
+                headers: { Cookie: 'dwsid=existing-dwsid; _ttp=abc123; ttclid=xyz789' },
+            })
+        );
+    });
+
+    it('should forward _ttp without ttclid when only _ttp is present', async () => {
+        await loader(createArgs('GET', ANALYTICS_URL, '_ttp=abc123'));
+
+        expect(fetch).toHaveBeenCalledWith(
+            ANALYTICS_URL,
+            expect.objectContaining({
+                headers: { Cookie: 'dwsid=existing-dwsid; _ttp=abc123' },
+            })
+        );
+    });
+
+    it('should not match _ttp in cookie names like x_ttp (boundary safety)', async () => {
+        await loader(createArgs('GET', ANALYTICS_URL, 'x_ttp=fake; _ttp=real'));
+
+        expect(fetch).toHaveBeenCalledWith(
+            ANALYTICS_URL,
+            expect.objectContaining({
+                headers: { Cookie: 'dwsid=existing-dwsid; _ttp=real' },
+            })
+        );
     });
 });
